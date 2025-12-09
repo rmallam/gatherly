@@ -1,0 +1,15 @@
+# Environment Variables
+.env
+.env.local
+.env.production
+
+# Database
+db.json
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/

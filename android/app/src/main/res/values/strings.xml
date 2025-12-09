@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Guest Scanner</string>
+    <string name="title_activity_main">Guest Scanner</string>
+    <string name="package_name">com.guestscanner.app</string>
+    <string name="custom_url_scheme">com.guestscanner.app</string>
+</resources>

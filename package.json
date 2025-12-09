@@ -1,0 +1,42 @@
+{
+    "name": "guest-scanner",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "lint": "eslint .",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@capacitor-community/contacts": "^7.0.0",
+        "@capacitor/android": "^8.0.0",
+        "@capacitor/core": "^8.0.0",
+        "bcrypt": "^6.0.0",
+        "body-parser": "^1.20.2",
+        "cors": "^2.8.5",
+        "express": "^4.18.2",
+        "html5-qrcode": "^2.3.8",
+        "jsonwebtoken": "^9.0.3",
+        "lucide-react": "^0.300.0",
+        "qrcode.react": "^3.1.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-router-dom": "^6.21.0",
+        "uuid": "^9.0.1"
+    },
+    "devDependencies": {
+        "@capacitor/cli": "^8.0.0",
+        "@types/react": "^18.2.43",
+        "@types/react-dom": "^18.2.17",
+        "@vitejs/plugin-basic-ssl": "^1.1.0",
+        "@vitejs/plugin-react": "^4.2.1",
+        "eslint": "^8.55.0",
+        "eslint-plugin-react": "^7.33.2",
+        "eslint-plugin-react-hooks": "^4.6.0",
+        "eslint-plugin-react-refresh": "^0.4.5",
+        "vite": "^5.0.8",
+        "vite-plugin-pwa": "^0.17.4"
+    }
+}
