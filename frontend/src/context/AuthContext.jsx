@@ -1,13 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { BiometricService } from '../services/biometric';
 
 const AuthContext = createContext();
 
-const API_URL = '/api';
+const API_URL = 'https://gatherly-backend-3vmv.onrender.com/api';
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
+    const [biometricAvailable, setBiometricAvailable] = useState(false);
+
+    const SERVER_NAME = 'gatherly-app';
 
     // Check if user is logged in on mount
     useEffect(() => {
@@ -47,6 +51,9 @@ export const AuthProvider = ({ children }) => {
         };
 
         checkAuth();
+
+        // Check if biometric is available
+        BiometricService.isAvailable().then(setBiometricAvailable);
     }, [token]);
 
     const signup = async (name, email, password) => {
@@ -87,6 +94,48 @@ export const AuthProvider = ({ children }) => {
         return data;
     };
 
+    const loginWithBiometric = async () => {
+        try {
+            // Authenticate with biometric
+            const authenticated = await BiometricService.authenticate();
+
+            if (!authenticated) {
+                throw new Error('Biometric authentication failed');
+            }
+
+            // Retrieve stored credentials
+            const credentials = await BiometricService.getCredentials(SERVER_NAME);
+
+            if (!credentials || !credentials.username || !credentials.password) {
+                throw new Error('No saved credentials found');
+            }
+
+            // Login with retrieved credentials
+            await login(credentials.username, credentials.password);
+        } catch (error) {
+            console.error('Biometric login failed:', error);
+            throw error;
+        }
+    };
+
+    const enableBiometric = async (email, password) => {
+        try {
+            await BiometricService.saveCredentials(SERVER_NAME, email, password);
+        } catch (error) {
+            console.error('Failed to enable biometric:', error);
+            throw error;
+        }
+    };
+
+    const disableBiometric = async () => {
+        try {
+            await BiometricService.deleteCredentials(SERVER_NAME);
+        } catch (error) {
+            console.error('Failed to disable biometric:', error);
+            throw error;
+        }
+    };
+
     const continueAsGuest = () => {
         // Generate unique guest ID
         const guestNumber = Math.floor(10000 + Math.random() * 90000);
@@ -118,8 +167,12 @@ export const AuthProvider = ({ children }) => {
             user,
             token,
             loading,
+            biometricAvailable,
             signup,
             login,
+            loginWithBiometric,
+            enableBiometric,
+            disableBiometric,
             continueAsGuest,
             logout,
             isAuthenticated: !!user

@@ -3,6 +3,10 @@
     "appName": "Guest Scanner",
     "webDir": "dist",
     "server": {
-        "androidScheme": "https"
+        "androidScheme": "https",
+        "allowNavigation": [
+            "https://gatherly-backend-3vmv.onrender.com"
+        ],
+        "cleartext": true
     }
 }

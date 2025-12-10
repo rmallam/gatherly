@@ -3,11 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 const AppContext = createContext();
 
-// Detect if we are in dev mode or production
-// In production/mobile access, we expect the frontend to proxy to the backend or use a fixed URL
-// For this simple setup, we'll assume the API is at the same hostname on port 3001 if accessed locally,
-// but cleaner is to use a proxy in vite config.
-const API_URL = '/api';
+// Temporarily hardcoded for testing - always use production backend
+const API_URL = 'https://gatherly-backend-3vmv.onrender.com/api';
 
 export const AppProvider = ({ children }) => {
     const [events, setEvents] = useState([]);
@@ -114,11 +111,25 @@ export const AppProvider = ({ children }) => {
             localStorage.setItem('guestEvents', JSON.stringify(updatedEvents));
         } else {
             // Regular users: save to server
-            await fetch(`${API_URL}/events`, {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify(newEvent),
-            });
+            try {
+                const res = await fetch(`${API_URL}/events`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(newEvent),
+                });
+
+                if (!res.ok) {
+                    console.error('Failed to save event to server:', res.status);
+                    // Revert optimistic update
+                    setEvents(prev => prev.filter(e => e.id !== newEvent.id));
+                    throw new Error('Failed to save event');
+                }
+            } catch (err) {
+                console.error('Error saving event:', err);
+                // Revert optimistic update
+                setEvents(prev => prev.filter(e => e.id !== newEvent.id));
+                throw err;
+            }
         }
 
         return newEvent;
@@ -150,11 +161,35 @@ export const AppProvider = ({ children }) => {
             return event;
         }));
 
-        await fetch(`${API_URL}/events/${eventId}/guests`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newGuest)
-        });
+        try {
+            const res = await fetch(`${API_URL}/events/${eventId}/guests`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newGuest)
+            });
+
+            if (!res.ok) {
+                console.error('Failed to add guest to server:', res.status);
+                // Revert optimistic update
+                setEvents(prev => prev.map(event => {
+                    if (event.id === eventId) {
+                        return { ...event, guests: event.guests.filter(g => g.id !== newGuest.id) };
+                    }
+                    return event;
+                }));
+                throw new Error('Failed to add guest');
+            }
+        } catch (err) {
+            console.error('Error adding guest:', err);
+            // Revert optimistic update
+            setEvents(prev => prev.map(event => {
+                if (event.id === eventId) {
+                    return { ...event, guests: event.guests.filter(g => g.id !== newGuest.id) };
+                }
+                return event;
+            }));
+            throw err;
+        }
     };
 
     const markGuestAttended = async (eventId, guestId, count = 1) => {
@@ -232,12 +267,44 @@ export const AppProvider = ({ children }) => {
         }));
 
         // Send each guest to the backend
+        const successfulGuests = [];
+        const failedGuests = [];
+
         for (const guest of newGuests) {
-            await fetch(`${API_URL}/events/${eventId}/guests`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(guest)
-            });
+            try {
+                const res = await fetch(`${API_URL}/events/${eventId}/guests`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(guest)
+                });
+
+                if (res.ok) {
+                    successfulGuests.push(guest);
+                } else {
+                    console.error('Failed to add guest:', guest.name, res.status);
+                    failedGuests.push(guest);
+                }
+            } catch (err) {
+                console.error('Error adding guest:', guest.name, err);
+                failedGuests.push(guest);
+            }
+        }
+
+        // Revert failed guests from optimistic update
+        if (failedGuests.length > 0) {
+            const failedIds = failedGuests.map(g => g.id);
+            setEvents(prev => prev.map(event => {
+                if (event.id === eventId) {
+                    return { ...event, guests: event.guests.filter(g => !failedIds.includes(g.id)) };
+                }
+                return event;
+            }));
+
+            if (successfulGuests.length === 0) {
+                throw new Error('Failed to add all guests');
+            } else {
+                console.warn(`Added ${successfulGuests.length} guests, ${failedGuests.length} failed`);
+            }
         }
     };
 

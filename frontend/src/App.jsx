@@ -30,9 +30,7 @@ function App() {
                         {/* Protected routes */}
                         <Route path="/" element={
                             <ProtectedRoute>
-                                <Layout>
-                                    <Landing />
-                                </Layout>
+                                <Landing />
                             </ProtectedRoute>
                         } />
                         <Route path="/manager" element={

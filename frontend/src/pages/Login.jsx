@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogIn, Mail, Lock, AlertCircle, Scan } from 'lucide-react';
+import { LogIn, Mail, Lock, AlertCircle, Scan, Fingerprint } from 'lucide-react';
 
 const Login = () => {
     const navigate = useNavigate();
-    const { login, continueAsGuest } = useAuth();
+    const { login, loginWithBiometric, enableBiometric, continueAsGuest, biometricAvailable } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showBiometricPrompt, setShowBiometricPrompt] = useState(false);
+    const [savedCredentials, setSavedCredentials] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -18,13 +20,93 @@ const Login = () => {
 
         try {
             await login(email, password);
-            navigate('/');
+
+            // Ask if user wants to enable biometric
+            if (biometricAvailable) {
+                setSavedCredentials({ email, password });
+                setShowBiometricPrompt(true);
+            } else {
+                navigate('/');
+            }
         } catch (err) {
             setError(err.message);
         } finally {
             setLoading(false);
         }
     };
+
+    const handleBiometricLogin = async () => {
+        setError('');
+        setLoading(true);
+
+        try {
+            await loginWithBiometric();
+            navigate('/');
+        } catch (err) {
+            setError(err.message || 'Biometric authentication failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleEnableBiometric = async () => {
+        try {
+            await enableBiometric(savedCredentials.email, savedCredentials.password);
+            navigate('/');
+        } catch (err) {
+            console.error('Failed to save biometric:', err);
+            navigate('/');
+        }
+    };
+
+    const handleSkipBiometric = () => {
+        navigate('/');
+    };
+
+    // Biometric enrollment prompt
+    if (showBiometricPrompt) {
+        return (
+            <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
+                    <div className="card" style={{ maxWidth: '440px', width: '100%' }}>
+                        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                            <Fingerprint size={64} style={{ color: 'var(--primary)', margin: '0 auto 1rem' }} />
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+                                Enable Biometric Login?
+                            </h2>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>
+                                Use your fingerprint or face to login faster next time
+                            </p>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <button
+                                onClick={handleEnableBiometric}
+                                className="btn btn-primary"
+                                style={{ width: '100%', padding: '0.875rem' }}
+                            >
+                                <Fingerprint size={18} />
+                                Enable Biometric
+                            </button>
+                            <button
+                                onClick={handleSkipBiometric}
+                                className="btn"
+                                style={{
+                                    width: '100%',
+                                    padding: '0.875rem',
+                                    background: 'var(--bg-secondary)',
+                                    border: '1px solid var(--border)',
+                                    color: 'var(--text-primary)'
+                                }}
+                            >
+                                Skip for Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
@@ -62,6 +144,36 @@ const Login = () => {
                             <AlertCircle size={18} style={{ color: '#dc2626', flexShrink: 0, marginTop: '0.125rem' }} />
                             <span style={{ color: '#991b1b', fontSize: '0.875rem', lineHeight: '1.5' }}>{error}</span>
                         </div>
+                    )}
+
+                    {/* Biometric Login Button */}
+                    {biometricAvailable && (
+                        <>
+                            <button
+                                onClick={handleBiometricLogin}
+                                className="btn"
+                                disabled={loading}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.875rem',
+                                    fontSize: '1rem',
+                                    fontWeight: 600,
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    color: 'white',
+                                    border: 'none',
+                                    marginBottom: '1.5rem'
+                                }}
+                            >
+                                <Fingerprint size={20} />
+                                Login with Fingerprint/Face
+                            </button>
+
+                            <div style={{ margin: '1.5rem 0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
+                                <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500 }}>OR USE PASSWORD</span>
+                                <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
+                            </div>
+                        </>
                     )}
 
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginBottom: '1.5rem' }}>

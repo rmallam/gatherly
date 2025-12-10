@@ -30,20 +30,28 @@ const ContactPicker = ({ onImport, onClose }) => {
         try {
             // Check if we're running in a native app (not web)
             const { Capacitor } = await import('@capacitor/core');
+            const platform = Capacitor.getPlatform();
 
-            if (!Capacitor.isNativePlatform()) {
+            console.log('Capacitor platform:', platform);
+            console.log('Is native platform:', Capacitor.isNativePlatform());
+
+            // Check if platform is web - if so, show error
+            if (platform === 'web') {
                 setError('📱 Contact import only works in the native Android app.\n\nTo use this feature:\n1. Build the Android APK\n2. Install it on your phone\n3. Grant contacts permission');
                 setLoading(false);
                 return;
             }
+
+            // Platform is Android or iOS, proceed with loading contacts
+            console.log('Running on native platform, loading contacts plugin...');
 
             // Dynamically import the Contacts plugin
             const packageName = '@capacitor-community/contacts';
             const module = await import(/* @vite-ignore */ packageName);
             await requestPermissionAndLoadContacts(module.Contacts);
         } catch (err) {
-            console.error('Contacts plugin not available:', err);
-            setError('Contact import requires the native Android app. This feature is not available in the web browser.');
+            console.error('Contacts plugin error:', err);
+            setError(`Failed to load contacts: ${err.message || 'Unknown error'}`);
             setLoading(false);
         }
     };

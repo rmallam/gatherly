@@ -1,53 +1,359 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Calendar, ScanLine, ArrowRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Calendar, QrCode, Users, ScanLine, ArrowRight, Scan, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useApp } from '../context/AppContext';
 
 const Landing = () => {
+    const { user, logout } = useAuth();
+    const { events } = useApp();
+    const navigate = useNavigate();
+
+    const totalGuests = events.reduce((sum, event) => sum + (event.guests?.length || 0), 0);
+
+    // Logged-in user view
+    if (user && !user.isGuest) {
+        return (
+            <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
+                {/* Minimal Header with Branding */}
+                <div style={{
+                    padding: '1rem 1.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    borderBottom: '1px solid var(--border)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        <Scan size={24} style={{ color: 'var(--primary)' }} />
+                        <span>Gatherly</span>
+                    </div>
+                    <button
+                        onClick={logout}
+                        className="btn btn-secondary"
+                        style={{
+                            padding: '0.5rem 0.875rem',
+                            fontSize: '0.8125rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.375rem'
+                        }}
+                    >
+                        <LogOut size={14} /> Logout
+                    </button>
+                </div>
+
+                {/* Header */}
+                <div style={{ padding: '3rem 1rem 2rem', textAlign: 'center' }}>
+                    <div style={{ width: '64px', height: '64px', margin: '0 auto 1.5rem', borderRadius: '16px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Scan size={32} color="white" strokeWidth={2} />
+                    </div>
+                    <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.5rem', lineHeight: 1.2, color: 'var(--text-primary)' }}>
+                        Welcome back, {user.name}!
+                    </h1>
+                    <p style={{ fontSize: '0.9375rem', fontWeight: 400, color: 'var(--text-secondary)' }}>
+                        Ready to manage your events
+                    </p>
+                </div>
+
+                {/* Action Cards */}
+                <div style={{ padding: '1.5rem', display: 'grid', gap: '1rem', maxWidth: '500px', margin: '0 auto' }}>
+                    {/* My Events Card */}
+                    <div
+                        onClick={() => navigate('/manager')}
+                        className="card"
+                        style={{
+                            padding: '1.75rem',
+                            cursor: 'pointer',
+                            transition: 'transform 0.2s, box-shadow 0.2s',
+                        }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.transform = 'translateY(-4px)';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                            <div style={{
+                                width: '64px',
+                                height: '64px',
+                                borderRadius: '16px',
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0
+                            }}>
+                                <Calendar size={32} color="white" strokeWidth={2} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <h2 style={{ fontSize: '1.375rem', fontWeight: 700, marginBottom: '0.375rem', color: 'var(--text-primary)' }}>
+                                    My Events
+                                </h2>
+                                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem', lineHeight: 1.4 }}>
+                                    Create and manage events
+                                </p>
+                            </div>
+                            <ArrowRight size={24} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+                        </div>
+                    </div>
+
+                    {/* Scanner Card */}
+                    <div
+                        onClick={() => navigate('/scanner')}
+                        className="card"
+                        style={{
+                            padding: '1.75rem',
+                            cursor: 'pointer',
+                            transition: 'transform 0.2s, box-shadow 0.2s',
+                        }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.transform = 'translateY(-4px)';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                            <div style={{
+                                width: '64px',
+                                height: '64px',
+                                borderRadius: '16px',
+                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0
+                            }}>
+                                <QrCode size={32} color="white" strokeWidth={2} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <h2 style={{ fontSize: '1.375rem', fontWeight: 700, marginBottom: '0.375rem', color: 'var(--text-primary)' }}>
+                                    Scan Guests
+                                </h2>
+                                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem', lineHeight: 1.4 }}>
+                                    Check-in attendees
+                                </p>
+                            </div>
+                            <ArrowRight size={24} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Quick Stats */}
+                <div style={{
+                    padding: '3rem 1rem 2rem',
+                    maxWidth: '500px',
+                    margin: '0 auto',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: '3rem'
+                }}>
+                    <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '0.25rem', color: 'var(--primary)' }}>{events.length}</div>
+                        <div style={{ fontSize: '0.9375rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Events</div>
+                    </div>
+                    <div style={{ width: '1px', background: 'var(--border)' }}></div>
+                    <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '0.25rem', color: 'var(--primary)' }}>{totalGuests}</div>
+                        <div style={{ fontSize: '0.9375rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Guests</div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Guest/non-logged-in view
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4rem', padding: '4rem 0' }}>
-            <div style={{ textAlign: 'center', maxWidth: '42rem' }}>
-                <h1 style={{ fontSize: '3.75rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1.5rem', lineHeight: 1.1 }}>
-                    Event Management <br />
-                    <span style={{ color: 'var(--primary)' }}>Made Simple</span>
+        <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
+            {/* Minimal Header with Branding */}
+            <div style={{
+                padding: '1rem 1.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderBottom: '1px solid var(--border)'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    <Scan size={24} style={{ color: 'var(--primary)' }} />
+                    <span>Gatherly</span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button
+                        onClick={() => navigate('/login')}
+                        className="btn btn-secondary"
+                        style={{
+                            padding: '0.5rem 0.875rem',
+                            fontSize: '0.8125rem'
+                        }}
+                    >
+                        Login
+                    </button>
+                    <button
+                        onClick={() => navigate('/signup')}
+                        className="btn btn-primary"
+                        style={{
+                            padding: '0.5rem 0.875rem',
+                            fontSize: '0.8125rem'
+                        }}
+                    >
+                        Sign Up
+                    </button>
+                </div>
+            </div>
+
+            {/* Header */}
+            <div style={{ padding: '3rem 1rem 2rem', textAlign: 'center' }}>
+                <div style={{ width: '72px', height: '72px', margin: '0 auto 1.5rem', borderRadius: '18px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Scan size={40} color="white" strokeWidth={2} />
+                </div>
+                <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem', lineHeight: 1.2, color: 'var(--text-primary)' }}>
+                    Gatherly
                 </h1>
-                <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                    Create events, manage guest lists, and verify attendees with QR codes.
-                    Everything you need for seamless event management.
+                <p style={{ fontSize: '0.9375rem', fontWeight: 400, maxWidth: '400px', margin: '0 auto', color: 'var(--text-secondary)' }}>
+                    Seamless event management and guest tracking
                 </p>
             </div>
 
-            <div className="grid grid-lg-2" style={{ width: '100%', maxWidth: '56rem', gap: '2rem' }}>
+            {/* Action Cards */}
+            <div style={{ padding: '1.5rem', display: 'grid', gap: '1rem', maxWidth: '500px', margin: '0 auto' }}>
                 {/* Manager Card */}
-                <Link to="/manager" className="card" style={{ textDecoration: 'none', padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', transition: 'all 0.2s' }}>
-                    <div style={{ width: '3rem', height: '3rem', borderRadius: 'var(--radius-lg)', backgroundColor: '#e0e7ff', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Calendar size={28} strokeWidth={2} />
+                <div
+                    onClick={() => navigate('/manager')}
+                    className="card"
+                    style={{
+                        padding: '1.75rem',
+                        cursor: 'pointer',
+                        background: 'white',
+                        borderRadius: '20px',
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                        transition: 'transform 0.2s, box-shadow 0.2s',
+                    }}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.transform = 'translateY(-4px)';
+                        e.currentTarget.style.boxShadow = '0 15px 40px rgba(0,0,0,0.2)';
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.15)';
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                        <div style={{
+                            width: '64px',
+                            height: '64px',
+                            borderRadius: '16px',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                        }}>
+                            <Calendar size={32} color="white" strokeWidth={2} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <h2 style={{ fontSize: '1.375rem', fontWeight: 700, marginBottom: '0.375rem', color: 'var(--text-primary)' }}>
+                                Event Manager
+                            </h2>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem', lineHeight: 1.4 }}>
+                                Create and manage events
+                            </p>
+                        </div>
+                        <ArrowRight size={24} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
                     </div>
-                    <div>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Event Manager</h2>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.5 }}>
-                            Create events, add guests, and generate secure QR code invitations.
-                        </p>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', fontWeight: 600, fontSize: '0.9375rem', marginTop: 'auto' }}>
-                        Get Started <ArrowRight size={16} />
-                    </div>
-                </Link>
+                </div>
 
                 {/* Scanner Card */}
-                <Link to="/scanner" className="card" style={{ textDecoration: 'none', padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', transition: 'all 0.2s' }}>
-                    <div style={{ width: '3rem', height: '3rem', borderRadius: 'var(--radius-lg)', backgroundColor: '#d1fae5', color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <ScanLine size={28} strokeWidth={2} />
+                <div
+                    onClick={() => navigate('/scanner')}
+                    className="card"
+                    style={{
+                        padding: '1.75rem',
+                        cursor: 'pointer',
+                        background: 'white',
+                        borderRadius: '20px',
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                        transition: 'transform 0.2s, box-shadow 0.2s',
+                    }}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.transform = 'translateY(-4px)';
+                        e.currentTarget.style.boxShadow = '0 15px 40px rgba(0,0,0,0.2)';
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.15)';
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                        <div style={{
+                            width: '64px',
+                            height: '64px',
+                            borderRadius: '16px',
+                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                        }}>
+                            <QrCode size={32} color="white" strokeWidth={2} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <h2 style={{ fontSize: '1.375rem', fontWeight: 700, marginBottom: '0.375rem', color: 'var(--text-primary)' }}>
+                                QR Scanner
+                            </h2>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem', lineHeight: 1.4 }}>
+                                Check-in guests instantly
+                            </p>
+                        </div>
+                        <ArrowRight size={24} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
                     </div>
-                    <div>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Scanner</h2>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.5 }}>
-                            Scan QR codes at the door to verify guests and track attendance.
-                        </p>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--success)', fontWeight: 600, fontSize: '0.9375rem', marginTop: 'auto' }}>
-                        Open Scanner <ArrowRight size={16} />
-                    </div>
-                </Link>
+                </div>
+            </div>
+
+            {/* Footer CTA */}
+            <div style={{
+                padding: '3rem 1rem',
+                maxWidth: '500px',
+                margin: '0 auto',
+                textAlign: 'center',
+                color: 'white'
+            }}>
+                <p style={{ fontSize: '0.9375rem', marginBottom: '1rem', opacity: 0.9 }}>
+                    Ready to get started?
+                </p>
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+                    <button
+                        onClick={() => navigate('/signup')}
+                        style={{
+                            padding: '0.875rem 2rem',
+                            background: 'white',
+                            color: '#667eea',
+                            border: 'none',
+                            borderRadius: '12px',
+                            fontSize: '1rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                        }}
+                    >
+                        Sign Up
+                    </button>
+                    <button
+                        onClick={() => navigate('/login')}
+                        style={{
+                            padding: '0.875rem 2rem',
+                            background: 'rgba(255,255,255,0.2)',
+                            color: 'white',
+                            border: '1px solid rgba(255,255,255,0.3)',
+                            borderRadius: '12px',
+                            fontSize: '1rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Login
+                    </button>
+                </div>
             </div>
         </div>
     );
