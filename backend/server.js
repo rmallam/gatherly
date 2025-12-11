@@ -33,6 +33,7 @@ const allowedOrigins = [
     'capacitor://localhost',   // Capacitor iOS
     'ionic://localhost',       // Capacitor Android
     'http://localhost',        // Capacitor fallback
+    'https://localhost',       // Capacitor HTTPS mode
 ].filter(Boolean);
 
 app.use(cors({
@@ -67,8 +68,24 @@ app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
 // === HEALTH CHECK ===
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/api/health', async (req, res) => {
+    try {
+        // Check database connectivity
+        await query('SELECT 1');
+
+        res.json({
+            status: 'ok',
+            database: 'connected',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(503).json({
+            status: 'error',
+            database: 'disconnected',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
 });
 
 // === AUTH ROUTES ===
