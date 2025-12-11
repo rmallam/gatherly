@@ -4,8 +4,11 @@ import bodyParser from 'body-parser';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import { generateToken, hashPassword, comparePassword, authMiddleware } from './server/auth.js';
 import { initializeDatabase, query } from './db/connection.js';
+import { validateEmail, validatePassword } from './server/validators.js';
+import { sendVerificationEmail } from './server/email.js';
 
 const app = express();
 
@@ -100,24 +103,48 @@ app.post('/api/auth/signup', async (req, res) => {
             return res.status(400).json({ error: 'Name, email and password are required' });
         }
 
+        // Validate email
+        const emailValidation = validateEmail(email);
+        if (!emailValidation.valid) {
+            return res.status(400).json({ error: emailValidation.error });
+        }
+
+        // Validate password strength
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.valid) {
+            return res.status(400).json({ error: passwordValidation.error });
+        }
+
         // Check if user exists
-        const existingUser = await query('SELECT id FROM users WHERE email = $1', [email]);
+        const existingUser = await query('SELECT id FROM users WHERE email = $1', [emailValidation.email]);
         if (existingUser.rows.length > 0) {
             return res.status(400).json({ error: 'User with this email already exists' });
         }
 
         const hashedPassword = hashPassword(password);
         const userId = uuidv4();
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
         await query(
-            'INSERT INTO users (id, name, email, password) VALUES ($1, $2, $3, $4)',
-            [userId, name, email, hashedPassword]
+            `INSERT INTO users (id, name, email, password, email_verified, verification_token, verification_token_expires) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [userId, name, emailValidation.email, hashedPassword, false, verificationToken, tokenExpires]
         );
 
-        const user = { id: userId, name, email };
-        const token = generateToken(user);
+        // Send verification email
+        const user = { id: userId, name, email: emailValidation.email };
+        try {
+            await sendVerificationEmail(user, verificationToken);
+        } catch (emailError) {
+            console.error('Failed to send verification email:', emailError);
+            // Don't fail signup if email fails
+        }
 
-        res.json({ token, user });
+        res.json({
+            message: 'Account created! Please check your email to verify your account.',
+            email: emailValidation.email
+        });
     } catch (error) {
         console.error('Signup error:', error);
         res.status(500).json({ error: 'Server error: ' + error.message });
@@ -132,7 +159,7 @@ app.post('/api/auth/login', async (req, res) => {
             return res.status(400).json({ error: 'Email and password are required' });
         }
 
-        const result = await query('SELECT * FROM users WHERE email = $1', [email]);
+        const result = await query('SELECT * FROM users WHERE email = $1', [email.toLowerCase().trim()]);
 
         if (result.rows.length === 0) {
             return res.status(401).json({ error: 'Invalid email or password' });
@@ -145,8 +172,18 @@ app.post('/api/auth/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
+        // Check if email is verified (can be disabled with env var)
+        const skipVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
+        if (!skipVerification && !user.email_verified) {
+            return res.status(403).json({
+                error: 'Please verify your email before logging in',
+                needsVerification: true,
+                email: user.email
+            });
+        }
+
         const token = generateToken(user);
-        const userResponse = { id: user.id, name: user.name, email: user.email };
+        const userResponse = { id: user.id, name: user.name, email: user.email, emailVerified: user.email_verified };
 
         res.json({ token, user: userResponse });
     } catch (error) {
@@ -157,6 +194,95 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
     res.json({ user: req.user });
+});
+
+// Email verification endpoint
+app.get('/api/auth/verify-email', async (req, res) => {
+    try {
+        const { token } = req.query;
+
+        if (!token) {
+            return res.status(400).json({ error: 'Verification token is required' });
+        }
+
+        const result = await query(
+            'SELECT * FROM users WHERE verification_token = $1',
+            [token]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(400).json({ error: 'Invalid verification token' });
+        }
+
+        const user = result.rows[0];
+
+        // Check if already verified
+        if (user.email_verified) {
+            return res.json({ message: 'Email already verified', alreadyVerified: true });
+        }
+
+        // Check if token expired
+        if (new Date() > new Date(user.verification_token_expires)) {
+            return res.status(400).json({ error: 'Verification token has expired' });
+        }
+
+        // Mark as verified and clear token
+        await query(
+            'UPDATE users SET email_verified = $1, verification_token = NULL, verification_token_expires = NULL WHERE id = $2',
+            [true, user.id]
+        );
+
+        res.json({ message: 'Email verified successfully!', verified: true });
+    } catch (error) {
+        console.error('Email verification error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Resend verification email
+app.post('/api/auth/resend-verification', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ error: 'Email is required' });
+        }
+
+        const result = await query('SELECT * FROM users WHERE email = $1', [email.toLowerCase().trim()]);
+
+        if (result.rows.length === 0) {
+            // Don't reveal if email exists or not
+            return res.json({ message: 'If an account exists with this email, a verification email has been sent' });
+        }
+
+        const user = result.rows[0];
+
+        if (user.email_verified) {
+            return res.json({ message: 'Email is already verified' });
+        }
+
+        // Generate new token
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+        await query(
+            'UPDATE users SET verification_token = $1, verification_token_expires = $2 WHERE id = $3',
+            [verificationToken, tokenExpires, user.id]
+        );
+
+        // Send verification email
+        try {
+            await sendVerificationEmail(user, verificationToken);
+        } catch (emailError) {
+            console.error('Failed to send verification email:', emailError);
+            return res.status(500).json({ error: 'Failed to send verification email' });
+        }
+
+        res.json({ message: 'Verification email sent successfully' });
+    } catch (error) {
+        console.error('Resend verification error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 // === EVENT ROUTES ===
