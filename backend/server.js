@@ -317,18 +317,23 @@ app.post('/api/events', authMiddleware, async (req, res) => {
         const { title, date, location, description } = req.body;
         const eventId = uuidv4();
 
+        // Convert empty strings to null for optional fields
+        const eventDate = date && date.trim() !== '' ? date : null;
+        const eventLocation = location && location.trim() !== '' ? location : null;
+        const eventDescription = description && description.trim() !== '' ? description : null;
+
         await query(
             'INSERT INTO events (id, user_id, title, date, location, description) VALUES ($1, $2, $3, $4, $5, $6)',
-            [eventId, req.user.id, title, date, location, description]
+            [eventId, req.user.id, title, eventDate, eventLocation, eventDescription]
         );
 
         const event = {
             id: eventId,
             user_id: req.user.id,
             title,
-            date,
-            location,
-            description,
+            date: eventDate,
+            location: eventLocation,
+            description: eventDescription,
             guests: []
         };
 
