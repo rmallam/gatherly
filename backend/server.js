@@ -73,6 +73,9 @@ app.use('/api/auth/signup', authLimiter);
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
+// Serve static files (for email verification page)
+app.use(express.static('public'));
+
 // === HEALTH CHECK ===
 app.get('/api/health', async (req, res) => {
     try {
