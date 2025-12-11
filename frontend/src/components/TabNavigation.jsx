@@ -4,15 +4,14 @@ const TabNavigation = ({ tabs, activeTab, onTabChange }) => {
     return (
         <div style={{
             borderBottom: '2px solid var(--border)',
-            marginBottom: '2rem',
-            overflowX: 'auto',
-            WebkitOverflowScrolling: 'touch'
+            marginBottom: '2rem'
         }}>
             <div style={{
                 display: 'flex',
-                gap: '0.5rem',
-                minWidth: 'fit-content',
-                padding: '0 0.5rem'
+                gap: '0.25rem',
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+                padding: '0.5rem'
             }}>
                 {tabs.map(tab => {
                     const isActive = activeTab === tab.id;
@@ -22,55 +21,64 @@ const TabNavigation = ({ tabs, activeTab, onTabChange }) => {
                         <button
                             key={tab.id}
                             onClick={() => onTabChange(tab.id)}
+                            title={tab.label}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '0.5rem',
-                                padding: '1rem 1.5rem',
-                                background: 'transparent',
+                                justifyContent: 'center',
+                                flexDirection: 'column',
+                                gap: '0.25rem',
+                                padding: '0.75rem 1rem',
+                                background: isActive ? 'var(--bg-secondary)' : 'transparent',
                                 border: 'none',
                                 borderBottom: isActive ? '3px solid var(--primary)' : '3px solid transparent',
+                                borderRadius: isActive ? '8px 8px 0 0' : '0',
                                 color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
-                                fontSize: '0.9375rem',
+                                fontSize: '0.75rem',
                                 fontWeight: isActive ? 600 : 500,
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease',
-                                whiteSpace: 'nowrap',
                                 position: 'relative',
-                                marginBottom: '-2px'
+                                marginBottom: '-2px',
+                                minWidth: '64px'
                             }}
                             onMouseEnter={(e) => {
                                 if (!isActive) {
+                                    e.currentTarget.style.background = 'var(--bg-secondary)';
                                     e.currentTarget.style.color = 'var(--text-primary)';
-                                    e.currentTarget.style.borderBottomColor = 'var(--border-light)';
                                 }
                             }}
                             onMouseLeave={(e) => {
                                 if (!isActive) {
+                                    e.currentTarget.style.background = 'transparent';
                                     e.currentTarget.style.color = 'var(--text-secondary)';
-                                    e.currentTarget.style.borderBottomColor = 'transparent';
                                 }
                             }}
                         >
-                            <Icon size={18} />
-                            <span>{tab.label}</span>
-                            {tab.badge && (
-                                <span style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    minWidth: '1.25rem',
-                                    height: '1.25rem',
-                                    padding: '0 0.375rem',
-                                    background: isActive ? 'var(--primary)' : 'var(--bg-secondary)',
-                                    color: isActive ? 'white' : 'var(--text-secondary)',
-                                    borderRadius: '999px',
-                                    fontSize: '0.6875rem',
-                                    fontWeight: 600
-                                }}>
-                                    {tab.badge}
-                                </span>
-                            )}
+                            <div style={{ position: 'relative' }}>
+                                <Icon size={22} />
+                                {tab.badge && tab.badge > 0 && (
+                                    <span style={{
+                                        position: 'absolute',
+                                        top: '-6px',
+                                        right: '-8px',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        minWidth: '18px',
+                                        height: '18px',
+                                        padding: '0 4px',
+                                        background: isActive ? 'var(--primary)' : '#ef4444',
+                                        color: 'white',
+                                        borderRadius: '999px',
+                                        fontSize: '0.625rem',
+                                        fontWeight: 700
+                                    }}>
+                                        {tab.badge}
+                                    </span>
+                                )}
+                            </div>
+                            <span style={{ fontSize: '0.6875rem', fontWeight: 500 }}>{tab.label}</span>
                         </button>
                     );
                 })}

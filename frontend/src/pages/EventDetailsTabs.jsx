@@ -4,14 +4,14 @@ import { useApp } from '../context/AppContext';
 import TabNavigation from '../components/TabNavigation';
 import OverviewTab from '../components/tabs/OverviewTab';
 import CateringTab from '../components/tabs/CateringTab';
-import BudgetTab from '../components/tabs/BudgetTab';
+
 import TasksTab from '../components/tabs/TasksTab';
 import VenueTab from '../components/tabs/VenueTab';
 import DecorationsTab from '../components/tabs/DecorationsTab';
 import GiftsTab from '../components/tabs/GiftsTab';
 import EntertainmentTab from '../components/tabs/EntertainmentTab';
 import VendorsTab from '../components/tabs/VendorsTab';
-import { LayoutDashboard, Users, UtensilsCrossed, DollarSign, CheckSquare, MapPin, Sparkles, Gift, Music, Briefcase, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, Users, UtensilsCrossed, CheckSquare, MapPin, Sparkles, Gift, Music, Briefcase, ArrowLeft } from 'lucide-react';
 
 // Import the old EventDetails as a component for the Guests tab temporarily
 import EventDetails from './EventDetails';
@@ -40,12 +40,7 @@ const EventDetailsTabs = () => {
         });
     };
 
-    const handleUpdateBudget = (budgetData) => {
-        updateEvent(id, {
-            ...event,
-            budget: budgetData
-        });
-    };
+
 
     const handleUpdateTasks = (tasks) => {
         updateEvent(id, {
@@ -95,12 +90,7 @@ const EventDetailsTabs = () => {
             icon: UtensilsCrossed,
             badge: event.catering?.items?.length || null
         },
-        {
-            id: 'budget',
-            label: 'Budget',
-            icon: DollarSign,
-            badge: null
-        },
+
         {
             id: 'tasks',
             label: 'Tasks',
@@ -146,7 +136,7 @@ const EventDetailsTabs = () => {
                 {activeTab === 'overview' && <OverviewTab event={event} />}
                 {activeTab === 'guests' && <EventDetails />}
                 {activeTab === 'catering' && <CateringTab event={event} onUpdateCatering={handleUpdateCatering} />}
-                {activeTab === 'budget' && <BudgetTab event={event} onUpdateBudget={handleUpdateBudget} />}
+
                 {activeTab === 'tasks' && <TasksTab event={event} onUpdateTasks={handleUpdateTasks} />}
                 {activeTab === 'venue' && <VenueTab event={event} onUpdateVenue={handleUpdateVenue} />}
                 {activeTab === 'decorations' && <DecorationsTab event={event} onUpdateDecorations={handleUpdateDecorations} />}

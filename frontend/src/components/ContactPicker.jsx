@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Users, Search, Smartphone, AlertCircle } from 'lucide-react';
+import { Contacts } from '@capacitor-community/contacts';
 
 const ContactPicker = ({ onImport, onClose }) => {
     const [contacts, setContacts] = useState([]);
@@ -45,10 +46,8 @@ const ContactPicker = ({ onImport, onClose }) => {
             // Platform is Android or iOS, proceed with loading contacts
             console.log('Running on native platform, loading contacts plugin...');
 
-            // Dynamically import the Contacts plugin
-            const packageName = '@capacitor-community/contacts';
-            const module = await import(/* @vite-ignore */ packageName);
-            await requestPermissionAndLoadContacts(module.Contacts);
+            // Request permission and load contacts
+            await requestPermissionAndLoadContacts();
         } catch (err) {
             console.error('Contacts plugin error:', err);
             setError(`Failed to load contacts: ${err.message || 'Unknown error'}`);
@@ -56,33 +55,35 @@ const ContactPicker = ({ onImport, onClose }) => {
         }
     };
 
-    const requestPermissionAndLoadContacts = async (ContactsAPI) => {
+    const requestPermissionAndLoadContacts = async () => {
         try {
             // Request permission
-            const permission = await ContactsAPI.requestPermissions();
+            const permission = await Contacts.requestPermissions();
 
             if (permission.contacts === 'granted') {
                 setPermissionGranted(true);
-                await loadContacts(ContactsAPI);
+                await loadContacts();
             } else {
                 setError('Permission denied. Please enable contacts access in your phone settings.');
                 setLoading(false);
             }
         } catch (err) {
             console.error('Error requesting contacts permission:', err);
-            setError('Could not access contacts. This feature requires the native app.');
+            setError(`Failed to access contacts: ${err.message || 'Unknown error'}`);
             setLoading(false);
         }
     };
 
-    const loadContacts = async (ContactsAPI) => {
+    const loadContacts = async () => {
         try {
-            const result = await ContactsAPI.getContacts({
+            const result = await Contacts.getContacts({
                 projection: {
                     name: true,
                     phones: true,
                 }
             });
+
+            console.log('Contacts loaded:', result.contacts?.length || 0);
 
             // Transform contacts to our format
             const formattedContacts = result.contacts
@@ -100,7 +101,7 @@ const ContactPicker = ({ onImport, onClose }) => {
             setLoading(false);
         } catch (err) {
             console.error('Error loading contacts:', err);
-            setError('Failed to load contacts');
+            setError(`Failed to load contacts: ${err.message || 'Unknown error'}`);
             setLoading(false);
         }
     };

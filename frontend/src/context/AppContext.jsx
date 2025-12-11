@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { useAuth } from './AuthContext';
+import { fetchWithRetry } from '../utils/fetchWithRetry';
 
 const AppContext = createContext();
 
@@ -7,6 +9,7 @@ const AppContext = createContext();
 const API_URL = 'https://gatherly-backend-3vmv.onrender.com/api';
 
 export const AppProvider = ({ children }) => {
+    const { user } = useAuth();
     const [events, setEvents] = useState([]);
     const [contacts, setContacts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -25,18 +28,18 @@ export const AppProvider = ({ children }) => {
         try {
             const token = localStorage.getItem('token');
 
-            // Guest users: use local storage instead of server
+            // Guest users: load from localStorage
             if (token?.startsWith('guest_')) {
-                const guestEvents = localStorage.getItem('guestEvents');
-                setEvents(guestEvents ? JSON.parse(guestEvents) : []);
+                const savedEvents = localStorage.getItem('guestEvents');
+                setEvents(savedEvents ? JSON.parse(savedEvents) : []);
                 setLoading(false);
                 return;
             }
 
             // Regular users: fetch from server
-            const res = await fetch(`${API_URL}/events`, {
+            const res = await fetchWithRetry(`${API_URL}/events`, {
                 headers: getAuthHeaders()
-            });
+            }, 3, 30000); // 3 retries, 30s timeout
             if (!res.ok) {
                 if (res.status === 401) {
                     // Token expired or invalid - just clear it, ProtectedRoute will handle redirect
@@ -50,7 +53,7 @@ export const AppProvider = ({ children }) => {
             setEvents(data);
         } catch (err) {
             console.error(err);
-            setError('Could not connect to server. Ensure server.js is running.');
+            setError('Could not connect to server. Backend may be starting up, please wait...');
         } finally {
             setLoading(false);
         }
@@ -65,9 +68,9 @@ export const AppProvider = ({ children }) => {
                 return;
             }
 
-            const res = await fetch(`${API_URL}/contacts`, {
+            const res = await fetchWithRetry(`${API_URL}/contacts`, {
                 headers: getAuthHeaders()
-            });
+            }, 3, 30000); // 3 retries, 30s timeout
             if (res.ok) {
                 const data = await res.json();
                 setContacts(data);
@@ -88,9 +91,23 @@ export const AppProvider = ({ children }) => {
                 fetchEvents();
                 fetchContacts();
             }, 5000);
-            return () => clearInterval(interval);
+
+            // Keep backend alive - ping every 4 minutes to prevent Render spin-down
+            const keepAliveInterval = setInterval(async () => {
+                try {
+                    await fetch(`${API_URL}/health`, { method: 'GET' });
+                    console.log('Backend keep-alive ping sent');
+                } catch (err) {
+                    console.log('Keep-alive ping failed:', err);
+                }
+            }, 240000); // 4 minutes
+
+            return () => {
+                clearInterval(interval);
+                clearInterval(keepAliveInterval);
+            };
         }
-    }, []);
+    }, [user]); // Re-fetch when user changes (login/logout)
 
     const createEvent = async (eventData) => {
         const newEvent = {
@@ -190,6 +207,8 @@ export const AppProvider = ({ children }) => {
             }));
             throw err;
         }
+
+        return newGuest;
     };
 
     const markGuestAttended = async (eventId, guestId, count = 1) => {

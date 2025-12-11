@@ -57,6 +57,12 @@ const writeDb = async (data) => {
     await fs.writeFile(DB_FILE, JSON.stringify(data, null, 2));
 };
 
+// === HEALTH CHECK ENDPOINT ===
+// Simple health check for keep-alive pings
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Authentication Routes
 app.post('/api/auth/signup', async (req, res) => {
     try {
