@@ -9,6 +9,9 @@ import { initializeDatabase, query } from './db/connection.js';
 
 const app = express();
 
+// Trust proxy - Required for Render.com and rate limiting
+app.set('trust proxy', 1);
+
 // Security Headers - Helmet.js
 app.use(helmet({
     contentSecurityPolicy: {
