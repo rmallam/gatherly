@@ -1,115 +1,105 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import fs from 'fs/promises';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { v4 as uuidv4 } from 'uuid';
 import { generateToken, hashPassword, comparePassword, authMiddleware } from './server/auth.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const DB_FILE = join(__dirname, 'db.json');
+import { initializeDatabase, query } from './db/connection.js';
 
 const app = express();
 
-// CORS Configuration for production
+// Security Headers - Helmet.js
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'"],
+            imgSrc: ["'self'", "data:", "https:"],
+        },
+    },
+    hsts: {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true
+    }
+}));
+
+// CORS Configuration - Secure for production
 const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    process.env.FRONTEND_URL,
-    'capacitor://localhost',
-    'ionic://localhost',
-    'http://localhost'
+    'http://localhost:5173',   // Vite dev server
+    'http://localhost:3000',   // Alternative dev port
+    'capacitor://localhost',   // Capacitor iOS
+    'ionic://localhost',       // Capacitor Android
+    'http://localhost',        // Capacitor fallback
 ].filter(Boolean);
 
 app.use(cors({
     origin: (origin, callback) => {
-        // Allow requests with no origin (mobile apps, curl, etc)
         if (!origin) return callback(null, true);
-
-        if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
-            callback(null, true);
-        } else {
-            callback(null, true); // Allow all for now, restrict in production
-        }
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        console.warn(`Blocked CORS request from unauthorized origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
     },
     credentials: true
 }));
 
-app.use(bodyParser.json());
+// Rate Limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: 'Too many requests from this IP, please try again later.',
+});
+app.use('/api/', limiter);
 
-// Initialize DB
-const initDb = async () => {
-    try {
-        await fs.access(DB_FILE);
-    } catch {
-        await fs.writeFile(DB_FILE, JSON.stringify({ events: [], users: [], contacts: [] }));
-    }
-};
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: 'Too many login attempts, please try again later.',
+    skipSuccessfulRequests: true,
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/signup', authLimiter);
 
-const readDb = async () => {
-    const data = await fs.readFile(DB_FILE, 'utf-8');
-    return JSON.parse(data);
-};
+// Body parser
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
-const writeDb = async (data) => {
-    await fs.writeFile(DB_FILE, JSON.stringify(data, null, 2));
-};
-
-// === HEALTH CHECK ENDPOINT ===
-// Simple health check for keep-alive pings
+// === HEALTH CHECK ===
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Authentication Routes
+// === AUTH ROUTES ===
 app.post('/api/auth/signup', async (req, res) => {
     try {
-        console.log('Signup request received:', { name: req.body.name, email: req.body.email });
         const { name, email, password } = req.body;
 
         if (!name || !email || !password) {
             return res.status(400).json({ error: 'Name, email and password are required' });
         }
 
-        const db = await readDb();
-
-        // Check if user already exists
-        const existingUser = db.users?.find(u => u.email === email);
-        if (existingUser) {
+        // Check if user exists
+        const existingUser = await query('SELECT id FROM users WHERE email = $1', [email]);
+        if (existingUser.rows.length > 0) {
             return res.status(400).json({ error: 'User with this email already exists' });
         }
 
-        console.log('Hashing password...');
-        // Hash password
         const hashedPassword = hashPassword(password);
-        console.log('Password hashed successfully');
+        const userId = uuidv4();
 
-        // Create user
-        const newUser = {
-            id: uuidv4(),
-            name,
-            email,
-            password: hashedPassword,
-            createdAt: new Date().toISOString()
-        };
+        await query(
+            'INSERT INTO users (id, name, email, password) VALUES ($1, $2, $3, $4)',
+            [userId, name, email, hashedPassword]
+        );
 
-        if (!db.users) db.users = [];
-        db.users.push(newUser);
-        await writeDb(db);
-        console.log('User saved to database');
+        const user = { id: userId, name, email };
+        const token = generateToken(user);
 
-        // Generate token
-        const token = generateToken(newUser);
-        console.log('Token generated successfully');
-
-        res.json({
-            token,
-            user: { id: newUser.id, name: newUser.name, email: newUser.email }
-        });
+        res.json({ token, user });
     } catch (error) {
-        console.error('Signup error details:', error);
+        console.error('Signup error:', error);
         res.status(500).json({ error: 'Server error: ' + error.message });
     }
 });
@@ -122,26 +112,23 @@ app.post('/api/auth/login', async (req, res) => {
             return res.status(400).json({ error: 'Email and password are required' });
         }
 
-        const db = await readDb();
-        const user = db.users?.find(u => u.email === email);
+        const result = await query('SELECT * FROM users WHERE email = $1', [email]);
 
-        if (!user) {
+        if (result.rows.length === 0) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        // Compare password
+        const user = result.rows[0];
         const isValid = comparePassword(password, user.password);
+
         if (!isValid) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        // Generate token
         const token = generateToken(user);
+        const userResponse = { id: user.id, name: user.name, email: user.email };
 
-        res.json({
-            token,
-            user: { id: user.id, name: user.name, email: user.email }
-        });
+        res.json({ token, user: userResponse });
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ error: 'Server error' });
@@ -152,251 +139,274 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
     res.json({ user: req.user });
 });
 
-// API Routes (Protected)
+// === EVENT ROUTES ===
 app.get('/api/events', authMiddleware, async (req, res) => {
-    const db = await readDb();
-    // Filter events by user
-    const userEvents = db.events.filter(e => e.userId === req.user.id);
-    res.json(userEvents);
+    try {
+        const result = await query(
+            `SELECT e.*, 
+             (SELECT json_agg(g.*) FROM guests g WHERE g.event_id = e.id) as guests
+             FROM events e 
+             WHERE e.user_id = $1 
+             ORDER BY e.created_at DESC`,
+            [req.user.id]
+        );
+
+        const events = result.rows.map(event => ({
+            ...event,
+            guests: event.guests || []
+        }));
+
+        res.json(events);
+    } catch (error) {
+        console.error('Fetch events error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 app.post('/api/events', authMiddleware, async (req, res) => {
-    const db = await readDb();
-    const newEvent = {
-        ...req.body,
-        userId: req.user.id // Associate event with user
-    };
-    db.events.unshift(newEvent); // Add to top
-    await writeDb(db);
-    res.json(newEvent);
-});
+    try {
+        const { title, date, location, description } = req.body;
+        const eventId = uuidv4();
 
-app.delete('/api/events/:id', async (req, res) => {
-    const db = await readDb();
-    db.events = db.events.filter(e => e.id !== req.params.id);
-    await writeDb(db);
-    res.json({ success: true });
-});
+        await query(
+            'INSERT INTO events (id, user_id, title, date, location, description) VALUES ($1, $2, $3, $4, $5, $6)',
+            [eventId, req.user.id, title, date, location, description]
+        );
 
-app.post('/api/events/:id/guests', async (req, res) => {
-    const db = await readDb();
-    const event = db.events.find(e => e.id === req.params.id);
-    if (!event) return res.status(404).json({ error: 'Event not found' });
-
-    event.guests.push(req.body);
-    await writeDb(db);
-    res.json(db.events);
-});
-
-app.post('/api/events/:eventId/guests/:guestId/checkin', async (req, res) => {
-    const { eventId, guestId } = req.params;
-    const { count } = req.body;
-
-    const db = await readDb();
-    const event = db.events.find(e => e.id === eventId);
-    if (!event) return res.status(404).json({ error: 'Event not found' });
-
-    const guest = event.guests.find(g => g.id === guestId);
-    if (!guest) return res.status(404).json({ error: 'Guest not found' });
-
-    guest.attended = true;
-    guest.attendedCount = (guest.attendedCount || 0) + count;
-    guest.checkInTime = new Date().toISOString();
-
-    await writeDb(db);
-    res.json(db.events);
-});
-
-// RSVP endpoint
-app.post('/api/events/:eventId/guests/:guestId/rsvp', async (req, res) => {
-    const { eventId, guestId } = req.params;
-    const { response } = req.body;
-
-    const db = await readDb();
-    const event = db.events.find(e => e.id === eventId);
-    if (!event) return res.status(404).json({ error: 'Event not found' });
-
-    const guest = event.guests.find(g => g.id === guestId);
-    if (!guest) return res.status(404).json({ error: 'Guest not found' });
-
-    guest.rsvp = response;
-    guest.rsvpTime = new Date().toISOString();
-
-    await writeDb(db);
-    res.json({ success: true, guest });
-});
-
-// Update event endpoint
-app.put('/api/events/:id', authMiddleware, async (req, res) => {
-    const db = await readDb();
-    const eventIndex = db.events.findIndex(e => e.id === req.params.id && e.userId === req.user.id);
-
-    if (eventIndex === -1) {
-        return res.status(404).json({ error: 'Event not found' });
-    }
-
-    db.events[eventIndex] = { ...db.events[eventIndex], ...req.body };
-    await writeDb(db);
-    res.json(db.events[eventIndex]);
-});
-
-// ============================================
-// CONTACT LIBRARY ROUTES
-// ============================================
-
-// Get all contacts for a user
-app.get('/api/contacts', authMiddleware, async (req, res) => {
-    const db = await readDb();
-    if (!db.contacts) db.contacts = [];
-
-    const userContacts = db.contacts.filter(c => c.userId === req.user.id);
-    res.json(userContacts);
-});
-
-// Add new contact
-app.post('/api/contacts', authMiddleware, async (req, res) => {
-    const { name, phone, email, notes } = req.body;
-
-    if (!name) {
-        return res.status(400).json({ error: 'Name is required' });
-    }
-
-    const newContact = {
-        id: uuidv4(),
-        userId: req.user.id,
-        name,
-        phone: phone || '',
-        email: email || '',
-        notes: notes || '',
-        addedAt: new Date().toISOString(),
-        usedInEvents: []
-    };
-
-    const db = await readDb();
-    if (!db.contacts) db.contacts = [];
-    db.contacts.push(newContact);
-    await writeDb(db);
-
-    res.json(newContact);
-});
-
-// Update contact
-app.put('/api/contacts/:id', authMiddleware, async (req, res) => {
-    const db = await readDb();
-    if (!db.contacts) db.contacts = [];
-
-    const contactIndex = db.contacts.findIndex(c => c.id === req.params.id && c.userId === req.user.id);
-
-    if (contactIndex === -1) {
-        return res.status(404).json({ error: 'Contact not found' });
-    }
-
-    db.contacts[contactIndex] = {
-        ...db.contacts[contactIndex],
-        ...req.body,
-        userId: req.user.id, // Ensure userId can't be changed
-        id: req.params.id // Ensure id can't be changed
-    };
-
-    await writeDb(db);
-    res.json(db.contacts[contactIndex]);
-});
-
-// Delete contact
-app.delete('/api/contacts/:id', authMiddleware, async (req, res) => {
-    const db = await readDb();
-    if (!db.contacts) db.contacts = [];
-
-    const initialLength = db.contacts.length;
-    db.contacts = db.contacts.filter(c => !(c.id === req.params.id && c.userId === req.user.id));
-
-    if (db.contacts.length === initialLength) {
-        return res.status(404).json({ error: 'Contact not found' });
-    }
-
-    await writeDb(db);
-    res.json({ success: true });
-});
-
-// ============================================
-// PUBLIC INVITATION ROUTES (No Auth Required)
-// ============================================
-
-// Get public event details for invitation page
-app.get('/api/public/events/:id', async (req, res) => {
-    const db = await readDb();
-    const event = db.events.find(e => e.id === req.params.id);
-
-    if (!event) {
-        return res.status(404).json({ error: 'Event not found' });
-    }
-
-    // Return only public-safe data
-    const publicEvent = {
-        id: event.id,
-        title: event.title,
-        venue: event.venue,
-        date: event.date,
-        time: event.time,
-        description: event.description
-    };
-
-    res.json(publicEvent);
-});
-
-// Submit RSVP from public invitation page
-app.post('/api/public/events/:id/rsvp', async (req, res) => {
-    const { name, phone, email, response, plusOnes, dietaryRestrictions } = req.body;
-
-    if (!name || !response) {
-        return res.status(400).json({ error: 'Name and response are required' });
-    }
-
-    const db = await readDb();
-    const event = db.events.find(e => e.id === req.params.id);
-
-    if (!event) {
-        return res.status(404).json({ error: 'Event not found' });
-    }
-
-    // Check if guest already exists by phone or email
-    let guest = event.guests.find(g =>
-        (phone && g.phone === phone) || (email && g.email === email)
-    );
-
-    if (guest) {
-        // Update existing guest
-        guest.rsvp = response === 'yes' ? true : response === 'no' ? false : null;
-        guest.rsvpTime = new Date().toISOString();
-        guest.plusOnes = plusOnes || 0;
-        guest.dietaryRestrictions = dietaryRestrictions || '';
-    } else {
-        // Create new guest
-        const newGuest = {
-            id: uuidv4(),
-            name,
-            phone: phone || '',
-            email: email || '',
-            rsvp: response === 'yes' ? true : response === 'no' ? false : null,
-            rsvpTime: new Date().toISOString(),
-            plusOnes: plusOnes || 0,
-            dietaryRestrictions: dietaryRestrictions || '',
-            addedAt: new Date().toISOString(),
-            attended: false,
-            attendedCount: 0,
-            source: 'public_invitation'
+        const event = {
+            id: eventId,
+            user_id: req.user.id,
+            title,
+            date,
+            location,
+            description,
+            guests: []
         };
-        event.guests.push(newGuest);
+
+        res.json(event);
+    } catch (error) {
+        console.error('Create event error:', error);
+        res.status(500).json({ error: 'Server error' });
     }
-
-    await writeDb(db);
-    res.json({ success: true, message: 'RSVP submitted successfully' });
 });
 
-const PORT = 3001;
+app.put('/api/events/:id', authMiddleware, async (req, res) => {
+    try {
+        const { title, date, location, description } = req.body;
 
-initDb().then(() => {
-    app.listen(PORT, '0.0.0.0', () => {
-        console.log(`Server running on http://0.0.0.0:${PORT}`);
+        await query(
+            'UPDATE events SET title = $1, date = $2, location = $3, description = $4 WHERE id = $5 AND user_id = $6',
+            [title, date, location, description, req.params.id, req.user.id]
+        );
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Update event error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.delete('/api/events/:id', authMiddleware, async (req, res) => {
+    try {
+        await query('DELETE FROM events WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Delete event error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// === GUEST ROUTES ===
+app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
+    try {
+        const { name, email, phone } = req.body;
+        const guestId = uuidv4();
+
+        // Verify event ownership
+        const eventCheck = await query(
+            'SELECT id FROM events WHERE id = $1 AND user_id = $2',
+            [req.params.eventId, req.user.id]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        await query(
+            'INSERT INTO guests (id, event_id, name, email, phone) VALUES ($1, $2, $3, $4, $5)',
+            [guestId, req.params.eventId, name, email || null, phone || null]
+        );
+
+        const guest = { id: guestId, name, email, phone, rsvp: null, attended: false, attended_count: 0 };
+        res.json(guest);
+    } catch (error) {
+        console.error('Add guest error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.post('/api/events/:eventId/guests/bulk', authMiddleware, async (req, res) => {
+    try {
+        const { guests } = req.body;
+
+        // Verify event ownership
+        const eventCheck = await query(
+            'SELECT id FROM events WHERE id = $1 AND user_id = $2',
+            [req.params.eventId, req.user.id]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        const addedGuests = [];
+        for (const guest of guests) {
+            const guestId = uuidv4();
+            await query(
+                'INSERT INTO guests (id, event_id, name, email, phone) VALUES ($1, $2, $3, $4, $5)',
+                [guestId, req.params.eventId, guest.name, guest.email || null, guest.phone || null]
+            );
+            addedGuests.push({ id: guestId, ...guest, rsvp: null, attended: false, attended_count: 0 });
+        }
+
+        res.json(addedGuests);
+    } catch (error) {
+        console.error('Bulk add guests error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.put('/api/events/:eventId/guests/:guestId/rsvp', async (req, res) => {
+    try {
+        const { rsvp } = req.body;
+
+        await query(
+            'UPDATE guests SET rsvp = $1 WHERE id = $2 AND event_id = $3',
+            [rsvp, req.params.guestId, req.params.eventId]
+        );
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('RSVP error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.put('/api/events/:eventId/guests/:guestId/attend', authMiddleware, async (req, res) => {
+    try {
+        const { count } = req.body;
+
+        await query(
+            'UPDATE guests SET attended = true, attended_count = attended_count + $1 WHERE id = $2 AND event_id = $3',
+            [count || 1, req.params.guestId, req.params.eventId]
+        );
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Mark attendance error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.delete('/api/events/:eventId/guests/:guestId', authMiddleware, async (req, res) => {
+    try {
+        await query('DELETE FROM guests WHERE id = $1 AND event_id = $2', [req.params.guestId, req.params.eventId]);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Delete guest error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// === CONTACT ROUTES ===
+app.get('/api/contacts', authMiddleware, async (req, res) => {
+    try {
+        const result = await query(
+            'SELECT * FROM contacts WHERE user_id = $1 ORDER BY name ASC',
+            [req.user.id]
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Fetch contacts error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.post('/api/contacts', authMiddleware, async (req, res) => {
+    try {
+        const { name, email, phone } = req.body;
+        const contactId = uuidv4();
+
+        await query(
+            'INSERT INTO contacts (id, user_id, name, email, phone) VALUES ($1, $2, $3, $4, $5)',
+            [contactId, req.user.id, name, email || null, phone || null]
+        );
+
+        const contact = { id: contactId, name, email, phone };
+        res.json(contact);
+    } catch (error) {
+        console.error('Add contact error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.post('/api/contacts/bulk', authMiddleware, async (req, res) => {
+    try {
+        const { contacts } = req.body;
+        const addedContacts = [];
+
+        for (const contact of contacts) {
+            const contactId = uuidv4();
+            await query(
+                'INSERT INTO contacts (id, user_id, name, email, phone) VALUES ($1, $2, $3, $4, $5)',
+                [contactId, req.user.id, contact.name, contact.email || null, contact.phone || null]
+            );
+            addedContacts.push({ id: contactId, ...contact });
+        }
+
+        res.json(addedContacts);
+    } catch (error) {
+        console.error('Bulk add contacts error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.delete('/api/contacts/:id', authMiddleware, async (req, res) => {
+    try {
+        await query('DELETE FROM contacts WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Delete contact error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// === PUBLIC ROUTES (for RSVP) ===
+app.get('/api/public/events/:id', async (req, res) => {
+    try {
+        const result = await query('SELECT * FROM events WHERE id = $1', [req.params.id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Fetch public event error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Initialize database and start server
+const PORT = process.env.PORT || 3001;
+
+initializeDatabase()
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`✓ Server running on port ${PORT}`);
+        });
+    })
+    .catch(err => {
+        console.error('Failed to initialize database:', err);
+        process.exit(1);
     });
-});
