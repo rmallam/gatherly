@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { BiometricService } from '../services/biometric';
+import { fetchWithRetry } from '../utils/fetchWithRetry';
 
 const AuthContext = createContext();
 
@@ -16,9 +17,11 @@ export const AuthProvider = ({ children }) => {
     // Check if user is logged in on mount
     useEffect(() => {
         const checkAuth = async () => {
-            if (token) {
+            const storedToken = localStorage.getItem('token');
+
+            if (storedToken) {
                 // Check if it's a guest token
-                if (token.startsWith('guest_')) {
+                if (storedToken.startsWith('guest_')) {
                     const guestUser = localStorage.getItem('guestUser');
                     if (guestUser) {
                         setUser(JSON.parse(guestUser));
@@ -29,13 +32,14 @@ export const AuthProvider = ({ children }) => {
 
                 // Regular JWT token
                 try {
-                    const response = await fetch(`${API_URL}/auth/me`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
+                    const response = await fetchWithRetry(`${API_URL}/auth/me`, {
+                        headers: { 'Authorization': `Bearer ${storedToken}` }
+                    }, 3, 15000);
 
                     if (response.ok) {
                         const data = await response.json();
                         setUser(data.user);
+                        setToken(storedToken);
                     } else {
                         // Token is invalid, clear it
                         localStorage.removeItem('token');
@@ -57,11 +61,11 @@ export const AuthProvider = ({ children }) => {
     }, [token]);
 
     const signup = async (name, email, password) => {
-        const response = await fetch(`${API_URL}/auth/signup`, {
+        const response = await fetchWithRetry(`${API_URL}/auth/signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, email, password })
-        });
+        }, 3, 30000);
 
         if (!response.ok) {
             const error = await response.json();
@@ -76,11 +80,11 @@ export const AuthProvider = ({ children }) => {
     };
 
     const login = async (email, password) => {
-        const response = await fetch(`${API_URL}/auth/login`, {
+        const response = await fetchWithRetry(`${API_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
-        });
+        }, 3, 30000);
 
         if (!response.ok) {
             const error = await response.json();

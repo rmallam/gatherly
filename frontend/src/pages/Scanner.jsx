@@ -100,7 +100,7 @@ const Scanner = () => {
                         </div>
                         {scanResult.data.guest.attended && (
                             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg border-2 border-[var(--bg-deep)]">
-                                ⚠️ checked in earlier
+                                ✓ Checked in {scanResult.data.guest.attendedCount || 1}x
                             </div>
                         )}
                     </div>
@@ -111,10 +111,22 @@ const Scanner = () => {
                             <span className="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse"></span>
                             <span className="text-[var(--text-muted)] text-sm">{scanResult.data.event.title}</span>
                         </div>
+                        {scanResult.data.guest.attended && (
+                            <div className="mt-4 p-3 bg-[rgba(251,191,36,0.1)] border border-yellow-500/30 rounded-lg">
+                                <p className="text-yellow-300 font-semibold text-sm">
+                                    This guest has already checked in
+                                </p>
+                                <p className="text-[var(--text-muted)] text-xs mt-1">
+                                    You can add more guests to their party below
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     <div className="bg-[rgba(0,0,0,0.2)] p-6 rounded-2xl border border-[var(--glass-border)] space-y-3">
-                        <label className="text-xs font-bold text-[var(--text-dim)] uppercase tracking-wider">Number of Guests</label>
+                        <label className="text-xs font-bold text-[var(--text-dim)] uppercase tracking-wider">
+                            {scanResult.data.guest.attended ? 'Additional Guests' : 'Number of Guests'}
+                        </label>
                         <div className="flex items-center justify-center gap-6">
                             <button
                                 onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
@@ -137,7 +149,7 @@ const Scanner = () => {
                             Cancel
                         </button>
                         <button onClick={handleCheckIn} className="btn btn-primary h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/20">
-                            Check In <ArrowRight size={18} />
+                            {scanResult.data.guest.attended ? 'Add Additional Guests' : 'Check In'} <ArrowRight size={18} />
                         </button>
                     </div>
                 </div>
