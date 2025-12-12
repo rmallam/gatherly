@@ -6,7 +6,7 @@ import BulkImport from '../components/BulkImport';
 import ContactPicker from '../components/ContactPicker';
 import ContactSelector from '../components/ContactSelector';
 import { exportAllGuests, exportCheckedInGuests } from '../utils/csvExport';
-import { UserPlus, QrCode, Search, CheckCircle2, ArrowLeft, Users, Upload, Smartphone, Download, Share2, Plus, X } from 'lucide-react';
+import { UserPlus, QrCode, Search, CheckCircle2, ArrowLeft, Users, Upload, Smartphone, Download, Share2, Plus, X, MessageCircle } from 'lucide-react';
 
 const EventDetails = () => {
     const { id } = useParams();
@@ -21,6 +21,8 @@ const EventDetails = () => {
     const [showContactSelector, setShowContactSelector] = useState(false);
     const [showAddGuestModal, setShowAddGuestModal] = useState(false);
     const [sharedGuestId, setSharedGuestId] = useState(null);
+    const [invitingGuest, setInvitingGuest] = useState(null);
+    const [addingGuest, setAddingGuest] = useState(false);
 
     if (!event) {
         return (
@@ -35,18 +37,40 @@ const EventDetails = () => {
 
     const handleAddGuest = async (e, shouldInvite = false) => {
         e.preventDefault();
-        if (!newGuest.name) return;
+        if (!newGuest.name.trim() || addingGuest) return;
 
-        const addedGuest = await addGuest(id, newGuest);
-        const guestData = { ...newGuest, id: addedGuest?.id || Date.now().toString() };
+        // Check for duplicates
+        const isDuplicate = event.guests.some(g =>
+            g.name.toLowerCase() === newGuest.name.trim().toLowerCase() &&
+            (!newGuest.phone || g.phone === newGuest.phone)
+        );
 
-        if (shouldInvite) {
-            // Share invitation after adding
-            setTimeout(() => shareGuest(guestData), 500);
+        if (isDuplicate) {
+            alert('This guest has already been added!');
+            return;
         }
 
-        setNewGuest({ name: '', phone: '' });
-        setShowAddGuestModal(false);
+        setAddingGuest(true);
+        try {
+            const addedGuest = await addGuest(id, {
+                name: newGuest.name.trim(),
+                phone: newGuest.phone.trim()
+            });
+
+            if (shouldInvite && addedGuest) {
+                // Share invitation after adding
+                setTimeout(() => handleInviteGuest(addedGuest), 500);
+            }
+
+            // Clear form and close modal on success
+            setNewGuest({ name: '', phone: '' });
+            setShowAddGuestModal(false);
+        } catch (error) {
+            console.error('Failed to add guest:', error);
+            alert('Failed to add guest. Please try again.');
+        } finally {
+            setAddingGuest(false);
+        }
     };
 
     const handleBulkImport = (contacts) => {
@@ -54,7 +78,26 @@ const EventDetails = () => {
     };
 
     const handleSelectContacts = async (selectedContacts, shouldInvite = false) => {
-        const guests = selectedContacts.map(contact => ({
+        // Filter out duplicates before adding
+        const uniqueContacts = selectedContacts.filter(contact => {
+            const isDuplicate = event.guests.some(g =>
+                (g.name.toLowerCase() === contact.name.toLowerCase()) ||
+                (contact.phone && g.phone === contact.phone)
+            );
+            return !isDuplicate;
+        });
+
+        if (uniqueContacts.length === 0) {
+            alert('All selected contacts have already been added as guests!');
+            return;
+        }
+
+        if (uniqueContacts.length < selectedContacts.length) {
+            const skipped = selectedContacts.length - uniqueContacts.length;
+            alert(`${skipped} duplicate${skipped > 1 ? 's' : ''} skipped. Adding ${uniqueContacts.length} new guest${uniqueContacts.length > 1 ? 's' : ''}.`);
+        }
+
+        const guests = uniqueContacts.map(contact => ({
             name: contact.name,
             phone: contact.phone,
             email: contact.email || ''
@@ -63,7 +106,7 @@ const EventDetails = () => {
         await addBulkGuests(id, guests);
 
         // If shouldInvite is true, share invitation for each guest with phone
-        if (shouldInvite) {
+        if (shouldInvite && guests.length > 0) {
             // Wait a moment for guests to be added
             setTimeout(async () => {
                 const updatedEvent = getEvent(id);
@@ -71,7 +114,7 @@ const EventDetails = () => {
 
                 for (const guest of newlyAddedGuests) {
                     if (guest.phone) {
-                        await shareGuest(guest);
+                        await handleInviteGuest(guest);
                         // Small delay between invites
                         await new Promise(resolve => setTimeout(resolve, 500));
                     }
@@ -80,107 +123,83 @@ const EventDetails = () => {
         }
     };
 
-    const shareGuest = async (guest) => {
-        const guestQRUrl = `${window.location.origin}/invite/${id}?guest=${guest.id}`;
-        const invitationText = `🎉 You're invited to ${event.title}!
-
-👤 Guest: ${guest.name}
-📅 Event: ${event.title}${event.date ? `\n📆 Date: ${new Date(event.date).toLocaleDateString()}` : ''}${event.location ? `\n📍 Location: ${event.location}` : ''}
-
-🎫 Your invitation link:
-${guestQRUrl}
-
-Show your QR code at the event to check in!`;
+    // WhatsApp-specific invite
+    const handleWhatsAppInvite = async (guest) => {
+        if (invitingGuest) return;
 
         try {
-            // Generate QR code as image
-            const canvas = document.createElement('canvas');
-            const QRCode = (await import('qrcode.react')).QRCodeCanvas;
-            const qrContainer = document.createElement('div');
-            qrContainer.style.display = 'none';
-            document.body.appendChild(qrContainer);
+            setInvitingGuest(guest.id);
 
-            // Render QR code to get canvas
-            const { createRoot } = await import('react-dom/client');
-            const root = createRoot(qrContainer);
-            await new Promise((resolve) => {
-                root.render(
-                    React.createElement(QRCode, {
-                        value: JSON.stringify({
-                            eventId: id,
-                            guestId: guest.id,
-                            name: guest.name,
-                            valid: true,
-                            timestamp: Date.now()
-                        }),
-                        size: 512,
-                        level: 'H'
-                    })
-                );
-                setTimeout(resolve, 100);
-            });
+            if (!guest.phone) {
+                alert('No phone number for this guest!');
+                return;
+            }
 
-            const qrCanvas = qrContainer.querySelector('canvas');
-            const qrBlob = await new Promise(resolve => qrCanvas.toBlob(resolve, 'image/png'));
-            const qrFile = new File([qrBlob], `${guest.name}-invitation-qr.png`, { type: 'image/png' });
+            const baseUrl = window.location.origin.includes('localhost')
+                ? (import.meta.env.VITE_APP_URL || 'https://gatherly-backend-3vmv.onrender.com')
+                : window.location.origin;
 
-            // Cleanup
-            root.unmount();
-            document.body.removeChild(qrContainer);
+            const guestQRUrl = `${baseUrl}/invite/${id}?guest=${guest.id}`;
+            const inviteText = `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue ? `Venue: ${event.venue}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}\n\nRSVP here: ${guestQRUrl}`;
 
-            // If guest has phone, open WhatsApp with message
-            if (guest.phone) {
-                const cleanPhone = guest.phone.replace(/\D/g, '');
-                const whatsappUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(invitationText)}`;
+            const cleanPhone = guest.phone.replace(/\D/g, '');
+            const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(inviteText)}`;
 
-                // Open WhatsApp
-                window.location.href = whatsappUrl;
+            window.open(whatsappUrl, '_blank');
 
-                // After a delay, share the QR code
-                setTimeout(async () => {
-                    if (navigator.canShare && navigator.canShare({ files: [qrFile] })) {
-                        try {
-                            await navigator.share({
-                                files: [qrFile],
-                                title: 'Event QR Code'
-                            });
-                        } catch (err) {
-                            if (err.name !== 'AbortError') {
-                                console.error('Error sharing QR:', err);
-                            }
-                        }
-                    }
-                }, 1500);
+            setSharedGuestId(guest.id);
+            setTimeout(() => setSharedGuestId(null), 2000);
+        } catch (err) {
+            console.error('Error sending WhatsApp invite:', err);
+            alert(`Failed to send WhatsApp invitation: ${err.message}`);
+        } finally {
+            setInvitingGuest(null);
+        }
+    };
+
+    // Generic share dialog
+    const handleInviteGuest = async (guest) => {
+        if (invitingGuest) return;
+
+        try {
+            setInvitingGuest(guest.id);
+
+            const baseUrl = window.location.origin.includes('localhost')
+                ? (import.meta.env.VITE_APP_URL || 'https://gatherly-backend-3vmv.onrender.com')
+                : window.location.origin;
+
+            const guestQRUrl = `${baseUrl}/invite/${id}?guest=${guest.id}`;
+            const inviteText = `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue ? `Venue: ${event.venue}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}\n\nRSVP here: ${guestQRUrl}`;
+
+            const { Share } = await import('@capacitor/share');
+
+            try {
+                await Share.share({
+                    title: `Invitation to ${event.title}`,
+                    text: inviteText,
+                    dialogTitle: `Invite ${guest.name}`
+                });
 
                 setSharedGuestId(guest.id);
-                setTimeout(() => setSharedGuestId(null), 3000);
-            } else {
-                // No phone - use native share with both text and QR
-                if (navigator.canShare && navigator.canShare({ files: [qrFile], text: invitationText })) {
-                    await navigator.share({
-                        files: [qrFile],
-                        text: invitationText,
-                        title: `Invitation for ${guest.name}`
-                    });
-                    setSharedGuestId(guest.id);
-                    setTimeout(() => setSharedGuestId(null), 2000);
-                } else {
-                    // Fallback to clipboard
-                    await navigator.clipboard.writeText(invitationText);
-                    setSharedGuestId(guest.id);
-                    setTimeout(() => setSharedGuestId(null), 2000);
+                setTimeout(() => setSharedGuestId(null), 2000);
+            } catch (shareErr) {
+                if (shareErr.message && !shareErr.message.includes('canceled') && !shareErr.message.includes('cancelled')) {
+                    console.error('Share failed:', shareErr);
+
+                    try {
+                        await navigator.clipboard.writeText(inviteText);
+                        alert('Share failed. Invitation copied to clipboard instead!');
+                    } catch (clipErr) {
+                        console.error('Clipboard fallback failed:', clipErr);
+                        alert('Failed to share invitation. Please try again.');
+                    }
                 }
             }
         } catch (err) {
-            console.error('Error sharing:', err);
-            // Fallback to clipboard
-            try {
-                await navigator.clipboard.writeText(invitationText);
-                setSharedGuestId(guest.id);
-                setTimeout(() => setSharedGuestId(null), 2000);
-            } catch (clipErr) {
-                console.error('Clipboard fallback failed:', clipErr);
-            }
+            console.error('Error inviting guest:', err);
+            alert(`Failed to send invitation: ${err.message}`);
+        } finally {
+            setInvitingGuest(null);
         }
     };
 
@@ -312,8 +331,28 @@ Show your QR code at the event to check in!`;
 
                                 {/* Action Buttons */}
                                 <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                                    {/* WhatsApp Button */}
+                                    {guest.phone && (
+                                        <button
+                                            onClick={() => handleWhatsAppInvite(guest)}
+                                            className="btn btn-secondary"
+                                            style={{
+                                                fontSize: '0.875rem',
+                                                padding: '0.5rem 0.875rem',
+                                                background: '#25D366',
+                                                color: 'white',
+                                                border: 'none'
+                                            }}
+                                            title="Send via WhatsApp"
+                                        >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                    {/* Generic Share Button */}
                                     <button
-                                        onClick={() => shareGuest(guest)}
+                                        onClick={() => handleInviteGuest(guest)}
                                         className="btn btn-secondary"
                                         style={{ fontSize: '0.875rem', padding: '0.5rem 0.875rem' }}
                                         title="Share invitation"
@@ -321,7 +360,7 @@ Show your QR code at the event to check in!`;
                                         {sharedGuestId === guest.id ? (
                                             <><CheckCircle2 size={16} /> Shared!</>
                                         ) : (
-                                            <><Share2 size={16} /> Share</>
+                                            <><Share2 size={16} /></>
                                         )}
                                     </button>
                                     <button
@@ -435,16 +474,18 @@ Show your QR code at the event to check in!`;
                                     onClick={(e) => handleAddGuest(e, false)}
                                     className="btn btn-secondary"
                                     style={{ justifyContent: 'center' }}
+                                    disabled={addingGuest}
                                 >
-                                    <UserPlus size={16} /> Add to List
+                                    <UserPlus size={16} /> {addingGuest ? 'Adding...' : 'Add to List'}
                                 </button>
                                 <button
-                                    type="submit"
+                                    type="button"
                                     onClick={(e) => handleAddGuest(e, true)}
                                     className="btn btn-primary"
                                     style={{ justifyContent: 'center' }}
+                                    disabled={addingGuest}
                                 >
-                                    <Share2 size={16} /> Add & Invite
+                                    <Share2 size={16} /> {addingGuest ? 'Adding...' : 'Add & Invite'}
                                 </button>
                             </div>
                         </form>

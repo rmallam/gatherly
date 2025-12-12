@@ -1,0 +1,43 @@
+appId: com.guestscanner.app
+---
+# Test: User Signup Flow
+- launchApp
+- clearState
+
+# Wait for app to load
+- waitForAnimationToEnd
+
+# Navigate to signup
+- assertVisible: "Don't have an account?"
+- tapOn: "Sign Up"
+
+# Should see signup form
+- waitForAnimationToEnd
+- assertVisible: "Create Account"
+- assertVisible: "Full Name"
+
+# Fill signup form
+- tapOn: "Full Name"
+- inputText: "Test User"
+- tapOn: "Email Address"
+- inputText: "newuser@example.com"
+- tapOn: 
+    text: "Password"
+    index: 0
+- inputText: "Test@1234"
+
+# Password strength indicator should appear
+- assertVisible: "Strong"
+
+# Confirm password
+- tapOn: "Confirm Password"
+- inputText: "Test@1234"
+
+# Submit signup
+- tapOn: "Create Account"
+
+# Should show email verification message
+- waitForAnimationToEnd
+- assertVisible: "Check Your Email"
+
+# Success!

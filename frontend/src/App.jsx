@@ -1,5 +1,6 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { App as CapacitorApp } from '@capacitor/app';
 import { AuthProvider } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
 import Layout from './components/Layout';
@@ -15,11 +16,39 @@ import Scanner from './pages/Scanner';
 import RSVP from './pages/RSVP';
 import PublicInvitation from './pages/PublicInvitation';
 
+// Back button handler component
+function BackButtonHandler() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        const handleBackButton = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+            // If on home/dashboard, exit app
+            if (location.pathname === '/' || location.pathname === '/manager') {
+                CapacitorApp.exitApp();
+            } else if (canGoBack) {
+                // Navigate back
+                navigate(-1);
+            } else {
+                // Go to home
+                navigate('/');
+            }
+        });
+
+        return () => {
+            handleBackButton.remove();
+        };
+    }, [navigate, location]);
+
+    return null;
+}
+
 function App() {
     return (
         <AuthProvider>
             <AppProvider>
                 <BrowserRouter>
+                    <BackButtonHandler />
                     <Routes>
                         {/* Public routes */}
                         <Route path="/login" element={<Login />} />

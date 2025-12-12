@@ -1,0 +1,46 @@
+appId: com.guestscanner.app
+---
+# Test: Create Event Flow
+- launchApp
+- clearState
+
+# Login first
+- tapOn: "Email Address"
+- inputText: "test@example.com"
+- tapOn: "Password"
+- inputText: "Test@1234"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# Create new event
+- tapOn: "Create Event"
+- waitForAnimationToEnd
+
+# Fill event details
+- assertVisible: "Event Details"
+- tapOn: "Event Title"
+- inputText: "Birthday Party"
+
+- tapOn: "Venue"
+- inputText: "My House"
+
+- tapOn: "Description"
+- inputText: "Celebrating my 30th birthday!"
+
+# Save event
+- tapOn: "Create Event"
+- waitForAnimationToEnd
+
+# Should see event in list
+- assertVisible: "Birthday Party"
+- assertVisible: "My House"
+
+# Tap to view details
+- tapOn: "Birthday Party"
+- waitForAnimationToEnd
+
+# Should see event details page
+- assertVisible: "Overview"
+- assertVisible: "Guests"
+
+# Success!

@@ -54,6 +54,19 @@ export const BiometricService = {
         }
     },
 
+    // Check if credentials exist
+    async hasCredentials(server) {
+        try {
+            const credentials = await NativeBiometric.getCredentials({
+                server,
+            });
+            return credentials && credentials.username && credentials.password;
+        } catch (error) {
+            // If error, credentials don't exist
+            return false;
+        }
+    },
+
     // Delete credentials
     async deleteCredentials(server) {
         try {

@@ -1,0 +1,28 @@
+appId: com.guestscanner.app
+---
+# Test: User Login Flow
+- launchApp
+- clearState
+
+# Wait for app to load
+- waitForAnimationToEnd
+
+# Should see login screen
+- assertVisible: "Sign In"
+- assertVisible: "Email Address"
+- assertVisible: "Password"
+
+# Enter credentials
+- tapOn: "Email Address"
+- inputText: "test@example.com"
+- tapOn: "Password"
+- inputText: "Test@1234"
+
+# Submit login
+- tapOn: "Sign In"
+
+# Should navigate to dashboard
+- waitForAnimationToEnd
+- assertVisible: "My Events"
+
+# Success!

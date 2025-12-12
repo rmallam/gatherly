@@ -27,6 +27,7 @@ export const AppProvider = ({ children }) => {
     const fetchEvents = async () => {
         try {
             const token = localStorage.getItem('token');
+            console.log('Fetching events, token exists:', !!token);
 
             // Guest users: load from localStorage
             if (token?.startsWith('guest_')) {
@@ -37,11 +38,16 @@ export const AppProvider = ({ children }) => {
             }
 
             // Regular users: fetch from server
+            console.log('Fetching from server with headers');
             const res = await fetchWithRetry(`${API_URL}/events`, {
                 headers: getAuthHeaders()
             }, 3, 30000); // 3 retries, 30s timeout
+
+            console.log('Fetch response status:', res.status);
+
             if (!res.ok) {
                 if (res.status === 401) {
+                    console.error('401 Unauthorized - clearing token');
                     // Token expired or invalid - just clear it, ProtectedRoute will handle redirect
                     localStorage.removeItem('token');
                     setEvents([]);
@@ -50,9 +56,10 @@ export const AppProvider = ({ children }) => {
                 throw new Error('Failed to fetch events');
             }
             const data = await res.json();
+            console.log('Events fetched successfully:', data.length, 'events');
             setEvents(data);
         } catch (err) {
-            console.error(err);
+            console.error('Error fetching events:', err);
             setError('Could not connect to server. Backend may be starting up, please wait...');
         } finally {
             setLoading(false);
@@ -81,13 +88,27 @@ export const AppProvider = ({ children }) => {
     };
 
     useEffect(() => {
+        const token = localStorage.getItem('token');
+
+        // Only fetch if we have a token
+        if (!token) {
+            setLoading(false);
+            return;
+        }
+
         fetchEvents();
         fetchContacts();
 
         // Only poll for authenticated users, not guest users
-        const token = localStorage.getItem('token');
-        if (!token?.startsWith('guest_')) {
+        if (!token.startsWith('guest_')) {
             const interval = setInterval(() => {
+                // Double-check token still exists before polling
+                const currentToken = localStorage.getItem('token');
+                if (!currentToken) {
+                    clearInterval(interval);
+                    return;
+                }
+
                 fetchEvents();
                 fetchContacts();
             }, 5000);
@@ -132,7 +153,7 @@ export const AppProvider = ({ children }) => {
                 const res = await fetch(`${API_URL}/events`, {
                     method: 'POST',
                     headers: getAuthHeaders(),
-                    body: JSON.stringify(newEvent),
+                    body: JSON.stringify(eventData), // Send only the event data fields
                 });
 
                 if (!res.ok) {
@@ -141,6 +162,14 @@ export const AppProvider = ({ children }) => {
                     setEvents(prev => prev.filter(e => e.id !== newEvent.id));
                     throw new Error('Failed to save event');
                 }
+
+                const savedEvent = await res.json();
+                console.log('Event saved successfully:', savedEvent);
+
+                // Replace optimistic event with server response
+                setEvents(prev => prev.map(e => e.id === newEvent.id ? savedEvent : e));
+
+                return savedEvent;
             } catch (err) {
                 console.error('Error saving event:', err);
                 // Revert optimistic update
@@ -153,8 +182,27 @@ export const AppProvider = ({ children }) => {
     };
 
     const deleteEvent = async (eventId) => {
+        // Optimistic update
         setEvents(prev => prev.filter(e => e.id !== eventId));
-        await fetch(`${API_URL}/events/${eventId}`, { method: 'DELETE' });
+
+        try {
+            const res = await fetch(`${API_URL}/events/${eventId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+
+            if (!res.ok) {
+                console.error('Failed to delete event on server:', res.status);
+                // Revert optimistic update
+                await fetchEvents();
+                throw new Error('Failed to delete event');
+            }
+        } catch (err) {
+            console.error('Error deleting event:', err);
+            // Revert optimistic update
+            await fetchEvents();
+            throw err;
+        }
     };
 
     const getEvent = (eventId) => {
@@ -181,8 +229,8 @@ export const AppProvider = ({ children }) => {
         try {
             const res = await fetch(`${API_URL}/events/${eventId}/guests`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newGuest)
+                headers: getAuthHeaders(),
+                body: JSON.stringify(guestData)
             });
 
             if (!res.ok) {
@@ -196,6 +244,22 @@ export const AppProvider = ({ children }) => {
                 }));
                 throw new Error('Failed to add guest');
             }
+
+            const savedGuest = await res.json();
+            console.log('Guest added successfully:', savedGuest);
+
+            // Update with server response (in case server modified the guest)
+            setEvents(prev => prev.map(event => {
+                if (event.id === eventId) {
+                    return {
+                        ...event,
+                        guests: event.guests.map(g => g.id === newGuest.id ? savedGuest : g)
+                    };
+                }
+                return event;
+            }));
+
+            return savedGuest;
         } catch (err) {
             console.error('Error adding guest:', err);
             // Revert optimistic update
@@ -207,8 +271,6 @@ export const AppProvider = ({ children }) => {
             }));
             throw err;
         }
-
-        return newGuest;
     };
 
     const markGuestAttended = async (eventId, guestId, count = 1) => {
@@ -285,45 +347,52 @@ export const AppProvider = ({ children }) => {
             return event;
         }));
 
-        // Send each guest to the backend
-        const successfulGuests = [];
-        const failedGuests = [];
+        try {
+            // Use bulk endpoint
+            const res = await fetch(`${API_URL}/events/${eventId}/guests/bulk`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ guests: guestsArray })
+            });
 
-        for (const guest of newGuests) {
-            try {
-                const res = await fetch(`${API_URL}/events/${eventId}/guests`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(guest)
-                });
-
-                if (res.ok) {
-                    successfulGuests.push(guest);
-                } else {
-                    console.error('Failed to add guest:', guest.name, res.status);
-                    failedGuests.push(guest);
-                }
-            } catch (err) {
-                console.error('Error adding guest:', guest.name, err);
-                failedGuests.push(guest);
+            if (!res.ok) {
+                console.error('Failed to add guests to server:', res.status);
+                // Revert optimistic update
+                setEvents(prev => prev.map(event => {
+                    if (event.id === eventId) {
+                        const guestIds = newGuests.map(g => g.id);
+                        return { ...event, guests: event.guests.filter(g => !guestIds.includes(g.id)) };
+                    }
+                    return event;
+                }));
+                throw new Error('Failed to add guests');
             }
-        }
 
-        // Revert failed guests from optimistic update
-        if (failedGuests.length > 0) {
-            const failedIds = failedGuests.map(g => g.id);
+            const savedGuests = await res.json();
+            console.log('Bulk guests added successfully');
+
+            // Update with server response
             setEvents(prev => prev.map(event => {
                 if (event.id === eventId) {
-                    return { ...event, guests: event.guests.filter(g => !failedIds.includes(g.id)) };
+                    // Replace optimistic guests with server guests
+                    const nonNewGuests = event.guests.filter(g => !newGuests.some(ng => ng.id === g.id));
+                    return { ...event, guests: [...nonNewGuests, ...savedGuests] };
                 }
                 return event;
             }));
 
-            if (successfulGuests.length === 0) {
-                throw new Error('Failed to add all guests');
-            } else {
-                console.warn(`Added ${successfulGuests.length} guests, ${failedGuests.length} failed`);
-            }
+            return savedGuests;
+        } catch (err) {
+            console.error('Error adding bulk guests:', err);
+            // Revert optimistic update
+            setEvents(prev => prev.map(event => {
+                if (event.id === eventId) {
+                    const guestIds = newGuests.map(g => g.id);
+                    return { ...event, guests: event.guests.filter(g => !guestIds.includes(g.id)) };
+                }
+                return event;
+            }));
+            throw err;
         }
     };
 

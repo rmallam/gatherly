@@ -1,0 +1,52 @@
+appId: com.guestscanner.app
+---
+# Test: Scanner Flow
+- launchApp
+- clearState
+
+# Login
+- tapOn: "Email Address"
+- inputText: "test@example.com"
+- tapOn: "Password"
+- inputText: "Test@1234"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# Create event with guest
+- tapOn: "Create Event"
+- waitForAnimationToEnd
+- tapOn: "Event Title"
+- inputText: "Scanner Test Event"
+- tapOn: "Create Event"
+- waitForAnimationToEnd
+
+# Open event
+- tapOn: "Scanner Test Event"
+- waitForAnimationToEnd
+
+# Add a guest first
+- tapOn: "Guests"
+- waitForAnimationToEnd
+- tapOn: "Add Guest"
+- waitForAnimationToEnd
+- tapOn: "Guest Name"
+- inputText: "Scanner Guest"
+- tapOn: "Add to List"
+- waitForAnimationToEnd
+
+# Navigate to scanner
+- tapOn: "Overview"
+- waitForAnimationToEnd
+- tapOn: "Scan QR Code"
+- waitForAnimationToEnd
+
+# Should see scanner screen
+- assertVisible: "Scanner"
+
+# Note: Cannot test actual QR scanning in emulator
+# But we verified scanner screen loads
+
+# Go back
+- back
+
+# Success!

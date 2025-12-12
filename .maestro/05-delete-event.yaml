@@ -1,0 +1,37 @@
+appId: com.guestscanner.app
+---
+# Test: Delete Event
+- launchApp
+- clearState
+
+# Login
+- tapOn: "Email Address"
+- inputText: "test@example.com"
+- tapOn: "Password"
+- inputText: "Test@1234"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# Create event
+- tapOn: "Create Event"
+- waitForAnimationToEnd
+- tapOn: "Event Title"
+- inputText: "Event to Delete"
+- tapOn: "Create Event"
+- waitForAnimationToEnd
+
+# Should see event
+- assertVisible: "Event to Delete"
+
+# Long press to delete (or find delete button)
+- longPressOn: "Event to Delete"
+- waitForAnimationToEnd
+
+# Confirm deletion
+- tapOn: "Delete"
+- waitForAnimationToEnd
+
+# Event should be gone
+- assertNotVisible: "Event to Delete"
+
+# Success!

@@ -1,0 +1,35 @@
+appId: com.guestscanner.app
+---
+# Test: Android Back Button Navigation
+- launchApp
+- clearState
+
+# Login
+- tapOn: "Email Address"
+- inputText: "test@example.com"
+- tapOn: "Password"
+- inputText: "Test@1234"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# Create and open event
+- tapOn: "Create Event"
+- waitForAnimationToEnd
+- tapOn: "Event Title"
+- inputText: "Back Button Test"
+- tapOn: "Create Event"
+- waitForAnimationToEnd
+- tapOn: "Back Button Test"
+- waitForAnimationToEnd
+
+# Press back - should go to dashboard
+- back
+- waitForAnimationToEnd
+- assertVisible: "My Events"
+
+# Press back on dashboard - should exit app (or stay on dashboard)
+# This depends on implementation
+- back
+- waitForAnimationToEnd
+
+# Success!

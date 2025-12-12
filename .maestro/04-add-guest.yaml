@@ -1,0 +1,60 @@
+appId: com.guestscanner.app
+---
+# Test: Add Guest Manually
+- launchApp
+- clearState
+
+# Login
+- tapOn: "Email Address"
+- inputText: "test@example.com"
+- tapOn: "Password"
+- inputText: "Test@1234"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# Create event first
+- tapOn: "Create Event"
+- waitForAnimationToEnd
+- tapOn: "Event Title"
+- inputText: "Test Event"
+- tapOn: "Create Event"
+- waitForAnimationToEnd
+
+# Open event
+- tapOn: "Test Event"
+- waitForAnimationToEnd
+
+# Go to Guests tab
+- tapOn: "Guests"
+- waitForAnimationToEnd
+
+# Add guest
+- tapOn: "Add Guest"
+- waitForAnimationToEnd
+
+# Fill guest details
+- tapOn: "Guest Name"
+- inputText: "John Doe"
+- tapOn: "Phone Number"
+- inputText: "+1234567890"
+
+# Save guest
+- tapOn: "Add to List"
+- waitForAnimationToEnd
+
+# Should see guest in list
+- assertVisible: "John Doe"
+- assertVisible: "+1234567890"
+
+# Test duplicate prevention
+- tapOn: "Add Guest"
+- waitForAnimationToEnd
+- tapOn: "Guest Name"
+- inputText: "John Doe"
+- tapOn: "Add to List"
+- waitForAnimationToEnd
+
+# Should show duplicate alert
+- assertVisible: "already been added"
+
+# Success!

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { UserPlus, Mail, Lock, User, AlertCircle, Scan } from 'lucide-react';
+import PasswordStrength from '../components/PasswordStrength';
+import { UserPlus, Mail, Lock, User, AlertCircle, Scan, CheckCircle } from 'lucide-react';
 
 const Signup = () => {
-    const navigate = useNavigate();
     const { signup } = useAuth();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -12,26 +12,40 @@ const Signup = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState(false);
+    const [signupEmail, setSignupEmail] = useState('');
+
+    const validateEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
+        if (!validateEmail(email)) {
+            setError('Please enter a valid email address');
+            return;
+        }
 
         if (password !== confirmPassword) {
             setError('Passwords do not match');
             return;
         }
 
-        if (password.length < 6) {
-            setError('Password must be at least 6 characters');
+        if (password.length < 8) {
+            setError('Password must be at least 8 characters');
             return;
         }
 
         setLoading(true);
 
         try {
-            await signup(name, email, password);
-            navigate('/');
+            const response = await signup(name, email, password);
+            // New signup flow - verification email sent
+            setSignupEmail(response.email || email);
+            setSuccess(true);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -39,9 +53,60 @@ const Signup = () => {
         }
     };
 
+    if (success) {
+        return (
+            <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
+                <div style={{ padding: '2rem 0', borderBottom: '1px solid var(--border)' }}>
+                    <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
+                        <Scan size={32} style={{ color: 'var(--primary)' }} />
+                        <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>Gatherly</h1>
+                    </div>
+                </div>
+
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
+                    <div className="card" style={{ maxWidth: '440px', width: '100%', textAlign: 'center' }}>
+                        <div style={{
+                            width: '64px',
+                            height: '64px',
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 1.5rem'
+                        }}>
+                            <CheckCircle size={32} color="white" />
+                        </div>
+
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
+                            Check Your Email
+                        </h2>
+
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: '1.6' }}>
+                            We've sent a verification link to:<br />
+                            <strong style={{ color: 'var(--text-primary)' }}>{signupEmail}</strong>
+                        </p>
+
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: '1.6' }}>
+                            Click the link in the email to verify your account and start using Gatherly.
+                        </p>
+
+                        <div style={{ marginTop: '2rem', padding: '1rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
+                            <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+                                Didn't receive the email? Check your spam folder or{' '}
+                                <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>
+                                    return to login
+                                </Link>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
-            {/* Header */}
             <div style={{ padding: '2rem 0', borderBottom: '1px solid var(--border)' }}>
                 <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
                     <Scan size={32} style={{ color: 'var(--primary)' }} />
@@ -49,7 +114,6 @@ const Signup = () => {
                 </div>
             </div>
 
-            {/* Main Content */}
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
                 <div className="card" style={{ maxWidth: '440px', width: '100%' }}>
                     <div style={{ marginBottom: '2rem' }}>
@@ -126,11 +190,11 @@ const Signup = () => {
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="form-input"
                                     style={{ paddingLeft: '2.75rem' }}
-                                    placeholder="At least 6 characters"
-                                    minLength={6}
+                                    placeholder="Strong password"
                                     required
                                 />
                             </div>
+                            <PasswordStrength password={password} />
                         </div>
 
                         <div>

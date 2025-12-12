@@ -1,6 +1,6 @@
 {
     "appId": "com.guestscanner.app",
-    "appName": "Guest Scanner",
+    "appName": "Gatherly",
     "webDir": "dist",
     "server": {
         "androidScheme": "https",

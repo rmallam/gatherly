@@ -21,10 +21,20 @@ const Login = () => {
         try {
             await login(email, password);
 
-            // Ask if user wants to enable biometric
+            // Check if biometric is already enabled before prompting
             if (biometricAvailable) {
-                setSavedCredentials({ email, password });
-                setShowBiometricPrompt(true);
+                // Check if credentials are already saved
+                const { BiometricService } = await import('../services/biometric');
+                const hasSavedCredentials = await BiometricService.hasCredentials('gatherly');
+
+                if (!hasSavedCredentials) {
+                    // Only show prompt if not already set up
+                    setSavedCredentials({ email, password });
+                    setShowBiometricPrompt(true);
+                } else {
+                    // Already set up, just navigate
+                    navigate('/');
+                }
             } else {
                 navigate('/');
             }
