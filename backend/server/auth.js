@@ -41,19 +41,35 @@ export function comparePassword(password, storedHash) {
 }
 
 // Authentication middleware
-export function authMiddleware(req, res, next) {
-    const token = req.headers.authorization?.replace('Bearer ', '');
+export const authMiddleware = async (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
 
-    if (!token) {
-        return res.status(401).json({ error: 'No token provided' });
+        if (!authHeader) {
+            console.log('Auth middleware: No authorization header');
+            return res.status(401).json({ error: 'No authorization header' });
+        }
+
+        const token = authHeader.split(' ')[1];
+        if (!token) {
+            console.log('Auth middleware: No token in authorization header');
+            return res.status(401).json({ error: 'No token provided' });
+        }
+
+        console.log('Auth middleware: Verifying token...');
+        const decoded = jwt.verify(token, JWT_SECRET);
+        console.log('Auth middleware: Token verified for user ID:', decoded.userId);
+
+        req.user = { id: decoded.userId };
+        next();
+    } catch (error) {
+        console.error('Auth middleware error:', error.message);
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ error: 'Token expired' });
+        }
+        return res.status(401).json({ error: 'Authentication failed' });
     }
-
-    const decoded = verifyToken(token);
-
-    if (!decoded) {
-        return res.status(401).json({ error: 'Invalid or expired token' });
-    }
-
-    req.user = decoded;
-    next();
-}
+};
