@@ -40,6 +40,7 @@ const allowedOrigins = [
     'ionic://localhost',       // Capacitor Android
     'http://localhost',        // Capacitor fallback
     'https://localhost',       // Capacitor HTTPS mode
+    'https://gatherly-backend-3vmv.onrender.com', // Production backend (for invite.html)
 ].filter(Boolean);
 
 app.use(cors({
@@ -704,9 +705,9 @@ app.get('/api/events/:eventId/invite/:guestId', async (req, res) => {
     try {
         const { eventId, guestId } = req.params;
 
-        // Get event
+        // Get event with data column
         const eventResult = await query(
-            'SELECT id, title, date, location, description FROM events WHERE id = $1',
+            'SELECT id, title, date, location, description, data FROM events WHERE id = $1',
             [eventId]
         );
 
@@ -724,8 +725,16 @@ app.get('/api/events/:eventId/invite/:guestId', async (req, res) => {
             return res.status(404).json({ error: 'Guest not found' });
         }
 
+        // Merge data column into event object
+        const event = eventResult.rows[0];
+        const { data, ...eventFields } = event;
+        const mergedEvent = {
+            ...eventFields,
+            ...(data || {}) // Spread the data jsonb fields (includes venue, time, etc.)
+        };
+
         res.json({
-            event: eventResult.rows[0],
+            event: mergedEvent,
             guest: guestResult.rows[0]
         });
     } catch (error) {

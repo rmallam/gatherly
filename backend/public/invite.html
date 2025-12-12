@@ -218,7 +218,24 @@
                         </div>
                     `;
                 }
-                if (data.event.location) {
+                if (data.event.time) {
+                    detailsHTML += `
+                        <div class="detail-row">
+                            <span class="detail-icon">⏰</span>
+                            <span class="detail-text">${data.event.time}</span>
+                        </div>
+                    `;
+                }
+                // Display venue if it exists (as object with name/address)
+                if (data.event.venue && data.event.venue.name) {
+                    detailsHTML += `
+                        <div class="detail-row">
+                            <span class="detail-icon">📍</span>
+                            <span class="detail-text">${data.event.venue.name}${data.event.venue.address ? ', ' + data.event.venue.address : ''}</span>
+                        </div>
+                    `;
+                } else if (data.event.location) {
+                    // Fallback to location string if venue object doesn't exist
                     detailsHTML += `
                         <div class="detail-row">
                             <span class="detail-icon">📍</span>
