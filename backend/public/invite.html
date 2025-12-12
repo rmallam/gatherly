@@ -240,10 +240,10 @@
                 const contentHTML = `
                     ${detailsHTML}
                     <div class="rsvp-buttons">
-                        <button class="btn btn-accept" onclick="submitRSVP(true)">
+                        <button class="btn btn-accept" data-rsvp="true">
                             ✓ Accept
                         </button>
-                        <button class="btn btn-decline" onclick="submitRSVP(false)">
+                        <button class="btn btn-decline" data-rsvp="false">
                             ✗ Decline
                         </button>
                     </div>
@@ -251,6 +251,14 @@
                 `;
 
                 document.getElementById('content').innerHTML = contentHTML;
+
+                // Attach event listeners to RSVP buttons
+                document.querySelectorAll('.rsvp-buttons .btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const accepted = btn.dataset.rsvp === 'true';
+                        submitRSVP(accepted);
+                    });
+                });
             } catch (error) {
                 console.error('Load event error:', error);
                 document.getElementById('event-title').textContent = 'Error';
