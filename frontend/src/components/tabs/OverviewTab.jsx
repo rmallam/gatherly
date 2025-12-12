@@ -149,8 +149,10 @@ const OverviewTab = ({ event }) => {
                                                 {guest.name}
                                             </div>
                                             {guest.phone && (
-                                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                                    {guest.phone}
+                                                <div style={{ fontSize: '0.875rem' }}>
+                                                    <a href={`tel:${guest.phone}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                                                        📞 {guest.phone}
+                                                    </a>
                                                 </div>
                                             )}
                                             {guest.attended && (

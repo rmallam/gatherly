@@ -66,26 +66,6 @@ const CateringTab = ({ event, onUpdateCatering }) => {
 
     return (
         <div>
-            {/* Header Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Menu Items</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--primary)' }}>{menuItems.length}</div>
-                </div>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Servings</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--success)' }}>{totalServings}</div>
-                </div>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Confirmed Guests</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>{confirmedGuests}</div>
-                </div>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Cost</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--warning)' }}>${totalCost.toFixed(2)}</div>
-                </div>
-            </div>
-
             {/* Add Item Button */}
             <button
                 onClick={() => setShowAddForm(!showAddForm)}
@@ -108,72 +88,60 @@ const CateringTab = ({ event, onUpdateCatering }) => {
                                 value={newItem.name}
                                 onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
                                 placeholder="e.g., Caesar Salad"
+                                autoFocus
                             />
                         </div>
                         <div>
                             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Category</label>
-                            <select
-                                className="form-input"
-                                value={newItem.category}
-                                onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                            >
-                                {categories.map(cat => (
-                                    <option key={cat.id} value={cat.id}>{cat.emoji} {cat.label}</option>
-                                ))}
+                            <select className="form-input" value={newItem.category} onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}>
+                                {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.emoji} {cat.label}</option>)}
                             </select>
                         </div>
                         <div>
                             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Quantity</label>
-                            <input
-                                type="number"
-                                className="form-input"
-                                value={newItem.quantity}
-                                onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
-                                placeholder="0"
-                            />
+                            <input type="number" className="form-input" value={newItem.quantity} onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })} placeholder="0" />
                         </div>
                         <div>
                             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Servings</label>
-                            <input
-                                type="number"
-                                className="form-input"
-                                value={newItem.servings}
-                                onChange={(e) => setNewItem({ ...newItem, servings: e.target.value })}
-                                placeholder="0"
-                            />
+                            <input type="number" className="form-input" value={newItem.servings} onChange={(e) => setNewItem({ ...newItem, servings: e.target.value })} placeholder="0" />
                         </div>
                         <div>
                             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Cost ($)</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                className="form-input"
-                                value={newItem.cost}
-                                onChange={(e) => setNewItem({ ...newItem, cost: e.target.value })}
-                                placeholder="0.00"
-                            />
+                            <input type="number" step="0.01" className="form-input" value={newItem.cost} onChange={(e) => setNewItem({ ...newItem, cost: e.target.value })} placeholder="0.00" />
                         </div>
                         <div>
                             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Vendor (Optional)</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={newItem.vendor}
-                                onChange={(e) => setNewItem({ ...newItem, vendor: e.target.value })}
-                                placeholder="Vendor name"
-                            />
+                            <input type="text" className="form-input" value={newItem.vendor} onChange={(e) => setNewItem({ ...newItem, vendor: e.target.value })} placeholder="Vendor name" />
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <button onClick={handleAddItem} className="btn btn-primary">
-                            <Check size={16} /> Add Item
-                        </button>
-                        <button onClick={() => setShowAddForm(false)} className="btn btn-secondary">
-                            <X size={16} /> Cancel
-                        </button>
+                        <button onClick={handleAddItem} className="btn btn-primary"><Check size={16} /> Add Item</button>
+                        <button onClick={() => setShowAddForm(false)} className="btn btn-secondary"><X size={16} /> Cancel</button>
                     </div>
                 </div>
             )}
+
+            {/* Header Stats */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+                <div className="card" style={{ padding: '1rem' }}>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Menu Items</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--primary)' }}>{menuItems.length}</div>
+                </div>
+                <div className="card" style={{ padding: '1rem' }}>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Servings</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--success)' }}>{totalServings}</div>
+                </div>
+                <div className="card" style={{ padding: '1rem' }}>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Confirmed Guests</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>{confirmedGuests}</div>
+                </div>
+                <div className="card" style={{ padding: '1rem' }}>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Cost</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--warning)' }}>${totalCost.toFixed(2)}</div>
+                </div>
+            </div>
+
+
 
             {/* Menu Items by Category */}
             {categories.map(category => {

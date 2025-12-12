@@ -51,6 +51,46 @@ const EntertainmentTab = ({ event, onUpdateEntertainment }) => {
 
     return (
         <div>
+            {/* Add Button */}
+            <button onClick={() => setShowAddActivity(!showAddActivity)} className="btn btn-primary" style={{ marginBottom: '1.5rem' }}>
+                <Plus size={16} /> Add Activity
+            </button>
+
+            {/* Add Form */}
+            {showAddActivity && (
+                <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>New Activity</h3>
+                    <div style={{ display: 'grid', gap: '1rem', marginBottom: '1rem' }}>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Activity Name*</label>
+                            <input type="text" className="form-input" value={newActivity.name} onChange={(e) => setNewActivity({ ...newActivity, name: e.target.value })} placeholder="e.g., DJ Performance, Games, Dance" autoFocus />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Start Time</label>
+                                <input type="time" className="form-input" value={newActivity.time} onChange={(e) => setNewActivity({ ...newActivity, time: e.target.value })} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Duration (minutes)</label>
+                                <input type="number" className="form-input" value={newActivity.duration} onChange={(e) => setNewActivity({ ...newActivity, duration: e.target.value })} placeholder="30" />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Performer/Host (Optional)</label>
+                                <input type="text" className="form-input" value={newActivity.performer} onChange={(e) => setNewActivity({ ...newActivity, performer: e.target.value })} placeholder="Name" />
+                            </div>
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Notes (Optional)</label>
+                            <textarea className="form-input" value={newActivity.notes} onChange={(e) => setNewActivity({ ...newActivity, notes: e.target.value })} placeholder="Equipment needed, special instructions, etc." rows={2} />
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <button onClick={handleAddActivity} className="btn btn-primary"><Check size={16} /> Add Activity</button>
+                        <button onClick={() => setShowAddActivity(false)} className="btn btn-secondary"><X size={16} /> Cancel</button>
+                    </div>
+                </div>
+            )}
+
             {/* Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                 <div className="card" style={{ padding: '1rem' }}>
@@ -65,78 +105,6 @@ const EntertainmentTab = ({ event, onUpdateEntertainment }) => {
                 </div>
             </div>
 
-            {/* Add Button */}
-            <button onClick={() => setShowAddActivity(!showAddActivity)} className="btn btn-primary" style={{ marginBottom: '1.5rem' }}>
-                <Plus size={16} /> Add Activity
-            </button>
-
-            {/* Add Form */}
-            {showAddActivity && (
-                <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>New Activity</h3>
-                    <div style={{ display: 'grid', gap: '1rem', marginBottom: '1rem' }}>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Activity Name*</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={newActivity.name}
-                                onChange={(e) => setNewActivity({ ...newActivity, name: e.target.value })}
-                                placeholder="e.g., DJ Performance, Games, Dance"
-                            />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Start Time</label>
-                                <input
-                                    type="time"
-                                    className="form-input"
-                                    value={newActivity.time}
-                                    onChange={(e) => setNewActivity({ ...newActivity, time: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Duration (minutes)</label>
-                                <input
-                                    type="number"
-                                    className="form-input"
-                                    value={newActivity.duration}
-                                    onChange={(e) => setNewActivity({ ...newActivity, duration: e.target.value })}
-                                    placeholder="30"
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Performer/Host (Optional)</label>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    value={newActivity.performer}
-                                    onChange={(e) => setNewActivity({ ...newActivity, performer: e.target.value })}
-                                    placeholder="Name"
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Notes (Optional)</label>
-                            <textarea
-                                className="form-input"
-                                value={newActivity.notes}
-                                onChange={(e) => setNewActivity({ ...newActivity, notes: e.target.value })}
-                                placeholder="Equipment needed, special instructions, etc."
-                                rows={2}
-                            />
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <button onClick={handleAddActivity} className="btn btn-primary">
-                            <Check size={16} /> Add Activity
-                        </button>
-                        <button onClick={() => setShowAddActivity(false)} className="btn btn-secondary">
-                            <X size={16} /> Cancel
-                        </button>
-                    </div>
-                </div>
-            )}
 
             {/* Timeline */}
             {sortedActivities.length > 0 && (

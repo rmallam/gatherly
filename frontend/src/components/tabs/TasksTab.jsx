@@ -74,45 +74,6 @@ const TasksTab = ({ event, onUpdateTasks }) => {
 
     return (
         <div>
-            {/* Stats Overview */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Tasks</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--primary)' }}>{totalTasks}</div>
-                </div>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Completed</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--success)' }}>{completedTasks}</div>
-                </div>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>In Progress</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--warning)' }}>{inProgressTasks}</div>
-                </div>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Overdue</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--error)' }}>{overdueTasks.length}</div>
-                </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="card" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                    <span style={{ fontSize: '0.9375rem', fontWeight: 500 }}>Overall Progress</span>
-                    <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--primary)' }}>
-                        {completionPercentage.toFixed(0)}%
-                    </span>
-                </div>
-                <div style={{ height: '12px', background: 'var(--bg-secondary)', borderRadius: '999px', overflow: 'hidden' }}>
-                    <div style={{
-                        height: '100%',
-                        width: `${completionPercentage}%`,
-                        background: 'linear-gradient(90deg, var(--success) 0%, #059669 100%)',
-                        transition: 'width 0.5s ease',
-                        borderRadius: '999px'
-                    }}></div>
-                </div>
-            </div>
-
             {/* Add Task Button */}
             <button
                 onClick={() => setShowAddForm(!showAddForm)}
@@ -135,6 +96,7 @@ const TasksTab = ({ event, onUpdateTasks }) => {
                                 value={newTask.title}
                                 onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                                 placeholder="e.g., Book photographer"
+                                autoFocus
                             />
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
@@ -183,6 +145,46 @@ const TasksTab = ({ event, onUpdateTasks }) => {
                     </div>
                 </div>
             )}
+
+            {/* Stats Overview */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+                <div className="card" style={{ padding: '1rem' }}>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Tasks</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--primary)' }}>{totalTasks}</div>
+                </div>
+                <div className="card" style={{ padding: '1rem' }}>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Completed</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--success)' }}>{completedTasks}</div>
+                </div>
+                <div className="card" style={{ padding: '1rem' }}>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>In Progress</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--warning)' }}>{inProgressTasks}</div>
+                </div>
+                <div className="card" style={{ padding: '1rem' }}>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Overdue</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--error)' }}>{overdueTasks.length}</div>
+                </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="card" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                    <span style={{ fontSize: '0.9375rem', fontWeight: 500 }}>Overall Progress</span>
+                    <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--primary)' }}>
+                        {completionPercentage.toFixed(0)}%
+                    </span>
+                </div>
+                <div style={{ height: '12px', background: 'var(--bg-secondary)', borderRadius: '999px', overflow: 'hidden' }}>
+                    <div style={{
+                        height: '100%',
+                        width: `${completionPercentage}%`,
+                        background: 'linear-gradient(90deg, var(--success) 0%, #059669 100%)',
+                        transition: 'width 0.5s ease',
+                        borderRadius: '999px'
+                    }}></div>
+                </div>
+            </div>
+
 
             {/* Tasks by Category */}
             {categories.map(category => {

@@ -290,7 +290,13 @@ const EventDetails = () => {
                                         {guest.name}
                                     </h4>
                                     <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                                        <span>{guest.phone || 'No phone'}</span>
+                                        {guest.phone ? (
+                                            <a href={`tel:${guest.phone}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                                                📞 {guest.phone}
+                                            </a>
+                                        ) : (
+                                            <span>No phone</span>
+                                        )}
                                         {guest.attended && (
                                             <span className="badge badge-success">
                                                 <CheckCircle2 size={12} /> Checked In

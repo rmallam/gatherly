@@ -274,6 +274,8 @@ export const AppProvider = ({ children }) => {
     };
 
     const markGuestAttended = async (eventId, guestId, count = 1) => {
+        console.log('markGuestAttended called:', { eventId, guestId, count });
+
         // Optimistic update
         setEvents(prev => prev.map(event => {
             if (event.id === eventId) {
@@ -295,11 +297,49 @@ export const AppProvider = ({ children }) => {
             return event;
         }));
 
-        await fetch(`${API_URL}/events/${eventId}/guests/${guestId}/checkin`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ count })
-        });
+        try {
+            const response = await fetch(`${API_URL}/events/${eventId}/guests/${guestId}/checkin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ count })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                console.error('Check-in API failed:', error);
+                throw new Error(error.error || 'Failed to check in guest');
+            }
+
+            console.log('Check-in successful');
+            // Optionally refresh events to ensure sync
+            await fetchEvents();
+        } catch (error) {
+            console.error('markGuestAttended error:', error);
+            // Revert optimistic update on error
+            setEvents(prev => prev.map(event => {
+                if (event.id === eventId) {
+                    return {
+                        ...event,
+                        guests: event.guests.map(guest => {
+                            if (guest.id === guestId) {
+                                return {
+                                    ...guest,
+                                    attended: false,
+                                    attendedCount: Math.max(0, (guest.attendedCount || 0) - count),
+                                    checkInTime: null
+                                };
+                            }
+                            return guest;
+                        })
+                    };
+                }
+                return event;
+            }));
+            throw error;
+        }
     };
 
     const rsvpGuest = async (eventId, guestId, response) => {
@@ -397,6 +437,9 @@ export const AppProvider = ({ children }) => {
     };
 
     const updateEvent = async (eventId, updatedEventData) => {
+        // Store original state for potential revert
+        const originalEvents = [...events];
+
         // Optimistic update
         setEvents(prev => prev.map(event => {
             if (event.id === eventId) {
@@ -415,11 +458,25 @@ export const AppProvider = ({ children }) => {
             localStorage.setItem('guestEvents', JSON.stringify(updatedEvents));
         } else {
             // Regular users: save to server
-            await fetch(`${API_URL}/events/${eventId}`, {
-                method: 'PUT',
-                headers: getAuthHeaders(),
-                body: JSON.stringify(updatedEventData),
-            });
+            try {
+                const res = await fetch(`${API_URL}/events/${eventId}`, {
+                    method: 'PUT',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(updatedEventData),
+                });
+
+                if (!res.ok) {
+                    console.error('Failed to update event, reverting:', res.status);
+                    // Revert optimistic update on failure
+                    setEvents(originalEvents);
+                    throw new Error('Failed to update event');
+                }
+            } catch (error) {
+                console.error('Error updating event:', error);
+                // Revert optimistic update
+                setEvents(originalEvents);
+                throw error;
+            }
         }
     };
 

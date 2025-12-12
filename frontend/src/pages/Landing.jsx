@@ -48,8 +48,9 @@ const Landing = () => {
                         <Scan size={32} color="white" strokeWidth={2} />
                     </div>
                     <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.5rem', lineHeight: 1.2, color: 'var(--text-primary)' }}>
-                        Welcome back, {user.name}!
+                        Welcome back, {user?.name || 'User'}!
                     </h1>
+                    {console.log('Landing page user:', JSON.stringify(user))}
                     <p style={{ fontSize: '0.9375rem', fontWeight: 400, color: 'var(--text-secondary)' }}>
                         Ready to manage your events
                     </p>

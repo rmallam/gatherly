@@ -87,6 +87,49 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
 
     return (
         <div>
+            {/* Add Button */}
+            <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-primary" style={{ marginBottom: '1.5rem' }}>
+                <Plus size={16} /> Add Decoration Item
+            </button>
+
+            {/* Add Form */}
+            {showAddForm && (
+                <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>New Decoration Item</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Item*</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                value={newItem.item}
+                                onChange={(e) => setNewItem({ ...newItem, item: e.target.value })}
+                                placeholder="e.g., Balloons, Flowers"
+                                autoFocus
+                            />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Area</label>
+                            <select className="form-input" value={newItem.area} onChange={(e) => setNewItem({ ...newItem, area: e.target.value })}>
+                                {areas.map(area => <option key={area.id} value={area.id}>{area.emoji} {area.label}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Quantity</label>
+                            <input type="number" className="form-input" value={newItem.quantity} onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })} placeholder="0" />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Cost ($)</label>
+                            <input type="number" step="0.01" className="form-input" value={newItem.cost} onChange={(e) => setNewItem({ ...newItem, cost: e.target.value })} placeholder="0.00" />
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <button onClick={handleAddItem} className="btn btn-primary"><Check size={16} /> Add Item</button>
+                        <button onClick={() => setShowAddForm(false)} className="btn btn-secondary"><X size={16} /> Cancel</button>
+                    </div>
+                </div>
+            )}
+
             {/* Theme & Colors */}
             <div className="card" style={{ marginBottom: '2rem', padding: '1.5rem' }}>
                 <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -125,70 +168,6 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
                 </div>
             </div>
 
-            {/* Add Button */}
-            <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-primary" style={{ marginBottom: '1.5rem' }}>
-                <Plus size={16} /> Add Decoration Item
-            </button>
-
-            {/* Add Form */}
-            {showAddForm && (
-                <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>New Decoration Item</h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Item*</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={newItem.item}
-                                onChange={(e) => setNewItem({ ...newItem, item: e.target.value })}
-                                placeholder="e.g., Balloons, Flowers"
-                            />
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Area</label>
-                            <select
-                                className="form-input"
-                                value={newItem.area}
-                                onChange={(e) => setNewItem({ ...newItem, area: e.target.value })}
-                            >
-                                {areas.map(area => (
-                                    <option key={area.id} value={area.id}>{area.emoji} {area.label}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Quantity</label>
-                            <input
-                                type="number"
-                                className="form-input"
-                                value={newItem.quantity}
-                                onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
-                                placeholder="0"
-                            />
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Cost ($)</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                className="form-input"
-                                value={newItem.cost}
-                                onChange={(e) => setNewItem({ ...newItem, cost: e.target.value })}
-                                placeholder="0.00"
-                            />
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <button onClick={handleAddItem} className="btn btn-primary">
-                            <Check size={16} /> Add Item
-                        </button>
-                        <button onClick={() => setShowAddForm(false)} className="btn btn-secondary">
-                            <X size={16} /> Cancel
-                        </button>
-                    </div>
-                </div>
-            )}
 
             {/* Items by Area */}
             {areas.map(area => {

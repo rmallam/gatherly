@@ -67,6 +67,58 @@ const VendorsTab = ({ event, onUpdateVendors }) => {
 
     return (
         <div>
+            {/* Add Button */}
+            <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-primary" style={{ marginBottom: '1.5rem' }}>
+                <Plus size={16} /> Add Vendor
+            </button>
+
+            {/* Add Form */}
+            {showAddForm && (
+                <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>New Vendor</h3>
+                    <div style={{ display: 'grid', gap: '1rem', marginBottom: '1rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Vendor Name*</label>
+                                <input type="text" className="form-input" value={newVendor.name} onChange={(e) => setNewVendor({ ...newVendor, name: e.target.value })} placeholder="Company or person name" autoFocus />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Category</label>
+                                <select className="form-input" value={newVendor.category} onChange={(e) => setNewVendor({ ...newVendor, category: e.target.value })}>
+                                    {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.emoji} {cat.label}</option>)}
+                                </select>
+                            </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Contact Person</label>
+                                <input type="text" className="form-input" value={newVendor.contact} onChange={(e) => setNewVendor({ ...newVendor, contact: e.target.value })} placeholder="Name" />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Phone</label>
+                                <input type="tel" className="form-input" value={newVendor.phone} onChange={(e) => setNewVendor({ ...newVendor, phone: e.target.value })} placeholder="+1 (555) 000-0000" />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Email</label>
+                                <input type="email" className="form-input" value={newVendor.email} onChange={(e) => setNewVendor({ ...newVendor, email: e.target.value })} placeholder="email@example.com" />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Cost ($)</label>
+                                <input type="number" step="0.01" className="form-input" value={newVendor.cost} onChange={(e) => setNewVendor({ ...newVendor, cost: e.target.value })} placeholder="0.00" />
+                            </div>
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Notes (Optional)</label>
+                            <textarea className="form-input" value={newVendor.notes} onChange={(e) => setNewVendor({ ...newVendor, notes: e.target.value })} placeholder="Contract details, special requirements, etc." rows={2} />
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <button onClick={handleAddVendor} className="btn btn-primary"><Check size={16} /> Add Vendor</button>
+                        <button onClick={() => setShowAddForm(false)} className="btn btn-secondary"><X size={16} /> Cancel</button>
+                    </div>
+                </div>
+            )}
+
             {/* Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                 <div className="card" style={{ padding: '1rem' }}>
@@ -83,104 +135,6 @@ const VendorsTab = ({ event, onUpdateVendors }) => {
                 </div>
             </div>
 
-            {/* Add Button */}
-            <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-primary" style={{ marginBottom: '1.5rem' }}>
-                <Plus size={16} /> Add Vendor
-            </button>
-
-            {/* Add Form */}
-            {showAddForm && (
-                <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>New Vendor</h3>
-                    <div style={{ display: 'grid', gap: '1rem', marginBottom: '1rem' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Vendor Name*</label>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    value={newVendor.name}
-                                    onChange={(e) => setNewVendor({ ...newVendor, name: e.target.value })}
-                                    placeholder="Company or person name"
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Category</label>
-                                <select
-                                    className="form-input"
-                                    value={newVendor.category}
-                                    onChange={(e) => setNewVendor({ ...newVendor, category: e.target.value })}
-                                >
-                                    {categories.map(cat => (
-                                        <option key={cat.id} value={cat.id}>{cat.emoji} {cat.label}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Contact Person</label>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    value={newVendor.contact}
-                                    onChange={(e) => setNewVendor({ ...newVendor, contact: e.target.value })}
-                                    placeholder="Name"
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Phone</label>
-                                <input
-                                    type="tel"
-                                    className="form-input"
-                                    value={newVendor.phone}
-                                    onChange={(e) => setNewVendor({ ...newVendor, phone: e.target.value })}
-                                    placeholder="+1 (555) 000-0000"
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Email</label>
-                                <input
-                                    type="email"
-                                    className="form-input"
-                                    value={newVendor.email}
-                                    onChange={(e) => setNewVendor({ ...newVendor, email: e.target.value })}
-                                    placeholder="email@example.com"
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Cost ($)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    className="form-input"
-                                    value={newVendor.cost}
-                                    onChange={(e) => setNewVendor({ ...newVendor, cost: e.target.value })}
-                                    placeholder="0.00"
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Notes (Optional)</label>
-                            <textarea
-                                className="form-input"
-                                value={newVendor.notes}
-                                onChange={(e) => setNewVendor({ ...newVendor, notes: e.target.value })}
-                                placeholder="Contract details, special requirements, etc."
-                                rows={2}
-                            />
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <button onClick={handleAddVendor} className="btn btn-primary">
-                            <Check size={16} /> Add Vendor
-                        </button>
-                        <button onClick={() => setShowAddForm(false)} className="btn btn-secondary">
-                            <X size={16} /> Cancel
-                        </button>
-                    </div>
-                </div>
-            )}
 
             {/* Vendors by Category */}
             {categories.map(category => {

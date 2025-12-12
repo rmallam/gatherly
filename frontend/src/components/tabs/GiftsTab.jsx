@@ -57,6 +57,51 @@ const GiftsTab = ({ event, onUpdateGifts }) => {
 
     return (
         <div>
+            {/* Add Button */}
+            <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-primary" style={{ marginBottom: '1.5rem' }}>
+                <Plus size={16} /> Add Gift Item
+            </button>
+
+            {/* Add Form */}
+            {
+                showAddForm && (
+                    <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>New Gift Item</h3>
+                        <div style={{ display: 'grid', gap: '1rem', marginBottom: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Gift Name*</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={newGift.name}
+                                    onChange={(e) => setNewGift({ ...newGift, name: e.target.value })}
+                                    placeholder="e.g., Personalized Keychains"
+                                    autoFocus
+                                />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Quantity</label>
+                                    <input type="number" className="form-input" value={newGift.quantity} onChange={(e) => setNewGift({ ...newGift, quantity: e.target.value })} placeholder={totalGuests ? `Suggested: ${totalGuests}` : "0"} />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Cost per Item ($)</label>
+                                    <input type="number" step="0.01" className="form-input" value={newGift.cost} onChange={(e) => setNewGift({ ...newGift, cost: e.target.value })} placeholder="0.00" />
+                                </div>
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Personalization Notes (Optional)</label>
+                                <input type="text" className="form-input" value={newGift.personalization} onChange={(e) => setNewGift({ ...newGift, personalization: e.target.value })} placeholder="e.g., Names engraved, Custom message" />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                            <button onClick={handleAddGift} className="btn btn-primary"><Check size={16} /> Add Gift</button>
+                            <button onClick={() => setShowAddForm(false)} className="btn btn-secondary"><X size={16} /> Cancel</button>
+                        </div>
+                    </div>
+                )
+            }
+
             {/* Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                 <div className="card" style={{ padding: '1rem' }}>
@@ -78,13 +123,15 @@ const GiftsTab = ({ event, onUpdateGifts }) => {
             </div>
 
             {/* Calculation Helper */}
-            {totalGuests > 0 && totalQuantity < totalGuests && (
-                <div className="card" style={{ padding: '1rem', marginBottom: '1.5rem', background: '#fef3c7', borderLeft: '4px solid var(--warning)' }}>
-                    <div style={{ fontSize: '0.875rem', color: '#92400e', fontWeight: 500 }}>
-                        ⚠️ You need {totalGuests - totalQuantity} more gifts to cover all guests
+            {
+                totalGuests > 0 && totalQuantity < totalGuests && (
+                    <div className="card" style={{ padding: '1rem', marginBottom: '1.5rem', background: '#fef3c7', borderLeft: '4px solid var(--warning)' }}>
+                        <div style={{ fontSize: '0.875rem', color: '#92400e', fontWeight: 500 }}>
+                            ⚠️ You need {totalGuests - totalQuantity} more gifts to cover all guests
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Add Button */}
             <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-primary" style={{ marginBottom: '1.5rem' }}>
@@ -92,136 +139,142 @@ const GiftsTab = ({ event, onUpdateGifts }) => {
             </button>
 
             {/* Add Form */}
-            {showAddForm && (
-                <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>New Gift Item</h3>
-                    <div style={{ display: 'grid', gap: '1rem', marginBottom: '1rem' }}>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Gift Name*</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={newGift.name}
-                                onChange={(e) => setNewGift({ ...newGift, name: e.target.value })}
-                                placeholder="e.g., Personalized Keychains"
-                            />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+            {
+                showAddForm && (
+                    <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>New Gift Item</h3>
+                        <div style={{ display: 'grid', gap: '1rem', marginBottom: '1rem' }}>
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Quantity</label>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Gift Name*</label>
                                 <input
-                                    type="number"
+                                    type="text"
                                     className="form-input"
-                                    value={newGift.quantity}
-                                    onChange={(e) => setNewGift({ ...newGift, quantity: e.target.value })}
-                                    placeholder={totalGuests ? `Suggested: ${totalGuests}` : "0"}
+                                    value={newGift.name}
+                                    onChange={(e) => setNewGift({ ...newGift, name: e.target.value })}
+                                    placeholder="e.g., Personalized Keychains"
                                 />
                             </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Quantity</label>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        value={newGift.quantity}
+                                        onChange={(e) => setNewGift({ ...newGift, quantity: e.target.value })}
+                                        placeholder={totalGuests ? `Suggested: ${totalGuests}` : "0"}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Cost per Item ($)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        className="form-input"
+                                        value={newGift.cost}
+                                        onChange={(e) => setNewGift({ ...newGift, cost: e.target.value })}
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                            </div>
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Cost per Item ($)</label>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Personalization Notes (Optional)</label>
                                 <input
-                                    type="number"
-                                    step="0.01"
+                                    type="text"
                                     className="form-input"
-                                    value={newGift.cost}
-                                    onChange={(e) => setNewGift({ ...newGift, cost: e.target.value })}
-                                    placeholder="0.00"
+                                    value={newGift.personalization}
+                                    onChange={(e) => setNewGift({ ...newGift, personalization: e.target.value })}
+                                    placeholder="e.g., Names engraved, Custom message"
                                 />
                             </div>
                         </div>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Personalization Notes (Optional)</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={newGift.personalization}
-                                onChange={(e) => setNewGift({ ...newGift, personalization: e.target.value })}
-                                placeholder="e.g., Names engraved, Custom message"
-                            />
+                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                            <button onClick={handleAddGift} className="btn btn-primary">
+                                <Check size={16} /> Add Gift
+                            </button>
+                            <button onClick={() => setShowAddForm(false)} className="btn btn-secondary">
+                                <X size={16} /> Cancel
+                            </button>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <button onClick={handleAddGift} className="btn btn-primary">
-                            <Check size={16} /> Add Gift
-                        </button>
-                        <button onClick={() => setShowAddForm(false)} className="btn btn-secondary">
-                            <X size={16} /> Cancel
-                        </button>
-                    </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Gift List */}
-            {gifts.length > 0 && (
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
-                    {gifts.map(gift => (
-                        <div key={gift.id} className="card" style={{ padding: '1rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-                                <div style={{ flex: 1 }}>
-                                    <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{gift.name}</h4>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                        <span>Qty: {gift.quantity}</span>
-                                        <span>@ ${(gift.cost / gift.quantity || 0).toFixed(2)} each</span>
-                                        <span style={{ fontWeight: 600, color: 'var(--warning)' }}>Total: ${gift.cost.toFixed(2)}</span>
-                                    </div>
-                                    {gift.personalization && (
-                                        <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                                            {gift.personalization}
+            {
+                gifts.length > 0 && (
+                    <div style={{ display: 'grid', gap: '0.75rem' }}>
+                        {gifts.map(gift => (
+                            <div key={gift.id} className="card" style={{ padding: '1rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{gift.name}</h4>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                            <span>Qty: {gift.quantity}</span>
+                                            <span>@ ${(gift.cost / gift.quantity || 0).toFixed(2)} each</span>
+                                            <span style={{ fontWeight: 600, color: 'var(--warning)' }}>Total: ${gift.cost.toFixed(2)}</span>
                                         </div>
-                                    )}
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <select
-                                        value={gift.status}
-                                        onChange={(e) => handleUpdateStatus(gift.id, e.target.value)}
-                                        style={{
-                                            padding: '0.375rem 0.75rem',
-                                            borderRadius: 'var(--radius-md)',
-                                            border: '1px solid var(--border)',
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500,
-                                            color: statuses.find(s => s.id === gift.status)?.color,
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        {statuses.map(status => (
-                                            <option key={status.id} value={status.id}>{status.label}</option>
-                                        ))}
-                                    </select>
-                                    <button
-                                        onClick={() => handleDeleteGift(gift.id)}
-                                        style={{
-                                            padding: '0.5rem',
-                                            border: 'none',
-                                            background: 'transparent',
-                                            color: 'var(--error)',
-                                            cursor: 'pointer',
-                                            borderRadius: 'var(--radius-md)'
-                                        }}
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
+                                        {gift.personalization && (
+                                            <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                                                {gift.personalization}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <select
+                                            value={gift.status}
+                                            onChange={(e) => handleUpdateStatus(gift.id, e.target.value)}
+                                            style={{
+                                                padding: '0.375rem 0.75rem',
+                                                borderRadius: 'var(--radius-md)',
+                                                border: '1px solid var(--border)',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 500,
+                                                color: statuses.find(s => s.id === gift.status)?.color,
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            {statuses.map(status => (
+                                                <option key={status.id} value={status.id}>{status.label}</option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            onClick={() => handleDeleteGift(gift.id)}
+                                            style={{
+                                                padding: '0.5rem',
+                                                border: 'none',
+                                                background: 'transparent',
+                                                color: 'var(--error)',
+                                                cursor: 'pointer',
+                                                borderRadius: 'var(--radius-md)'
+                                            }}
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+                        ))}
+                    </div>
+                )
+            }
 
             {/* Empty State */}
-            {gifts.length === 0 && !showAddForm && (
-                <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
-                    <Gift size={48} style={{ color: 'var(--text-tertiary)', margin: '0 auto 1rem' }} />
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>No Gifts Yet</h3>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                        Add return gifts or party favors for your guests
-                    </p>
-                    <button onClick={() => setShowAddForm(true)} className="btn btn-primary">
-                        <Plus size={16} /> Add First Gift
-                    </button>
-                </div>
-            )}
-        </div>
+            {
+                gifts.length === 0 && !showAddForm && (
+                    <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
+                        <Gift size={48} style={{ color: 'var(--text-tertiary)', margin: '0 auto 1rem' }} />
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>No Gifts Yet</h3>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                            Add return gifts or party favors for your guests
+                        </p>
+                        <button onClick={() => setShowAddForm(true)} className="btn btn-primary">
+                            <Plus size={16} /> Add First Gift
+                        </button>
+                    </div>
+                )
+            }
+        </div >
     );
 };
 
