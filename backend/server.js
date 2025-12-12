@@ -505,6 +505,48 @@ app.delete('/api/events/:eventId/guests/:guestId', authMiddleware, async (req, r
     }
 });
 
+// Check-in guest
+app.post('/api/events/:eventId/guests/:guestId/checkin', authMiddleware, async (req, res) => {
+    try {
+        const { eventId, guestId } = req.params;
+        const { count } = req.body;
+
+        // Verify event ownership
+        const eventResult = await query(
+            'SELECT user_id FROM events WHERE id = $1',
+            [eventId]
+        );
+
+        if (eventResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        if (eventResult.rows[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        // Update guest check-in status
+        const result = await query(
+            `UPDATE guests 
+             SET attended = true, 
+                 attended_count = COALESCE(attended_count, 0) + $1,
+                 check_in_time = COALESCE(check_in_time, NOW())
+             WHERE id = $2 AND event_id = $3
+             RETURNING *`,
+            [count || 1, guestId, eventId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Guest not found' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Check-in error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // === CONTACT ROUTES ===
 app.get('/api/contacts', authMiddleware, async (req, res) => {
     try {
