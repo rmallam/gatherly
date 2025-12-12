@@ -196,7 +196,26 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
-    res.json({ user: req.user });
+    try {
+        const result = await query('SELECT id, name, email, email_verified FROM users WHERE id = $1', [req.user.id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const user = result.rows[0];
+        res.json({
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                emailVerified: user.email_verified
+            }
+        });
+    } catch (error) {
+        console.error('Get current user error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 // Email verification endpoint
