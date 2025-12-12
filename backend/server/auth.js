@@ -58,9 +58,10 @@ export const authMiddleware = async (req, res, next) => {
 
         console.log('Auth middleware: Verifying token...');
         const decoded = jwt.verify(token, JWT_SECRET);
-        console.log('Auth middleware: Token verified for user ID:', decoded.userId);
+        console.log('Auth middleware: Token verified for user:', decoded.id);
 
-        req.user = { id: decoded.userId };
+        // Use decoded.id because generateToken sets { id, email, name }
+        req.user = { id: decoded.id };
         next();
     } catch (error) {
         console.error('Auth middleware error:', error.message);
