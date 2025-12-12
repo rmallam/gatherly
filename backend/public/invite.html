@@ -184,10 +184,21 @@
         const eventId = window.location.pathname.split('/invite/')[1];
         const guestId = urlParams.get('guest');
 
+        console.log('Invite page loaded');
+        console.log('Event ID:', eventId);
+        console.log('Guest ID:', guestId);
+        console.log('Full URL:', window.location.href);
+
         async function loadEvent() {
             try {
-                const response = await fetch(`/api/events/${eventId}/invite/${guestId}`);
+                const apiUrl = `/api/events/${eventId}/invite/${guestId}`;
+                console.log('Fetching from:', apiUrl);
+
+                const response = await fetch(apiUrl);
+                console.log('Response status:', response.status);
+
                 const data = await response.json();
+                console.log('Response data:', data);
 
                 if (!response.ok) {
                     throw new Error(data.error || 'Failed to load invitation');
@@ -241,6 +252,7 @@
 
                 document.getElementById('content').innerHTML = contentHTML;
             } catch (error) {
+                console.error('Load event error:', error);
                 document.getElementById('event-title').textContent = 'Error';
                 document.getElementById('subtitle').textContent = '';
                 document.getElementById('content').innerHTML = `
