@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Invitation - RSVP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a202c;
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 2rem;
+        }
+
+        .event-details {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .detail-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-icon {
+            font-size: 1.25rem;
+        }
+
+        .detail-text {
+            color: #2d3748;
+        }
+
+        .rsvp-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-accept {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-accept:hover {
+            background: #38a169;
+        }
+
+        .btn-decline {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-decline:hover {
+            background: #e53e3e;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .message {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .message.success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .message.error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .loading {
+            text-align: center;
+            color: #718096;
+        }
+
+        .spinner {
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="icon">🎉</div>
+        <h1 id="event-title">Loading...</h1>
+        <p class="subtitle" id="subtitle">Please wait...</p>
+
+        <div id="content"></div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = window.location.pathname.split('/invite/')[1];
+        const guestId = urlParams.get('guest');
+
+        async function loadEvent() {
+            try {
+                const response = await fetch(`/api/events/${eventId}/invite/${guestId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load invitation');
+                }
+
+                // Update page
+                document.getElementById('event-title').textContent = data.event.title;
+                document.getElementById('subtitle').textContent = `You're invited, ${data.guest.name}!`;
+
+                // Build event details
+                let detailsHTML = '<div class="event-details">';
+                if (data.event.date) {
+                    detailsHTML += `
+                        <div class="detail-row">
+                            <span class="detail-icon">📅</span>
+                            <span class="detail-text">${new Date(data.event.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                        </div>
+                    `;
+                }
+                if (data.event.location) {
+                    detailsHTML += `
+                        <div class="detail-row">
+                            <span class="detail-icon">📍</span>
+                            <span class="detail-text">${data.event.location}</span>
+                        </div>
+                    `;
+                }
+                if (data.event.description) {
+                    detailsHTML += `
+                        <div class="detail-row">
+                            <span class="detail-icon">ℹ️</span>
+                            <span class="detail-text">${data.event.description}</span>
+                        </div>
+                    `;
+                }
+                detailsHTML += '</div>';
+
+                // RSVP buttons
+                const contentHTML = `
+                    ${detailsHTML}
+                    <div class="rsvp-buttons">
+                        <button class="btn btn-accept" onclick="submitRSVP(true)">
+                            ✓ Accept
+                        </button>
+                        <button class="btn btn-decline" onclick="submitRSVP(false)">
+                            ✗ Decline
+                        </button>
+                    </div>
+                    <div id="message"></div>
+                `;
+
+                document.getElementById('content').innerHTML = contentHTML;
+            } catch (error) {
+                document.getElementById('event-title').textContent = 'Error';
+                document.getElementById('subtitle').textContent = '';
+                document.getElementById('content').innerHTML = `
+                    <div class="message error">
+                        ${error.message || 'Failed to load invitation. Please check the link and try again.'}
+                    </div>
+                `;
+            }
+        }
+
+        async function submitRSVP(accepted) {
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(btn => btn.disabled = true);
+
+            try {
+                const response = await fetch(`/api/events/${eventId}/guests/${guestId}/rsvp`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ rsvp: accepted })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to submit RSVP');
+                }
+
+                document.getElementById('message').innerHTML = `
+                    <div class="message success">
+                        ${accepted ? '✓ Thank you! We look forward to seeing you!' : 'Thank you for letting us know.'}
+                    </div>
+                `;
+
+                // Hide buttons after successful submission
+                document.querySelector('.rsvp-buttons').style.display = 'none';
+            } catch (error) {
+                document.getElementById('message').innerHTML = `
+                    <div class="message error">
+                        Failed to submit RSVP. Please try again.
+                    </div>
+                `;
+                buttons.forEach(btn => btn.disabled = false);
+            }
+        }
+
+        // Load event on page load
+        loadEvent();
+    </script>
+</body>
+
+</html>

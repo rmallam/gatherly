@@ -584,6 +584,47 @@ app.get('/api/public/events/:id', async (req, res) => {
     }
 });
 
+// === INVITE/RSVP ROUTES ===
+// Serve invite page
+app.get('/invite/:eventId', (req, res) => {
+    res.sendFile('invite.html', { root: './public' });
+});
+
+// Get event and guest data for invite page
+app.get('/api/events/:eventId/invite/:guestId', async (req, res) => {
+    try {
+        const { eventId, guestId } = req.params;
+
+        // Get event
+        const eventResult = await query(
+            'SELECT id, title, date, location, description FROM events WHERE id = $1',
+            [eventId]
+        );
+
+        if (eventResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        // Get guest
+        const guestResult = await query(
+            'SELECT id, name, email, phone, rsvp FROM guests WHERE id = $1 AND event_id = $2',
+            [guestId, eventId]
+        );
+
+        if (guestResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Guest not found' });
+        }
+
+        res.json({
+            event: eventResult.rows[0],
+            guest: guestResult.rows[0]
+        });
+    } catch (error) {
+        console.error('Fetch invite data error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Initialize database and start server
 const PORT = process.env.PORT || 3001;
 
