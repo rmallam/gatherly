@@ -4,6 +4,7 @@ import { UtensilsCrossed, Plus, X, Edit2, Check, Trash2 } from 'lucide-react';
 const CateringTab = ({ event, onUpdateCatering }) => {
     const [menuItems, setMenuItems] = useState(event.catering?.items || []);
     const [showAddForm, setShowAddForm] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
     const [newItem, setNewItem] = useState({
         name: '',
         category: 'appetizer',
@@ -58,6 +59,30 @@ const CateringTab = ({ event, onUpdateCatering }) => {
         );
         setMenuItems(updatedItems);
         onUpdateCatering?.(updatedItems);
+    };
+
+    const handleEditItem = (item) => {
+        setEditingItem({ ...item });
+    };
+
+    const handleUpdateItem = () => {
+        if (!editingItem.name) return;
+
+        const updatedItems = menuItems.map(item =>
+            item.id === editingItem.id ? {
+                ...editingItem,
+                quantity: parseInt(editingItem.quantity) || 0,
+                servings: parseInt(editingItem.servings) || 0,
+                cost: parseFloat(editingItem.cost) || 0
+            } : item
+        );
+        setMenuItems(updatedItems);
+        onUpdateCatering?.(updatedItems);
+        setEditingItem(null);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingItem(null);
     };
 
     const totalCost = menuItems.reduce((sum, item) => sum + (item.cost || 0), 0);
@@ -157,50 +182,146 @@ const CateringTab = ({ event, onUpdateCatering }) => {
                         </h3>
                         <div style={{ display: 'grid', gap: '0.75rem' }}>
                             {categoryItems.map(item => (
-                                <div key={item.id} className="card" style={{ padding: '1rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-                                        <div style={{ flex: 1 }}>
-                                            <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{item.name}</h4>
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                                <span>Qty: {item.quantity}</span>
-                                                <span>Servings: {item.servings}</span>
-                                                <span style={{ fontWeight: 600, color: 'var(--warning)' }}>${item.cost.toFixed(2)}</span>
-                                                {item.vendor && <span>Vendor: {item.vendor}</span>}
+                                <div key={item.id}>
+                                    {editingItem?.id === item.id ? (
+                                        // EDIT FORM
+                                        <div className="card" style={{ padding: '1rem' }}>
+                                            <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Edit Menu Item</h4>
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Item Name</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-input"
+                                                        value={editingItem.name}
+                                                        onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
+                                                        style={{ padding: '0.5rem' }}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Category</label>
+                                                    <select
+                                                        className="form-input"
+                                                        value={editingItem.category}
+                                                        onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value })}
+                                                        style={{ padding: '0.5rem' }}
+                                                    >
+                                                        {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.label}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Quantity</label>
+                                                    <input
+                                                        type="number"
+                                                        className="form-input"
+                                                        value={editingItem.quantity}
+                                                        onChange={(e) => setEditingItem({ ...editingItem, quantity: e.target.value })}
+                                                        style={{ padding: '0.5rem' }}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Servings</label>
+                                                    <input
+                                                        type="number"
+                                                        className="form-input"
+                                                        value={editingItem.servings}
+                                                        onChange={(e) => setEditingItem({ ...editingItem, servings: e.target.value })}
+                                                        style={{ padding: '0.5rem' }}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Cost ($)</label>
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        className="form-input"
+                                                        value={editingItem.cost}
+                                                        onChange={(e) => setEditingItem({ ...editingItem, cost: e.target.value })}
+                                                        style={{ padding: '0.5rem' }}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Vendor</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-input"
+                                                        value={editingItem.vendor || ''}
+                                                        onChange={(e) => setEditingItem({ ...editingItem, vendor: e.target.value })}
+                                                        style={{ padding: '0.5rem' }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <button onClick={handleUpdateItem} className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>
+                                                    <Check size={14} /> Save
+                                                </button>
+                                                <button onClick={handleCancelEdit} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
+                                                    <X size={14} /> Cancel
+                                                </button>
                                             </div>
                                         </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                            <select
-                                                value={item.status}
-                                                onChange={(e) => handleUpdateStatus(item.id, e.target.value)}
-                                                style={{
-                                                    padding: '0.375rem 0.75rem',
-                                                    borderRadius: 'var(--radius-md)',
-                                                    border: '1px solid var(--border)',
-                                                    fontSize: '0.875rem',
-                                                    fontWeight: 500,
-                                                    color: statusOptions.find(s => s.id === item.status)?.color,
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                {statusOptions.map(status => (
-                                                    <option key={status.id} value={status.id}>{status.label}</option>
-                                                ))}
-                                            </select>
-                                            <button
-                                                onClick={() => handleDeleteItem(item.id)}
-                                                style={{
-                                                    padding: '0.5rem',
-                                                    border: 'none',
-                                                    background: 'transparent',
-                                                    color: 'var(--error)',
-                                                    cursor: 'pointer',
-                                                    borderRadius: 'var(--radius-md)'
-                                                }}
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                    ) : (
+                                        // DISPLAY
+                                        <div className="card" style={{ padding: '1rem' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                                                <div style={{ flex: 1 }}>
+                                                    <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{item.name}</h4>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                                        <span>Qty: {item.quantity}</span>
+                                                        <span>Servings: {item.servings}</span>
+                                                        <span style={{ fontWeight: 600, color: 'var(--warning)' }}>${item.cost.toFixed(2)}</span>
+                                                        {item.vendor && <span>Vendor: {item.vendor}</span>}
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                    <select
+                                                        value={item.status}
+                                                        onChange={(e) => handleUpdateStatus(item.id, e.target.value)}
+                                                        style={{
+                                                            padding: '0.375rem 0.75rem',
+                                                            borderRadius: 'var(--radius-md)',
+                                                            border: '1px solid var(--border)',
+                                                            fontSize: '0.875rem',
+                                                            fontWeight: 500,
+                                                            color: statusOptions.find(s => s.id === item.status)?.color,
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        {statusOptions.map(status => (
+                                                            <option key={status.id} value={status.id}>{status.label}</option>
+                                                        ))}
+                                                    </select>
+                                                    <button
+                                                        onClick={() => handleEditItem(item)}
+                                                        style={{
+                                                            padding: '0.5rem',
+                                                            border: 'none',
+                                                            background: 'transparent',
+                                                            color: 'var(--primary)',
+                                                            cursor: 'pointer',
+                                                            borderRadius: 'var(--radius-md)'
+                                                        }}
+                                                        title="Edit item"
+                                                    >
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteItem(item.id)}
+                                                        style={{
+                                                            padding: '0.5rem',
+                                                            border: 'none',
+                                                            background: 'transparent',
+                                                            color: 'var(--error)',
+                                                            cursor: 'pointer',
+                                                            borderRadius: 'var(--radius-md)'
+                                                        }}
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             ))}
                         </div>

@@ -6,11 +6,11 @@ import BulkImport from '../components/BulkImport';
 import ContactPicker from '../components/ContactPicker';
 import ContactSelector from '../components/ContactSelector';
 import { exportAllGuests, exportCheckedInGuests } from '../utils/csvExport';
-import { UserPlus, QrCode, Search, CheckCircle2, ArrowLeft, Users, Upload, Smartphone, Download, Share2, Plus, X, MessageCircle } from 'lucide-react';
+import { UserPlus, QrCode, Search, CheckCircle2, ArrowLeft, Users, Upload, Smartphone, Download, Share2, Plus, X, MessageCircle, Trash2 } from 'lucide-react';
 
 const EventDetails = () => {
     const { id } = useParams();
-    const { getEvent, addGuest, addBulkGuests } = useApp();
+    const { getEvent, addGuest, addBulkGuests, deleteGuest } = useApp();
     const event = getEvent(id);
 
     const [newGuest, setNewGuest] = useState({ name: '', phone: '' });
@@ -23,6 +23,7 @@ const EventDetails = () => {
     const [sharedGuestId, setSharedGuestId] = useState(null);
     const [invitingGuest, setInvitingGuest] = useState(null);
     const [addingGuest, setAddingGuest] = useState(false);
+    const [deleteConfirmGuest, setDeleteConfirmGuest] = useState(null);
 
     if (!event) {
         return (
@@ -203,6 +204,16 @@ const EventDetails = () => {
         }
     };
 
+    const handleDeleteGuest = async (guest) => {
+        try {
+            await deleteGuest(id, guest.id);
+            setDeleteConfirmGuest(null);
+        } catch (err) {
+            console.error('Error deleting guest:', err);
+            alert('Failed to delete guest. Please try again.');
+        }
+    };
+
     const filteredGuests = event.guests?.filter(g =>
         g.name.toLowerCase().includes(search.toLowerCase()) ||
         g.phone.includes(search)
@@ -375,6 +386,14 @@ const EventDetails = () => {
                                         style={{ fontSize: '0.875rem', padding: '0.5rem 0.875rem' }}
                                     >
                                         <QrCode size={16} /> QR
+                                    </button>
+                                    <button
+                                        onClick={() => setDeleteConfirmGuest(guest)}
+                                        className="btn btn-secondary"
+                                        style={{ fontSize: '0.875rem', padding: '0.5rem 0.875rem', background: '#ef4444', color: 'white', border: 'none' }}
+                                        title="Delete guest"
+                                    >
+                                        <Trash2 size={16} />
                                     </button>
                                 </div>
                             </div>
@@ -553,6 +572,36 @@ const EventDetails = () => {
                     onSelectContacts={handleSelectContacts}
                     event={event}
                 />
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirmGuest && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.75)' }} onClick={() => setDeleteConfirmGuest(null)}>
+                    <div className="card" style={{ maxWidth: '400px', width: '100%', padding: '2rem' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>Delete Guest?</h3>
+                            <p style={{ color: 'var(--text-secondary)' }}>
+                                Are you sure you want to delete <strong>{deleteConfirmGuest.name}</strong>? This action cannot be undone.
+                            </p>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
+                                <button
+                                    onClick={() => setDeleteConfirmGuest(null)}
+                                    className="btn btn-secondary"
+                                    style={{ justifyContent: 'center' }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteGuest(deleteConfirmGuest)}
+                                    className="btn btn-primary"
+                                    style={{ justifyContent: 'center', background: '#ef4444', border: 'none' }}
+                                >
+                                    <Trash2 size={16} /> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

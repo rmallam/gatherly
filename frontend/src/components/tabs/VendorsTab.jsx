@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Briefcase, Plus, X, Check, Trash2, Phone, Mail } from 'lucide-react';
+import { Briefcase, Plus, X, Check, Trash2, Phone, Mail, Edit2 } from 'lucide-react';
 
 const VendorsTab = ({ event, onUpdateVendors }) => {
     const [vendors, setVendors] = useState(event.vendors || []);
     const [showAddForm, setShowAddForm] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
     const [newVendor, setNewVendor] = useState({
         name: '',
         category: 'other',
@@ -60,6 +61,28 @@ const VendorsTab = ({ event, onUpdateVendors }) => {
         );
         setVendors(updatedVendors);
         onUpdateVendors?.(updatedVendors);
+    };
+
+    const handleEditItem = (item) => {
+        setEditingItem({ ...item });
+    };
+
+    const handleUpdateItem = () => {
+        if (!editingItem.name) return;
+
+        const updatedVendors = vendors.map(vendor =>
+            vendor.id === editingItem.id ? {
+                ...editingItem,
+                cost: parseFloat(editingItem.cost) || 0
+            } : vendor
+        );
+        setVendors(updatedVendors);
+        onUpdateVendors?.(updatedVendors);
+        setEditingItem(null);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingItem(null);
     };
 
     const totalCost = vendors.reduce((sum, v) => sum + (v.cost || 0), 0);
@@ -150,69 +173,96 @@ const VendorsTab = ({ event, onUpdateVendors }) => {
                         </h3>
                         <div style={{ display: 'grid', gap: '0.75rem' }}>
                             {categoryVendors.map(vendor => (
-                                <div key={vendor.id} className="card" style={{ padding: '1rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-                                        <div style={{ flex: 1 }}>
-                                            <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{vendor.name}</h4>
-                                            <div style={{ display: 'grid', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                                                {vendor.contact && <div>👤 {vendor.contact}</div>}
-                                                {vendor.phone && (
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                        <Phone size={14} />
-                                                        <a href={`tel:${vendor.phone}`} style={{ color: 'var(--primary)' }}>{vendor.phone}</a>
-                                                    </div>
-                                                )}
-                                                {vendor.email && (
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                        <Mail size={14} />
-                                                        <a href={`mailto:${vendor.email}`} style={{ color: 'var(--primary)' }}>{vendor.email}</a>
-                                                    </div>
-                                                )}
-                                                {vendor.cost > 0 && (
-                                                    <div style={{ fontWeight: 600, color: 'var(--warning)', marginTop: '0.25rem' }}>
-                                                        Cost: ${vendor.cost.toFixed(2)}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {vendor.notes && (
-                                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontStyle: 'italic', marginTop: '0.5rem' }}>
-                                                    {vendor.notes}
+                                <div key={vendor.id}>
+                                    {editingItem?.id === vendor.id ? (
+                                        // EDIT FORM
+                                        <div className="card" style={{ padding: '1rem' }}>
+                                            <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Edit Vendor</h4>
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Name</label>
+                                                    <input type="text" className="form-input" value={editingItem.name} onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })} style={{ padding: '0.5rem' }} />
                                                 </div>
-                                            )}
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Category</label>
+                                                    <select className="form-input" value={editingItem.category} onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value })} style={{ padding: '0.5rem' }}>
+                                                        {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.label}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Contact Person</label>
+                                                    <input type="text" className="form-input" value={editingItem.contact || ''} onChange={(e) => setEditingItem({ ...editingItem, contact: e.target.value })} style={{ padding: '0.5rem' }} />
+                                                </div>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Phone</label>
+                                                    <input type="tel" className="form-input" value={editingItem.phone || ''} onChange={(e) => setEditingItem({ ...editingItem, phone: e.target.value })} style={{ padding: '0.5rem' }} />
+                                                </div>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Email</label>
+                                                    <input type="email" className="form-input" value={editingItem.email || ''} onChange={(e) => setEditingItem({ ...editingItem, email: e.target.value })} style={{ padding: '0.5rem' }} />
+                                                </div>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Cost ($)</label>
+                                                    <input type="number" step="0.01" className="form-input" value={editingItem.cost} onChange={(e) => setEditingItem({ ...editingItem, cost: e.target.value })} style={{ padding: '0.5rem' }} />
+                                                </div>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <button onClick={handleUpdateItem} className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>
+                                                    <Check size={14} /> Save
+                                                </button>
+                                                <button onClick={handleCancelEdit} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
+                                                    <X size={14} /> Cancel
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                            <select
-                                                value={vendor.status}
-                                                onChange={(e) => handleUpdateStatus(vendor.id, e.target.value)}
-                                                style={{
-                                                    padding: '0.375rem 0.75rem',
-                                                    borderRadius: 'var(--radius-md)',
-                                                    border: '1px solid var(--border)',
-                                                    fontSize: '0.875rem',
-                                                    fontWeight: 500,
-                                                    color: statuses.find(s => s.id === vendor.status)?.color,
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                {statuses.map(status => (
-                                                    <option key={status.id} value={status.id}>{status.label}</option>
-                                                ))}
-                                            </select>
-                                            <button
-                                                onClick={() => handleDeleteVendor(vendor.id)}
-                                                style={{
-                                                    padding: '0.5rem',
-                                                    border: 'none',
-                                                    background: 'transparent',
-                                                    color: 'var(--error)',
-                                                    cursor: 'pointer',
-                                                    borderRadius: 'var(--radius-md)'
-                                                }}
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                    ) : (
+                                        // DISPLAY
+                                        <div className="card" style={{ padding: '1rem' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                                                <div style={{ flex: 1 }}>
+                                                    <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{vendor.name}</h4>
+                                                    <div style={{ display: 'grid', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                                                        {vendor.contact && <div>👤 {vendor.contact}</div>}
+                                                        {vendor.phone && (
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                                <Phone size={14} />
+                                                                <a href={`tel:${vendor.phone}`} style={{ color: 'var(--primary)' }}>{vendor.phone}</a>
+                                                            </div>
+                                                        )}
+                                                        {vendor.email && (
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                                <Mail size={14} />
+                                                                <a href={`mailto:${vendor.email}`} style={{ color: 'var(--primary)' }}>{vendor.email}</a>
+                                                            </div>
+                                                        )}
+                                                        {vendor.cost > 0 && (
+                                                            <div style={{ fontWeight: 600, color: 'var(--warning)', marginTop: '0.25rem' }}>
+                                                                Cost: ${vendor.cost.toFixed(2)}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    {vendor.notes && (
+                                                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontStyle: 'italic', marginTop: '0.5rem' }}>
+                                                            {vendor.notes}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                    <select value={vendor.status} onChange={(e) => handleUpdateStatus(vendor.id, e.target.value)} style={{ padding: '0.375rem 0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', fontSize: '0.875rem', fontWeight: 500, color: statuses.find(s => s.id === vendor.status)?.color, cursor: 'pointer' }}>
+                                                        {statuses.map(status => (
+                                                            <option key={status.id} value={status.id}>{status.label}</option>
+                                                        ))}
+                                                    </select>
+                                                    <button onClick={() => handleEditItem(vendor)} style={{ padding: '0.5rem', border: 'none', background: 'transparent', color: 'var(--primary)', cursor: 'pointer', borderRadius: 'var(--radius-md)' }} title="Edit vendor">
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button onClick={() => handleDeleteVendor(vendor.id)} style={{ padding: '0.5rem', border: 'none', background: 'transparent', color: 'var(--error)', cursor: 'pointer', borderRadius: 'var(--radius-md)' }}>
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             ))}
                         </div>

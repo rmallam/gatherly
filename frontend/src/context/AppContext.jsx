@@ -436,6 +436,55 @@ export const AppProvider = ({ children }) => {
         }
     };
 
+    const deleteGuest = async (eventId, guestId) => {
+        // Store the guest for potential revert
+        let deletedGuest = null;
+
+        // Optimistic update
+        setEvents(prev => prev.map(event => {
+            if (event.id === eventId) {
+                deletedGuest = event.guests.find(g => g.id === guestId);
+                return { ...event, guests: event.guests.filter(g => g.id !== guestId) };
+            }
+            return event;
+        }));
+
+        try {
+            const res = await fetch(`${API_URL}/events/${eventId}/guests/${guestId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+
+            if (!res.ok) {
+                console.error('Failed to delete guest from server:', res.status);
+                // Revert optimistic update
+                if (deletedGuest) {
+                    setEvents(prev => prev.map(event => {
+                        if (event.id === eventId) {
+                            return { ...event, guests: [...event.guests, deletedGuest] };
+                        }
+                        return event;
+                    }));
+                }
+                throw new Error('Failed to delete guest');
+            }
+
+            console.log('Guest deleted successfully');
+        } catch (err) {
+            console.error('Error deleting guest:', err);
+            // Revert optimistic update
+            if (deletedGuest) {
+                setEvents(prev => prev.map(event => {
+                    if (event.id === eventId) {
+                        return { ...event, guests: [...event.guests, deletedGuest] };
+                    }
+                    return event;
+                }));
+            }
+            throw err;
+        }
+    };
+
     const updateEvent = async (eventId, updatedEventData) => {
         // Store original state for potential revert
         const originalEvents = [...events];
@@ -667,6 +716,7 @@ export const AppProvider = ({ children }) => {
             getEvent,
             addGuest,
             addBulkGuests,
+            deleteGuest,
             markGuestAttended,
             rsvpGuest,
             updateEvent,

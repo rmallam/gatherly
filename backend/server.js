@@ -626,6 +626,73 @@ app.get('/api/public/events/:id', async (req, res) => {
     }
 });
 
+// Public RSVP submission endpoint
+app.post('/api/public/events/:eventId/rsvp', async (req, res) => {
+    try {
+        const { eventId } = req.params;
+        const { name, email, phone, response, plusOnes, dietaryRestrictions } = req.body;
+
+        // Verify event exists
+        const eventResult = await query('SELECT id FROM events WHERE id = $1', [eventId]);
+        if (eventResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        // Convert response to boolean
+        const rsvpValue = response === 'yes' ? true : response === 'no' ? false : null;
+
+        // Check if guest already exists (by email or phone)
+        let existingGuest = null;
+        if (email || phone) {
+            const guestQuery = email && phone
+                ? 'SELECT * FROM guests WHERE event_id = $1 AND (email = $2 OR phone = $3)'
+                : email
+                    ? 'SELECT * FROM guests WHERE event_id = $1 AND email = $2'
+                    : 'SELECT * FROM guests WHERE event_id = $1 AND phone = $2';
+
+            const params = email && phone
+                ? [eventId, email, phone]
+                : email
+                    ? [eventId, email]
+                    : [eventId, phone];
+
+            const guestResult = await query(guestQuery, params);
+            if (guestResult.rows.length > 0) {
+                existingGuest = guestResult.rows[0];
+            }
+        }
+
+        let guest;
+        if (existingGuest) {
+            // Update existing guest
+            const updateResult = await query(
+                `UPDATE guests 
+                 SET name = COALESCE($1, name), 
+                     email = COALESCE($2, email), 
+                     phone = COALESCE($3, phone),
+                     rsvp = $4
+                 WHERE id = $5 AND event_id = $6
+                 RETURNING *`,
+                [name, email, phone, rsvpValue, existingGuest.id, eventId]
+            );
+            guest = updateResult.rows[0];
+        } else {
+            // Create new guest
+            const guestId = uuidv4();
+            const insertResult = await query(
+                'INSERT INTO guests (id, event_id, name, email, phone, rsvp) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+                [guestId, eventId, name, email || null, phone || null, rsvpValue]
+            );
+            guest = insertResult.rows[0];
+        }
+
+        res.json({ success: true, message: 'RSVP submitted successfully', guest });
+    } catch (error) {
+        console.error('Public RSVP error:', error);
+        res.status(500).json({ error: 'Server error: ' + error.message });
+    }
+});
+
 // === INVITE/RSVP ROUTES ===
 // Serve invite page
 app.get('/invite/:eventId', (req, res) => {

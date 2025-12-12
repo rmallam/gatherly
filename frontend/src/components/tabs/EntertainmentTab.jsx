@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Music, Plus, X, Check, Trash2, Clock } from 'lucide-react';
+import { Music, Plus, X, Check, Trash2, Clock, Edit2 } from 'lucide-react';
 
 const EntertainmentTab = ({ event, onUpdateEntertainment }) => {
     const [entertainment, setEntertainment] = useState(event.entertainment || {
@@ -7,6 +7,7 @@ const EntertainmentTab = ({ event, onUpdateEntertainment }) => {
         playlist: []
     });
     const [showAddActivity, setShowAddActivity] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
     const [newActivity, setNewActivity] = useState({
         name: '',
         time: '',
@@ -41,6 +42,28 @@ const EntertainmentTab = ({ event, onUpdateEntertainment }) => {
         };
         setEntertainment(updated);
         onUpdateEntertainment?.(updated);
+    };
+
+    const handleEditItem = (item) => {
+        setEditingItem({ ...item });
+    };
+
+    const handleUpdateItem = () => {
+        if (!editingItem.name) return;
+
+        const updated = {
+            ...entertainment,
+            activities: entertainment.activities.map(activity =>
+                activity.id === editingItem.id ? { ...editingItem } : activity
+            )
+        };
+        setEntertainment(updated);
+        onUpdateEntertainment?.(updated);
+        setEditingItem(null);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingItem(null);
     };
 
     const activities = entertainment.activities || [];
@@ -139,43 +162,75 @@ const EntertainmentTab = ({ event, onUpdateEntertainment }) => {
                                     }}></div>
                                 )}
                                 {/* Content */}
-                                <div style={{
-                                    background: 'var(--bg-secondary)',
-                                    padding: '1rem',
-                                    borderRadius: 'var(--radius-md)',
-                                    border: '1px solid var(--border)'
-                                }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
-                                                {activity.name}
+                                {editingItem?.id === activity.id ? (
+                                    // EDIT FORM
+                                    <div className="card" style={{ padding: '1rem' }}>
+                                        <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Edit Activity</h4>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                            <div>
+                                                <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Activity Name</label>
+                                                <input type="text" className="form-input" value={editingItem.name} onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })} style={{ padding: '0.5rem' }} />
                                             </div>
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                                {activity.time && <span>🕐 {activity.time}</span>}
-                                                {activity.duration && <span>⏱️ {activity.duration} min</span>}
-                                                {activity.performer && <span>👤 {activity.performer}</span>}
+                                            <div>
+                                                <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Time</label>
+                                                <input type="time" className="form-input" value={editingItem.time} onChange={(e) => setEditingItem({ ...editingItem, time: e.target.value })} style={{ padding: '0.5rem' }} />
                                             </div>
-                                            {activity.notes && (
-                                                <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                                                    {activity.notes}
-                                                </div>
-                                            )}
+                                            <div>
+                                                <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Duration (mins)</label>
+                                                <input type="text" className="form-input" value={editingItem.duration} onChange={(e) => setEditingItem({ ...editingItem, duration: e.target.value })} style={{ padding: '0.5rem' }} />
+                                            </div>
+                                            <div>
+                                                <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Performer/Host</label>
+                                                <input type="text" className="form-input" value={editingItem.performer || ''} onChange={(e) => setEditingItem({ ...editingItem, performer: e.target.value })} style={{ padding: '0.5rem' }} />
+                                            </div>
                                         </div>
-                                        <button
-                                            onClick={() => handleDeleteActivity(activity.id)}
-                                            style={{
-                                                padding: '0.5rem',
-                                                border: 'none',
-                                                background: 'transparent',
-                                                color: 'var(--error)',
-                                                cursor: 'pointer',
-                                                borderRadius: 'var(--radius-md)'
-                                            }}
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <button onClick={handleUpdateItem} className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>
+                                                <Check size={14} /> Save
+                                            </button>
+                                            <button onClick={handleCancelEdit} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
+                                                <X size={14} /> Cancel
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    // DISPLAY
+                                    <div style={{
+                                        background: 'var(--bg-secondary)',
+                                        padding: '1rem',
+                                        borderRadius: 'var(--radius-md)',
+                                        border: '1px solid var(--border)'
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                                            <div style={{ flex: 1 }}>
+                                                <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{activity.name}</h4>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                                    {activity.time && (
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                            <Clock size={14} />
+                                                            {activity.time}
+                                                        </div>
+                                                    )}
+                                                    {activity.duration && <span>⏱️ {activity.duration} mins</span>}
+                                                    {activity.performer && <span>🎤 {activity.performer}</span>}
+                                                </div>
+                                                {activity.notes && (
+                                                    <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                                                        {activity.notes}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <button onClick={() => handleEditItem(activity)} style={{ padding: '0.5rem', border: 'none', background: 'transparent', color: 'var(--primary)', cursor: 'pointer', borderRadius: 'var(--radius-md)' }} title="Edit activity">
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button onClick={() => handleDeleteActivity(activity.id)} style={{ padding: '0.5rem', border: 'none', background: 'transparent', color: 'var(--error)', cursor: 'pointer', borderRadius: 'var(--radius-md)' }}>
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>

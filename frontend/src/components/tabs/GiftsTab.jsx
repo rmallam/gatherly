@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Gift, Plus, X, Check, Trash2 } from 'lucide-react';
+import { Gift, Plus, X, Check, Trash2, Edit2 } from 'lucide-react';
 
 const GiftsTab = ({ event, onUpdateGifts }) => {
     const [gifts, setGifts] = useState(event.gifts?.items || []);
     const [showAddForm, setShowAddForm] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
     const [newGift, setNewGift] = useState({
         name: '',
         quantity: '',
@@ -50,6 +51,29 @@ const GiftsTab = ({ event, onUpdateGifts }) => {
         );
         setGifts(updatedGifts);
         onUpdateGifts?.({ items: updatedGifts });
+    };
+
+    const handleEditItem = (item) => {
+        setEditingItem({ ...item });
+    };
+
+    const handleUpdateItem = () => {
+        if (!editingItem.name) return;
+
+        const updatedGifts = gifts.map(gift =>
+            gift.id === editingItem.id ? {
+                ...editingItem,
+                quantity: parseInt(editingItem.quantity) || 0,
+                cost: parseFloat(editingItem.cost) || 0
+            } : gift
+        );
+        setGifts(updatedGifts);
+        onUpdateGifts?.({ items: updatedGifts });
+        setEditingItem(null);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingItem(null);
     };
 
     const totalCost = gifts.reduce((sum, gift) => sum + (gift.cost || 0), 0);
@@ -205,54 +229,71 @@ const GiftsTab = ({ event, onUpdateGifts }) => {
                 gifts.length > 0 && (
                     <div style={{ display: 'grid', gap: '0.75rem' }}>
                         {gifts.map(gift => (
-                            <div key={gift.id} className="card" style={{ padding: '1rem' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-                                    <div style={{ flex: 1 }}>
-                                        <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{gift.name}</h4>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                            <span>Qty: {gift.quantity}</span>
-                                            <span>@ ${(gift.cost / gift.quantity || 0).toFixed(2)} each</span>
-                                            <span style={{ fontWeight: 600, color: 'var(--warning)' }}>Total: ${gift.cost.toFixed(2)}</span>
-                                        </div>
-                                        {gift.personalization && (
-                                            <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                                                {gift.personalization}
+                            <div key={gift.id}>
+                                {editingItem?.id === gift.id ? (
+                                    // EDIT FORM
+                                    <div className="card" style={{ padding: '1rem' }}>
+                                        <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Edit Gift</h4>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                            <div>
+                                                <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Gift Name</label>
+                                                <input type="text" className="form-input" value={editingItem.name} onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })} style={{ padding: '0.5rem' }} />
                                             </div>
-                                        )}
+                                            <div>
+                                                <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Quantity</label>
+                                                <input type="number" className="form-input" value={editingItem.quantity} onChange={(e) => setEditingItem({ ...editingItem, quantity: e.target.value })} style={{ padding: '0.5rem' }} />
+                                            </div>
+                                            <div>
+                                                <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Cost ($)</label>
+                                                <input type="number" step="0.01" className="form-input" value={editingItem.cost} onChange={(e) => setEditingItem({ ...editingItem, cost: e.target.value })} style={{ padding: '0.5rem' }} />
+                                            </div>
+                                            <div>
+                                                <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Recipient</label>
+                                                <input type="text" className="form-input" value={editingItem.recipient || ''} onChange={(e) => setEditingItem({ ...editingItem, recipient: e.target.value })} style={{ padding: '0.5rem' }} />
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <button onClick={handleUpdateItem} className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>
+                                                <Check size={14} /> Save
+                                            </button>
+                                            <button onClick={handleCancelEdit} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
+                                                <X size={14} /> Cancel
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                        <select
-                                            value={gift.status}
-                                            onChange={(e) => handleUpdateStatus(gift.id, e.target.value)}
-                                            style={{
-                                                padding: '0.375rem 0.75rem',
-                                                borderRadius: 'var(--radius-md)',
-                                                border: '1px solid var(--border)',
-                                                fontSize: '0.875rem',
-                                                fontWeight: 500,
-                                                color: statuses.find(s => s.id === gift.status)?.color,
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            {statuses.map(status => (
-                                                <option key={status.id} value={status.id}>{status.label}</option>
-                                            ))}
-                                        </select>
-                                        <button
-                                            onClick={() => handleDeleteGift(gift.id)}
-                                            style={{
-                                                padding: '0.5rem',
-                                                border: 'none',
-                                                background: 'transparent',
-                                                color: 'var(--error)',
-                                                cursor: 'pointer',
-                                                borderRadius: 'var(--radius-md)'
-                                            }}
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
+                                ) : (
+                                    // DISPLAY
+                                    <div className="card" style={{ padding: '1rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                                            <div style={{ flex: 1 }}>
+                                                <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{gift.name}</h4>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                                    <span>Qty: {gift.quantity}</span>
+                                                    <span>@ ${(gift.cost / gift.quantity || 0).toFixed(2)} each</span>
+                                                    <span style={{ fontWeight: 600, color: 'var(--warning)' }}>Total: ${gift.cost.toFixed(2)}</span>
+                                                </div>
+                                                {gift.personalization && (
+                                                    <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                                                        {gift.personalization}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <select value={gift.status} onChange={(e) => handleUpdateStatus(gift.id, e.target.value)} style={{ padding: '0.375rem 0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', fontSize: '0.875rem', fontWeight: 500, color: statuses.find(s => s.id === gift.status)?.color, cursor: 'pointer' }}>
+                                                    {statuses.map(status => (
+                                                        <option key={status.id} value={status.id}>{status.label}</option>
+                                                    ))}
+                                                </select>
+                                                <button onClick={() => handleEditItem(gift)} style={{ padding: '0.5rem', border: 'none', background: 'transparent', color: 'var(--primary)', cursor: 'pointer', borderRadius: 'var(--radius-md)' }} title="Edit gift">
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button onClick={() => handleDeleteGift(gift.id)} style={{ padding: '0.5rem', border: 'none', background: 'transparent', color: 'var(--error)', cursor: 'pointer', borderRadius: 'var(--radius-md)' }}>
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         ))}
                     </div>
