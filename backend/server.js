@@ -319,14 +319,19 @@ app.get('/api/events', authMiddleware, async (req, res) => {
             [req.user.id]
         );
 
-        const events = result.rows.map(event => ({
-            ...event,
-            guests: event.guests || []
-        }));
+        // Merge data column into each event
+        const events = result.rows.map(event => {
+            const { data, ...eventFields } = event;
+            return {
+                ...eventFields,
+                ...(data || {}), // Spread the data jsonb fields
+                guests: event.guests || []
+            };
+        });
 
         res.json(events);
     } catch (error) {
-        console.error('Fetch events error:', error);
+        console.error('Get events error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -365,11 +370,20 @@ app.post('/api/events', authMiddleware, async (req, res) => {
 
 app.put('/api/events/:id', authMiddleware, async (req, res) => {
     try {
-        const { title, date, location, description } = req.body;
+        const { title, date, location, description, ...extraData } = req.body;
 
+        // Store catering, tasks, venue, and other fields in data jsonb column
         await query(
-            'UPDATE events SET title = $1, date = $2, location = $3, description = $4 WHERE id = $5 AND user_id = $6',
-            [title, date, location, description, req.params.id, req.user.id]
+            'UPDATE events SET title = $1, date = $2, location = $3, description = $4, data = $5 WHERE id = $6 AND user_id = $7',
+            [
+                title,
+                date || null,
+                location || null,
+                description || null,
+                JSON.stringify(extraData),
+                req.params.id,
+                req.user.id
+            ]
         );
 
         res.json({ success: true });

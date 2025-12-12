@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS events (
     date TIMESTAMP,
     location VARCHAR(500),
     description TEXT,
+    data JSONB DEFAULT '{}'::jsonb,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
