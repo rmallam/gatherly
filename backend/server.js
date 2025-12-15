@@ -743,6 +743,335 @@ app.get('/api/events/:eventId/invite/:guestId', async (req, res) => {
     }
 });
 
+// ========================================
+// BUDGET & EXPENSE ENDPOINTS  
+// ========================================
+
+// Get budget for event
+app.get('/api/events/:eventId/budget', authMiddleware, async (req, res) => {
+    try {
+        const { eventId } = req.params;
+
+        // Verify event belongs to user
+        const eventCheck = await query(
+            'SELECT user_id FROM events WHERE id = $1',
+            [eventId]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        if (eventCheck.rows[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        const result = await query(
+            'SELECT * FROM budgets WHERE event_id = $1',
+            [eventId]
+        );
+
+        res.json(result.rows[0] || null);
+    } catch (error) {
+        console.error('Get budget error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Create budget for event
+app.post('/api/events/:eventId/budget', authMiddleware, async (req, res) => {
+    try {
+        const { eventId } = req.params;
+        const { total_budget, currency } = req.body;
+
+        // Verify event belongs to user
+        const eventCheck = await query(
+            'SELECT user_id FROM events WHERE id = $1',
+            [eventId]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        if (eventCheck.rows[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        const budgetId = uuidv4();
+        const result = await query(
+            'INSERT INTO budgets (id, event_id, total_budget, currency) VALUES ($1, $2, $3, $4) RETURNING *',
+            [budgetId, eventId, total_budget, currency || 'USD']
+        );
+
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error('Create budget error:', error);
+        if (error.code === '23505') { // Unique constraint violation
+            res.status(400).json({ error: 'Budget already exists for this event' });
+        } else {
+            res.status(500).json({ error: 'Server error' });
+        }
+    }
+});
+
+// Update budget
+app.put('/api/events/:eventId/budget', authMiddleware, async (req, res) => {
+    try {
+        const { eventId } = req.params;
+        const { total_budget, currency } = req.body;
+
+        // Verify event belongs to user
+        const eventCheck = await query(
+            'SELECT user_id FROM events WHERE id = $1',
+            [eventId]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        if (eventCheck.rows[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        const result = await query(
+            'UPDATE budgets SET total_budget = $1, currency = $2, updated_at = NOW() WHERE event_id = $3 RETURNING *',
+            [total_budget, currency, eventId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Budget not found' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Update budget error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Delete budget
+app.delete('/api/events/:eventId/budget', authMiddleware, async (req, res) => {
+    try {
+        const { eventId } = req.params;
+
+        // Verify event belongs to user
+        const eventCheck = await query(
+            'SELECT user_id FROM events WHERE id = $1',
+            [eventId]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        if (eventCheck.rows[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        await query('DELETE FROM budgets WHERE event_id = $1', [eventId]);
+        res.json({ message: 'Budget deleted successfully' });
+    } catch (error) {
+        console.error('Delete budget error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Get all expenses for event
+app.get('/api/events/:eventId/expenses', authMiddleware, async (req, res) => {
+    try {
+        const { eventId } = req.params;
+
+        // Verify event belongs to user
+        const eventCheck = await query(
+            'SELECT user_id FROM events WHERE id = $1',
+            [eventId]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        if (eventCheck.rows[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        const result = await query(
+            'SELECT * FROM expenses WHERE event_id = $1 ORDER BY date DESC, created_at DESC',
+            [eventId]
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Get expenses error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Add expense
+app.post('/api/events/:eventId/expenses', authMiddleware, async (req, res) => {
+    try {
+        const { eventId } = req.params;
+        const { category, description, amount, vendor, paid, date } = req.body;
+
+        // Verify event belongs to user
+        const eventCheck = await query(
+            'SELECT user_id FROM events WHERE id = $1',
+            [eventId]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        if (eventCheck.rows[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        const expenseId = uuidv4();
+        const result = await query(
+            'INSERT INTO expenses (id, event_id, category, description, amount, vendor, paid, date) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+            [expenseId, eventId, category, description, amount, vendor, paid || false, date || new Date()]
+        );
+
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error('Add expense error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Update expense
+app.put('/api/events/:eventId/expenses/:expenseId', authMiddleware, async (req, res) => {
+    try {
+        const { eventId, expenseId } = req.params;
+        const { category, description, amount, vendor, paid, date } = req.body;
+
+        // Verify event belongs to user
+        const eventCheck = await query(
+            'SELECT user_id FROM events WHERE id = $1',
+            [eventId]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        if (eventCheck.rows[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        const result = await query(
+            'UPDATE expenses SET category = $1, description = $2, amount = $3, vendor = $4, paid = $5, date = $6, updated_at = NOW() WHERE id = $7 AND event_id = $8 RETURNING *',
+            [category, description, amount, vendor, paid, date, expenseId, eventId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Expense not found' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Update expense error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Delete expense
+app.delete('/api/events/:eventId/expenses/:expenseId', authMiddleware, async (req, res) => {
+    try {
+        const { eventId, expenseId } = req.params;
+
+        // Verify event belongs to user
+        const eventCheck = await query(
+            'SELECT user_id FROM events WHERE id = $1',
+            [eventId]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        if (eventCheck.rows[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        await query('DELETE FROM expenses WHERE id = $1 AND event_id = $2', [expenseId, eventId]);
+        res.json({ message: 'Expense deleted successfully' });
+    } catch (error) {
+        console.error('Delete expense error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Get expense summary
+app.get('/api/events/:eventId/expenses/summary', authMiddleware, async (req, res) => {
+    try {
+        const { eventId } = req.params;
+
+        // Verify event belongs to user
+        const eventCheck = await query(
+            'SELECT user_id FROM events WHERE id = $1',
+            [eventId]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        if (eventCheck.rows[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        // Get budget
+        const budgetResult = await query(
+            'SELECT * FROM budgets WHERE event_id = $1',
+            [eventId]
+        );
+
+        // Get total expenses
+        const expensesResult = await query(
+            'SELECT SUM(amount) as total FROM expenses WHERE event_id = $1',
+            [eventId]
+        );
+
+        // Get expenses by category
+        const categoryResult = await query(
+            'SELECT category, SUM(amount) as total FROM expenses WHERE event_id = $1 GROUP BY category',
+            [eventId]
+        );
+
+        // Get guest count for cost per guest
+        const guestResult = await query(
+            'SELECT COUNT(*) as count FROM guests WHERE event_id = $1',
+            [eventId]
+        );
+
+        const budget = budgetResult.rows[0];
+        const totalSpent = parseFloat(expensesResult.rows[0]?.total || 0);
+        const guestCount = parseInt(guestResult.rows[0]?.count || 0);
+
+        const byCategory = {};
+        categoryResult.rows.forEach(row => {
+            byCategory[row.category] = parseFloat(row.total);
+        });
+
+        res.json({
+            total_budget: budget?.total_budget || 0,
+            currency: budget?.currency || 'USD',
+            total_spent: totalSpent,
+            remaining: (budget?.total_budget || 0) - totalSpent,
+            by_category: byCategory,
+            cost_per_guest: guestCount > 0 ? (totalSpent / guestCount).toFixed(2) : 0,
+            guest_count: guestCount
+        });
+    } catch (error) {
+        console.error('Get summary error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Initialize database and start server
 const PORT = process.env.PORT || 3001;
 

@@ -1,221 +1,425 @@
-import React, { useState } from 'react';
-import { DollarSign, Plus, X, Check, Trash2, TrendingUp, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useApp } from '../../context/AppContext';
+import { DollarSign, Plus, Trash2, Edit2, Check, X, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 
-const BudgetTab = ({ event, onUpdateBudget }) => {
-    const [categories, setCategories] = useState(event.budget?.categories || [
-        { id: '1', name: 'Venue', allocated: 0, spent: 0, color: '#6366f1' },
-        { id: '2', name: 'Catering', allocated: 0, spent: 0, color: '#10b981' },
-        { id: '3', name: 'Decorations', allocated: 0, spent: 0, color: '#f59e0b' },
-        { id: '4', name: 'Entertainment', allocated: 0, spent: 0, color: '#ef4444' },
-        { id: '5', name: 'Photography', allocated: 0, spent: 0, color: '#8b5cf6' },
-        { id: '6', name: 'Other', allocated: 0, spent: 0, color: '#6b7280' }
-    ]);
-    const [totalBudget, setTotalBudget] = useState(event.budget?.total || 0);
-    const [showAddExpense, setShowAddExpense] = useState(null);
-    const [newExpense, setNewExpense] = useState({ amount: '', description: '' });
+const CATEGORIES = [
+    'Venue',
+    'Catering',
+    'Decorations',
+    'Entertainment',
+    'Photography',
+    'Transportation',
+    'Gifts',
+    'Misc'
+];
 
-    const handleUpdateBudget = (categoryId, field, value) => {
-        const updated = categories.map(cat =>
-            cat.id === categoryId ? { ...cat, [field]: parseFloat(value) || 0 } : cat
-        );
-        setCategories(updated);
-        onUpdateBudget?.({ categories: updated, total: totalBudget });
-    };
+const BudgetTab = ({ event }) => {
+    const { API_URL, token } = useApp();
+    const [budget, setBudget] = useState(null);
+    const [expenses, setExpenses] = useState([]);
+    const [summary, setSummary] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const handleAddExpense = (categoryId) => {
-        if (!newExpense.amount) return;
+    // Budget form
+    const [totalBudget, setTotalBudget] = useState('');
+    const [showBudgetForm, setShowBudgetForm] = useState(false);
 
-        const updated = categories.map(cat => {
-            if (cat.id === categoryId) {
-                return {
-                    ...cat,
-                    spent: cat.spent + (parseFloat(newExpense.amount) || 0)
-                };
+    // Expense form
+    const [showExpenseForm, setShowExpenseForm] = useState(false);
+    const [editingExpense, setEditingExpense] = useState(null);
+    const [expenseForm, setExpenseForm] = useState({
+        category: 'Venue',
+        description: '',
+        amount: '',
+        vendor: '',
+        paid: false,
+        date: new Date().toISOString().split('T')[0]
+    });
+
+    // Fetch data
+    useEffect(() => {
+        if (event?.id) {
+            fetchBudgetData();
+        }
+    }, [event?.id]);
+
+    const fetchBudgetData = async () => {
+        try {
+            setLoading(true);
+            const headers = { 'Authorization': `Bearer ${token}` };
+
+            // Fetch budget
+            const budgetRes = await fetch(`${API_URL}/api/events/${event.id}/budget`, { headers });
+            if (budgetRes.ok) {
+                const budgetData = await budgetRes.json();
+                setBudget(budgetData);
+                if (budgetData) {
+                    setTotalBudget(budgetData.total_budget);
+                }
             }
-            return cat;
-        });
 
-        setCategories(updated);
-        setNewExpense({ amount: '', description: '' });
-        setShowAddExpense(null);
-        onUpdateBudget?.({ categories: updated, total: totalBudget });
+            // Fetch expenses
+            const expensesRes = await fetch(`${API_URL}/api/events/${event.id}/expenses`, { headers });
+            if (expensesRes.ok) {
+                const expensesData = await expensesRes.json();
+                setExpenses(expensesData);
+            }
+
+            // Fetch summary
+            const summaryRes = await fetch(`${API_URL}/api/events/${event.id}/expenses/summary`, { headers });
+            if (summaryRes.ok) {
+                const summaryData = await summaryRes.json();
+                setSummary(summaryData);
+            }
+
+        } catch (error) {
+            console.error('Error fetching budget data:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const totalAllocated = categories.reduce((sum, cat) => sum + cat.allocated, 0);
-    const totalSpent = categories.reduce((sum, cat) => sum + cat.spent, 0);
-    const remaining = totalAllocated - totalSpent;
-    const spentPercentage = totalAllocated > 0 ? (totalSpent / totalAllocated) * 100 : 0;
+    const handleCreateBudget = async () => {
+        try {
+            const response = await fetch(`${API_URL}/api/events/${event.id}/budget`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ total_budget: parseFloat(totalBudget) })
+            });
+
+            if (response.ok) {
+                setShowBudgetForm(false);
+                fetchBudgetData();
+            }
+        } catch (error) {
+            console.error('Error creating budget:', error);
+        }
+    };
+
+    const handleUpdateBudget = async () => {
+        try {
+            const response = await fetch(`${API_URL}/api/events/${event.id}/budget`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ total_budget: parseFloat(totalBudget) })
+            });
+
+            if (response.ok) {
+                fetchBudgetData();
+            }
+        } catch (error) {
+            console.error('Error updating budget:', error);
+        }
+    };
+
+    const handleSaveExpense = async () => {
+        try {
+            const url = editingExpense
+                ? `${API_URL}/api/events/${event.id}/expenses/${editingExpense.id}`
+                : `${API_URL}/api/events/${event.id}/expenses`;
+
+            const response = await fetch(url, {
+                method: editingExpense ? 'PUT' : 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ...expenseForm,
+                    amount: parseFloat(expenseForm.amount)
+                })
+            });
+
+            if (response.ok) {
+                setShowExpenseForm(false);
+                setEditingExpense(null);
+                setExpenseForm({
+                    category: 'Venue',
+                    description: '',
+                    amount: '',
+                    vendor: '',
+                    paid: false,
+                    date: new Date().toISOString().split('T')[0]
+                });
+                fetchBudgetData();
+            }
+        } catch (error) {
+            console.error('Error saving expense:', error);
+        }
+    };
+
+    const handleDeleteExpense = async (expenseId) => {
+        if (!confirm('Delete this expense?')) return;
+
+        try {
+            await fetch(`${API_URL}/api/events/${event.id}/expenses/${expenseId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            fetchBudgetData();
+        } catch (error) {
+            console.error('Error deleting expense:', error);
+        }
+    };
+
+    const startEditExpense = (expense) => {
+        setEditingExpense(expense);
+        setExpenseForm({
+            category: expense.category,
+            description: expense.description || '',
+            amount: expense.amount,
+            vendor: expense.vendor || '',
+            paid: expense.paid,
+            date: expense.date?.split('T')[0] || new Date().toISOString().split('T')[0]
+        });
+        setShowExpenseForm(true);
+    };
+
+    const budgetPercentage = summary ? ((summary.total_spent / summary.total_budget) * 100) : 0;
+    const isOverBudget = budgetPercentage > 100;
+
+    if (loading) {
+        return <div className="text-center py-8">Loading budget...</div>;
+    }
 
     return (
-        <div>
-            {/* Overview Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-                <div className="card" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)', color: 'white' }}>
-                    <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '0.5rem' }}>Total Budget</div>
-                    <div style={{ fontSize: '2rem', fontWeight: 700 }}>${totalAllocated.toFixed(2)}</div>
-                </div>
-                <div className="card" style={{ padding: '1.5rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <TrendingUp size={16} style={{ color: 'var(--error)' }} />
-                        Total Spent
+        <div className="space-y-6">
+            {/* Budget Overview */}
+            {budget ? (
+                <div className="card p-6 bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-200">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-bold text-gray-800">Budget Overview</h3>
+                        <button
+                            onClick={() => {
+                                setTotalBudget(budget.total_budget);
+                                setShowBudgetForm(true);
+                            }}
+                            className="text-indigo-600 hover:text-indigo-800"
+                        >
+                            <Edit2 size={18} />
+                        </button>
                     </div>
-                    <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--error)' }}>${totalSpent.toFixed(2)}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>
-                        {spentPercentage.toFixed(1)}% of budget
+
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <p className="text-sm text-gray-600">Total Budget</p>
+                            <p className="text-2xl font-bold text-gray-900">${summary?.total_budget?.toFixed(2) || '0.00'}</p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-600">Spent</p>
+                            <p className="text-2xl font-bold text-orange-600">${summary?.total_spent?.toFixed(2) || '0.00'}</p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-600">Remaining</p>
+                            <p className={`text-2xl font-bold ${isOverBudget ? 'text-red-600' : 'text-green-600'}`}>
+                                ${summary?.remaining?.toFixed(2) || '0.00'}
+                            </p>
+                        </div>
                     </div>
-                </div>
-                <div className="card" style={{ padding: '1.5rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Remaining</div>
-                    <div style={{ fontSize: '2rem', fontWeight: 700, color: remaining >= 0 ? 'var(--success)' : 'var(--error)' }}>
-                        ${Math.abs(remaining).toFixed(2)}
+
+                    {/* Progress Bar */}
+                    <div className="mb-4">
+                        <div className="flex justify-between text-sm mb-1">
+                            <span>Progress</span>
+                            <span className={isOverBudget ? 'text-red-600 font-bold' : ''}>{budgetPercentage.toFixed(1)}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                            <div
+                                className={`h-full transition-all ${isOverBudget ? 'bg-red-500' : 'bg-indigo-500'}`}
+                                style={{ width: `${Math.min(budgetPercentage, 100)}%` }}
+                            ></div>
+                        </div>
                     </div>
-                    {remaining < 0 && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--error)', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <AlertCircle size={12} /> Over budget
+
+                    {summary?.guest_count > 0 && (
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <DollarSign size={16} />
+                            <span>Cost per guest: <strong>${summary.cost_per_guest}</strong> ({summary.guest_count} guests)</span>
+                        </div>
+                    )}
+
+                    {isOverBudget && (
+                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+                            <AlertCircle size={18} />
+                            <span className="text-sm font-medium">You are over budget!</span>
                         </div>
                     )}
                 </div>
-            </div>
-
-            {/* Overall Progress Bar */}
-            <div className="card" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                    <span style={{ fontSize: '0.9375rem', fontWeight: 500 }}>Budget Usage</span>
-                    <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: spentPercentage > 100 ? 'var(--error)' : 'var(--primary)' }}>
-                        {spentPercentage.toFixed(1)}%
-                    </span>
+            ) : (
+                <div className="card p-6 text-center">
+                    <p className="text-gray-600 mb-4">No budget set for this event</p>
+                    <button onClick={() => setShowBudgetForm(true)} className="btn btn-primary">
+                        <Plus size={18} /> Set Budget
+                    </button>
                 </div>
-                <div style={{ height: '12px', background: 'var(--bg-secondary)', borderRadius: '999px', overflow: 'hidden' }}>
-                    <div style={{
-                        height: '100%',
-                        width: `${Math.min(spentPercentage, 100)}%`,
-                        background: spentPercentage > 90 ? 'linear-gradient(90deg, var(--error) 0%, #dc2626 100%)' : 'linear-gradient(90deg, var(--success) 0%, #059669 100%)',
-                        transition: 'width 0.5s ease',
-                        borderRadius: '999px'
-                    }}></div>
+            )}
+
+            {/* Budget Form Modal */}
+            {showBudgetForm && (
+                <div className="card p-6 bg-blue-50 border-2 border-blue-200">
+                    <h4 className="font-bold mb-4">{budget ? 'Update Budget' : 'Set Budget'}</h4>
+                    <div className="flex gap-4">
+                        <input
+                            type="number"
+                            value={totalBudget}
+                            onChange={(e) => setTotalBudget(e.target.value)}
+                            placeholder="Total budget..."
+                            className="form-input flex-1"
+                        />
+                        <button onClick={budget ? handleUpdateBudget : handleCreateBudget} className="btn btn-primary">
+                            <Check size={18} /> Save
+                        </button>
+                        <button onClick={() => setShowBudgetForm(false)} className="btn btn-secondary">
+                            <X size={18} />
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
 
-            {/* Budget Categories */}
-            <div style={{ display: 'grid', gap: '1rem' }}>
-                {categories.map(category => {
-                    const percentage = category.allocated > 0 ? (category.spent / category.allocated) * 100 : 0;
-                    const isOverBudget = category.spent > category.allocated;
-
-                    return (
-                        <div key={category.id} className="card" style={{ padding: '1.5rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                                        <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: category.color }}></div>
-                                        <h4 style={{ fontSize: '1.125rem', fontWeight: 600 }}>{category.name}</h4>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '2rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                        <div>
-                                            <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Allocated</label>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                value={category.allocated}
-                                                onChange={(e) => handleUpdateBudget(category.id, 'allocated', e.target.value)}
-                                                style={{
-                                                    width: '120px',
-                                                    padding: '0.375rem 0.75rem',
-                                                    border: '1px solid var(--border)',
-                                                    borderRadius: 'var(--radius-md)',
-                                                    fontSize: '0.875rem',
-                                                    fontWeight: 600,
-                                                    color: 'var(--primary)'
-                                                }}
-                                            />
-                                        </div>
-                                        <div>
-                                            <div style={{ fontSize: '0.75rem', marginBottom: '0.25rem' }}>Spent</div>
-                                            <div style={{ fontSize: '1rem', fontWeight: 600, color: isOverBudget ? 'var(--error)' : 'var(--success)' }}>
-                                                ${category.spent.toFixed(2)}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div style={{ fontSize: '0.75rem', marginBottom: '0.25rem' }}>Remaining</div>
-                                            <div style={{ fontSize: '1rem', fontWeight: 600, color: isOverBudget ? 'var(--error)' : 'var(--text-primary)' }}>
-                                                ${(category.allocated - category.spent).toFixed(2)}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => setShowAddExpense(showAddExpense === category.id ? null : category.id)}
-                                    className="btn btn-secondary"
-                                    style={{ fontSize: '0.875rem' }}
-                                >
-                                    <Plus size={14} /> Add Expense
-                                </button>
+            {/* Category Breakdown */}
+            {summary?.by_category && Object.keys(summary.by_category).length > 0 && (
+                <div className="card p-6">
+                    <h4 className="font-bold mb-4">Expenses by Category</h4>
+                    <div className="space-y-3">
+                        {Object.entries(summary.by_category).map(([category, amount]) => (
+                            <div key={category} className="flex justify-between items-center">
+                                <span className="font-medium">{category}</span>
+                                <span className="text-gray-700 font-semibold">${parseFloat(amount).toFixed(2)}</span>
                             </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
-                            {/* Progress Bar */}
-                            <div style={{ height: '8px', background: 'var(--bg-secondary)', borderRadius: '999px', overflow: 'hidden', marginBottom: '0.5rem' }}>
-                                <div style={{
-                                    height: '100%',
-                                    width: `${Math.min(percentage, 100)}%`,
-                                    background: category.color,
-                                    transition: 'width 0.3s ease',
-                                    borderRadius: '999px'
-                                }}></div>
-                            </div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                                {percentage.toFixed(1)}% used
-                                {isOverBudget && <span style={{ color: 'var(--error)', marginLeft: '0.5rem', fontWeight: 600 }}>⚠️ Over budget!</span>}
-                            </div>
+            {/* Add Expense Button */}
+            {budget && (
+                <button
+                    onClick={() => {
+                        setEditingExpense(null);
+                        setExpenseForm({
+                            category: 'Venue',
+                            description: '',
+                            amount: '',
+                            vendor: '',
+                            paid: false,
+                            date: new Date().toISOString().split('T')[0]
+                        });
+                        setShowExpenseForm(!showExpenseForm);
+                    }}
+                    className="btn btn-primary w-full"
+                >
+                    <Plus size={18} /> Add Expense
+                </button>
+            )}
 
-                            {/* Add Expense Form */}
-                            {showAddExpense === category.id && (
-                                <div style={{ marginTop: '1rem', padding: '1rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: '0.75rem', alignItems: 'end' }}>
-                                        <div>
-                                            <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.5rem', fontWeight: 500 }}>Amount</label>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                className="input"
-                                                value={newExpense.amount}
-                                                onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                                                placeholder="0.00"
-                                                style={{ fontSize: '0.875rem' }}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.5rem', fontWeight: 500 }}>Description (optional)</label>
-                                            <input
-                                                type="text"
-                                                className="input"
-                                                value={newExpense.description}
-                                                onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
-                                                placeholder="What was this for?"
-                                                style={{ fontSize: '0.875rem' }}
-                                            />
-                                        </div>
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <button
-                                                onClick={() => handleAddExpense(category.id)}
-                                                className="btn btn-primary"
-                                                style={{ fontSize: '0.875rem', padding: '0.625rem 1rem' }}
-                                            >
-                                                <Check size={14} />
-                                            </button>
-                                            <button
-                                                onClick={() => setShowAddExpense(null)}
-                                                className="btn btn-secondary"
-                                                style={{ fontSize: '0.875rem', padding: '0.625rem 1rem' }}
-                                            >
-                                                <X size={14} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+            {/* Expense Form */}
+            {showExpenseForm && (
+                <div className="card p-6 bg-green-50 border-2 border-green-200">
+                    <h4 className="font-bold mb-4">{editingExpense ? 'Edit Expense' : 'Add Expense'}</h4>
+                    <div className="space-y-4">
+                        <select
+                            value={expenseForm.category}
+                            onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
+                            className="form-input"
+                        >
+                            {CATEGORIES.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={expenseForm.amount}
+                            onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
+                            placeholder="Amount"
+                            className="form-input"
+                        />
+
+                        <input
+                            type="text"
+                            value={expenseForm.description}
+                            onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })}
+                            placeholder="Description (optional)"
+                            className="form-input"
+                        />
+
+                        <input
+                            type="text"
+                            value={expenseForm.vendor}
+                            onChange={(e) => setExpenseForm({ ...expenseForm, vendor: e.target.value })}
+                            placeholder="Vendor (optional)"
+                            className="form-input"
+                        />
+
+                        <input
+                            type="date"
+                            value={expenseForm.date}
+                            onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })}
+                            className="form-input"
+                        />
+
+                        <label className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={expenseForm.paid}
+                                onChange={(e) => setExpenseForm({ ...expenseForm, paid: e.target.checked })}
+                            />
+                            <span>Paid</span>
+                        </label>
+
+                        <div className="flex gap-2">
+                            <button onClick={handleSaveExpense} className="btn btn-primary flex-1">
+                                <Check size={18} /> {editingExpense ? 'Update' : 'Add'}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowExpenseForm(false);
+                                    setEditingExpense(null);
+                                }}
+                                className="btn btn-secondary"
+                            >
+                                <X size={18} />
+                            </button>
                         </div>
-                    );
-                })}
+                    </div>
+                </div>
+            )}
+
+            {/* Expense List */}
+            <div className="card p-6">
+                <h4 className="font-bold mb-4">Expenses ({expenses.length})</h4>
+                {expenses.length === 0 ? (
+                    <p className="text-gray-500 text-center py-4">No expenses yet</p>
+                ) : (
+                    <div className="space-y-2">
+                        {expenses.map((expense) => (
+                            <div key={expense.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
+                                <div className="flex-1">
+                                    <p className="font-medium">{expense.category} - ${parseFloat(expense.amount).toFixed(2)}</p>
+                                    {expense.description && <p className="text-sm text-gray-600">{expense.description}</p>}
+                                    {expense.vendor && <p className="text-xs text-gray-500">Vendor: {expense.vendor}</p>}
+                                    <p className="text-xs text-gray-400">{new Date(expense.date).toLocaleDateString()}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {expense.paid && <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Paid</span>}
+                                    <button onClick={() => startEditExpense(expense)} className="text-blue-600 hover:text-blue-800">
+                                        <Edit2 size={16} />
+                                    </button>
+                                    <button onClick={() => handleDeleteExpense(expense.id)} className="text-red-600 hover:text-red-800">
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

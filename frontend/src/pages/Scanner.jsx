@@ -57,36 +57,21 @@ const Scanner = () => {
     };
 
     return (
-        <div className="max-w-md mx-auto space-y-8 animate-in">
-            <div className="text-center space-y-2">
-                <div className="inline-flex p-3 rounded-2xl bg-[rgba(6,182,212,0.1)] text-[var(--accent-cyan)] border border-[var(--glass-highlight)] mb-2">
-                    <ScanLine size={32} />
-                </div>
-                <h1 className="text-3xl font-bold text-white tracking-tight">Gatekeeper</h1>
-                <p className="text-[var(--text-muted)]">Ready to verify incoming guests</p>
-            </div>
-
-            {/* Scanner View */}
+        <>
+            {/* Scanner View - Full Screen (no wrappers) */}
             {!scanResult && (
-                <div className="card overflow-hidden p-1 bg-[var(--bg-deep)] border-[2px] border-[var(--primary)] shadow-[0_0_30px_rgba(99,102,241,0.2)]">
-                    <div className="relative rounded-2xl overflow-hidden aspect-square bg-black">
-                        <QRScanner onScan={handleScan} />
-                        <div className="absolute inset-0 border-[2px] border-[rgba(255,255,255,0.1)] pointer-events-none rounded-2xl"></div>
+                <QRScanner onScan={handleScan} onClose={resetScanner} />
+            )}
 
-                        {/* Scanner Overlay UI */}
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div className="w-64 h-64 border-2 border-[var(--accent-cyan)] rounded-2xl relative shadow-[0_0_20px_rgba(6,182,212,0.3)]">
-                                <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-[var(--accent-cyan)] -mt-1 -ml-1 rounded-tl-lg"></div>
-                                <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-[var(--accent-cyan)] -mt-1 -mr-1 rounded-tr-lg"></div>
-                                <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-[var(--accent-cyan)] -mb-1 -ml-1 rounded-bl-lg"></div>
-                                <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-[var(--accent-cyan)] -mb-1 -mr-1 rounded-br-lg"></div>
-                                {/* Scanning Line Animation */}
-                                <div className="absolute top-0 left-0 right-0 h-0.5 bg-[var(--accent-cyan)] shadow-[0_0_10px_var(--accent-cyan)] opacity-60 animate-[scan_2s_ease-in-out_infinite]"></div>
-                            </div>
+            {/* Result View */}
+            {scanResult && (
+                <div className="max-w-md mx-auto space-y-8 animate-in p-4">
+                    <div className="text-center space-y-2">
+                        <div className="inline-flex p-3 rounded-2xl bg-[rgba(6,182,212,0.1)] text-[var(--accent-cyan)] border border-[var(--glass-highlight)] mb-2">
+                            <ScanLine size={32} />
                         </div>
-                    </div>
-                    <div className="p-4 text-center">
-                        <p className="text-sm font-medium text-[var(--text-muted)] animate-pulse">Searching for QR Codes...</p>
+                        <h1 className="text-3xl font-bold text-white tracking-tight">Gatekeeper</h1>
+                        <p className="text-[var(--text-muted)]">Scan result</p>
                     </div>
                 </div>
             )}
@@ -187,7 +172,7 @@ const Scanner = () => {
                     </button>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 

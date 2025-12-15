@@ -45,14 +45,20 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
-  /* Safe area padding for mobile notches */
+  /* Prevent text overflow */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  /* Remove default padding - pages that need it can add .safe-area class */
+  margin: 0;
+  padding: 0;
+}
+
+/* Utility class for pages that need safe area padding */
+.safe-area-padding {
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
-  /* Prevent text overflow */
-  word-wrap: break-word;
-  overflow-wrap: break-word;
 }
 
 /* Global text wrapping for all elements */
@@ -248,6 +254,20 @@ h4 {
   }
 }
 
+@keyframes scan {
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(320px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
 /* Responsive Grid  */
 .grid {
   display: grid;
@@ -303,4 +323,41 @@ h4 {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-tertiary);
+}
+
+/* QR Scanner Full-Screen Overrides */
+/* Override html5-qrcode library's default styling to achieve true full-screen */
+#reader {
+  width: 100vw !important;
+  height: 100vh !important;
+  border: none !important;
+}
+
+#reader>div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#reader video {
+  width: 100vw !important;
+  height: 100vh !important;
+  object-fit: cover !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+#reader__scan_region {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#reader__dashboard,
+#reader__dashboard_section {
+  display: none !important;
+}
+
+/* Hide the default QR box from library - we have our own */
+#reader__scan_region>img {
+  display: none !important;
 }

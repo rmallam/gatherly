@@ -78,9 +78,7 @@ function App() {
                         } />
                         <Route path="/scanner" element={
                             <ProtectedRoute>
-                                <Layout>
-                                    <Scanner />
-                                </Layout>
+                                <Scanner />
                             </ProtectedRoute>
                         } />
                     </Routes>
