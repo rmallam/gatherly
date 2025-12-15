@@ -12,7 +12,8 @@ import GiftsTab from '../components/tabs/GiftsTab';
 import EntertainmentTab from '../components/tabs/EntertainmentTab';
 import VendorsTab from '../components/tabs/VendorsTab';
 import BudgetTab from '../components/tabs/BudgetTab';
-import { LayoutDashboard, Users, UtensilsCrossed, CheckSquare, MapPin, Sparkles, Gift, Music, Briefcase, DollarSign, ArrowLeft } from 'lucide-react';
+import RemindersSettings from '../components/RemindersSettings';
+import { LayoutDashboard, Users, UtensilsCrossed, CheckSquare, MapPin, Sparkles, Gift, Music, Briefcase, DollarSign, Bell, ArrowLeft } from 'lucide-react';
 
 // Import the old EventDetails as a component for the Guests tab temporarily
 import EventDetails from './EventDetails';
@@ -108,7 +109,8 @@ const EventDetailsTabs = () => {
         { id: 'gifts', label: 'Gifts', icon: Gift, badge: event.gifts?.items?.length || null },
         { id: 'entertainment', label: 'Entertainment', icon: Music, badge: event.entertainment?.activities?.length || null },
         { id: 'vendors', label: 'Vendors', icon: Briefcase, badge: event.vendors?.length || null },
-        { id: 'budget', label: 'Budget', icon: DollarSign, badge: null }
+        { id: 'budget', label: 'Budget', icon: DollarSign, badge: null },
+        { id: 'reminders', label: 'Reminders', icon: Bell, badge: null }
     ];
 
     return (
@@ -146,6 +148,7 @@ const EventDetailsTabs = () => {
                 {activeTab === 'entertainment' && <EntertainmentTab event={event} onUpdateEntertainment={handleUpdateEntertainment} />}
                 {activeTab === 'vendors' && <VendorsTab event={event} onUpdateVendors={handleUpdateVendors} />}
                 {activeTab === 'budget' && <BudgetTab event={event} />}
+                {activeTab === 'reminders' && <RemindersSettings event={event} />}
             </div>
         </div>
     );

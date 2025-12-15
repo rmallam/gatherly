@@ -49,7 +49,7 @@ const BudgetTab = ({ event }) => {
             const headers = { 'Authorization': `Bearer ${token}` };
 
             // Fetch budget
-            const budgetRes = await fetch(`${API_URL}/api/events/${event.id}/budget`, { headers });
+            const budgetRes = await fetch(`${API_URL}/events/${event.id}/budget`, { headers });
             if (budgetRes.ok) {
                 const budgetData = await budgetRes.json();
                 setBudget(budgetData);
@@ -59,14 +59,14 @@ const BudgetTab = ({ event }) => {
             }
 
             // Fetch expenses
-            const expensesRes = await fetch(`${API_URL}/api/events/${event.id}/expenses`, { headers });
+            const expensesRes = await fetch(`${API_URL}/events/${event.id}/expenses`, { headers });
             if (expensesRes.ok) {
                 const expensesData = await expensesRes.json();
                 setExpenses(expensesData);
             }
 
             // Fetch summary
-            const summaryRes = await fetch(`${API_URL}/api/events/${event.id}/expenses/summary`, { headers });
+            const summaryRes = await fetch(`${API_URL}/events/${event.id}/expenses/summary`, { headers });
             if (summaryRes.ok) {
                 const summaryData = await summaryRes.json();
                 setSummary(summaryData);
@@ -81,7 +81,7 @@ const BudgetTab = ({ event }) => {
 
     const handleCreateBudget = async () => {
         try {
-            const response = await fetch(`${API_URL}/api/events/${event.id}/budget`, {
+            const response = await fetch(`${API_URL}/events/${event.id}/budget`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -101,7 +101,7 @@ const BudgetTab = ({ event }) => {
 
     const handleUpdateBudget = async () => {
         try {
-            const response = await fetch(`${API_URL}/api/events/${event.id}/budget`, {
+            const response = await fetch(`${API_URL}/events/${event.id}/budget`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -121,8 +121,8 @@ const BudgetTab = ({ event }) => {
     const handleSaveExpense = async () => {
         try {
             const url = editingExpense
-                ? `${API_URL}/api/events/${event.id}/expenses/${editingExpense.id}`
-                : `${API_URL}/api/events/${event.id}/expenses`;
+                ? `${API_URL}/events/${event.id}/expenses/${editingExpense.id}`
+                : `${API_URL}/events/${event.id}/expenses`;
 
             const response = await fetch(url, {
                 method: editingExpense ? 'PUT' : 'POST',
@@ -158,7 +158,7 @@ const BudgetTab = ({ event }) => {
         if (!confirm('Delete this expense?')) return;
 
         try {
-            await fetch(`${API_URL}/api/events/${event.id}/expenses/${expenseId}`, {
+            await fetch(`${API_URL}/events/${event.id}/expenses/${expenseId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

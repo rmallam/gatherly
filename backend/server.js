@@ -1072,6 +1072,217 @@ app.get('/api/events/:eventId/expenses/summary', authMiddleware, async (req, res
     }
 });
 
+// ========================================
+// SMART REMINDERS ENDPOINTS
+// ========================================
+
+// Get all reminders for event
+app.get('/api/events/:eventId/reminders', authMiddleware, async (req, res) => {
+    try {
+        const { eventId } = req.params;
+
+        // Verify event belongs to user
+        const eventCheck = await query(
+            'SELECT user_id FROM events WHERE id = $1',
+            [eventId]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        if (eventCheck.rows[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        const result = await query(
+            'SELECT * FROM reminders WHERE event_id = $1 ORDER BY send_at ASC',
+            [eventId]
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Get reminders error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Create reminder
+app.post('/api/events/:eventId/reminders', authMiddleware, async (req, res) => {
+    try {
+        const { eventId } = req.params;
+        const { reminder_type, recipient_type, send_at, message } = req.body;
+
+        // Verify event belongs to user
+        const eventCheck = await query(
+            'SELECT user_id FROM events WHERE id = $1',
+            [eventId]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        if (eventCheck.rows[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        const reminderId = uuidv4();
+        const result = await query(
+            'INSERT INTO reminders (id, event_id, reminder_type, recipient_type, send_at, message) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [reminderId, eventId, reminder_type, recipient_type, send_at, message]
+        );
+
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error('Create reminder error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Update reminder
+app.put('/api/events/:eventId/reminders/:reminderId', authMiddleware, async (req, res) => {
+    try {
+        const { eventId, reminderId } = req.params;
+        const { reminder_type, recipient_type, send_at, message } = req.body;
+
+        // Verify event belongs to user
+        const eventCheck = await query(
+            'SELECT user_id FROM events WHERE id = $1',
+            [eventId]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        if (eventCheck.rows[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        const result = await query(
+            'UPDATE reminders SET reminder_type = $1, recipient_type = $2, send_at = $3, message = $4 WHERE id = $5 AND event_id = $6 RETURNING *',
+            [reminder_type, recipient_type, send_at, message, reminderId, eventId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Reminder not found' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Update reminder error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Delete reminder
+app.delete('/api/events/:eventId/reminders/:reminderId', authMiddleware, async (req, res) => {
+    try {
+        const { eventId, reminderId } = req.params;
+
+        // Verify event belongs to user
+        const eventCheck = await query(
+            'SELECT user_id FROM events WHERE id = $1',
+            [eventId]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        if (eventCheck.rows[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        await query('DELETE FROM reminders WHERE id = $1 AND event_id = $2', [reminderId, eventId]);
+        res.json({ message: 'Reminder deleted successfully' });
+    } catch (error) {
+        console.error('Delete reminder error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Auto-schedule reminders for event
+app.post('/api/events/:eventId/reminders/auto-schedule', authMiddleware, async (req, res) => {
+    try {
+        const { eventId } = req.params;
+
+        // Get event with date
+        const eventResult = await query(
+            'SELECT * FROM events WHERE id = $1 AND user_id = $2',
+            [eventId, req.user.id]
+        );
+
+        if (eventResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        const event = eventResult.rows[0];
+        if (!event.date) {
+            return res.status(400).json({ error: 'Event must have a date to schedule reminders' });
+        }
+
+        const eventDate = new Date(event.date);
+        const reminders = [];
+
+        // RSVP Follow-up - 7 days before event
+        const rsvpDate = new Date(eventDate);
+        rsvpDate.setDate(rsvpDate.getDate() - 7);
+        if (rsvpDate > new Date()) {
+            reminders.push({
+                id: uuidv4(),
+                event_id: eventId,
+                reminder_type: 'rsvp_followup',
+                recipient_type: 'guests',
+                send_at: rsvpDate,
+                message: `Don't forget to RSVP for ${event.title}!`
+            });
+        }
+
+        // Day Before Event - 24 hours before
+        const dayBeforeDate = new Date(eventDate);
+        dayBeforeDate.setDate(dayBeforeDate.getDate() - 1);
+        if (dayBeforeDate > new Date()) {
+            reminders.push({
+                id: uuidv4(),
+                event_id: eventId,
+                reminder_type: 'event_tomorrow',
+                recipient_type: 'guests',
+                send_at: dayBeforeDate,
+                message: `See you tomorrow at ${event.title}!`
+            });
+        }
+
+        // Event Starting Soon - 2 hours before
+        const twoHoursBefore = new Date(eventDate);
+        twoHoursBefore.setHours(twoHoursBefore.getHours() - 2);
+        if (twoHoursBefore > new Date()) {
+            reminders.push({
+                id: uuidv4(),
+                event_id: eventId,
+                reminder_type: 'event_starting',
+                recipient_type: 'guests',
+                send_at: twoHoursBefore,
+                message: `${event.title} starts in 2 hours!`
+            });
+        }
+
+        // Insert reminders
+        for (const reminder of reminders) {
+            await query(
+                'INSERT INTO reminders (id, event_id, reminder_type, recipient_type, send_at, message) VALUES ($1, $2, $3, $4, $5, $6)',
+                [reminder.id, reminder.event_id, reminder.reminder_type, reminder.recipient_type, reminder.send_at, reminder.message]
+            );
+        }
+
+        res.json({ message: `${reminders.length} reminders scheduled`, reminders });
+    } catch (error) {
+        console.error('Auto-schedule error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Initialize database and start server
 const PORT = process.env.PORT || 3001;
 

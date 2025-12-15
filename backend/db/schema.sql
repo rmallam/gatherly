@@ -72,6 +72,18 @@ CREATE TABLE IF NOT EXISTS expenses (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Reminders table
+CREATE TABLE IF NOT EXISTS reminders (
+    id UUID PRIMARY KEY,
+    event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    reminder_type VARCHAR(50) NOT NULL,
+    recipient_type VARCHAR(20) NOT NULL,
+    send_at TIMESTAMP NOT NULL,
+    sent BOOLEAN DEFAULT FALSE,
+    message TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_events_user_id ON events(user_id);
 CREATE INDEX IF NOT EXISTS idx_guests_event_id ON guests(event_id);
@@ -80,3 +92,5 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_budgets_event ON budgets(event_id);
 CREATE INDEX IF NOT EXISTS idx_expenses_event ON expenses(event_id);
 CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
+CREATE INDEX IF NOT EXISTS idx_reminders_event ON reminders(event_id);
+CREATE INDEX IF NOT EXISTS idx_reminders_send_at ON reminders(send_at) WHERE sent = FALSE;
