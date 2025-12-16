@@ -7,21 +7,30 @@ import { sendReminder } from '../services/reminderService.js';
  */
 const processPendingReminders = async () => {
     try {
-        // Get all unsent reminders that are due
+        console.log('\n=== REMINDER CHECK START ===');
+        console.log('Current server time:', new Date().toISOString());
+
+        // Get all unsent reminders that are due (use CURRENT_TIMESTAMP for proper timezone handling)
         const result = await query(
             `SELECT * FROM reminders 
              WHERE sent = false 
-             AND send_at <= NOW() 
+             AND send_at <= CURRENT_TIMESTAMP 
              ORDER BY send_at ASC`
         );
 
         const pendingReminders = result.rows;
 
+        console.log(`Found ${result.rows.length} total unsent reminders`);
+        console.log(`Found ${pendingReminders.length} reminders that are due`);
+
         if (pendingReminders.length === 0) {
+            console.log('No pending reminders to process');
+            console.log('=== REMINDER CHECK END ===\n');
             return;
         }
 
         console.log(`\n🔔 Processing ${pendingReminders.length} pending reminder(s)...`);
+
 
         for (const reminder of pendingReminders) {
             console.log(`Processing reminder ${reminder.id} (${reminder.reminder_type})...`);
@@ -42,8 +51,20 @@ const processPendingReminders = async () => {
         }
 
         console.log(`✓ Reminder processing complete\n`);
+        console.log('=== REMINDER CHECK END ===\n');
     } catch (error) {
         console.error('Error processing reminders:', error);
+
+        // Also log all unsent reminders for debugging
+        try {
+            const allUnsent = await query('SELECT id, send_at, sent, reminder_type FROM reminders WHERE sent = false ORDER BY send_at');
+            console.log('\nAll unsent reminders in database:');
+            allUnsent.rows.forEach(r => {
+                console.log(`  - ${r.id}: ${r.reminder_type} at ${r.send_at} (sent: ${r.sent})`);
+            });
+        } catch (err) {
+            console.error('Failed to fetch unsent reminders for debugging:', err);
+        }
     }
 };
 
