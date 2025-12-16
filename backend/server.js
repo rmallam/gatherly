@@ -1285,6 +1285,19 @@ app.post('/api/events/:eventId/reminders/auto-schedule', authMiddleware, async (
     }
 });
 
+// Test endpoint to manually trigger reminder check
+app.post('/api/admin/process-reminders', authMiddleware, async (req, res) => {
+    try {
+        const { processPendingReminders } = await import('./jobs/reminderCron.js');
+        console.log('Manual reminder check triggered by user:', req.user.email);
+        await processPendingReminders();
+        res.json({ message: 'Reminder check completed. Check server logs for details.' });
+    } catch (error) {
+        console.error('Manual reminder check error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Initialize database and start server
 const PORT = process.env.PORT || 3001;
 
