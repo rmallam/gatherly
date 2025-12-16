@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import pool from '../db/index.js';
+import { query } from '../db/connection.js';
 import { sendSMS } from '../services/reminderService.js';
 
 // Message templates
@@ -28,7 +28,7 @@ export const sendAnnouncement = async (req, res) => {
         }
 
         // Get event details
-        const eventResult = await pool.query(
+        const eventResult = await query(
             'SELECT * FROM events WHERE id = $1 AND user_id = $2',
             [eventId, userId]
         );
@@ -49,7 +49,7 @@ export const sendAnnouncement = async (req, res) => {
             guestsQuery += ' AND attended = true';
         }
 
-        const guestsResult = await pool.query(guestsQuery, queryParams);
+        const guestsResult = await query(guestsQuery, queryParams);
         const guests = guestsResult.rows;
 
         if (guests.length === 0) {
@@ -57,7 +57,7 @@ export const sendAnnouncement = async (req, res) => {
         }
 
         // Create communication record
-        const commResult = await pool.query(
+        const commResult = await query(
             `INSERT INTO communications (event_id, type, message, recipient_filter, recipients_count, created_by)
              VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
             [eventId, 'announcement', message, recipientFilter, guests.length, userId]
@@ -89,7 +89,7 @@ export const sendThankYouMessages = async (req, res) => {
 
     try {
         // Get event details
-        const eventResult = await pool.query(
+        const eventResult = await query(
             'SELECT * FROM events WHERE id = $1 AND user_id = $2',
             [eventId, userId]
         );
@@ -101,7 +101,7 @@ export const sendThankYouMessages = async (req, res) => {
         const event = eventResult.rows[0];
 
         // Get attended guests only
-        const guestsResult = await pool.query(
+        const guestsResult = await query(
             'SELECT * FROM guests WHERE event_id = $1 AND attended = true',
             [eventId]
         );
@@ -114,7 +114,7 @@ export const sendThankYouMessages = async (req, res) => {
 
         // Create communication record
         const thankYouMessage = `Thank you for attending ${event.title}!`;
-        const commResult = await pool.query(
+        const commResult = await query(
             `INSERT INTO communications (event_id, type, message, recipient_filter, recipients_count, created_by)
              VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
             [eventId, 'thank_you', thankYouMessage, 'attended', guests.length, userId]
@@ -146,7 +146,7 @@ export const getCommunications = async (req, res) => {
 
     try {
         // Verify event ownership
-        const eventResult = await pool.query(
+        const eventResult = await query(
             'SELECT * FROM events WHERE id = $1 AND user_id = $2',
             [eventId, userId]
         );
@@ -156,7 +156,7 @@ export const getCommunications = async (req, res) => {
         }
 
         // Get communications
-        const result = await pool.query(
+        const result = await query(
             `SELECT * FROM communications 
              WHERE event_id = $1 
              ORDER BY created_at DESC`,
@@ -176,7 +176,7 @@ async function sendMessagesInBackground(communicationId, event, guests, customMe
     let failedCount = 0;
 
     // Update status to sending
-    await pool.query(
+    await query(
         'UPDATE communications SET status = $1 WHERE id = $2',
         ['sending', communicationId]
     );
@@ -209,7 +209,7 @@ async function sendMessagesInBackground(communicationId, event, guests, customMe
     }
 
     // Update final status
-    await pool.query(
+    await query(
         `UPDATE communications 
          SET status = $1, sent_count = $2, failed_count = $3, completed_at = NOW() 
          WHERE id = $4`,
