@@ -96,12 +96,25 @@ export const sendReminder = async (reminder) => {
         // Send SMS to each recipient
         let sentCount = 0;
         for (const recipient of recipients) {
-            // Ensure phone number has + prefix for international format
+            // Format phone number properly
             let phoneNumber = recipient.phone;
-            if (phoneNumber && !phoneNumber.startsWith('+')) {
-                phoneNumber = '+' + phoneNumber;
+            if (phoneNumber) {
+                // Remove all spaces and special characters except +
+                phoneNumber = phoneNumber.replace(/[^\d+]/g, '');
+
+                // Add country code +91 if missing
+                if (!phoneNumber.startsWith('+')) {
+                    // If starts with 91, add +
+                    if (phoneNumber.startsWith('91')) {
+                        phoneNumber = '+' + phoneNumber;
+                    } else {
+                        // Otherwise assume Indian number and add +91
+                        phoneNumber = '+91' + phoneNumber;
+                    }
+                }
             }
 
+            console.log(`Sending SMS to ${recipient.name} at ${phoneNumber}`);
             const personalizedMessage = `Hi ${recipient.name}, ${message}`;
             const result = await sendSMS(phoneNumber, personalizedMessage);
             if (result.success) {
