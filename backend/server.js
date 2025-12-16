@@ -9,6 +9,8 @@ import { generateToken, hashPassword, comparePassword, authMiddleware } from './
 import { initializeDatabase, query } from './db/connection.js';
 import { validateEmail, validatePassword } from './server/validators.js';
 import { sendVerificationEmail } from './server/email.js';
+import { initTwilio } from './services/reminderService.js';
+import { startReminderCron } from './jobs/reminderCron.js';
 
 const app = express();
 
@@ -1288,6 +1290,12 @@ const PORT = process.env.PORT || 3001;
 
 initializeDatabase()
     .then(() => {
+        // Initialize Twilio
+        initTwilio();
+
+        // Start reminder cron job
+        startReminderCron();
+
         app.listen(PORT, () => {
             console.log(`✓ Server running on port ${PORT}`);
         });
@@ -1296,3 +1304,4 @@ initializeDatabase()
         console.error('Failed to initialize database:', err);
         process.exit(1);
     });
+

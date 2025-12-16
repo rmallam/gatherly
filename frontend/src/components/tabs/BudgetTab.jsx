@@ -14,11 +14,17 @@ const CATEGORIES = [
 ];
 
 const BudgetTab = ({ event }) => {
-    const { API_URL, token } = useApp();
+    const { API_URL } = useApp();
     const [budget, setBudget] = useState(null);
     const [expenses, setExpenses] = useState([]);
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    // Helper function to safely format currency values
+    const formatCurrency = (value, decimals = 2) => {
+        const num = parseFloat(value);
+        return isNaN(num) ? '0.00' : num.toFixed(decimals);
+    };
 
     // Budget form
     const [totalBudget, setTotalBudget] = useState('');
@@ -46,6 +52,7 @@ const BudgetTab = ({ event }) => {
     const fetchBudgetData = async () => {
         try {
             setLoading(true);
+            const token = localStorage.getItem('token');
             const headers = { 'Authorization': `Bearer ${token}` };
 
             // Fetch budget
@@ -81,6 +88,7 @@ const BudgetTab = ({ event }) => {
 
     const handleCreateBudget = async () => {
         try {
+            const token = localStorage.getItem('token');
             const response = await fetch(`${API_URL}/events/${event.id}/budget`, {
                 method: 'POST',
                 headers: {
@@ -101,6 +109,7 @@ const BudgetTab = ({ event }) => {
 
     const handleUpdateBudget = async () => {
         try {
+            const token = localStorage.getItem('token');
             const response = await fetch(`${API_URL}/events/${event.id}/budget`, {
                 method: 'PUT',
                 headers: {
@@ -120,6 +129,7 @@ const BudgetTab = ({ event }) => {
 
     const handleSaveExpense = async () => {
         try {
+            const token = localStorage.getItem('token');
             const url = editingExpense
                 ? `${API_URL}/events/${event.id}/expenses/${editingExpense.id}`
                 : `${API_URL}/events/${event.id}/expenses`;
@@ -158,6 +168,7 @@ const BudgetTab = ({ event }) => {
         if (!confirm('Delete this expense?')) return;
 
         try {
+            const token = localStorage.getItem('token');
             await fetch(`${API_URL}/events/${event.id}/expenses/${expenseId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -185,112 +196,135 @@ const BudgetTab = ({ event }) => {
     const isOverBudget = budgetPercentage > 100;
 
     if (loading) {
-        return <div className="text-center py-8">Loading budget...</div>;
+        return <div style={{ textAlign: 'center', padding: '2rem' }}>Loading budget...</div>;
     }
 
     return (
-        <div className="space-y-6">
-            {/* Budget Overview */}
-            {budget ? (
-                <div className="card p-6 bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-200">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xl font-bold text-gray-800">Budget Overview</h3>
-                        <button
-                            onClick={() => {
-                                setTotalBudget(budget.total_budget);
-                                setShowBudgetForm(true);
-                            }}
-                            className="text-indigo-600 hover:text-indigo-800"
-                        >
-                            <Edit2 size={18} />
-                        </button>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                        <div>
-                            <p className="text-sm text-gray-600">Total Budget</p>
-                            <p className="text-2xl font-bold text-gray-900">${summary?.total_budget?.toFixed(2) || '0.00'}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-600">Spent</p>
-                            <p className="text-2xl font-bold text-orange-600">${summary?.total_spent?.toFixed(2) || '0.00'}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-600">Remaining</p>
-                            <p className={`text-2xl font-bold ${isOverBudget ? 'text-red-600' : 'text-green-600'}`}>
-                                ${summary?.remaining?.toFixed(2) || '0.00'}
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="mb-4">
-                        <div className="flex justify-between text-sm mb-1">
-                            <span>Progress</span>
-                            <span className={isOverBudget ? 'text-red-600 font-bold' : ''}>{budgetPercentage.toFixed(1)}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                            <div
-                                className={`h-full transition-all ${isOverBudget ? 'bg-red-500' : 'bg-indigo-500'}`}
-                                style={{ width: `${Math.min(budgetPercentage, 100)}%` }}
-                            ></div>
-                        </div>
-                    </div>
-
-                    {summary?.guest_count > 0 && (
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <DollarSign size={16} />
-                            <span>Cost per guest: <strong>${summary.cost_per_guest}</strong> ({summary.guest_count} guests)</span>
-                        </div>
-                    )}
-
-                    {isOverBudget && (
-                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
-                            <AlertCircle size={18} />
-                            <span className="text-sm font-medium">You are over budget!</span>
-                        </div>
-                    )}
-                </div>
-            ) : (
-                <div className="card p-6 text-center">
-                    <p className="text-gray-600 mb-4">No budget set for this event</p>
-                    <button onClick={() => setShowBudgetForm(true)} className="btn btn-primary">
-                        <Plus size={18} /> Set Budget
-                    </button>
-                </div>
-            )}
-
-            {/* Budget Form Modal */}
+        <div>
+            {/* Budget Form Modal - Show at top when editing/creating */}
             {showBudgetForm && (
-                <div className="card p-6 bg-blue-50 border-2 border-blue-200">
-                    <h4 className="font-bold mb-4">{budget ? 'Update Budget' : 'Set Budget'}</h4>
-                    <div className="flex gap-4">
+                <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
+                    <h4 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1rem' }}>{budget ? 'Update Budget' : 'Set Budget'}</h4>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
                         <input
                             type="number"
                             value={totalBudget}
                             onChange={(e) => setTotalBudget(e.target.value)}
-                            placeholder="Total budget..."
-                            className="form-input flex-1"
+                            placeholder="Enter total budget"
+                            className="form-input"
+                            style={{ flex: 1, background: 'white', color: 'var(--text-primary)' }}
+                            autoFocus
                         />
-                        <button onClick={budget ? handleUpdateBudget : handleCreateBudget} className="btn btn-primary">
+                        <button onClick={budget ? handleUpdateBudget : handleCreateBudget} className="btn btn-primary" style={{ background: 'white', color: 'var(--primary)' }}>
                             <Check size={18} /> Save
                         </button>
-                        <button onClick={() => setShowBudgetForm(false)} className="btn btn-secondary">
+                        <button onClick={() => setShowBudgetForm(false)} className="btn btn-secondary" style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid white' }}>
                             <X size={18} />
                         </button>
                     </div>
                 </div>
             )}
 
+            {/* Budget Overview or Setup - Show first */}
+            {budget ? (
+                <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Budget Overview</h3>
+                        <button
+                            onClick={() => {
+                                setTotalBudget(budget.total_budget);
+                                setShowBudgetForm(true);
+                            }}
+                            style={{ padding: '0.5rem', border: 'none', background: 'rgba(255,255,255,0.2)', color: 'white', cursor: 'pointer', borderRadius: 'var(--radius-md)' }}
+                        >
+                            <Edit2 size={18} />
+                        </button>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div style={{ marginBottom: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                            <span>Progress</span>
+                            <span style={{ fontWeight: 700 }}>{formatCurrency(budgetPercentage, 1)}%</span>
+                        </div>
+                        <div style={{ width: '100%', background: 'rgba(255,255,255,0.3)', borderRadius: '999px', height: '12px', overflow: 'hidden' }}>
+                            <div
+                                style={{
+                                    height: '100%',
+                                    background: isOverBudget ? '#ef4444' : 'white',
+                                    width: `${Math.min(budgetPercentage, 100)}%`,
+                                    transition: 'width 0.3s ease'
+                                }}
+                            ></div>
+                        </div>
+                    </div>
+
+                    {summary?.guest_count > 0 && (
+                        <div style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <DollarSign size={16} />
+                            <span>Cost per guest: <strong>${formatCurrency(summary.cost_per_guest)}</strong> ({summary.guest_count} guests)</span>
+                        </div>
+                    )}
+
+                    {isOverBudget && (
+                        <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(239,68,68,0.9)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <AlertCircle size={18} />
+                            <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>You are over budget!</span>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="card" style={{ padding: '3rem', textAlign: 'center', marginBottom: '1.5rem' }}>
+                    <DollarSign size={48} style={{ color: 'var(--text-tertiary)', margin: '0 auto 1rem' }} />
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>Set Your Budget</h3>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                        Track expenses and stay within your event budget
+                    </p>
+                    <button onClick={() => setShowBudgetForm(true)} className="btn btn-primary">
+                        <Plus size={18} /> Set Budget
+                    </button>
+                </div>
+            )}
+
+            {/* Stats Cards - Show after budget overview */}
+            {budget && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+                    <div className="card" style={{ padding: '1rem' }}>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Budget</div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--primary)' }}>
+                            ${formatCurrency(summary?.total_budget)}
+                        </div>
+                    </div>
+                    <div className="card" style={{ padding: '1rem' }}>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Spent</div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--warning)' }}>
+                            ${formatCurrency(summary?.total_spent)}
+                        </div>
+                    </div>
+                    <div className="card" style={{ padding: '1rem' }}>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Remaining</div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 700, color: isOverBudget ? 'var(--error)' : 'var(--success)' }}>
+                            ${formatCurrency(summary?.remaining)}
+                        </div>
+                    </div>
+                    <div className="card" style={{ padding: '1rem' }}>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Expenses</div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                            {expenses.length}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Category Breakdown */}
             {summary?.by_category && Object.keys(summary.by_category).length > 0 && (
-                <div className="card p-6">
-                    <h4 className="font-bold mb-4">Expenses by Category</h4>
-                    <div className="space-y-3">
+                <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
+                    <h4 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1rem' }}>Expenses by Category</h4>
+                    <div style={{ display: 'grid', gap: '0.75rem' }}>
                         {Object.entries(summary.by_category).map(([category, amount]) => (
-                            <div key={category} className="flex justify-between items-center">
-                                <span className="font-medium">{category}</span>
-                                <span className="text-gray-700 font-semibold">${parseFloat(amount).toFixed(2)}</span>
+                            <div key={category} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
+                                <span style={{ fontWeight: 600 }}>{category}</span>
+                                <span style={{ color: 'var(--warning)', fontWeight: 700 }}>${formatCurrency(amount)}</span>
                             </div>
                         ))}
                     </div>
@@ -312,7 +346,8 @@ const BudgetTab = ({ event }) => {
                         });
                         setShowExpenseForm(!showExpenseForm);
                     }}
-                    className="btn btn-primary w-full"
+                    className="btn btn-primary"
+                    style={{ marginBottom: '1.5rem' }}
                 >
                     <Plus size={18} /> Add Expense
                 </button>
@@ -320,62 +355,88 @@ const BudgetTab = ({ event }) => {
 
             {/* Expense Form */}
             {showExpenseForm && (
-                <div className="card p-6 bg-green-50 border-2 border-green-200">
-                    <h4 className="font-bold mb-4">{editingExpense ? 'Edit Expense' : 'Add Expense'}</h4>
-                    <div className="space-y-4">
-                        <select
-                            value={expenseForm.category}
-                            onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
-                            className="form-input"
-                        >
-                            {CATEGORIES.map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                        </select>
+                <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white' }}>
+                    <h4 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1rem' }}>{editingExpense ? 'Edit Expense' : 'Add Expense'}</h4>
+                    <div style={{ display: 'grid', gap: '1rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' }}>Category</label>
+                                <select
+                                    value={expenseForm.category}
+                                    onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
+                                    className="form-input"
+                                    style={{ background: 'white', color: 'var(--text-primary)' }}
+                                >
+                                    {CATEGORIES.map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                </select>
+                            </div>
 
-                        <input
-                            type="number"
-                            step="0.01"
-                            value={expenseForm.amount}
-                            onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
-                            placeholder="Amount"
-                            className="form-input"
-                        />
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' }}>Amount ($)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={expenseForm.amount}
+                                    onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
+                                    placeholder="0.00"
+                                    className="form-input"
+                                    style={{ background: 'white', color: 'var(--text-primary)' }}
+                                    autoFocus
+                                />
+                            </div>
+                        </div>
 
-                        <input
-                            type="text"
-                            value={expenseForm.description}
-                            onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })}
-                            placeholder="Description (optional)"
-                            className="form-input"
-                        />
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' }}>Description</label>
+                            <input
+                                type="text"
+                                value={expenseForm.description}
+                                onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })}
+                                placeholder="Optional description"
+                                className="form-input"
+                                style={{ background: 'white', color: 'var(--text-primary)' }}
+                            />
+                        </div>
 
-                        <input
-                            type="text"
-                            value={expenseForm.vendor}
-                            onChange={(e) => setExpenseForm({ ...expenseForm, vendor: e.target.value })}
-                            placeholder="Vendor (optional)"
-                            className="form-input"
-                        />
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' }}>Vendor</label>
+                                <input
+                                    type="text"
+                                    value={expenseForm.vendor}
+                                    onChange={(e) => setExpenseForm({ ...expenseForm, vendor: e.target.value })}
+                                    placeholder="Optional vendor name"
+                                    className="form-input"
+                                    style={{ background: 'white', color: 'var(--text-primary)' }}
+                                />
+                            </div>
 
-                        <input
-                            type="date"
-                            value={expenseForm.date}
-                            onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })}
-                            className="form-input"
-                        />
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' }}>Date</label>
+                                <input
+                                    type="date"
+                                    value={expenseForm.date}
+                                    onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })}
+                                    className="form-input"
+                                    style={{ background: 'white', color: 'var(--text-primary)' }}
+                                />
+                            </div>
+                        </div>
 
-                        <label className="flex items-center gap-2">
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>
                             <input
                                 type="checkbox"
                                 checked={expenseForm.paid}
                                 onChange={(e) => setExpenseForm({ ...expenseForm, paid: e.target.checked })}
+                                style={{ width: '1rem', height: '1rem' }}
                             />
                             <span>Paid</span>
                         </label>
 
-                        <div className="flex gap-2">
-                            <button onClick={handleSaveExpense} className="btn btn-primary flex-1">
+                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                            <button onClick={handleSaveExpense} className="btn btn-primary" style={{ flex: 1, background: 'white', color: 'var(--success)' }}>
                                 <Check size={18} /> {editingExpense ? 'Update' : 'Add'}
                             </button>
                             <button
@@ -384,6 +445,7 @@ const BudgetTab = ({ event }) => {
                                     setEditingExpense(null);
                                 }}
                                 className="btn btn-secondary"
+                                style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid white' }}
                             >
                                 <X size={18} />
                             </button>
@@ -393,28 +455,52 @@ const BudgetTab = ({ event }) => {
             )}
 
             {/* Expense List */}
-            <div className="card p-6">
-                <h4 className="font-bold mb-4">Expenses ({expenses.length})</h4>
+            <div className="card" style={{ padding: '1.5rem' }}>
+                <h4 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1rem' }}>Expenses ({expenses.length})</h4>
                 {expenses.length === 0 ? (
-                    <p className="text-gray-500 text-center py-4">No expenses yet</p>
+                    <div style={{ padding: '2rem', textAlign: 'center' }}>
+                        <DollarSign size={40} style={{ color: 'var(--text-tertiary)', margin: '0 auto 1rem' }} />
+                        <p style={{ color: 'var(--text-secondary)' }}>No expenses recorded yet</p>
+                    </div>
                 ) : (
-                    <div className="space-y-2">
+                    <div style={{ display: 'grid', gap: '0.75rem' }}>
                         {expenses.map((expense) => (
-                            <div key={expense.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
-                                <div className="flex-1">
-                                    <p className="font-medium">{expense.category} - ${parseFloat(expense.amount).toFixed(2)}</p>
-                                    {expense.description && <p className="text-sm text-gray-600">{expense.description}</p>}
-                                    {expense.vendor && <p className="text-xs text-gray-500">Vendor: {expense.vendor}</p>}
-                                    <p className="text-xs text-gray-400">{new Date(expense.date).toLocaleDateString()}</p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    {expense.paid && <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Paid</span>}
-                                    <button onClick={() => startEditExpense(expense)} className="text-blue-600 hover:text-blue-800">
-                                        <Edit2 size={16} />
-                                    </button>
-                                    <button onClick={() => handleDeleteExpense(expense.id)} className="text-red-600 hover:text-red-800">
-                                        <Trash2 size={16} />
-                                    </button>
+                            <div key={expense.id} className="card" style={{ padding: '1rem', background: 'var(--bg-secondary)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                            <span style={{ fontWeight: 700, fontSize: '1rem' }}>{expense.category}</span>
+                                            <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--warning)' }}>${formatCurrency(expense.amount)}</span>
+                                            {expense.paid && (
+                                                <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', background: 'var(--success)', color: 'white', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
+                                                    Paid
+                                                </span>
+                                            )}
+                                        </div>
+                                        {expense.description && (
+                                            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                                                {expense.description}
+                                            </p>
+                                        )}
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                                            {expense.vendor && <span>Vendor: {expense.vendor}</span>}
+                                            <span>{new Date(expense.date).toLocaleDateString()}</span>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button
+                                            onClick={() => startEditExpense(expense)}
+                                            style={{ padding: '0.5rem', border: 'none', background: 'transparent', color: 'var(--primary)', cursor: 'pointer', borderRadius: 'var(--radius-md)' }}
+                                        >
+                                            <Edit2 size={16} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteExpense(expense.id)}
+                                            style={{ padding: '0.5rem', border: 'none', background: 'transparent', color: 'var(--error)', cursor: 'pointer', borderRadius: 'var(--radius-md)' }}
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
