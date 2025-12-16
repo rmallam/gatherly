@@ -1,31 +1,31 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
-import { AlertCircle, Camera, X } from 'lucide-react';
+import { AlertCircle, Camera, X, ArrowLeft, HelpCircle, Image, Flashlight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const QRScanner = ({ onScan, onError, onClose }) => {
     const [error, setError] = useState('');
     const [hasPermission, setHasPermission] = useState(null);
+    const [torchOn, setTorchOn] = useState(false);
     const scannerRef = useRef(null);
     const isRunning = useRef(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const scannerId = "reader";
 
         const startScanner = async () => {
             try {
-                // Check if camera exists
                 const devices = await Html5Qrcode.getCameras();
                 if (!devices || devices.length === 0) {
                     setError('No camera found on this device.');
                     return;
                 }
 
-                // Initialize scanner
                 if (!scannerRef.current) {
                     scannerRef.current = new Html5Qrcode(scannerId);
                 }
 
-                // Configuration - larger QR box for better scanning
                 const config = {
                     fps: 10,
                     qrbox: { width: 280, height: 280 },
@@ -33,7 +33,6 @@ const QRScanner = ({ onScan, onError, onClose }) => {
                     formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
                 };
 
-                // Start scanning (prefer back camera)
                 if (!isRunning.current) {
                     await scannerRef.current.start(
                         { facingMode: "environment" },
@@ -46,14 +45,11 @@ const QRScanner = ({ onScan, onError, onClose }) => {
                                 console.warn("Non-JSON QR Code", e);
                             }
                         },
-                        (errorMessage) => {
-                            // ignore frame read errors
-                        }
+                        (errorMessage) => { }
                     );
                     isRunning.current = true;
                     setHasPermission(true);
                 }
-
             } catch (err) {
                 console.error("Camera start failed", err);
                 setHasPermission(false);
@@ -80,76 +76,115 @@ const QRScanner = ({ onScan, onError, onClose }) => {
         };
     }, [onScan]);
 
+    const toggleTorch = async () => {
+        if (scannerRef.current && isRunning.current) {
+            try {
+                const track = scannerRef.current.getRunningTrackCapabilities();
+                if (track && track.torch) {
+                    await scannerRef.current.applyVideoConstraints({
+                        advanced: [{ torch: !torchOn }]
+                    });
+                    setTorchOn(!torchOn);
+                }
+            } catch (err) {
+                console.warn('Torch not supported', err);
+            }
+        }
+    };
+
     return (
-        <div className="fixed inset-0 z-50 bg-black">
-            {/* Close Button */}
-            {onClose && (
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-all active:scale-95"
-                    aria-label="Close scanner"
-                >
-                    <X size={24} />
-                </button>
-            )}
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'black', paddingTop: 'env(safe-area-inset-top)' }}>
+            {/* Camera View */}
+            <div id="reader" style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}></div>
 
-            {/* Camera View - Full Screen */}
-            <div id="reader" className="w-full h-full absolute inset-0"></div>
+            {/* Header Overlay */}
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 50, background: 'linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.4), transparent)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}>
+                    {/* Back Button */}
+                    <button
+                        onClick={() => navigate(-1)}
+                        style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}
+                    >
+                        <ArrowLeft size={20} />
+                    </button>
 
-            {/* Scanning Instructions */}
+                    {/* Title */}
+                    <div style={{ flex: 1, margin: '0 16px' }}>
+                        <h1 style={{ color: 'white', fontSize: '18px', fontWeight: 600, margin: 0 }}>Scan Guest Pass</h1>
+                        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px', marginTop: '2px' }}>Quick & Secure Check-in</p>
+                    </div>
+
+                    {/* Help Button */}
+                    <button style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}>
+                        <HelpCircle size={20} />
+                    </button>
+                </div>
+            </div>
+
+            {/* Scanning Frame Overlay */}
             {hasPermission && !error && (
-                <div className="absolute bottom-8 left-0 right-0 z-40 text-center px-4">
-                    <p className="text-white text-lg font-medium drop-shadow-lg">
-                        Position QR code within the frame
-                    </p>
-                    <p className="text-white/70 text-sm mt-2 drop-shadow">
-                        The code will be scanned automatically
-                    </p>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 20 }}>
+                    {/* Dark overlay */}
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }}></div>
+
+                    {/* Frosted scanning frame */}
+                    <div style={{ position: 'relative', width: '288px', height: '288px', borderRadius: '24px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)', boxShadow: '0 8px 32px 0 rgba(99,102,241,0.15)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        {/* Purple Corner Brackets */}
+                        <div style={{ position: 'absolute', top: '16px', left: '16px', width: '48px', height: '48px', borderTop: '4px solid #a855f7', borderLeft: '4px solid #a855f7', borderTopLeftRadius: '12px' }}></div>
+                        <div style={{ position: 'absolute', top: '16px', right: '16px', width: '48px', height: '48px', borderTop: '4px solid #a855f7', borderRight: '4px solid #a855f7', borderTopRightRadius: '12px' }}></div>
+                        <div style={{ position: 'absolute', bottom: '16px', left: '16px', width: '48px', height: '48px', borderBottom: '4px solid #a855f7', borderLeft: '4px solid #a855f7', borderBottomLeftRadius: '12px' }}></div>
+                        <div style={{ position: 'absolute', bottom: '16px', right: '16px', width: '48px', height: '48px', borderBottom: '4px solid #a855f7', borderRight: '4px solid #a855f7', borderBottomRightRadius: '12px' }}></div>
+
+                        {/* Scanning Line Animation */}
+                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(to right, transparent, #c084fc, transparent)', boxShadow: '0 0 15px rgba(168,85,247,0.8)', animation: 'scan 2s ease-in-out infinite' }}></div>
+                    </div>
                 </div>
             )}
 
-            {/* Placeholder / Loading State */}
+            {/* Bottom Controls */}
+            {hasPermission && !error && (
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 40, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '32px', paddingBottom: '48px' }}>
+                        {/* Upload from Gallery */}
+                        <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.8)', cursor: 'pointer', background: 'none', border: 'none' }}>
+                            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                                <Image size={24} />
+                            </div>
+                            <span style={{ fontSize: '12px', fontWeight: 500 }}>Upload QR</span>
+                        </button>
+
+                        {/* Torch */}
+                        <button onClick={toggleTorch} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.8)', cursor: 'pointer', background: 'none', border: 'none' }}>
+                            <div style={{ width: '56px', height: '56px', borderRadius: '50%', backdropFilter: 'blur(4px)', border: `1px solid ${torchOn ? 'rgba(234,179,8,0.5)' : 'rgba(255,255,255,0.2)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: torchOn ? 'rgba(234,179,8,0.3)' : 'rgba(255,255,255,0.1)', color: torchOn ? '#fde047' : 'white', transition: 'all 0.3s' }}>
+                                <Flashlight size={24} />
+                            </div>
+                            <span style={{ fontSize: '12px', fontWeight: 500 }}>Torch</span>
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Loading State */}
             {!hasPermission && !error && (
-                <div className="absolute inset-0 flex items-center justify-center z-30">
-                    <div className="text-white animate-pulse flex flex-col items-center">
-                        <Camera size={64} className="mb-4" />
-                        <p className="text-lg font-medium">Starting Camera...</p>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 30 }}>
+                    <div style={{ color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Camera size={64} style={{ marginBottom: '16px', animation: 'pulse 2s ease-in-out infinite' }} />
+                        <p style={{ fontSize: '18px', fontWeight: 500 }}>Starting Camera...</p>
                     </div>
                 </div>
             )}
 
             {/* Error State */}
             {error && (
-                <div className="absolute inset-0 flex items-center justify-center z-30 p-4">
-                    <div className="text-center p-8 max-w-md bg-slate-900/95 backdrop-blur rounded-2xl border border-red-500/50 text-red-400">
-                        <AlertCircle size={48} className="mx-auto mb-4" />
-                        <p className="text-base font-medium mb-4">{error}</p>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 30, padding: '16px' }}>
+                    <div style={{ textAlign: 'center', padding: '32px', maxWidth: '28rem', background: 'rgba(15,23,42,0.95)', backdropFilter: 'blur(8px)', borderRadius: '16px', border: '1px solid rgba(239,68,68,0.5)', color: '#f87171' }}>
+                        <AlertCircle size={48} style={{ margin: '0 auto 16px' }} />
+                        <p style={{ fontSize: '16px', fontWeight: 500, marginBottom: '16px' }}>{error}</p>
                         {hasPermission === false && (
-                            <p className="text-xs text-slate-400 mt-4">
-                                If you are on iOS, make sure you are using Safari.
-                                Chrome on iOS may have permission issues.
+                            <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '16px' }}>
+                                If you are on iOS, make sure you are using Safari. Chrome on iOS may have permission issues.
                             </p>
                         )}
-                    </div>
-                </div>
-            )}
-
-            {/* Custom Scanning Frame Overlay */}
-            {hasPermission && !error && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                    {/* Dark overlay with cutout effect */}
-                    <div className="absolute inset-0 bg-black/60"></div>
-
-                    {/* Scanning Frame */}
-                    <div className="relative w-80 h-80">
-                        {/* Corner Indicators */}
-                        <div className="absolute -top-1 -left-1 w-12 h-12 border-t-[6px] border-l-[6px] border-cyan-400 rounded-tl-2xl shadow-[0_0_20px_rgba(6,182,212,0.6)] animate-pulse"></div>
-                        <div className="absolute -top-1 -right-1 w-12 h-12 border-t-[6px] border-r-[6px] border-cyan-400 rounded-tr-2xl shadow-[0_0_20px_rgba(6,182,212,0.6)] animate-pulse"></div>
-                        <div className="absolute -bottom-1 -left-1 w-12 h-12 border-b-[6px] border-l-[6px] border-cyan-400 rounded-bl-2xl shadow-[0_0_20px_rgba(6,182,212,0.6)] animate-pulse"></div>
-                        <div className="absolute -bottom-1 -right-1 w-12 h-12 border-b-[6px] border-r-[6px] border-cyan-400 rounded-br-2xl shadow-[0_0_20px_rgba(6,182,212,0.6)] animate-pulse"></div>
-
-                        {/* Scanning Line */}
-                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_rgba(6,182,212,0.8)] animate-[scan_2s_ease-in-out_infinite]"></div>
                     </div>
                 </div>
             )}

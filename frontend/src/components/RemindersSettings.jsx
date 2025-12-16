@@ -69,13 +69,20 @@ const RemindersSettings = ({ event }) => {
     const handleCreateReminder = async () => {
         try {
             const token = localStorage.getItem('token');
+
+            // Convert local datetime to UTC ISO string
+            const sendAtUTC = new Date(form.send_at).toISOString();
+
             const response = await fetch(`${API_URL}/events/${event.id}/reminders`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(form)
+                body: JSON.stringify({
+                    ...form,
+                    send_at: sendAtUTC
+                })
             });
 
             if (response.ok) {

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, QrCode, Users, ScanLine, ArrowRight, Scan, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
+import Header from '../components/Header';
 
 const Landing = () => {
     const { user, logout } = useAuth();
@@ -15,32 +16,7 @@ const Landing = () => {
     if (user && !user.isGuest) {
         return (
             <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
-                {/* Minimal Header with Branding */}
-                <div style={{
-                    padding: '1rem 1.5rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    borderBottom: '1px solid var(--border)'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        <Scan size={24} style={{ color: 'var(--primary)' }} />
-                        <span>Gatherly</span>
-                    </div>
-                    <button
-                        onClick={logout}
-                        className="btn btn-secondary"
-                        style={{
-                            padding: '0.5rem 0.875rem',
-                            fontSize: '0.8125rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.375rem'
-                        }}
-                    >
-                        <LogOut size={14} /> Logout
-                    </button>
-                </div>
+                <Header showAuth={true} />
 
                 {/* Header */}
                 <div style={{ padding: '3rem 1rem 2rem', textAlign: 'center' }}>
@@ -150,12 +126,22 @@ const Landing = () => {
                     justifyContent: 'center',
                     gap: '3rem'
                 }}>
-                    <div style={{ textAlign: 'center' }}>
+                    <div
+                        onClick={() => navigate('/manager')}
+                        style={{ textAlign: 'center', cursor: 'pointer', transition: 'transform 0.2s' }}
+                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                    >
                         <div style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '0.25rem', color: 'var(--primary)' }}>{events.length}</div>
                         <div style={{ fontSize: '0.9375rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Events</div>
                     </div>
                     <div style={{ width: '1px', background: 'var(--border)' }}></div>
-                    <div style={{ textAlign: 'center' }}>
+                    <div
+                        onClick={() => navigate('/manager')}
+                        style={{ textAlign: 'center', cursor: 'pointer', transition: 'transform 0.2s' }}
+                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                    >
                         <div style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '0.25rem', color: 'var(--primary)' }}>{totalGuests}</div>
                         <div style={{ fontSize: '0.9375rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Guests</div>
                     </div>
@@ -167,41 +153,7 @@ const Landing = () => {
     // Guest/non-logged-in view
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
-            {/* Minimal Header with Branding */}
-            <div style={{
-                padding: '1rem 1.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderBottom: '1px solid var(--border)'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    <Scan size={24} style={{ color: 'var(--primary)' }} />
-                    <span>Gatherly</span>
-                </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button
-                        onClick={() => navigate('/login')}
-                        className="btn btn-secondary"
-                        style={{
-                            padding: '0.5rem 0.875rem',
-                            fontSize: '0.8125rem'
-                        }}
-                    >
-                        Login
-                    </button>
-                    <button
-                        onClick={() => navigate('/signup')}
-                        className="btn btn-primary"
-                        style={{
-                            padding: '0.5rem 0.875rem',
-                            fontSize: '0.8125rem'
-                        }}
-                    >
-                        Sign Up
-                    </button>
-                </div>
-            </div>
+            <Header showAuth={true} />
 
             {/* Header */}
             <div style={{ padding: '3rem 1rem 2rem', textAlign: 'center' }}>

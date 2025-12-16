@@ -11,6 +11,7 @@ import { validateEmail, validatePassword } from './server/validators.js';
 import { sendVerificationEmail } from './server/email.js';
 import { initTwilio } from './services/reminderService.js';
 import { startReminderCron } from './jobs/reminderCron.js';
+import { sendAnnouncement, sendThankYouMessages, getCommunications } from './controllers/communicationController.js';
 
 const app = express();
 
@@ -1297,6 +1298,17 @@ app.post('/api/admin/process-reminders', authMiddleware, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+// ==================== COMMUNICATIONS ====================
+
+// Send announcement to guests
+app.post('/api/events/:eventId/communications/announcement', authMiddleware, sendAnnouncement);
+
+// Send thank you messages to attended guests
+app.post('/api/events/:eventId/communications/thank-you', authMiddleware, sendThankYouMessages);
+
+// Get communication history
+app.get('/api/events/:eventId/communications', authMiddleware, getCommunications);
 
 // Initialize database and start server
 const PORT = process.env.PORT || 3001;

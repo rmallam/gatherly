@@ -55,12 +55,18 @@ const OverviewTab = ({ event }) => {
                             <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Total Invited</div>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8125rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8125rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)', flexWrap: 'wrap' }}>
                         <button
                             onClick={() => showGuestList('Confirmed Guests', confirmedGuests)}
                             style={{ background: 'none', border: 'none', padding: 0, color: '#10b981', fontWeight: 500, cursor: 'pointer', textDecoration: 'underline' }}
                         >
                             ✓ {confirmedGuests.length} confirmed
+                        </button>
+                        <button
+                            onClick={() => showGuestList('Declined Guests', event.guests?.filter(g => g.rsvp === false) || [])}
+                            style={{ background: 'none', border: 'none', padding: 0, color: '#ef4444', fontWeight: 500, cursor: 'pointer', textDecoration: 'underline' }}
+                        >
+                            ✗ {declinedRSVP} declined
                         </button>
                         <span style={{ color: '#94a3b8', fontWeight: 500 }}>⏳ {pendingRSVP} pending</span>
                     </div>

@@ -99,18 +99,69 @@ const RSVP = () => {
     }
 
     if (status === 'already-rsvpd') {
+        const rsvpStatus = guest.rsvp === true ? 'attending' : 'not attending';
+        const rsvpColor = guest.rsvp === true ? 'var(--success)' : 'var(--error)';
+
         return (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: 'var(--bg-secondary)', padding: '2rem' }}>
-                <div className="card" style={{ maxWidth: '32rem', textAlign: 'center', padding: '3rem 2rem' }}>
-                    <div style={{ width: '4rem', height: '4rem', backgroundColor: '#e0e7ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-                        <CheckCircle size={32} style={{ color: 'var(--primary)' }} />
+                <div className="card" style={{ maxWidth: '32rem', padding: '3rem 2rem' }}>
+                    <div style={{ width: '4rem', height: '4rem', backgroundColor: guest.rsvp ? '#d1fae5' : '#fee2e2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                        <CheckCircle size={32} style={{ color: rsvpColor }} />
                     </div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem' }}>
-                        Already Confirmed
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', textAlign: 'center' }}>
+                        RSVP Received
                     </h2>
-                    <p style={{ color: 'var(--text-secondary)' }}>
-                        You've already RSVP'd to <strong>{event?.title}</strong>
+                    <p style={{ color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '1.5rem' }}>
+                        You've confirmed you're <strong style={{ color: rsvpColor }}>{rsvpStatus}</strong> for <strong>{event?.title}</strong>
                     </p>
+
+                    <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', padding: '1.5rem', marginBottom: '1.5rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {event?.date && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-secondary)' }}>
+                                    <Calendar size={18} />
+                                    <span>{new Date(event.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                </div>
+                            )}
+                            {event?.location && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-secondary)' }}>
+                                    <MapPin size={18} />
+                                    <span>{event.location}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div style={{ textAlign: 'center' }}>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                            Need to change your response?
+                        </p>
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button
+                                onClick={() => handleRSVP(false)}
+                                className="btn btn-secondary"
+                                style={{
+                                    flex: 1,
+                                    padding: '0.875rem',
+                                    backgroundColor: guest.rsvp === false ? 'var(--error)' : '',
+                                    color: guest.rsvp === false ? 'white' : ''
+                                }}
+                            >
+                                Can't Make It
+                            </button>
+                            <button
+                                onClick={() => handleRSVP(true)}
+                                className="btn btn-primary"
+                                style={{
+                                    flex: 1,
+                                    padding: '0.875rem',
+                                    backgroundColor: guest.rsvp === true ? 'var(--success)' : ''
+                                }}
+                            >
+                                Yes, I'll Be There!
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
