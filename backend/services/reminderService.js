@@ -96,8 +96,14 @@ export const sendReminder = async (reminder) => {
         // Send SMS to each recipient
         let sentCount = 0;
         for (const recipient of recipients) {
+            // Ensure phone number has + prefix for international format
+            let phoneNumber = recipient.phone;
+            if (phoneNumber && !phoneNumber.startsWith('+')) {
+                phoneNumber = '+' + phoneNumber;
+            }
+
             const personalizedMessage = `Hi ${recipient.name}, ${message}`;
-            const result = await sendSMS(recipient.phone, personalizedMessage);
+            const result = await sendSMS(phoneNumber, personalizedMessage);
             if (result.success) {
                 sentCount++;
             }

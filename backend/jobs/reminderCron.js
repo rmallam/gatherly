@@ -41,7 +41,7 @@ const processPendingReminders = async () => {
             if (sendResult.success) {
                 // Mark as sent
                 await query(
-                    'UPDATE reminders SET sent = true, updated_at = NOW() WHERE id = $1',
+                    'UPDATE reminders SET sent = true WHERE id = $1',
                     [reminder.id]
                 );
                 console.log(`✓ Reminder ${reminder.id} marked as sent`);
