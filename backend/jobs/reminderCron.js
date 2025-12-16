@@ -1,6 +1,6 @@
-const cron = require('node-cron');
-const { query } = require('../db');
-const { sendReminder } = require('../services/reminderService');
+import cron from 'node-cron';
+import { query } from '../db/connection.js';
+import { sendReminder } from '../services/reminderService.js';
 
 /**
  * Check for pending reminders and send them
@@ -51,7 +51,7 @@ const processPendingReminders = async () => {
  * Start the reminder cron job
  * Runs every 15 minutes
  */
-const startReminderCron = () => {
+export const startReminderCron = () => {
     // Run every 15 minutes
     cron.schedule('*/15 * * * *', () => {
         const now = new Date().toLocaleString();
@@ -68,7 +68,4 @@ const startReminderCron = () => {
     }, 30000);
 };
 
-module.exports = {
-    startReminderCron,
-    processPendingReminders
-};
+export { processPendingReminders };

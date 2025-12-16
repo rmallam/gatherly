@@ -1,10 +1,10 @@
-const twilio = require('twilio');
-const { query } = require('../db');
+import twilio from 'twilio';
+import { query } from '../db/connection.js';
 
 // Initialize Twilio client
 let twilioClient = null;
 
-const initTwilio = () => {
+export const initTwilio = () => {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
     const phoneNumber = process.env.TWILIO_PHONE_NUMBER;
@@ -27,7 +27,7 @@ const initTwilio = () => {
 /**
  * Send SMS to a single phone number
  */
-const sendSMS = async (to, message) => {
+export const sendSMS = async (to, message) => {
     if (!twilioClient) {
         console.log('Twilio not configured, skipping SMS:', { to, message });
         return { success: false, error: 'Twilio not configured' };
@@ -51,7 +51,7 @@ const sendSMS = async (to, message) => {
 /**
  * Send reminder to guests
  */
-const sendReminder = async (reminder) => {
+export const sendReminder = async (reminder) => {
     try {
         const { id, event_id, recipient_type, message } = reminder;
 
@@ -111,8 +111,3 @@ const sendReminder = async (reminder) => {
     }
 };
 
-module.exports = {
-    initTwilio,
-    sendSMS,
-    sendReminder
-};
