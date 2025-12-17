@@ -3,15 +3,17 @@ import { Send, MessageSquare, Heart, History, Loader, Users, CheckCircle, XCircl
 import { useAuth } from '../../context/AuthContext';
 
 const MessagesTab = ({ event }) => {
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const [activeTab, setActiveTab] = useState('announcement');
     const [message, setMessage] = useState('');
     const [recipientFilter, setRecipientFilter] = useState('all');
+    const [senderName, setSenderName] = useState(user?.name || 'Your Event Team');
     const [sending, setSending] = useState(false);
     const [communications, setCommunications] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const API_URL = 'https://gatherly-backend-3vmv.onrender.com';
+
 
     // Fetch communication history
     useEffect(() => {
@@ -71,7 +73,7 @@ const MessagesTab = ({ event }) => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ message, recipientFilter })
+                body: JSON.stringify({ message, recipientFilter, senderName })
             });
 
             if (response.ok) {
@@ -109,7 +111,8 @@ const MessagesTab = ({ event }) => {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
-                }
+                },
+                body: JSON.stringify({ senderName })
             });
 
             if (response.ok) {
@@ -224,6 +227,26 @@ const MessagesTab = ({ event }) => {
                         <div style={{ textAlign: 'right', fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>
                             {message.length}/320 characters
                         </div>
+                    </div>
+
+                    <div style={{ marginBottom: '1rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-secondary)' }}>
+                            Sender Name
+                        </label>
+                        <input
+                            type="text"
+                            value={senderName}
+                            onChange={(e) => setSenderName(e.target.value)}
+                            placeholder="Your name or organization"
+                            style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                border: '1px solid var(--border)',
+                                borderRadius: 'var(--radius-md)',
+                                fontSize: '0.875rem',
+                                fontFamily: 'inherit'
+                            }}
+                        />
                     </div>
 
                     <div style={{ marginBottom: '1rem' }}>

@@ -4,17 +4,17 @@ import { sendSMS } from '../services/reminderService.js';
 
 // Message templates
 const templates = {
-    announcement: (eventTitle, customMessage) =>
-        `📢 ${eventTitle}\n\n${customMessage}\n\nBest regards,\nYour Event Team`,
+    announcement: (eventTitle, customMessage, senderName = 'Your Event Team') =>
+        `📢 ${eventTitle}\n\n${customMessage}\n\nBest regards,\n${senderName}`,
 
-    thankYou: (eventTitle, guestName) =>
-        `Thank you ${guestName} for attending ${eventTitle}! 🎉\n\nWe hope you had a wonderful time. We look forward to seeing you at future events!\n\nBest regards,\nYour Event Team`
+    thankYou: (eventTitle, guestName, senderName = 'Your Event Team') =>
+        `Thank you ${guestName} for attending ${eventTitle}! 🎉\n\nWe hope you had a wonderful time. We look forward to seeing you at future events!\n\nBest regards,\n${senderName}`
 };
 
 // Send announcement to guests
 export const sendAnnouncement = async (req, res) => {
     const { eventId } = req.params;
-    const { message, recipientFilter = 'all' } = req.body;
+    const { message, recipientFilter = 'all', senderName } = req.body;
     const userId = req.user.id;
 
     try {
@@ -66,7 +66,7 @@ export const sendAnnouncement = async (req, res) => {
         const communication = commResult.rows[0];
 
         // Send messages asynchronously
-        sendMessagesInBackground(communication.id, event, guests, message, 'announcement');
+        sendMessagesInBackground(communication.id, event, guests, message, 'announcement', senderName);
 
         res.json({
             success: true,
@@ -85,6 +85,7 @@ export const sendAnnouncement = async (req, res) => {
 // Send thank you messages
 export const sendThankYouMessages = async (req, res) => {
     const { eventId } = req.params;
+    const { senderName } = req.body;
     const userId = req.user.id;
 
     try {
@@ -123,7 +124,7 @@ export const sendThankYouMessages = async (req, res) => {
         const communication = commResult.rows[0];
 
         // Send messages asynchronously
-        sendMessagesInBackground(communication.id, event, guests, null, 'thank_you');
+        sendMessagesInBackground(communication.id, event, guests, null, 'thank_you', senderName);
 
         res.json({
             success: true,
@@ -171,7 +172,7 @@ export const getCommunications = async (req, res) => {
 };
 
 // Background function to send messages
-async function sendMessagesInBackground(communicationId, event, guests, customMessage, type) {
+async function sendMessagesInBackground(communicationId, event, guests, customMessage, type, senderName) {
     let sentCount = 0;
     let failedCount = 0;
 
@@ -186,9 +187,9 @@ async function sendMessagesInBackground(communicationId, event, guests, customMe
             // Prepare message
             let messageText;
             if (type === 'announcement') {
-                messageText = templates.announcement(event.title, customMessage);
+                messageText = templates.announcement(event.title, customMessage, senderName);
             } else {
-                messageText = templates.thankYou(event.title, guest.name);
+                messageText = templates.thankYou(event.title, guest.name, senderName);
             }
 
             // Send SMS
