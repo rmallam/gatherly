@@ -1,11 +1,11 @@
 import express from 'express';
 import { query } from '../db/connection.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authMiddleware } from '../server/auth.js';
 
 const router = express.Router();
 
 // Join an event wall (become a participant)
-router.post('/:eventId/join', authenticateToken, async (req, res) => {
+router.post('/:eventId/join', authMiddleware, async (req, res) => {
     try {
         const { eventId } = req.params;
         const { guestId, profilePhoto, bio, funFact, relationshipToHost } = req.body;
@@ -56,7 +56,7 @@ router.post('/:eventId/join', authenticateToken, async (req, res) => {
 });
 
 // Get event participants
-router.get('/:eventId/participants', authenticateToken, async (req, res) => {
+router.get('/:eventId/participants', authMiddleware, async (req, res) => {
     try {
         const { eventId } = req.params;
 
@@ -81,7 +81,7 @@ router.get('/:eventId/participants', authenticateToken, async (req, res) => {
 });
 
 // Update participant profile
-router.patch('/:eventId/participants/:participantId', authenticateToken, async (req, res) => {
+router.patch('/:eventId/participants/:participantId', authMiddleware, async (req, res) => {
     try {
         const { participantId } = req.params;
         const { profilePhoto, bio, funFact, relationshipToHost } = req.body;
@@ -109,7 +109,7 @@ router.patch('/:eventId/participants/:participantId', authenticateToken, async (
 });
 
 // Get event wall posts
-router.get('/:eventId/posts', authenticateToken, async (req, res) => {
+router.get('/:eventId/posts', authMiddleware, async (req, res) => {
     try {
         const { eventId } = req.params;
         const { limit = 20, offset = 0, type = 'all' } = req.query;
@@ -157,7 +157,7 @@ router.get('/:eventId/posts', authenticateToken, async (req, res) => {
 });
 
 // Create new post
-router.post('/:eventId/posts', authenticateToken, async (req, res) => {
+router.post('/:eventId/posts', authMiddleware, async (req, res) => {
     try {
         const { eventId } = req.params;
         const { participantId, type, content, photoUrl } = req.body;
@@ -201,7 +201,7 @@ router.post('/:eventId/posts', authenticateToken, async (req, res) => {
 });
 
 // Delete post
-router.delete('/:eventId/posts/:postId', authenticateToken, async (req, res) => {
+router.delete('/:eventId/posts/:postId', authMiddleware, async (req, res) => {
     try {
         const { eventId, postId } = req.params;
         const userId = req.user.userId;
@@ -231,7 +231,7 @@ router.delete('/:eventId/posts/:postId', authenticateToken, async (req, res) => 
 });
 
 // Like a post
-router.post('/posts/:postId/like', authenticateToken, async (req, res) => {
+router.post('/posts/:postId/like', authMiddleware, async (req, res) => {
     try {
         const { postId } = req.params;
         const { participantId } = req.body;
@@ -268,7 +268,7 @@ router.post('/posts/:postId/like', authenticateToken, async (req, res) => {
 });
 
 // Unlike a post
-router.delete('/posts/:postId/like/:participantId', authenticateToken, async (req, res) => {
+router.delete('/posts/:postId/like/:participantId', authMiddleware, async (req, res) => {
     try {
         const { postId, participantId } = req.params;
 
