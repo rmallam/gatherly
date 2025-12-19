@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import PasswordStrength from '../components/PasswordStrength';
-import { UserPlus, Mail, Lock, User, AlertCircle, Scan, CheckCircle } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, AlertCircle, Scan, CheckCircle, Phone } from 'lucide-react';
 
 const Signup = () => {
     const { signup } = useAuth();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
@@ -16,6 +17,7 @@ const Signup = () => {
     const [signupEmail, setSignupEmail] = useState('');
 
     const validateEmail = (email) => {
+        if (!email) return true; // Optional now
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     };
@@ -24,7 +26,13 @@ const Signup = () => {
         e.preventDefault();
         setError('');
 
-        if (!validateEmail(email)) {
+        // Must have either email or phone
+        if (!email && !phone) {
+            setError('Please enter either email or phone number');
+            return;
+        }
+
+        if (email && !validateEmail(email)) {
             setError('Please enter a valid email address');
             return;
         }
@@ -42,9 +50,8 @@ const Signup = () => {
         setLoading(true);
 
         try {
-            const response = await signup(name, email, password);
-            // New signup flow - verification email sent
-            setSignupEmail(response.email || email);
+            const response = await signup(name, email || null, password, phone || null);
+            setSignupEmail(response.email || email || phone);
             setSuccess(true);
         } catch (err) {
             setError(err.message);
@@ -79,26 +86,20 @@ const Signup = () => {
                         </div>
 
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
-                            Check Your Email
+                            Account Created!
                         </h2>
 
                         <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: '1.6' }}>
-                            We've sent a verification link to:<br />
-                            <strong style={{ color: 'var(--text-primary)' }}>{signupEmail}</strong>
+                            {email ? (
+                                <>We've sent a verification link to:<br /><strong style={{ color: 'var(--text-primary)' }}>{signupEmail}</strong></>
+                            ) : (
+                                'Your account has been created successfully!'
+                            )}
                         </p>
 
-                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: '1.6' }}>
-                            Click the link in the email to verify your account and start using Gatherly.
-                        </p>
-
-                        <div style={{ marginTop: '2rem', padding: '1rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
-                            <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
-                                Didn't receive the email? Check your spam folder or{' '}
-                                <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>
-                                    return to login
-                                </Link>
-                            </p>
-                        </div>
+                        <Link to="/login" className="btn btn-primary" style={{ display: 'inline-block', padding: '0.875rem 2rem' }}>
+                            Continue to Login
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -162,7 +163,7 @@ const Signup = () => {
 
                         <div>
                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                                Email Address
+                                Email Address <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>(Optional)</span>
                             </label>
                             <div style={{ position: 'relative' }}>
                                 <Mail size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
@@ -173,9 +174,29 @@ const Signup = () => {
                                     className="form-input"
                                     style={{ paddingLeft: '2.75rem' }}
                                     placeholder="your@email.com"
-                                    required
                                 />
                             </div>
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                                Phone Number <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>(Optional)</span>
+                            </label>
+                            <div style={{ position: 'relative' }}>
+                                <Phone size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                                <input
+                                    type="tel"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    className="form-input"
+                                    style={{ paddingLeft: '2.75rem' }}
+                                    placeholder="9876543210"
+                                    maxLength={10}
+                                />
+                            </div>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.375rem' }}>
+                                Enter email OR phone number
+                            </p>
                         </div>
 
                         <div>

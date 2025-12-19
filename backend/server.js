@@ -105,16 +105,35 @@ app.get('/api/health', async (req, res) => {
 // === AUTH ROUTES ===
 app.post('/api/auth/signup', async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, phone, password } = req.body;
 
-        if (!name || !email || !password) {
-            return res.status(400).json({ error: 'Name, email and password are required' });
+        // Must provide name, password, and at least email OR phone
+        if (!name || !password) {
+            return res.status(400).json({ error: 'Name and password are required' });
         }
 
-        // Validate email
-        const emailValidation = validateEmail(email);
-        if (!emailValidation.valid) {
-            return res.status(400).json({ error: emailValidation.error });
+        if (!email && !phone) {
+            return res.status(400).json({ error: 'Either email or phone number is required' });
+        }
+
+        // Validate email if provided
+        let validatedEmail = null;
+        if (email) {
+            const emailValidation = validateEmail(email);
+            if (!emailValidation.valid) {
+                return res.status(400).json({ error: emailValidation.error });
+            }
+            validatedEmail = emailValidation.email;
+        }
+
+        // Normalize phone if provided
+        let validatedPhone = null;
+        if (phone) {
+            validatedPhone = phone.trim();
+            // Basic phone validation (10 digits for India)
+            if (!/^\d{10}$/.test(validatedPhone.replace(/\D/g, ''))) {
+                return res.status(400).json({ error: 'Please enter a valid 10-digit phone number' });
+            }
         }
 
         // Validate password strength
@@ -123,10 +142,20 @@ app.post('/api/auth/signup', async (req, res) => {
             return res.status(400).json({ error: passwordValidation.error });
         }
 
-        // Check if user exists
-        const existingUser = await query('SELECT id FROM users WHERE email = $1', [emailValidation.email]);
-        if (existingUser.rows.length > 0) {
-            return res.status(400).json({ error: 'User with this email already exists' });
+        // Check if user exists with email
+        if (validatedEmail) {
+            const existingEmailUser = await query('SELECT id FROM users WHERE email = $1', [validatedEmail]);
+            if (existingEmailUser.rows.length > 0) {
+                return res.status(400).json({ error: 'User with this email already exists' });
+            }
+        }
+
+        // Check if user exists with phone
+        if (validatedPhone) {
+            const existingPhoneUser = await query('SELECT id FROM users WHERE phone = $1', [validatedPhone]);
+            if (existingPhoneUser.rows.length > 0) {
+                return res.status(400).json({ error: 'User with this phone number already exists' });
+            }
         }
 
         const hashedPassword = hashPassword(password);
@@ -135,23 +164,36 @@ app.post('/api/auth/signup', async (req, res) => {
         const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
         await query(
-            `INSERT INTO users (id, name, email, password, email_verified, verification_token, verification_token_expires) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [userId, name, emailValidation.email, hashedPassword, false, verificationToken, tokenExpires]
+            `INSERT INTO users (id, name, email, phone, password, email_verified, verification_token, verification_token_expires) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [userId, name, validatedEmail, validatedPhone, hashedPassword, false, verificationToken, tokenExpires]
         );
 
-        // Send verification email
-        const user = { id: userId, name, email: emailValidation.email };
-        try {
-            await sendVerificationEmail(user, verificationToken);
-        } catch (emailError) {
-            console.error('Failed to send verification email:', emailError);
-            // Don't fail signup if email fails
+        // Auto-link to any guest records with matching email or phone
+        if (validatedEmail) {
+            await query('UPDATE guests SET user_id = $1 WHERE email = $2 AND user_id IS NULL', [userId, validatedEmail]);
+        }
+        if (validatedPhone) {
+            await query('UPDATE guests SET user_id = $1 WHERE phone = $2 AND user_id IS NULL', [userId, validatedPhone]);
+        }
+
+        // Send verification email (only if email provided)
+        if (validatedEmail) {
+            const user = { id: userId, name, email: validatedEmail };
+            try {
+                await sendVerificationEmail(user, verificationToken);
+            } catch (emailError) {
+                console.error('Failed to send verification email:', emailError);
+                // Don't fail signup if email fails
+            }
         }
 
         res.json({
-            message: 'Account created! Please check your email to verify your account.',
-            email: emailValidation.email
+            message: validatedEmail
+                ? 'Account created! Please check your email to verify your account.'
+                : 'Account created successfully!',
+            email: validatedEmail,
+            phone: validatedPhone
         });
     } catch (error) {
         console.error('Signup error:', error);
@@ -161,28 +203,39 @@ app.post('/api/auth/signup', async (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, phone, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password are required' });
+        // Must provide password and either email OR phone
+        if (!password) {
+            return res.status(400).json({ error: 'Password is required' });
         }
 
-        const result = await query('SELECT * FROM users WHERE email = $1', [email.toLowerCase().trim()]);
+        if (!email && !phone) {
+            return res.status(400).json({ error: 'Email or phone number is required' });
+        }
+
+        // Try to find user by email or phone
+        let result;
+        if (email) {
+            result = await query('SELECT * FROM users WHERE email = $1', [email.toLowerCase().trim()]);
+        } else if (phone) {
+            result = await query('SELECT * FROM users WHERE phone = $1', [phone.trim()]);
+        }
 
         if (result.rows.length === 0) {
-            return res.status(401).json({ error: 'Invalid email or password' });
+            return res.status(401).json({ error: 'Invalid credentials' });
         }
 
         const user = result.rows[0];
         const isValid = comparePassword(password, user.password);
 
         if (!isValid) {
-            return res.status(401).json({ error: 'Invalid email or password' });
+            return res.status(401).json({ error: 'Invalid credentials' });
         }
 
         // Check if email is verified (can be disabled with env var)
         const skipVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
-        if (!skipVerification && !user.email_verified) {
+        if (!skipVerification && user.email && !user.email_verified) {
             return res.status(403).json({
                 error: 'Please verify your email before logging in',
                 needsVerification: true,
@@ -191,7 +244,7 @@ app.post('/api/auth/login', async (req, res) => {
         }
 
         const token = generateToken(user);
-        const userResponse = { id: user.id, name: user.name, email: user.email, emailVerified: user.email_verified };
+        const userResponse = { id: user.id, name: user.name, email: user.email, phone: user.phone, emailVerified: user.email_verified };
 
         res.json({ token, user: userResponse });
     } catch (error) {

@@ -60,11 +60,11 @@ export const AuthProvider = ({ children }) => {
         BiometricService.isAvailable().then(setBiometricAvailable);
     }, [token]);
 
-    const signup = async (name, email, password) => {
+    const signup = async (name, email, password, phone) => {
         const response = await fetchWithRetry(`${API_URL}/auth/signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password })
+            body: JSON.stringify({ name, email, phone, password })
         }, 3, 30000);
 
         if (!response.ok) {
@@ -73,17 +73,19 @@ export const AuthProvider = ({ children }) => {
         }
 
         const data = await response.json();
-        localStorage.setItem('token', data.token);
-        setToken(data.token);
-        setUser(data.user);
+        // No auto-login with phone-only signup for now
         return data;
     };
 
-    const login = async (email, password) => {
+    const login = async (emailOrPhone, password, isPhone = false) => {
+        const payload = isPhone
+            ? { phone: emailOrPhone, password }
+            : { email: emailOrPhone, password };
+
         const response = await fetchWithRetry(`${API_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify(payload)
         }, 3, 30000);
 
         if (!response.ok) {
