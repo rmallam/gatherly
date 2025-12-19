@@ -379,7 +379,7 @@ app.get('/api/events', authMiddleware, async (req, res) => {
             [req.user.id]
         );
 
-        // Get events where user is invited as a guest  
+        // Get events where user is invited as a guest (but NOT the organizer)
         const invitedEvents = await query(
             `SELECT e.*, 
              (SELECT json_agg(g.*) FROM guests g WHERE g.event_id = e.id) as guests,
@@ -389,7 +389,7 @@ app.get('/api/events', authMiddleware, async (req, res) => {
              g.attended
              FROM events e
              JOIN guests g ON g.event_id = e.id
-             WHERE g.user_id = $1
+             WHERE g.user_id = $1 AND e.user_id != $1
              ORDER BY e.date DESC`,
             [req.user.id]
         );
