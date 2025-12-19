@@ -12,29 +12,10 @@
 #   public *;
 #}
 
-# Keep line number information for debugging stack traces
--keepattributes SourceFile,LineNumberTable
+# Uncomment this to preserve the line number information for
+# debugging stack traces.
+#-keepattributes SourceFile,LineNumberTable
 
-# Keep Capacitor WebView bridge
--keep class com.getcapacitor.** { *; }
--keep @com.getcapacitor.annotation.CapacitorPlugin class * {
-    @com.getcapacitor.annotation.PermissionCallback *;
-    @com.getcapacitor.PluginMethod public *;
-}
-
-# Keep plugin classes
--keep class * extends com.getcapacitor.Plugin { *; }
-
-# Keep JavaScript interface methods
--keepclassmembers class * {
-    @android.webkit.JavascriptInterface <methods>;
-}
-
-# Keep WebView
--keepclassmembers class * extends android.webkit.WebViewClient {
-    public void *(android.webkit.WebView, java.lang.String, android.graphics.Bitmap);
-    public boolean *(android.webkit.WebView, java.lang.String);
-}
--keepclassmembers class * extends android.webkit.WebViewClient {
-    public void *(android.webkit.WebView, java.lang.String);
-}
+# If you keep the line number information, uncomment this to
+# hide the original source file name.
+#-renamesourcefileattribute SourceFile

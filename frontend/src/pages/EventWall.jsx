@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MessageSquare, Heart, Send, ArrowLeft, Plus, Users, Image as ImageIcon } from 'lucide-react';
+import { MessageSquare, Heart, Send, ArrowLeft, Plus, Users, Image as ImageIcon, X } from 'lucide-react';
+import { Camera } from '@capacitor/camera';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -12,6 +13,7 @@ const EventWall = () => {
     const [loading, setLoading] = useState(true);
     const [showNewPost, setShowNewPost] = useState(false);
     const [newPostContent, setNewPostContent] = useState('');
+    const [selectedImage, setSelectedImage] = useState(null);
     const [event, setEvent] = useState(null);
 
     useEffect(() => {
@@ -22,8 +24,17 @@ const EventWall = () => {
         try {
             const token = localStorage.getItem('token');
 
+            // Fetch event details
+            const eventRes = await fetch(`${API_URL}/wall/${eventId}/details`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (eventRes.ok) {
+                const eventData = await eventRes.json();
+                setEvent(eventData);
+            }
+
             // Auto-join event wall first
-            const joinRes = await fetch(`${API_URL}/api/wall/${eventId}/join`, {
+            const joinRes = await fetch(`${API_URL}/wall/${eventId}/join`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -35,7 +46,7 @@ const EventWall = () => {
             }
 
             // Load posts
-            const postsRes = await fetch(`${API_URL}/api/wall/${eventId}/posts`, {
+            const postsRes = await fetch(`${API_URL}/wall/${eventId}/posts`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -49,7 +60,7 @@ const EventWall = () => {
             setPosts(postsData.posts || []);
 
             // Load participants
-            const participantsRes = await fetch(`${API_URL}/api/wall/${eventId}/participants`, {
+            const participantsRes = await fetch(`${API_URL}/wall/${eventId}/participants`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -69,14 +80,30 @@ const EventWall = () => {
         }
     };
 
+    const pickImage = async () => {
+        try {
+            const image = await Camera.getPhoto({
+                quality: 70,
+                resultType: 'base64',
+                source: 'photos',
+                saveToGallery: false
+            });
+
+            const base64Image = `data:image/${image.format};base64,${image.base64String}`;
+            setSelectedImage(base64Image);
+        } catch (error) {
+            console.error('Error picking image:', error);
+        }
+    };
+
     const handleCreatePost = async () => {
-        if (!newPostContent.trim()) return;
+        if (!newPostContent.trim() && !selectedImage) return;
 
         try {
             const token = localStorage.getItem('token');
 
             // Reload participants to get fresh data including the auto-joined participant
-            const participantsRes = await fetch(`${API_URL}/api/wall/${eventId}/participants`, {
+            const participantsRes = await fetch(`${API_URL}/wall/${eventId}/participants`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const participantsData = await participantsRes.json();
@@ -97,7 +124,7 @@ const EventWall = () => {
 
             console.log('Attempting to create post with participantId:', myParticipant.id);
 
-            const res = await fetch(`${API_URL}/api/wall/${eventId}/posts`, {
+            const res = await fetch(`${API_URL}/wall/${eventId}/posts`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -105,8 +132,9 @@ const EventWall = () => {
                 },
                 body: JSON.stringify({
                     participantId: myParticipant.id,
-                    type: 'message',
-                    content: newPostContent
+                    type: selectedImage ? 'photo' : 'message',
+                    content: newPostContent || '',
+                    photoUrl: selectedImage || null
                 })
             });
 
@@ -116,6 +144,7 @@ const EventWall = () => {
 
             if (res.ok) {
                 setNewPostContent('');
+                setSelectedImage(null);
                 setShowNewPost(false);
                 await loadEventWall();
             } else {
@@ -132,7 +161,7 @@ const EventWall = () => {
             const token = localStorage.getItem('token');
             const participantId = participants[0]?.id;
 
-            await fetch(`${API_URL}/api/posts/${postId}/like`, {
+            await fetch(`${API_URL}/posts/${postId}/like`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -166,14 +195,15 @@ const EventWall = () => {
     return (
         <div style={{
             minHeight: '100vh',
-            background: 'linear-gradient(to bottom, #0a0b1e, #101127, #0a0b1e)',
+            background: '#fff',
             paddingBottom: '80px'
         }}>
             {/* Header */}
             <div style={{
-                background: 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.05))',
+                background: '#fff',
                 padding: '20px 16px',
-                borderBottom: '1px solid rgba(255,255,255,0.1)'
+                borderBottom: '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
                     <button
@@ -195,12 +225,12 @@ const EventWall = () => {
                     </button>
                     <div style={{ flex: 1 }}>
                         <h1 style={{
-                            fontSize: '24px',
-                            fontWeight: 900,
-                            color: '#ffffff',
+                            fontSize: '20px',
+                            fontWeight: '600',
+                            color: '#1f2937',
                             margin: 0
                         }}>
-                            Event Wall
+                            {event?.title || 'Event Wall'}
                         </h1>
                         <div style={{
                             display: 'flex',
@@ -208,8 +238,8 @@ const EventWall = () => {
                             gap: '8px',
                             marginTop: '4px'
                         }}>
-                            <Users size={14} color="#a5b4fc" />
-                            <span style={{ color: '#a5b4fc', fontSize: '12px', fontWeight: 500 }}>
+                            <Users size={14} color="#6b7280" />
+                            <span style={{ color: '#6b7280', fontSize: '12px', fontWeight: '500' }}>
                                 {participants.length} participants
                             </span>
                         </div>
@@ -218,17 +248,16 @@ const EventWall = () => {
                         onClick={() => setShowNewPost(true)}
                         style={{
                             padding: '10px 16px',
-                            borderRadius: '12px',
-                            background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                            borderRadius: '8px',
+                            background: '#6366f1',
                             border: 'none',
                             color: '#ffffff',
-                            fontWeight: 700,
+                            fontWeight: '600',
                             fontSize: '14px',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '6px',
-                            boxShadow: '0 4px 12px rgba(99,102,241,0.3)'
+                            gap: '6px'
                         }}
                     >
                         <Plus size={16} strokeWidth={3} /> Post
@@ -237,90 +266,150 @@ const EventWall = () => {
             </div>
 
             {/* New Post Modal */}
-            {showNewPost && (
-                <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'rgba(0,0,0,0.8)',
-                    zIndex: 1000,
-                    display: 'flex',
-                    alignItems: 'flex-end',
-                    justifyContent: 'center'
-                }}>
+            {
+                showNewPost && (
                     <div style={{
-                        width: '100%',
-                        maxWidth: '600px',
-                        background: 'linear-gradient(to bottom, #1a1c38, #0a0b1e)',
-                        borderTopLeftRadius: '24px',
-                        borderTopRightRadius: '24px',
-                        padding: '24px',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderBottom: 'none'
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'rgba(0,0,0,0.8)',
+                        zIndex: 1000,
+                        display: 'flex',
+                        alignItems: 'flex-end',
+                        justifyContent: 'center'
                     }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                            <h3 style={{ color: '#ffffff', fontSize: '20px', fontWeight: 900, margin: 0 }}>
-                                New Post
-                            </h3>
+                        <div style={{
+                            width: '100%',
+                            maxWidth: '600px',
+                            background: '#fff',
+                            borderTopLeftRadius: '16px',
+                            borderTopRightRadius: '16px',
+                            padding: '24px',
+                            boxShadow: '0 -4px 20px rgba(0,0,0,0.1)'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                <h3 style={{ color: '#1f2937', fontSize: '18px', fontWeight: '600', margin: 0 }}>
+                                    New Post
+                                </h3>
+                                <button
+                                    onClick={() => setShowNewPost(false)}
+                                    style={{
+                                        background: '#f3f4f6',
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: '8px',
+                                        padding: '8px 16px',
+                                        color: '#6b7280',
+                                        cursor: 'pointer',
+                                        fontWeight: '500'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+
+                            {/* Image Picker */}
                             <button
-                                onClick={() => setShowNewPost(false)}
+                                onClick={pickImage}
                                 style={{
-                                    background: 'rgba(255,255,255,0.05)',
-                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    width: '100%',
+                                    padding: '12px',
                                     borderRadius: '8px',
-                                    padding: '8px 16px',
-                                    color: '#a5b4fc',
+                                    background: '#f3f4f6',
+                                    border: '1px solid #e5e7eb',
+                                    color: '#6b7280',
+                                    fontWeight: '500',
+                                    fontSize: '14px',
                                     cursor: 'pointer',
-                                    fontWeight: 600
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                    marginBottom: '12px'
                                 }}
                             >
-                                Cancel
+                                <ImageIcon size={18} /> Add Photo
+                            </button>
+
+                            {/* Image Preview */}
+                            {selectedImage && (
+                                <div style={{ position: 'relative', marginBottom: '12px' }}>
+                                    <img
+                                        src={selectedImage}
+                                        style={{
+                                            width: '100%',
+                                            maxHeight: '200px',
+                                            objectFit: 'cover',
+                                            borderRadius: '8px'
+                                        }}
+                                        alt="Selected"
+                                    />
+                                    <button
+                                        onClick={() => setSelectedImage(null)}
+                                        style={{
+                                            position: 'absolute',
+                                            top: '8px',
+                                            right: '8px',
+                                            background: 'rgba(0,0,0,0.6)',
+                                            border: 'none',
+                                            borderRadius: '50%',
+                                            width: '32px',
+                                            height: '32px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            cursor: 'pointer',
+                                            color: '#fff'
+                                        }}
+                                    >
+                                        <X size={18} />
+                                    </button>
+                                </div>
+                            )}
+
+                            <textarea
+                                value={newPostContent}
+                                onChange={(e) => setNewPostContent(e.target.value)}
+                                placeholder="What's on your mind?"
+                                style={{
+                                    width: '100%',
+                                    minHeight: '120px',
+                                    padding: '16px',
+                                    borderRadius: '8px',
+                                    background: '#fff',
+                                    border: '1px solid #e5e7eb',
+                                    color: '#1f2937',
+                                    fontSize: '15px',
+                                    resize: 'vertical',
+                                    marginBottom: '16px',
+                                    fontFamily: 'inherit'
+                                }}
+                            />
+                            <button
+                                onClick={handleCreatePost}
+                                disabled={!newPostContent.trim()}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    borderRadius: '8px',
+                                    background: newPostContent.trim()
+                                        ? '#6366f1'
+                                        : '#f3f4f6',
+                                    border: 'none',
+                                    color: newPostContent.trim() ? '#ffffff' : '#9ca3af',
+                                    fontWeight: '600',
+                                    fontSize: '15px',
+                                    cursor: newPostContent.trim() ? 'pointer' : 'not-allowed',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px'
+                                }}
+                            >
+                                <Send size={18} strokeWidth={2.5} /> Post to Wall
                             </button>
                         </div>
-                        <textarea
-                            value={newPostContent}
-                            onChange={(e) => setNewPostContent(e.target.value)}
-                            placeholder="What's on your mind?"
-                            style={{
-                                width: '100%',
-                                minHeight: '120px',
-                                padding: '16px',
-                                borderRadius: '16px',
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                color: '#ffffff',
-                                fontSize: '16px',
-                                resize: 'vertical',
-                                marginBottom: '16px',
-                                fontFamily: 'inherit'
-                            }}
-                        />
-                        <button
-                            onClick={handleCreatePost}
-                            disabled={!newPostContent.trim()}
-                            style={{
-                                width: '100%',
-                                padding: '14px',
-                                borderRadius: '12px',
-                                background: newPostContent.trim()
-                                    ? 'linear-gradient(to right, #10b981, #14b8a6)'
-                                    : 'rgba(255,255,255,0.1)',
-                                border: 'none',
-                                color: '#ffffff',
-                                fontWeight: 900,
-                                fontSize: '16px',
-                                cursor: newPostContent.trim() ? 'pointer' : 'not-allowed',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                boxShadow: newPostContent.trim() ? '0 4px 12px rgba(16,185,129,0.3)' : 'none'
-                            }}
-                        >
-                            <Send size={18} strokeWidth={2.5} /> Post to Wall
-                        </button>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Posts Feed */}
             <div style={{ padding: '16px' }}>
@@ -328,15 +417,15 @@ const EventWall = () => {
                     <div style={{
                         textAlign: 'center',
                         padding: '60px 20px',
-                        background: 'rgba(255,255,255,0.03)',
-                        borderRadius: '16px',
-                        border: '1px solid rgba(255,255,255,0.05)'
+                        background: '#f9fafb',
+                        borderRadius: '12px',
+                        border: '1px solid #e5e7eb'
                     }}>
                         <MessageSquare size={48} color="#6366f1" style={{ marginBottom: '16px' }} />
-                        <h3 style={{ color: '#ffffff', fontSize: '18px', fontWeight: 700, margin: '0 0 8px 0' }}>
+                        <h3 style={{ color: '#1f2937', fontSize: '18px', fontWeight: '600', margin: '0 0 8px 0' }}>
                             No posts yet
                         </h3>
-                        <p style={{ color: '#a5b4fc', fontSize: '14px', margin: 0 }}>
+                        <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>
                             Be the first to share something!
                         </p>
                     </div>
@@ -346,11 +435,12 @@ const EventWall = () => {
                             <div
                                 key={post.id}
                                 style={{
-                                    background: 'linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))',
-                                    backdropFilter: 'blur(10px)',
-                                    borderRadius: '16px',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    padding: '16px',
+                                    background: '#fff',
+                                    borderRadius: '12px',
+                                    padding: '20px',
+                                    marginBottom: '12px',
+                                    border: '1px solid #e5e7eb',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
                                     position: 'relative',
                                     overflow: 'hidden'
                                 }}
@@ -390,10 +480,10 @@ const EventWall = () => {
                                         {post.author_name?.charAt(0) || '?'}
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ color: '#ffffff', fontWeight: 700, fontSize: '14px' }}>
+                                        <div style={{ color: '#1f2937', fontWeight: '600', fontSize: '15px' }}>
                                             {post.author_name}
                                         </div>
-                                        <div style={{ color: '#a5b4fc', fontSize: '12px' }}>
+                                        <div style={{ color: '#6b7280', fontSize: '12px' }}>
                                             {new Date(post.created_at).toLocaleDateString()}
                                         </div>
                                     </div>
@@ -401,7 +491,7 @@ const EventWall = () => {
 
                                 {/* Content */}
                                 <p style={{
-                                    color: '#ffffff',
+                                    color: '#1f2937',
                                     fontSize: '15px',
                                     lineHeight: '1.6',
                                     margin: '0 0 16px 0',
@@ -410,13 +500,30 @@ const EventWall = () => {
                                     {post.content}
                                 </p>
 
+                                {/* Post Image */}
+                                {post.photo_url && (
+                                    <img
+                                        src={post.photo_url}
+                                        style={{
+                                            width: '100%',
+                                            maxHeight: '400px',
+                                            objectFit: 'cover',
+                                            borderRadius: '8px',
+                                            marginTop: '12px',
+                                            cursor: 'pointer'
+                                        }}
+                                        onClick={() => window.open(post.photo_url, '_blank')}
+                                        alt="Post image"
+                                    />
+                                )}
+
                                 {/* Actions */}
                                 <div style={{
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '24px',
                                     paddingTop: '12px',
-                                    borderTop: '1px solid rgba(255,255,255,0.05)'
+                                    borderTop: '1px solid #e5e7eb'
                                 }}>
                                     <button
                                         onClick={() => handleLike(post.id)}
@@ -450,7 +557,7 @@ const EventWall = () => {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 
