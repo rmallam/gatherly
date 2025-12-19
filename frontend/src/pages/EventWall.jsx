@@ -54,7 +54,29 @@ const EventWall = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const participantId = participants[0]?.id; // Get current user's participant ID
+
+            // Get current user's participant ID
+            // After auto-join, we should have the participant in the list
+            // Find the participant that matches the current user
+            const currentUser = JSON.parse(localStorage.getItem('user'));
+            console.log('Current user:', currentUser);
+            console.log('All participants:', participants);
+
+            // Find participant by matching user info
+            const myParticipant = participants.find(p =>
+                p.guest_name === currentUser?.name ||
+                p.guest_email === currentUser?.email
+            );
+
+            console.log('My participant:', myParticipant);
+
+            if (!myParticipant) {
+                alert('Unable to post - please try refreshing the page');
+                console.error('No participant found for current user');
+                return;
+            }
+
+            console.log('Attempting to create post with participantId:', myParticipant.id);
 
             const res = await fetch(`${API_URL}/api/events/${eventId}/posts`, {
                 method: 'POST',
@@ -63,19 +85,26 @@ const EventWall = () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    participantId,
+                    participantId: myParticipant.id,
                     type: 'message',
                     content: newPostContent
                 })
             });
 
+            console.log('Post creation response status:', res.status);
+            const responseData = await res.json();
+            console.log('Post creation response data:', responseData);
+
             if (res.ok) {
                 setNewPostContent('');
                 setShowNewPost(false);
-                loadEventWall();
+                await loadEventWall();
+            } else {
+                alert(`Failed to create post: ${responseData.error || 'Unknown error'}`);
             }
         } catch (error) {
             console.error('Error creating post:', error);
+            alert('Failed to create post. Check console for details.');
         }
     };
 
