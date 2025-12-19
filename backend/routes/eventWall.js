@@ -323,4 +323,17 @@ router.delete('/posts/:postId/like/:participantId', authMiddleware, async (req, 
     }
 });
 
+// Catch-all debug route
+router.all('*', (req, res) => {
+    console.log('⚠️ UNMATCHED ROUTE:', req.method, req.path);
+    console.log('Full URL:', req.originalUrl);
+    console.log('Params:', req.params);
+    res.status(404).json({
+        error: 'Route not found in event wall router',
+        method: req.method,
+        path: req.path,
+        originalUrl: req.originalUrl
+    });
+});
+
 export default router;
