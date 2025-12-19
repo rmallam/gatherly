@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogIn, Mail, Lock, AlertCircle, Scan, Fingerprint } from 'lucide-react';
+import { LogIn, Mail, Lock, AlertCircle, Scan, Fingerprint, Phone } from 'lucide-react';
 
 const Login = () => {
     const navigate = useNavigate();
     const { login, loginWithBiometric, enableBiometric, continueAsGuest, biometricAvailable } = useAuth();
+    const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
     const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -19,7 +21,9 @@ const Login = () => {
         setLoading(true);
 
         try {
-            await login(email, password);
+            const isPhone = loginMethod === 'phone';
+            const identifier = isPhone ? phone : email;
+            await login(identifier, password, isPhone);
 
             // Check if biometric is already enabled before prompting
             if (biometricAvailable) {
@@ -29,7 +33,7 @@ const Login = () => {
 
                 if (!hasSavedCredentials) {
                     // Only show prompt if not already set up
-                    setSavedCredentials({ email, password });
+                    setSavedCredentials({ email: identifier, password });
                     setShowBiometricPrompt(true);
                 } else {
                     // Already set up, just navigate
@@ -186,24 +190,96 @@ const Login = () => {
                         </>
                     )}
 
+                    {/* Email/Phone Toggle */}
+                    <div style={{
+                        display: 'flex',
+                        gap: '0.5rem',
+                        marginBottom: '1.5rem',
+                        background: 'var(--bg-secondary)',
+                        padding: '4px',
+                        borderRadius: '10px'
+                    }}>
+                        <button
+                            type="button"
+                            onClick={() => setLoginMethod('email')}
+                            style={{
+                                flex: 1,
+                                padding: '0.5rem',
+                                borderRadius: '8px',
+                                border: 'none',
+                                background: loginMethod === 'email' ? 'white' : 'transparent',
+                                color: loginMethod === 'email' ? 'var(--primary)' : 'var(--text-secondary)',
+                                fontWeight: 600,
+                                fontSize: '0.875rem',
+                                cursor: 'pointer',
+                                boxShadow: loginMethod === 'email' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            <Mail size={16} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
+                            Email
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setLoginMethod('phone')}
+                            style={{
+                                flex: 1,
+                                padding: '0.5rem',
+                                borderRadius: '8px',
+                                border: 'none',
+                                background: loginMethod === 'phone' ? 'white' : 'transparent',
+                                color: loginMethod === 'phone' ? 'var(--primary)' : 'var(--text-secondary)',
+                                fontWeight: 600,
+                                fontSize: '0.875rem',
+                                cursor: 'pointer',
+                                boxShadow: loginMethod === 'phone' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            <Phone size={16} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
+                            Phone
+                        </button>
+                    </div>
+
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginBottom: '1.5rem' }}>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                                Email Address
-                            </label>
-                            <div style={{ position: 'relative' }}>
-                                <Mail size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="form-input"
-                                    style={{ paddingLeft: '2.75rem' }}
-                                    placeholder="your@email.com"
-                                    required
-                                />
+                        {loginMethod === 'email' ? (
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                                    Email Address
+                                </label>
+                                <div style={{ position: 'relative' }}>
+                                    <Mail size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="form-input"
+                                        style={{ paddingLeft: '2.75rem' }}
+                                        placeholder="your@email.com"
+                                        required
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                                    Phone Number
+                                </label>
+                                <div style={{ position: 'relative' }}>
+                                    <Phone size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                                    <input
+                                        type="tel"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        className="form-input"
+                                        style={{ paddingLeft: '2.75rem' }}
+                                        placeholder="9876543210"
+                                        maxLength={10}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        )}
 
                         <div>
                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
