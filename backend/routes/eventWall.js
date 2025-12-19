@@ -4,6 +4,11 @@ import { authMiddleware } from '../server/auth.js';
 
 const router = express.Router();
 
+// Test endpoint to verify routes are loaded
+router.get('/test', (req, res) => {
+    res.json({ message: 'Event wall routes are loaded!' });
+});
+
 // Join an event wall (become a participant)
 router.post('/:eventId/join', authMiddleware, async (req, res) => {
     try {
