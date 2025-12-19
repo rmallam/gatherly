@@ -1375,6 +1375,9 @@ app.post('/api/admin/process-reminders', authMiddleware, async (req, res) => {
 
 // ==================== COMMUNICATIONS ====================
 
+// Event Social Wall Routes (joins, participants, posts, likes)
+app.use('/api/events', eventWallRoutes);
+
 // Send announcement to guests
 app.post('/api/events/:eventId/communications/announcement', authMiddleware, sendAnnouncement);
 
