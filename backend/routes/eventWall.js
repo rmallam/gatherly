@@ -8,28 +8,42 @@ const router = express.Router();
 router.post('/:eventId/join', authMiddleware, async (req, res) => {
     try {
         const { eventId } = req.params;
-        const { guestId, profilePhoto, bio, funFact, relationshipToHost } = req.body;
+        const { profilePhoto, bio, funFact, relationshipToHost } = req.body;
         const userId = req.user.userId;
 
-        // Verify event exists and user has access
-        const eventCheck = await query(
-            'SELECT * FROM events WHERE id = $1 AND user_id = $2',
+        // Find guest record for this user at this event
+        const guestCheck = await query(
+            `SELECT g.* FROM guests g 
+             WHERE g.event_id = $1 AND g.user_id = $2`,
             [eventId, userId]
         );
 
-        if (eventCheck.rows.length === 0) {
-            // Also check if user is a guest
-            const guestCheck = await query(
-                'SELECT * FROM guests WHERE id = $1 AND event_id = $2',
-                [guestId, eventId]
+        let guestId = null;
+
+        if (guestCheck.rows.length > 0) {
+            // User is a guest - use their guest record
+            guestId = guestCheck.rows[0].id;
+        } else {
+            // Check if user is the event organizer
+            const eventCheck = await query(
+                'SELECT * FROM events WHERE id = $1 AND user_id = $2',
+                [eventId, userId]
             );
 
-            if (guestCheck.rows.length === 0) {
+            if (eventCheck.rows.length > 0) {
+                // User is organizer - create a guest record for them
+                const newGuest = await query(
+                    `INSERT INTO guests (event_id, user_id, name, email) 
+                     VALUES ($1, $2, $3, $4) RETURNING id`,
+                    [eventId, userId, req.user.name, req.user.email]
+                );
+                guestId = newGuest.rows[0].id;
+            } else {
                 return res.status(404).json({ error: 'Event not found or access denied' });
             }
         }
 
-        // Check if already joined
+        // Check if already joined as participant
         const existingParticipant = await query(
             'SELECT * FROM event_participants WHERE event_id = $1 AND guest_id = $2',
             [eventId, guestId]

@@ -22,6 +22,12 @@ const EventWall = () => {
         try {
             const token = localStorage.getItem('token');
 
+            // Auto-join event wall first
+            await fetch(`${API_URL}/api/events/${eventId}/join`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
             // Load posts
             const postsRes = await fetch(`${API_URL}/api/events/${eventId}/posts`, {
                 headers: { 'Authorization': `Bearer ${token}` }
