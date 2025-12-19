@@ -315,17 +315,37 @@ app.post('/api/auth/resend-verification', async (req, res) => {
 // === EVENT ROUTES ===
 app.get('/api/events', authMiddleware, async (req, res) => {
     try {
-        const result = await query(
+        // Get events created by the user
+        const createdEvents = await query(
             `SELECT e.*, 
-             (SELECT json_agg(g.*) FROM guests g WHERE g.event_id = e.id) as guests
+             (SELECT json_agg(g.*) FROM guests g WHERE g.event_id = e.id) as guests,
+             'organizer' as role
              FROM events e 
              WHERE e.user_id = $1 
              ORDER BY e.created_at DESC`,
             [req.user.id]
         );
 
+        // Get events where user is invited as a guest  
+        const invitedEvents = await query(
+            `SELECT e.*, 
+             (SELECT json_agg(g.*) FROM guests g WHERE g.event_id = e.id) as guests,
+             'guest' as role,
+             g.id as guest_id,
+             g.rsvp,
+             g.attended
+             FROM events e
+             JOIN guests g ON g.event_id = e.id
+             WHERE g.user_id = $1
+             ORDER BY e.date DESC`,
+            [req.user.id]
+        );
+
+        // Merge created and invited events
+        const allEvents = [...createdEvents.rows, ...invitedEvents.rows];
+
         // Merge data column into each event
-        const events = result.rows.map(event => {
+        const events = allEvents.map(event => {
             const { data, ...eventFields } = event;
             return {
                 ...eventFields,
