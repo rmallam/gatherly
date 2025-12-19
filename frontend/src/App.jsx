@@ -12,6 +12,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ManagerDashboard from './pages/ManagerDashboard';
 import EventDetailsTabs from './pages/EventDetailsTabs';
+import GuestEventView from './pages/GuestEventView';
 import Scanner from './pages/Scanner';
 import RSVP from './pages/RSVP';
 import PublicInvitation from './pages/PublicInvitation';
@@ -75,6 +76,11 @@ function App() {
                                 <Layout>
                                     <EventDetailsTabs />
                                 </Layout>
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/guest/event/:id" element={
+                            <ProtectedRoute>
+                                <GuestEventView />
                             </ProtectedRoute>
                         } />
                         <Route path="/event/:eventId/wall" element={
