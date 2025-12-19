@@ -9,7 +9,7 @@ const Header = ({ showAuth = true }) => {
     return (
         <div style={{
             padding: '1rem 1.5rem',
-            paddingTop: 'calc(env(safe-area-inset-top) + 1rem)',
+            paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',

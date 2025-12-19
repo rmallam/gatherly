@@ -5,40 +5,35 @@ import { CheckCircle, XCircle, Users, ArrowRight, RefreshCcw, ScanLine } from 'l
 
 const Scanner = () => {
     const { events, markGuestAttended } = useApp();
-    const [scanResult, setScanResult] = useState(null); // { status: 'idle' | 'valid' | 'invalid', data: null, message: '' }
+    const [scanResult, setScanResult] = useState(null);
     const [guestCount, setGuestCount] = useState(1);
-    const [selectedEventId, setSelectedEventId] = useState(''); // If we want to filter by event, or just auto-detect
+    const [selectedEventId, setSelectedEventId] = useState('');
 
-    // Auto-reset scanner after success/failure
     const resetScanner = () => {
         setScanResult(null);
         setGuestCount(1);
     };
 
     const handleScan = (data) => {
-        if (scanResult) return; // Already processing
+        if (scanResult) return;
 
-        // Schema: { eventId, guestId, name, valid }
         if (!data.eventId || !data.guestId) {
             setScanResult({ status: 'invalid', message: 'Invalid QR Code structure' });
             return;
         }
 
-        // Verify Event Exists
         const event = events.find(e => e.id === data.eventId);
         if (!event) {
             setScanResult({ status: 'invalid', message: 'Event not found in this system' });
             return;
         }
 
-        // Verify Guest Exists
         const guest = event.guests?.find(g => g.id === data.guestId);
         if (!guest) {
             setScanResult({ status: 'invalid', message: 'Guest not found in guest list' });
             return;
         }
 
-        // Success! found guest
         setScanResult({
             status: 'valid',
             data: { event, guest },
@@ -49,127 +44,541 @@ const Scanner = () => {
     const handleCheckIn = () => {
         if (scanResult?.status !== 'valid') return;
         const { event, guest } = scanResult.data;
-
         markGuestAttended(event.id, guest.id, guestCount);
-
-        // Show success feedback then reset
         setScanResult({ ...scanResult, status: 'checked-in' });
     };
 
     return (
         <>
-            {/* Scanner View - Full Screen (no wrappers) */}
             {!scanResult && (
                 <QRScanner onScan={handleScan} onClose={resetScanner} />
             )}
 
-            {/* Result View */}
             {scanResult && (
-                <div className="max-w-md mx-auto space-y-8 animate-in p-4">
-                    <div className="text-center space-y-2">
-                        <div className="inline-flex p-3 rounded-2xl bg-[rgba(6,182,212,0.1)] text-[var(--accent-cyan)] border border-[var(--glass-highlight)] mb-2">
-                            <ScanLine size={32} />
-                        </div>
-                        <h1 className="text-3xl font-bold text-white tracking-tight">Gatekeeper</h1>
-                        <p className="text-[var(--text-muted)]">Scan result</p>
-                    </div>
-                </div>
-            )}
+                <div style={{
+                    minHeight: '100vh',
+                    background: 'linear-gradient(to bottom, #0a0b1e, #101127, #0a0b1e)',
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}>
+                    {/* Header */}
+                    <div style={{ padding: '32px 24px', position: 'relative', overflow: 'hidden' }}>
+                        <div style={{
+                            position: 'absolute',
+                            inset: 0,
+                            background: 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.05))',
+                            opacity: 0.5
+                        }}></div>
 
-            {/* Result View */}
-            {scanResult && scanResult.status === 'valid' && (
-                <div className="card text-center space-y-8 p-8 animate-in zoom-in duration-300 border-[var(--primary)] shadow-[0_0_50px_rgba(99,102,241,0.15)]">
-                    <div className="relative">
-                        <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-full flex items-center justify-center mx-auto shadow-xl ring-4 ring-[rgba(99,102,241,0.2)]">
-                            <Users size={40} />
+                        <div style={{ position: 'relative', zIndex: 10, textAlign: 'center' }}>
+                            <div style={{
+                                display: 'inline-flex',
+                                padding: '16px',
+                                borderRadius: '24px',
+                                background: 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))',
+                                backdropFilter: 'blur(20px)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                boxShadow: '0 8px 32px rgba(99,102,241,0.2)',
+                                marginBottom: '12px'
+                            }}>
+                                <ScanLine size={40} color="#a5b4fc" strokeWidth={2.5} />
+                            </div>
+
+                            <h1 style={{
+                                fontSize: '40px',
+                                fontWeight: 900,
+                                background: 'linear-gradient(to right, #ffffff, #c7d2fe, #ffffff)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                margin: '12px 0',
+                                letterSpacing: '-0.5px'
+                            }}>
+                                Gatekeeper
+                            </h1>
+                            <p style={{
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                color: 'rgba(196,181,253,0.6)',
+                                textTransform: 'uppercase',
+                                letterSpacing: '2px',
+                                margin: 0
+                            }}>
+                                Guest Check-In
+                            </p>
                         </div>
-                        {scanResult.data.guest.attended && (
-                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg border-2 border-[var(--bg-deep)]">
-                                ✓ Checked in {scanResult.data.guest.attendedCount || 1}x
+                    </div>
+
+                    {/* Content */}
+                    <div style={{ flex: 1, padding: '0 16px 24px' }}>
+                        {/* Valid Result */}
+                        {scanResult.status === 'valid' && (
+                            <div style={{ maxWidth: '448px', margin: '0 auto' }}>
+                                <div style={{
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    borderRadius: '24px',
+                                    background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
+                                    backdropFilter: 'blur(20px)',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    boxShadow: '0 20px 40px rgba(99,102,241,0.1)',
+                                    padding: '32px'
+                                }}>
+                                    {/* Decorative glows */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '-80px',
+                                        right: '-80px',
+                                        width: '160px',
+                                        height: '160px',
+                                        background: 'rgba(99,102,241,0.2)',
+                                        borderRadius: '50%',
+                                        filter: 'blur(60px)'
+                                    }}></div>
+                                    <div style={{
+                                        position: 'absolute',
+                                        bottom: '-80px',
+                                        left: '-80px',
+                                        width: '160px',
+                                        height: '160px',
+                                        background: 'rgba(168,85,247,0.2)',
+                                        borderRadius: '50%',
+                                        filter: 'blur(60px)'
+                                    }}></div>
+
+                                    <div style={{ position: 'relative', zIndex: 10 }}>
+                                        {/* Avatar */}
+                                        <div style={{ position: 'relative', width: 'fit-content', margin: '0 auto 32px' }}>
+                                            <div style={{
+                                                width: '128px',
+                                                height: '128px',
+                                                background: 'linear-gradient(135deg, #6366f1, #a855f7, #ec4899)',
+                                                borderRadius: '50%',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                boxShadow: '0 20px 40px rgba(99,102,241,0.3)',
+                                                border: '4px solid rgba(255,255,255,0.1)',
+                                                position: 'relative',
+                                                overflow: 'hidden'
+                                            }}>
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    inset: 0,
+                                                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                                                    animation: 'shimmer 2s infinite'
+                                                }}></div>
+                                                <Users size={56} color="#ffffff" strokeWidth={2} style={{ position: 'relative', zIndex: 10 }} />
+                                            </div>
+
+                                            {scanResult.data.guest.attended && (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    bottom: '-8px',
+                                                    left: '50%',
+                                                    transform: 'translateX(-50%)',
+                                                    whiteSpace: 'nowrap',
+                                                    background: 'linear-gradient(to right, #fbbf24, #f97316)',
+                                                    color: '#000',
+                                                    padding: '6px 16px',
+                                                    borderRadius: '20px',
+                                                    fontSize: '11px',
+                                                    fontWeight: 900,
+                                                    boxShadow: '0 8px 16px rgba(251,191,36,0.4)',
+                                                    border: '2px solid rgba(255,255,255,0.5)',
+                                                    animation: 'bounce 1s infinite'
+                                                }}>
+                                                    ✓ CHECKED IN {scanResult.data.guest.attendedCount || 1}×
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Guest Info */}
+                                        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                                            <h2 style={{
+                                                fontSize: '36px',
+                                                fontWeight: 900,
+                                                color: '#ffffff',
+                                                margin: '0 0 16px 0',
+                                                textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                                            }}>
+                                                {scanResult.data.guest.name}
+                                            </h2>
+
+                                            <div style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                                padding: '8px 16px',
+                                                borderRadius: '20px',
+                                                background: 'rgba(255,255,255,0.05)',
+                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                backdropFilter: 'blur(10px)'
+                                            }}>
+                                                <span style={{
+                                                    width: '10px',
+                                                    height: '10px',
+                                                    borderRadius: '50%',
+                                                    background: '#a5b4fc',
+                                                    animation: 'pulse 2s infinite',
+                                                    boxShadow: '0 0 10px rgba(165,180,252,0.5)'
+                                                }}></span>
+                                                <span style={{
+                                                    fontSize: '14px',
+                                                    fontWeight: 600,
+                                                    color: 'rgba(255,255,255,0.9)'
+                                                }}>
+                                                    {scanResult.data.event.title}
+                                                </span>
+                                            </div>
+
+                                            {scanResult.data.guest.attended && (
+                                                <div style={{
+                                                    marginTop: '16px',
+                                                    padding: '16px',
+                                                    background: 'linear-gradient(135deg, rgba(251,191,36,0.1), rgba(249,115,22,0.1))',
+                                                    border: '1px solid rgba(251,191,36,0.3)',
+                                                    borderRadius: '16px',
+                                                    backdropFilter: 'blur(10px)'
+                                                }}>
+                                                    <p style={{
+                                                        color: '#fcd34d',
+                                                        fontWeight: 700,
+                                                        fontSize: '14px',
+                                                        margin: '0 0 4px 0',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        gap: '8px'
+                                                    }}>
+                                                        ⚠️ Already Checked In
+                                                    </p>
+                                                    <p style={{
+                                                        color: 'rgba(255,255,255,0.6)',
+                                                        fontSize: '12px',
+                                                        margin: 0
+                                                    }}>
+                                                        Add more guests to their party below
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Guest Counter */}
+                                        <div style={{
+                                            background: 'rgba(0,0,0,0.2)',
+                                            backdropFilter: 'blur(10px)',
+                                            padding: '24px',
+                                            borderRadius: '16px',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            marginBottom: '24px'
+                                        }}>
+                                            <label style={{
+                                                fontSize: '11px',
+                                                fontWeight: 900,
+                                                color: 'rgba(255,255,255,0.5)',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '2px',
+                                                display: 'block',
+                                                textAlign: 'center',
+                                                marginBottom: '16px'
+                                            }}>
+                                                {scanResult.data.guest.attended ? '+ Additional Guests' : 'Party Size'}
+                                            </label>
+                                            <div style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '24px'
+                                            }}>
+                                                <button
+                                                    onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
+                                                    style={{
+                                                        width: '56px',
+                                                        height: '56px',
+                                                        borderRadius: '16px',
+                                                        background: 'rgba(255,255,255,0.05)',
+                                                        border: '1px solid rgba(255,255,255,0.1)',
+                                                        color: 'rgba(255,255,255,0.7)',
+                                                        fontSize: '24px',
+                                                        fontWeight: 900,
+                                                        cursor: 'pointer',
+                                                        boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                    onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
+                                                    onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                                >
+                                                    −
+                                                </button>
+                                                <span style={{
+                                                    fontSize: '48px',
+                                                    fontWeight: 900,
+                                                    width: '64px',
+                                                    textAlign: 'center',
+                                                    background: 'linear-gradient(135deg, #ffffff, #c7d2fe)',
+                                                    WebkitBackgroundClip: 'text',
+                                                    WebkitTextFillColor: 'transparent',
+                                                    textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                                                }}>
+                                                    {guestCount}
+                                                </span>
+                                                <button
+                                                    onClick={() => setGuestCount(guestCount + 1)}
+                                                    style={{
+                                                        width: '56px',
+                                                        height: '56px',
+                                                        borderRadius: '16px',
+                                                        background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                                                        border: 'none',
+                                                        color: '#ffffff',
+                                                        fontSize: '24px',
+                                                        fontWeight: 900,
+                                                        cursor: 'pointer',
+                                                        boxShadow: '0 8px 16px rgba(99,102,241,0.5)',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                    onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
+                                                    onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                            <button
+                                                onClick={resetScanner}
+                                                style={{
+                                                    height: '56px',
+                                                    borderRadius: '16px',
+                                                    background: 'rgba(255,255,255,0.05)',
+                                                    border: '1px solid rgba(255,255,255,0.2)',
+                                                    color: '#ffffff',
+                                                    fontWeight: 700,
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleCheckIn}
+                                                style={{
+                                                    height: '56px',
+                                                    borderRadius: '16px',
+                                                    background: 'linear-gradient(to right, #10b981, #14b8a6)',
+                                                    border: 'none',
+                                                    color: '#ffffff',
+                                                    fontWeight: 900,
+                                                    cursor: 'pointer',
+                                                    boxShadow: '0 8px 16px rgba(16,185,129,0.3)',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '8px',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                {scanResult.data.guest.attended ? 'Add Guests' : 'Check In'}
+                                                <ArrowRight size={20} strokeWidth={3} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Invalid Result */}
+                        {scanResult.status === 'invalid' && (
+                            <div style={{ maxWidth: '448px', margin: '0 auto' }}>
+                                <div style={{
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    borderRadius: '24px',
+                                    background: 'linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.05))',
+                                    backdropFilter: 'blur(20px)',
+                                    border: '1px solid rgba(239,68,68,0.3)',
+                                    boxShadow: '0 20px 40px rgba(239,68,68,0.1)',
+                                    padding: '32px',
+                                    textAlign: 'center'
+                                }}>
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '-80px',
+                                        right: '-80px',
+                                        width: '160px',
+                                        height: '160px',
+                                        background: 'rgba(239,68,68,0.2)',
+                                        borderRadius: '50%',
+                                        filter: 'blur(60px)'
+                                    }}></div>
+
+                                    <div style={{ position: 'relative', zIndex: 10 }}>
+                                        <div style={{
+                                            width: '112px',
+                                            height: '112px',
+                                            background: 'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(239,68,68,0.1))',
+                                            color: '#f87171',
+                                            borderRadius: '50%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            margin: '0 auto 24px',
+                                            animation: 'pulse 2s infinite',
+                                            border: '4px solid rgba(239,68,68,0.2)',
+                                            boxShadow: '0 20px 40px rgba(239,68,68,0.2)'
+                                        }}>
+                                            <XCircle size={64} strokeWidth={2.5} />
+                                        </div>
+
+                                        <h2 style={{
+                                            fontSize: '36px',
+                                            fontWeight: 900,
+                                            color: '#ffffff',
+                                            margin: '0 0 12px 0',
+                                            textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                                        }}>
+                                            Invalid Ticket
+                                        </h2>
+                                        <p style={{
+                                            color: '#fca5a5',
+                                            fontWeight: 600,
+                                            background: 'rgba(0,0,0,0.2)',
+                                            padding: '12px 20px',
+                                            borderRadius: '16px',
+                                            display: 'inline-block',
+                                            border: '1px solid rgba(239,68,68,0.2)',
+                                            margin: '0 0 24px 0'
+                                        }}>
+                                            {scanResult.message}
+                                        </p>
+
+                                        <button
+                                            onClick={resetScanner}
+                                            style={{
+                                                width: '100%',
+                                                height: '56px',
+                                                borderRadius: '16px',
+                                                background: 'rgba(255,255,255,0.05)',
+                                                border: '2px solid rgba(239,68,68,0.5)',
+                                                color: '#fca5a5',
+                                                fontWeight: 900,
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            Scan Next Ticket
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Checked-In Success */}
+                        {scanResult.status === 'checked-in' && (
+                            <div style={{ maxWidth: '448px', margin: '0 auto' }}>
+                                <div style={{
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    borderRadius: '24px',
+                                    background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.05))',
+                                    backdropFilter: 'blur(20px)',
+                                    border: '1px solid rgba(16,185,129,0.3)',
+                                    boxShadow: '0 20px 40px rgba(16,185,129,0.2)',
+                                    padding: '32px',
+                                    textAlign: 'center'
+                                }}>
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '-80px',
+                                        right: '-80px',
+                                        width: '160px',
+                                        height: '160px',
+                                        background: 'rgba(16,185,129,0.2)',
+                                        borderRadius: '50%',
+                                        filter: 'blur(60px)'
+                                    }}></div>
+
+                                    <div style={{ position: 'relative', zIndex: 10 }}>
+                                        <div style={{
+                                            width: '112px',
+                                            height: '112px',
+                                            background: 'linear-gradient(135deg, #10b981, #14b8a6)',
+                                            color: '#ffffff',
+                                            borderRadius: '50%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            margin: '0 auto 24px',
+                                            boxShadow: '0 20px 40px rgba(16,185,129,0.5)',
+                                            animation: 'bounce 1s infinite'
+                                        }}>
+                                            <CheckCircle size={64} strokeWidth={2.5} />
+                                        </div>
+
+                                        <h2 style={{
+                                            fontSize: '36px',
+                                            fontWeight: 900,
+                                            background: 'linear-gradient(to right, #ffffff, #d1fae5)',
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                            margin: '0 0 12px 0',
+                                            textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                                        }}>
+                                            Access Granted
+                                        </h2>
+                                        <p style={{
+                                            color: '#6ee7b7',
+                                            fontSize: '20px',
+                                            fontWeight: 700,
+                                            margin: '0 0 12px 0'
+                                        }}>
+                                            Welcome, {scanResult.data.guest.name}!
+                                        </p>
+                                        <div style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            fontSize: '14px',
+                                            color: 'rgba(255,255,255,0.6)',
+                                            background: 'rgba(0,0,0,0.2)',
+                                            padding: '8px 16px',
+                                            borderRadius: '20px',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            margin: '0 0 24px 0'
+                                        }}>
+                                            Total Party: <span style={{ color: '#ffffff', fontWeight: 900, fontSize: '18px' }}>{guestCount}</span>
+                                        </div>
+
+                                        <button
+                                            onClick={resetScanner}
+                                            style={{
+                                                width: '100%',
+                                                height: '64px',
+                                                borderRadius: '16px',
+                                                background: 'linear-gradient(to right, #6366f1, #a855f7)',
+                                                border: 'none',
+                                                color: '#ffffff',
+                                                fontSize: '18px',
+                                                fontWeight: 900,
+                                                cursor: 'pointer',
+                                                boxShadow: '0 8px 16px rgba(99,102,241,0.3)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '12px',
+                                                margin: '0 auto',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            <RefreshCcw size={24} strokeWidth={2.5} /> Scan Next Guest
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
-
-                    <div className="space-y-2">
-                        <h2 className="text-3xl font-bold text-white">{scanResult.data.guest.name}</h2>
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[rgba(255,255,255,0.05)] border border-[var(--glass-border)]">
-                            <span className="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse"></span>
-                            <span className="text-[var(--text-muted)] text-sm">{scanResult.data.event.title}</span>
-                        </div>
-                        {scanResult.data.guest.attended && (
-                            <div className="mt-4 p-3 bg-[rgba(251,191,36,0.1)] border border-yellow-500/30 rounded-lg">
-                                <p className="text-yellow-300 font-semibold text-sm">
-                                    This guest has already checked in
-                                </p>
-                                <p className="text-[var(--text-muted)] text-xs mt-1">
-                                    You can add more guests to their party below
-                                </p>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="bg-[rgba(0,0,0,0.2)] p-6 rounded-2xl border border-[var(--glass-border)] space-y-3">
-                        <label className="text-xs font-bold text-[var(--text-dim)] uppercase tracking-wider">
-                            {scanResult.data.guest.attended ? 'Additional Guests' : 'Number of Guests'}
-                        </label>
-                        <div className="flex items-center justify-center gap-6">
-                            <button
-                                onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
-                                className="w-12 h-12 rounded-xl bg-[var(--bg-card)] border border-[var(--glass-border)] hover:bg-[var(--bg-card-hover)] flex items-center justify-center text-2xl font-bold transition-all active:scale-95"
-                            >
-                                -
-                            </button>
-                            <span className="text-4xl font-bold w-12 text-white">{guestCount}</span>
-                            <button
-                                onClick={() => setGuestCount(guestCount + 1)}
-                                className="w-12 h-12 rounded-xl bg-[var(--primary)] text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-500 flex items-center justify-center text-2xl font-bold transition-all active:scale-95"
-                            >
-                                +
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 pt-2">
-                        <button onClick={resetScanner} className="btn btn-secondary h-12">
-                            Cancel
-                        </button>
-                        <button onClick={handleCheckIn} className="btn btn-primary h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/20">
-                            {scanResult.data.guest.attended ? 'Add Additional Guests' : 'Check In'} <ArrowRight size={18} />
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {scanResult && scanResult.status === 'invalid' && (
-                <div className="card text-center space-y-6 p-8 animate-in zoom-in duration-300 border-[var(--error)] bg-[rgba(239,68,68,0.05)]">
-                    <div className="w-24 h-24 bg-[rgba(239,68,68,0.1)] text-[var(--error)] rounded-full flex items-center justify-center mx-auto animate-pulse border-4 border-[rgba(239,68,68,0.1)]">
-                        <XCircle size={48} />
-                    </div>
-                    <div>
-                        <h2 className="text-3xl font-bold text-white mb-2">Invalid Ticket</h2>
-                        <p className="text-[var(--text-muted)] font-medium bg-[rgba(0,0,0,0.2)] py-2 px-4 rounded-lg inline-block">{scanResult.message}</p>
-                    </div>
-                    <button onClick={resetScanner} className="btn btn-secondary w-full border-[var(--error)] text-[var(--error)] hover:bg-[rgba(239,68,68,0.1)]">
-                        Scan Next Ticket
-                    </button>
-                </div>
-            )}
-
-            {scanResult && scanResult.status === 'checked-in' && (
-                <div className="card text-center space-y-8 p-8 animate-in zoom-in duration-300 border-[var(--success)] bg-[rgba(16,185,129,0.05)]">
-                    <div className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-teal-500 text-white rounded-full flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(16,185,129,0.4)]">
-                        <CheckCircle size={48} />
-                    </div>
-                    <div className="space-y-2">
-                        <h2 className="text-3xl font-bold text-white">Access Granted</h2>
-                        <p className="text-[var(--success)] text-lg font-medium">Welcome, {scanResult.data.guest.name}!</p>
-                        <div className="text-sm text-[var(--text-muted)] bg-[rgba(0,0,0,0.2)] py-1 px-3 rounded-full inline-block mt-2">
-                            Total Party: <span className="text-white font-bold">{guestCount}</span>
-                        </div>
-                    </div>
-                    <button onClick={resetScanner} className="btn btn-primary w-full gap-2 h-14 text-lg">
-                        <RefreshCcw size={20} /> Scan Next Guest
-                    </button>
                 </div>
             )}
         </>

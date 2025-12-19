@@ -6,6 +6,10 @@
   --bg-secondary: #f8f9fa;
   --bg-tertiary: #e9ecef;
 
+  /* Dark theme for scanner and special pages */
+  --bg-deep: #0a0b1e;
+  --bg-card: #1f2142;
+
   /* Accent Colors */
   --primary: #6366f1;
   --primary-dark: #4f46e5;
@@ -360,4 +364,14 @@ h4 {
 /* Hide the default QR box from library - we have our own */
 #reader__scan_region>img {
   display: none !important;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
 }

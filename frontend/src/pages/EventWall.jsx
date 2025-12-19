@@ -23,15 +23,28 @@ const EventWall = () => {
             const token = localStorage.getItem('token');
 
             // Auto-join event wall first
-            await fetch(`${API_URL}/api/wall/${eventId}/join`, {
+            const joinRes = await fetch(`${API_URL}/api/wall/${eventId}/join`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+
+            if (!joinRes.ok) {
+                const errorText = await joinRes.text();
+                console.error('Join failed:', joinRes.status, errorText.substring(0, 200));
+                throw new Error(`Failed to join event wall: ${joinRes.status}`);
+            }
 
             // Load posts
             const postsRes = await fetch(`${API_URL}/api/wall/${eventId}/posts`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+
+            if (!postsRes.ok) {
+                const errorText = await postsRes.text();
+                console.error('Posts fetch failed:', postsRes.status, errorText.substring(0, 200));
+                throw new Error(`Failed to load posts: ${postsRes.status}`);
+            }
+
             const postsData = await postsRes.json();
             setPosts(postsData.posts || []);
 
@@ -39,6 +52,13 @@ const EventWall = () => {
             const participantsRes = await fetch(`${API_URL}/api/wall/${eventId}/participants`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+
+            if (!participantsRes.ok) {
+                const errorText = await participantsRes.text();
+                console.error('Participants fetch failed:', participantsRes.status, errorText.substring(0, 200));
+                throw new Error(`Failed to load participants: ${participantsRes.status}`);
+            }
+
             const participantsData = await participantsRes.json();
             setParticipants(participantsData.participants || []);
 

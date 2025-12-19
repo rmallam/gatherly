@@ -27,10 +27,23 @@ const QRScanner = ({ onScan, onError, onClose }) => {
                 }
 
                 const config = {
-                    fps: 10,
-                    qrbox: { width: 280, height: 280 },
+                    fps: 20, // Increased from 10 for faster scanning
+                    qrbox: function (viewfinderWidth, viewfinderHeight) {
+                        // Make box 90% of screen width for more flexible scanning
+                        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                        const qrboxSize = Math.floor(minEdge * 0.9);
+                        return {
+                            width: qrboxSize,
+                            height: qrboxSize
+                        };
+                    },
                     aspectRatio: 1.0,
-                    formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
+                    formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+                    // More aggressive scanning for better detection
+                    disableFlip: false, // Enable scanning flipped codes
+                    experimentalFeatures: {
+                        useBarCodeDetectorIfSupported: true
+                    }
                 };
 
                 if (!isRunning.current) {
@@ -121,23 +134,11 @@ const QRScanner = ({ onScan, onError, onClose }) => {
                 </div>
             </div>
 
-            {/* Scanning Frame Overlay */}
+            {/* Scanning Frame Overlay - Clean dark vignette only */}
             {hasPermission && !error && (
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 20 }}>
-                    {/* Dark overlay */}
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }}></div>
-
-                    {/* Frosted scanning frame */}
-                    <div style={{ position: 'relative', width: '288px', height: '288px', borderRadius: '24px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)', boxShadow: '0 8px 32px 0 rgba(99,102,241,0.15)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        {/* Purple Corner Brackets */}
-                        <div style={{ position: 'absolute', top: '16px', left: '16px', width: '48px', height: '48px', borderTop: '4px solid #a855f7', borderLeft: '4px solid #a855f7', borderTopLeftRadius: '12px' }}></div>
-                        <div style={{ position: 'absolute', top: '16px', right: '16px', width: '48px', height: '48px', borderTop: '4px solid #a855f7', borderRight: '4px solid #a855f7', borderTopRightRadius: '12px' }}></div>
-                        <div style={{ position: 'absolute', bottom: '16px', left: '16px', width: '48px', height: '48px', borderBottom: '4px solid #a855f7', borderLeft: '4px solid #a855f7', borderBottomLeftRadius: '12px' }}></div>
-                        <div style={{ position: 'absolute', bottom: '16px', right: '16px', width: '48px', height: '48px', borderBottom: '4px solid #a855f7', borderRight: '4px solid #a855f7', borderBottomRightRadius: '12px' }}></div>
-
-                        {/* Scanning Line Animation */}
-                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(to right, transparent, #c084fc, transparent)', boxShadow: '0 0 15px rgba(168,85,247,0.8)', animation: 'scan 2s ease-in-out infinite' }}></div>
-                    </div>
+                    {/* Dark vignette overlay */}
+                    <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.7) 80%)' }}></div>
                 </div>
             )}
 

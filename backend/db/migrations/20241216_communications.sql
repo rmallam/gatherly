@@ -1,6 +1,6 @@
 -- Communications table for announcements and thank you messages
 CREATE TABLE IF NOT EXISTS communications (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
     type VARCHAR(50) NOT NULL, -- 'announcement' or 'thank_you'
     message TEXT NOT NULL,

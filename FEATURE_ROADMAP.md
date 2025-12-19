@@ -58,6 +58,42 @@
 
 **Priority:** P0 | **Effort:** Low | **Impact:** High
 
+
+### 4. Event Page UI Improvement
+- [ ] Redesign event details navigation to handle growing number of tabs without clutter
+- [ ] Currently: 10+ horizontal tabs cause UI clutter and poor UX
+- [ ] Goal: Scalable, clean navigation that works on all screen sizes
+
+**Design Options Considered:**
+
+1. **Scrollable Horizontal Tabs**
+   - Pros: Familiar pattern, easy swipe gestures
+   - Cons: Hidden tabs not visible, still cluttered with 10+ tabs
+
+2. **Grouped Categories with Expansion** (⭐ RECOMMENDED)
+   - Group tabs into 4 main categories:
+     - 📋 Event Info (Overview, Details, QR Code)
+     - 🎯 Planning (Catering, Tasks, Venue, Decorations, Gifts, Entertainment, Vendors)
+     - 💬 Communication (Messages, Reminders)
+     - 💰 Finance (Budget, Expenses)
+   - Pros: Reduces clutter, scalable, modern accordion pattern
+   - Cons: One extra tap for sub-items
+   - Design mockup: [event_tabs_grouped_1766023937019.png](file:///Users/rakeshkumarmallam/.gemini/antigravity/brain/d9ef17fb-cccc-49f6-b9af-5bac93442ad9/event_tabs_grouped_1766023937019.png)
+
+3. **Bottom Sheet Navigation**
+   - Pros: Clean main screen, all options in drawer
+   - Cons: Extra tap to access, hides navigation initially
+
+4. **Card-Based Grid**
+   - Pros: Shows preview info, very discoverable
+   - Cons: Takes vertical space, better for overview than navigation
+   - Design mockup: [event_tabs_card_grid_1766023954671.png](file:///Users/rakeshkumarmallam/.gemini/antigravity/brain/d9ef17fb-cccc-49f6-b9af-5bac93442ad9/event_tabs_card_grid_1766023954671.png)
+
+**Recommended Approach:** Option 2 (Grouped Categories with Expansion)
+
+**Priority:** P0 | **Effort:** High | **Impact:** High
+
+
 ---
 
 ## 📊 Analytics & Insights
