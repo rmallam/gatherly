@@ -117,22 +117,52 @@ const EventDetailsTabs = () => {
 
     return (
         <div style={{ maxWidth: '75rem', margin: '0 auto' }}>
-            {/* Back Button */}
-            <Link
-                to="/manager"
-                style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    color: 'var(--text-secondary)',
-                    fontSize: '0.875rem',
-                    marginBottom: '1.5rem',
-                    textDecoration: 'none',
-                    transition: 'color 0.2s'
-                }}
-            >
-                <ArrowLeft size={16} /> Back to Events
-            </Link>
+            {/* Header with Back Button and Event Wall */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                <Link
+                    to="/manager"
+                    style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        color: 'var(--text-secondary)',
+                        fontSize: '0.875rem',
+                        textDecoration: 'none',
+                        transition: 'color 0.2s'
+                    }}
+                >
+                    <ArrowLeft size={16} /> Back to Events
+                </Link>
+
+                <Link
+                    to={`/event/${id}/wall`}
+                    style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 20px',
+                        borderRadius: '12px',
+                        background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                        border: 'none',
+                        color: '#ffffff',
+                        fontWeight: 700,
+                        fontSize: '14px',
+                        textDecoration: 'none',
+                        boxShadow: '0 4px 12px rgba(99,102,241,0.3)',
+                        transition: 'transform 0.2s, box-shadow 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(99,102,241,0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(99,102,241,0.3)';
+                    }}
+                >
+                    <MessageCircle size={18} strokeWidth={2.5} /> Event Wall
+                </Link>
+            </div>
 
             {/* Tab Navigation */}
             <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
