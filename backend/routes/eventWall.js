@@ -19,7 +19,9 @@ router.post('/:eventId/join', authMiddleware, async (req, res) => {
     try {
         const { eventId } = req.params;
         const { profilePhoto, bio, funFact, relationshipToHost } = req.body;
-        const userId = req.user.userId;
+        const userId = req.user.id;  // FIX: auth middleware sets req.user.id, not req.user.userId
+
+        console.log('Looking for guest with eventId:', eventId, 'userId:', userId);
 
         // Find guest record for this user at this event
         const guestCheck = await query(
@@ -28,17 +30,27 @@ router.post('/:eventId/join', authMiddleware, async (req, res) => {
             [eventId, userId]
         );
 
+        console.log('Guest check result:', guestCheck.rows.length, 'rows');
+
         let guestId = null;
 
         if (guestCheck.rows.length > 0) {
-            // User is a guest - use their guest record
+            console.log('User is guest, guestId:', guestCheck.rows[0].id);
             guestId = guestCheck.rows[0].id;
         } else {
+            console.log('Not a guest, checking if organizer...');
             // Check if user is the event organizer
             const eventCheck = await query(
                 'SELECT * FROM events WHERE id = $1 AND user_id = $2',
                 [eventId, userId]
             );
+
+            console.log('Event organizer check:', eventCheck.rows.length, 'rows');
+            if (eventCheck.rows.length > 0) {
+                console.log('User IS the organizer!');
+            } else {
+                console.log('❌ User is NOT the organizer. Event user_id:', eventCheck.rows[0]?.user_id, 'vs User ID:', userId);
+            }
 
             if (eventCheck.rows.length > 0) {
                 // User is organizer - create a guest record for them
@@ -234,7 +246,7 @@ router.post('/:eventId/posts', authMiddleware, async (req, res) => {
 router.delete('/:eventId/posts/:postId', authMiddleware, async (req, res) => {
     try {
         const { eventId, postId } = req.params;
-        const userId = req.user.userId;
+        const userId = req.user.id;  // FIX: use req.user.id not req.user.userId
 
         // Check if user is event owner or post author
         const authCheck = await query(
