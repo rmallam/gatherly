@@ -23,20 +23,20 @@ const EventWall = () => {
             const token = localStorage.getItem('token');
 
             // Auto-join event wall first
-            await fetch(`${API_URL}/api/events/${eventId}/join`, {
+            await fetch(`${API_URL}/api/wall/${eventId}/join`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
             // Load posts
-            const postsRes = await fetch(`${API_URL}/api/events/${eventId}/posts`, {
+            const postsRes = await fetch(`${API_URL}/api/wall/${eventId}/posts`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const postsData = await postsRes.json();
             setPosts(postsData.posts || []);
 
             // Load participants
-            const participantsRes = await fetch(`${API_URL}/api/events/${eventId}/participants`, {
+            const participantsRes = await fetch(`${API_URL}/api/wall/${eventId}/participants`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const participantsData = await participantsRes.json();
@@ -56,7 +56,7 @@ const EventWall = () => {
             const token = localStorage.getItem('token');
 
             // Reload participants to get fresh data including the auto-joined participant
-            const participantsRes = await fetch(`${API_URL}/api/events/${eventId}/participants`, {
+            const participantsRes = await fetch(`${API_URL}/api/wall/${eventId}/participants`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const participantsData = await participantsRes.json();
@@ -77,7 +77,7 @@ const EventWall = () => {
 
             console.log('Attempting to create post with participantId:', myParticipant.id);
 
-            const res = await fetch(`${API_URL}/api/events/${eventId}/posts`, {
+            const res = await fetch(`${API_URL}/api/wall/${eventId}/posts`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
