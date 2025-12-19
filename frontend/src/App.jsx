@@ -15,6 +15,7 @@ import EventDetailsTabs from './pages/EventDetailsTabs';
 import Scanner from './pages/Scanner';
 import RSVP from './pages/RSVP';
 import PublicInvitation from './pages/PublicInvitation';
+import EventWall from './pages/EventWall';
 
 // Back button handler component
 function BackButtonHandler() {
@@ -74,6 +75,11 @@ function App() {
                                 <Layout>
                                     <EventDetailsTabs />
                                 </Layout>
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/event/:eventId/wall" element={
+                            <ProtectedRoute>
+                                <EventWall />
                             </ProtectedRoute>
                         } />
                         <Route path="/scanner" element={
