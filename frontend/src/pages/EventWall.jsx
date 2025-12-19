@@ -55,24 +55,23 @@ const EventWall = () => {
         try {
             const token = localStorage.getItem('token');
 
-            // Get current user's participant ID
-            // After auto-join, we should have the participant in the list
-            // Find the participant that matches the current user
-            const currentUser = JSON.parse(localStorage.getItem('user'));
-            console.log('Current user:', currentUser);
-            console.log('All participants:', participants);
+            // Reload participants to get fresh data including the auto-joined participant
+            const participantsRes = await fetch(`${API_URL}/api/events/${eventId}/participants`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const participantsData = await participantsRes.json();
+            const currentParticipants = participantsData.participants || [];
 
-            // Find participant by matching user info
-            const myParticipant = participants.find(p =>
-                p.guest_name === currentUser?.name ||
-                p.guest_email === currentUser?.email
-            );
+            console.log('Reloaded participants for posting:', currentParticipants);
+
+            // Use the first participant (should be current user)
+            const myParticipant = currentParticipants[0];
 
             console.log('My participant:', myParticipant);
 
             if (!myParticipant) {
-                alert('Unable to post - please try refreshing the page');
-                console.error('No participant found for current user');
+                alert('Unable to post - no participant found. Please refresh the page.');
+                console.error('No participant found after reload');
                 return;
             }
 
