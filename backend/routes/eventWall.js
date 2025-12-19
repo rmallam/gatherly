@@ -55,8 +55,8 @@ router.post('/:eventId/join', authMiddleware, async (req, res) => {
             if (eventCheck.rows.length > 0) {
                 // User is organizer - create a guest record for them
                 const newGuest = await query(
-                    `INSERT INTO guests (event_id, user_id, name, email) 
-                     VALUES ($1, $2, $3, $4) RETURNING id`,
+                    `INSERT INTO guests (id, event_id, user_id, name, email) 
+                     VALUES (gen_random_uuid(), $1, $2, $3, $4) RETURNING id`,
                     [eventId, userId, req.user.name, req.user.email]
                 );
                 guestId = newGuest.rows[0].id;
