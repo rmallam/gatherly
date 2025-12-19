@@ -12,6 +12,7 @@ import { sendVerificationEmail } from './server/email.js';
 import { initTwilio } from './services/reminderService.js';
 import { startReminderCron } from './jobs/reminderCron.js';
 import { sendAnnouncement, sendThankYouMessages, getCommunications } from './controllers/communicationController.js';
+import eventWallRoutes from './routes/eventWall.js';
 
 const app = express();
 
