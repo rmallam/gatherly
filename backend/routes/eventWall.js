@@ -1,5 +1,5 @@
 import express from 'express';
-import db from '../db/index.js';
+import { query } from '../db/connection.js';
 import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -12,14 +12,14 @@ router.post('/:eventId/join', authenticateToken, async (req, res) => {
         const userId = req.user.userId;
 
         // Verify event exists and user has access
-        const eventCheck = await db.query(
+        const eventCheck = await query(
             'SELECT * FROM events WHERE id = $1 AND user_id = $2',
             [eventId, userId]
         );
 
         if (eventCheck.rows.length === 0) {
             // Also check if user is a guest
-            const guestCheck = await db.query(
+            const guestCheck = await query(
                 'SELECT * FROM guests WHERE id = $1 AND event_id = $2',
                 [guestId, eventId]
             );
@@ -30,7 +30,7 @@ router.post('/:eventId/join', authenticateToken, async (req, res) => {
         }
 
         // Check if already joined
-        const existingParticipant = await db.query(
+        const existingParticipant = await query(
             'SELECT * FROM event_participants WHERE event_id = $1 AND guest_id = $2',
             [eventId, guestId]
         );
@@ -40,7 +40,7 @@ router.post('/:eventId/join', authenticateToken, async (req, res) => {
         }
 
         // Join the event wall
-        const result = await db.query(
+        const result = await query(
             `INSERT INTO event_participants 
             (event_id, guest_id, profile_photo_url, bio, fun_fact, relationship_to_host)
             VALUES ($1, $2, $3, $4, $5, $6)
@@ -60,7 +60,7 @@ router.get('/:eventId/participants', authenticateToken, async (req, res) => {
     try {
         const { eventId } = req.params;
 
-        const result = await db.query(
+        const result = await query(
             `SELECT 
                 ep.*,
                 g.name as guest_name,
@@ -86,7 +86,7 @@ router.patch('/:eventId/participants/:participantId', authenticateToken, async (
         const { participantId } = req.params;
         const { profilePhoto, bio, funFact, relationshipToHost } = req.body;
 
-        const result = await db.query(
+        const result = await query(
             `UPDATE event_participants 
             SET profile_photo_url = COALESCE($1, profile_photo_url),
                 bio = COALESCE($2, bio),
@@ -144,7 +144,7 @@ router.get('/:eventId/posts', authenticateToken, async (req, res) => {
 
         params.push(limit, offset);
 
-        const result = await db.query(query, params);
+        const result = await query(query, params);
 
         res.json({
             posts: result.rows,
@@ -163,7 +163,7 @@ router.post('/:eventId/posts', authenticateToken, async (req, res) => {
         const { participantId, type, content, photoUrl } = req.body;
 
         // Verify participant belongs to this event
-        const participantCheck = await db.query(
+        const participantCheck = await query(
             'SELECT * FROM event_participants WHERE id = $1 AND event_id = $2',
             [participantId, eventId]
         );
@@ -172,7 +172,7 @@ router.post('/:eventId/posts', authenticateToken, async (req, res) => {
             return res.status(403).json({ error: 'Not a participant of this event' });
         }
 
-        const result = await db.query(
+        const result = await query(
             `INSERT INTO event_posts 
             (event_id, participant_id, post_type, content, photo_url)
             VALUES ($1, $2, $3, $4, $5)
@@ -181,7 +181,7 @@ router.post('/:eventId/posts', authenticateToken, async (req, res) => {
         );
 
         // Fetch the complete post with author info
-        const postWithAuthor = await db.query(
+        const postWithAuthor = await query(
             `SELECT 
                 ep.*,
                 part.profile_photo_url,
@@ -207,7 +207,7 @@ router.delete('/:eventId/posts/:postId', authenticateToken, async (req, res) => 
         const userId = req.user.userId;
 
         // Check if user is event owner or post author
-        const authCheck = await db.query(
+        const authCheck = await query(
             `SELECT ep.* FROM event_posts ep
             JOIN event_participants part ON ep.participant_id = part.id
             JOIN guests g ON part.guest_id = g.id
@@ -221,7 +221,7 @@ router.delete('/:eventId/posts/:postId', authenticateToken, async (req, res) => 
             return res.status(403).json({ error: 'Not authorized to delete this post' });
         }
 
-        await db.query('DELETE FROM event_posts WHERE id = $1', [postId]);
+        await query('DELETE FROM event_posts WHERE id = $1', [postId]);
 
         res.json({ success: true });
     } catch (error) {
@@ -237,7 +237,7 @@ router.post('/posts/:postId/like', authenticateToken, async (req, res) => {
         const { participantId } = req.body;
 
         // Check if already liked
-        const existing = await db.query(
+        const existing = await query(
             'SELECT * FROM post_likes WHERE post_id = $1 AND participant_id = $2',
             [postId, participantId]
         );
@@ -246,13 +246,13 @@ router.post('/posts/:postId/like', authenticateToken, async (req, res) => {
             return res.json({ like: existing.rows[0] });
         }
 
-        const result = await db.query(
+        const result = await query(
             'INSERT INTO post_likes (post_id, participant_id) VALUES ($1, $2) RETURNING *',
             [postId, participantId]
         );
 
         // Get updated like count
-        const countResult = await db.query(
+        const countResult = await query(
             'SELECT COUNT(*) as like_count FROM post_likes WHERE post_id = $1',
             [postId]
         );
@@ -272,13 +272,13 @@ router.delete('/posts/:postId/like/:participantId', authenticateToken, async (re
     try {
         const { postId, participantId } = req.params;
 
-        await db.query(
+        await query(
             'DELETE FROM post_likes WHERE post_id = $1 AND participant_id = $2',
             [postId, participantId]
         );
 
         // Get updated like count
-        const countResult = await db.query(
+        const countResult = await query(
             'SELECT COUNT(*) as like_count FROM post_likes WHERE post_id = $1',
             [postId]
         );
