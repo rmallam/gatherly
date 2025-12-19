@@ -53,11 +53,21 @@ router.post('/:eventId/join', authMiddleware, async (req, res) => {
             }
 
             if (eventCheck.rows.length > 0) {
-                // User is organizer - create a guest record for them
+                // User is organizer - fetch their details and create a guest record for them
+                const userDetails = await query(
+                    'SELECT name, email, phone FROM users WHERE id = $1',
+                    [userId]
+                );
+
+                if (userDetails.rows.length === 0) {
+                    return res.status(404).json({ error: 'User not found' });
+                }
+
+                const user = userDetails.rows[0];
                 const newGuest = await query(
-                    `INSERT INTO guests (id, event_id, user_id, name, email) 
-                     VALUES (gen_random_uuid(), $1, $2, $3, $4) RETURNING id`,
-                    [eventId, userId, req.user.name, req.user.email]
+                    `INSERT INTO guests (id, event_id, user_id, name, email, phone) 
+                     VALUES (gen_random_uuid(), $1, $2, $3, $4, $5) RETURNING id`,
+                    [eventId, userId, user.name, user.email, user.phone]
                 );
                 guestId = newGuest.rows[0].id;
             } else {
