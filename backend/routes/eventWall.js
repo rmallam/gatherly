@@ -11,6 +11,11 @@ router.get('/test', (req, res) => {
 
 // Join an event wall (become a participant)
 router.post('/:eventId/join', authMiddleware, async (req, res) => {
+    console.log('=== JOIN EVENT WALL REQUEST ==');
+    console.log('Event ID:', req.params.eventId);
+    console.log('User ID:', req.user?.userId);
+    console.log('Body:', req.body);
+
     try {
         const { eventId } = req.params;
         const { profilePhoto, bio, funFact, relationshipToHost } = req.body;
@@ -67,10 +72,11 @@ router.post('/:eventId/join', authMiddleware, async (req, res) => {
             [eventId, guestId, profilePhoto, bio, funFact, relationshipToHost]
         );
 
+        console.log('✅ Join successful, participant:', result.rows[0]);
         res.json({ participant: result.rows[0] });
     } catch (error) {
-        console.error('Error joining event:', error);
-        res.status(500).json({ error: 'Failed to join event' });
+        console.error('❌ Error joining event:', error);
+        res.status(500).json({ error: 'Failed to join event', details: error.message });
     }
 });
 
@@ -177,6 +183,11 @@ router.get('/:eventId/posts', authMiddleware, async (req, res) => {
 
 // Create new post
 router.post('/:eventId/posts', authMiddleware, async (req, res) => {
+    console.log('=== CREATE POST REQUEST ===');
+    console.log('Event ID:', req.params.eventId);
+    console.log('User ID:', req.user?.userId);
+    console.log('Body:', req.body);
+
     try {
         const { eventId } = req.params;
         const { participantId, type, content, photoUrl } = req.body;
