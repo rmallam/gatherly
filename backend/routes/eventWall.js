@@ -151,7 +151,7 @@ router.get('/:eventId/posts', authMiddleware, async (req, res) => {
         const { eventId } = req.params;
         const { limit = 20, offset = 0, type = 'all' } = req.query;
 
-        let query = `
+        let sqlQuery = `
             SELECT 
                 ep.*,
                 part.profile_photo_url,
@@ -169,11 +169,11 @@ router.get('/:eventId/posts', authMiddleware, async (req, res) => {
         const params = [eventId];
 
         if (type !== 'all') {
-            query += ` AND ep.post_type = $${params.length + 1}`;
+            sqlQuery += ` AND ep.post_type = $${params.length + 1}`;
             params.push(type);
         }
 
-        query += `
+        sqlQuery += `
             GROUP BY ep.id, part.profile_photo_url, g.name
             ORDER BY ep.is_pinned DESC, ep.created_at DESC
             LIMIT $${params.length + 1} OFFSET $${params.length + 2}
@@ -181,7 +181,7 @@ router.get('/:eventId/posts', authMiddleware, async (req, res) => {
 
         params.push(limit, offset);
 
-        const result = await query(query, params);
+        const result = await query(sqlQuery, params);
 
         res.json({
             posts: result.rows,
