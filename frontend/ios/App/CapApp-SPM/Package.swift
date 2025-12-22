@@ -16,7 +16,8 @@ let package = Package(
         .package(name: "CapacitorCamera", path: "../../../node_modules/@capacitor/camera"),
         .package(name: "CapacitorFilesystem", path: "../../../node_modules/@capacitor/filesystem"),
         .package(name: "CapacitorShare", path: "../../../node_modules/@capacitor/share"),
-        .package(name: "CapgoCapacitorNativeBiometric", path: "../../../node_modules/@capgo/capacitor-native-biometric")
+        .package(name: "CapgoCapacitorNativeBiometric", path: "../../../node_modules/@capgo/capacitor-native-biometric"),
+        .package(name: "OnesignalCordovaPlugin", path: "../../capacitor-cordova-ios-plugins/sources/OnesignalCordovaPlugin")
     ],
     targets: [
         .target(
@@ -28,7 +29,8 @@ let package = Package(
                 .product(name: "CapacitorCamera", package: "CapacitorCamera"),
                 .product(name: "CapacitorFilesystem", package: "CapacitorFilesystem"),
                 .product(name: "CapacitorShare", package: "CapacitorShare"),
-                .product(name: "CapgoCapacitorNativeBiometric", package: "CapgoCapacitorNativeBiometric")
+                .product(name: "CapgoCapacitorNativeBiometric", package: "CapgoCapacitorNativeBiometric"),
+                .product(name: "OnesignalCordovaPlugin", package: "OnesignalCordovaPlugin")
             ]
         )
     ]

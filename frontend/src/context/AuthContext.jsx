@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { BiometricService } from '../services/biometric';
 import { fetchWithRetry } from '../utils/fetchWithRetry';
+import pushNotificationService from '../services/PushNotificationService';
 
 const AuthContext = createContext();
 
@@ -97,6 +98,15 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('token', data.token);
         setToken(data.token);
         setUser(data.user);
+
+        // Register device for push notifications
+        try {
+            await pushNotificationService.registerDevice(data.user.id, data.token);
+        } catch (error) {
+            console.error('Failed to register device for push notifications:', error);
+            // Don't fail login if push notification registration fails
+        }
+
         return data;
     };
 
@@ -162,6 +172,11 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
+        // Unregister device for push notifications
+        pushNotificationService.unregisterDevice().catch(error => {
+            console.error('Failed to unregister device:', error);
+        });
+
         localStorage.removeItem('token');
         localStorage.removeItem('guestUser');
         setToken(null);

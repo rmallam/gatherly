@@ -1,10 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Scan, LogOut, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import NotificationCenter from './NotificationCenter';
 
 const Header = ({ showAuth = true }) => {
     const { user, logout } = useAuth();
+    const [token, setToken] = useState(localStorage.getItem('token'));
+
+    // Update token when it changes
+    useEffect(() => {
+        const handleStorageChange = () => {
+            setToken(localStorage.getItem('token'));
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+
+        // Also check on mount
+        setToken(localStorage.getItem('token'));
+
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, [user]);
 
     return (
         <div style={{
@@ -56,6 +72,10 @@ const Header = ({ showAuth = true }) => {
                                     {user.name}
                                 </span>
                             </Link>
+
+                            {/* Notification Bell Icon */}
+                            {token && <NotificationCenter authToken={token} />}
+
                             <button
                                 onClick={logout}
                                 className="btn btn-secondary"

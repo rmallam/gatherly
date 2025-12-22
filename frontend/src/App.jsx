@@ -5,6 +5,7 @@ import { AuthProvider } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import pushNotificationService from './services/PushNotificationService';
 
 // Pages
 import Landing from './pages/Landing';
@@ -18,6 +19,7 @@ import RSVP from './pages/RSVP';
 import PublicInvitation from './pages/PublicInvitation';
 import EventWall from './pages/EventWall';
 import Profile from './pages/Profile';
+import NotificationList from './pages/NotificationList';
 
 // Back button handler component
 function BackButtonHandler() {
@@ -47,6 +49,11 @@ function BackButtonHandler() {
 }
 
 function App() {
+    // Initialize OneSignal on app start
+    useEffect(() => {
+        pushNotificationService.initialize();
+    }, []);
+
     return (
         <AuthProvider>
             <AppProvider>
@@ -97,6 +104,11 @@ function App() {
                         <Route path="/profile" element={
                             <ProtectedRoute>
                                 <Profile />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/notifications" element={
+                            <ProtectedRoute>
+                                <NotificationList />
                             </ProtectedRoute>
                         } />
                     </Routes>

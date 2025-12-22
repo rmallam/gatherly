@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Trash2, Check, ArrowLeft } from 'lucide-react';
-import { AppContext } from '../context/AppContext';
 import pushNotificationService from '../services/PushNotificationService';
 import './NotificationList.css';
 
 const NotificationList = () => {
-    const { token } = useContext(AppContext);
+    const [token] = useState(localStorage.getItem('token'));
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all'); // 'all' or 'unread'
@@ -44,9 +43,9 @@ const NotificationList = () => {
 
         if (data.eventId) {
             if (notification.type === 'event_wall_post') {
-                navigate(`/event-wall/${data.eventId}`);
+                navigate(`/event/${data.eventId}/wall`);
             } else if (notification.type === 'guest_added') {
-                navigate(`/events/${data.eventId}`);
+                navigate(`/event/${data.eventId}`);
             }
         }
     };
