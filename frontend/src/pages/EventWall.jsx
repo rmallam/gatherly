@@ -161,7 +161,12 @@ const EventWall = () => {
             const token = localStorage.getItem('token');
             const participantId = participants[0]?.id;
 
-            await fetch(`${API_URL}/posts/${postId}/like`, {
+            if (!participantId) {
+                console.error('No participant ID found');
+                return;
+            }
+
+            await fetch(`${API_URL}/wall/${eventId}/posts/${postId}/like`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -543,16 +548,6 @@ const EventWall = () => {
                                     >
                                         <Heart size={18} /> {post.like_count || 0}
                                     </button>
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        color: '#a5b4fc',
-                                        fontSize: '14px',
-                                        fontWeight: 600
-                                    }}>
-                                        <MessageSquare size={18} /> {post.comment_count || 0}
-                                    </div>
                                 </div>
                             </div>
                         ))}

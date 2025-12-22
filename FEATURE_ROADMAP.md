@@ -422,6 +422,22 @@ Add user-requested features here as they come in:
 - [x] Multiple event support
 - [x] Guest deletion
 - [x] Public invitation links
+- [x] Event Wall (social feed for events)
+- [x] Event Wall - Image posting
+- [x] Event Wall - Like functionality
+
+---
+
+## 🎯 Next Up
+
+### Event Wall - Comments
+- [ ] Add/view comments on posts
+- [ ] Comment count display
+- [ ] Delete own comments
+- [ ] Comment notifications
+
+**Priority:** P1 | **Effort:** Low | **Impact:** High
+**Database:** Schema already exists (post_comments table)
 
 ---
 

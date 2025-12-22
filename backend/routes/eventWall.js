@@ -303,7 +303,7 @@ router.delete('/:eventId/posts/:postId', authMiddleware, async (req, res) => {
 });
 
 // Like a post
-router.post('/posts/:postId/like', authMiddleware, async (req, res) => {
+router.post('/:eventId/posts/:postId/like', authMiddleware, async (req, res) => {
     try {
         const { postId } = req.params;
         const { participantId } = req.body;
@@ -340,7 +340,7 @@ router.post('/posts/:postId/like', authMiddleware, async (req, res) => {
 });
 
 // Unlike a post
-router.delete('/posts/:postId/like/:participantId', authMiddleware, async (req, res) => {
+router.delete('/:eventId/posts/:postId/like/:participantId', authMiddleware, async (req, res) => {
     try {
         const { postId, participantId } = req.params;
 
