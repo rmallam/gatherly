@@ -126,18 +126,20 @@ router.post('/:eventId/join', authMiddleware, async (req, res) => {
 router.get('/:eventId/participants', authMiddleware, async (req, res) => {
     try {
         const { eventId } = req.params;
+        const userId = req.user.id;
 
         const result = await query(
             `SELECT 
                 ep.*,
                 g.name as guest_name,
                 g.email,
-                g.phone
+                g.phone,
+                CASE WHEN g.user_id = $2 THEN true ELSE false END as is_current_user
             FROM event_participants ep
             JOIN guests g ON ep.guest_id = g.id
             WHERE ep.event_id = $1
             ORDER BY ep.joined_at DESC`,
-            [eventId]
+            [eventId, userId]
         );
 
         res.json({ participants: result.rows });
