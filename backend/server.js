@@ -365,6 +365,169 @@ app.post('/api/auth/resend-verification', async (req, res) => {
     }
 });
 
+// === USER PROFILE ROUTES ===
+
+// Get current user's profile
+app.get('/api/users/profile', authMiddleware, async (req, res) => {
+    try {
+        const result = await query(
+            'SELECT id, name, email, phone, profile_picture_url, bio, email_verified, created_at, updated_at FROM users WHERE id = $1',
+            [req.user.id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const user = result.rows[0];
+        res.json({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            profilePictureUrl: user.profile_picture_url,
+            bio: user.bio,
+            emailVerified: user.email_verified,
+            createdAt: user.created_at,
+            updatedAt: user.updated_at
+        });
+    } catch (error) {
+        console.error('Get profile error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Update user profile
+app.patch('/api/users/profile', authMiddleware, async (req, res) => {
+    try {
+        const { name, phone, bio, profilePictureUrl } = req.body;
+
+        // Validate inputs
+        if (name && (!name.trim() || name.trim().length < 2)) {
+            return res.status(400).json({ error: 'Name must be at least 2 characters' });
+        }
+
+        if (phone && phone.trim()) {
+            const cleanPhone = phone.replace(/\D/g, '');
+            if (!/^\d{10}$/.test(cleanPhone)) {
+                return res.status(400).json({ error: 'Please enter a valid 10-digit phone number' });
+            }
+
+            // Check if phone is already used by another user
+            const existingPhone = await query(
+                'SELECT id FROM users WHERE phone = $1 AND id != $2',
+                [phone.trim(), req.user.id]
+            );
+            if (existingPhone.rows.length > 0) {
+                return res.status(400).json({ error: 'Phone number already in use' });
+            }
+        }
+
+        if (bio && bio.length > 500) {
+            return res.status(400).json({ error: 'Bio must be less than 500 characters' });
+        }
+
+        // Build update query dynamically
+        const updates = [];
+        const values = [];
+        let paramCount = 1;
+
+        if (name !== undefined) {
+            updates.push(`name = $${paramCount++}`);
+            values.push(name.trim());
+        }
+        if (phone !== undefined) {
+            updates.push(`phone = $${paramCount++}`);
+            values.push(phone.trim() || null);
+        }
+        if (bio !== undefined) {
+            updates.push(`bio = $${paramCount++}`);
+            values.push(bio.trim() || null);
+        }
+        if (profilePictureUrl !== undefined) {
+            updates.push(`profile_picture_url = $${paramCount++}`);
+            values.push(profilePictureUrl || null);
+        }
+
+        if (updates.length === 0) {
+            return res.status(400).json({ error: 'No fields to update' });
+        }
+
+        values.push(req.user.id);
+
+        const result = await query(
+            `UPDATE users 
+             SET ${updates.join(', ')}
+             WHERE id = $${paramCount}
+             RETURNING id, name, email, phone, profile_picture_url, bio, email_verified, created_at, updated_at`,
+            values
+        );
+
+        const user = result.rows[0];
+        res.json({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            profilePictureUrl: user.profile_picture_url,
+            bio: user.bio,
+            emailVerified: user.email_verified,
+            createdAt: user.created_at,
+            updatedAt: user.updated_at
+        });
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Change password
+app.post('/api/users/change-password', authMiddleware, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: 'Current password and new password are required' });
+        }
+
+        // Get current user password
+        const result = await query(
+            'SELECT password FROM users WHERE id = $1',
+            [req.user.id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const user = result.rows[0];
+
+        // Verify current password
+        const isValid = comparePassword(currentPassword, user.password);
+        if (!isValid) {
+            return res.status(401).json({ error: 'Current password is incorrect' });
+        }
+
+        // Validate new password
+        const passwordValidation = validatePassword(newPassword);
+        if (!passwordValidation.valid) {
+            return res.status(400).json({ error: passwordValidation.error });
+        }
+
+        // Hash and update new password
+        const hashedPassword = hashPassword(newPassword);
+        await query(
+            'UPDATE users SET password = $1 WHERE id = $2',
+            [hashedPassword, req.user.id]
+        );
+
+        res.json({ message: 'Password changed successfully' });
+    } catch (error) {
+        console.error('Change password error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // === EVENT ROUTES ===
 app.get('/api/events', authMiddleware, async (req, res) => {
     try {
