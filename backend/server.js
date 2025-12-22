@@ -666,26 +666,49 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
         }
 
         // Check for duplicate guest (by phone or email)
+        // Only check if we have actual phone or email to check against
         const hasPhone = phone && phone.trim().length > 0;
         const hasEmail = email && email.trim().length > 0;
 
         if (hasPhone || hasEmail) {
-            const normalizedPhone = hasPhone ? phone.replace(/[\s\-\+]/g, '') : null;
+            let duplicateName = null;
 
-            const duplicateCheck = await query(
-                `SELECT g.name FROM guests g 
-                 WHERE g.event_id = $1 
-                 AND (
-                     ($2::text IS NOT NULL AND $2 != '' AND g.phone IS NOT NULL AND g.phone != '' AND REPLACE(REPLACE(REPLACE(g.phone, ' ', ''), '-', ''), '+', '') = $2)
-                     OR ($3::text IS NOT NULL AND $3 != '' AND g.email IS NOT NULL AND g.email != '' AND g.email = $3)
-                 )
-                 LIMIT 1`,
-                [req.params.eventId, normalizedPhone, email]
-            );
+            // Check phone duplicate
+            if (hasPhone) {
+                const normalizedPhone = phone.replace(/[\s\-\+]/g, '');
+                const phoneCheck = await query(
+                    `SELECT g.name FROM guests g 
+                     WHERE g.event_id = $1 
+                     AND g.phone IS NOT NULL 
+                     AND g.phone != ''
+                     AND REPLACE(REPLACE(REPLACE(g.phone, ' ', ''), '-', ''), '+', '') = $2
+                     LIMIT 1`,
+                    [req.params.eventId, normalizedPhone]
+                );
+                if (phoneCheck.rows.length > 0) {
+                    duplicateName = phoneCheck.rows[0].name;
+                }
+            }
 
-            if (duplicateCheck.rows.length > 0) {
+            // Check email duplicate (only if phone didn't find duplicate)
+            if (!duplicateName && hasEmail) {
+                const emailCheck = await query(
+                    `SELECT g.name FROM guests g 
+                     WHERE g.event_id = $1 
+                     AND g.email IS NOT NULL 
+                     AND g.email != ''
+                     AND g.email = $2
+                     LIMIT 1`,
+                    [req.params.eventId, email]
+                );
+                if (emailCheck.rows.length > 0) {
+                    duplicateName = emailCheck.rows[0].name;
+                }
+            }
+
+            if (duplicateName) {
                 return res.status(400).json({
-                    error: `Already invited: ${duplicateCheck.rows[0].name}`,
+                    error: `Already invited: ${duplicateName}`,
                     duplicate: true
                 });
             }
