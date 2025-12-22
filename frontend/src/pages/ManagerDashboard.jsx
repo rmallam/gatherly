@@ -113,6 +113,9 @@ const ManagerDashboard = () => {
                         const isGuest = event.role === 'guest';
                         const linkPath = isGuest ? `/guest/event/${event.id}` : `/event/${event.id}`;
 
+                        // Debug logging
+                        console.log('📋 Event:', event.title, '| Role:', event.role, '| isGuest:', isGuest, '| Path:', linkPath);
+
                         return (
                             <Link to={linkPath} key={event.id} style={{ textDecoration: 'none' }}>
                                 <div className="card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'all 0.2s' }}>
