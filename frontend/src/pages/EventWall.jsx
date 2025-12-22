@@ -196,12 +196,14 @@ const EventWall = () => {
         <div style={{
             minHeight: '100vh',
             background: '#fff',
-            paddingBottom: '80px'
+            paddingTop: 'max(20px, env(safe-area-inset-top))',
+            paddingBottom: 'max(80px, env(safe-area-inset-bottom))'
         }}>
             {/* Header */}
             <div style={{
                 background: '#fff',
                 padding: '20px 16px',
+                paddingTop: 'max(20px, calc(env(safe-area-inset-top) + 10px))',
                 borderBottom: '1px solid #e5e7eb',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
             }}>
