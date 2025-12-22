@@ -55,8 +55,8 @@ const EventDetails = () => {
         try {
             const addedGuest = await addGuest(id, {
                 name: newGuest.name.trim(),
-                phone: newGuest.phone.trim(),
-                email: newGuest.email.trim()
+                phone: newGuest.phone.trim() || null,
+                email: newGuest.email.trim() || null
             });
 
             if (shouldInvite && addedGuest) {

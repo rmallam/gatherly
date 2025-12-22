@@ -676,8 +676,8 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
                 `SELECT g.name FROM guests g 
                  WHERE g.event_id = $1 
                  AND (
-                     ($2::text IS NOT NULL AND $2 != '' AND REPLACE(REPLACE(REPLACE(g.phone, ' ', ''), '-', ''), '+', '') = $2)
-                     OR ($3::text IS NOT NULL AND $3 != '' AND g.email = $3)
+                     ($2::text IS NOT NULL AND $2 != '' AND g.phone IS NOT NULL AND g.phone != '' AND REPLACE(REPLACE(REPLACE(g.phone, ' ', ''), '-', ''), '+', '') = $2)
+                     OR ($3::text IS NOT NULL AND $3 != '' AND g.email IS NOT NULL AND g.email != '' AND g.email = $3)
                  )
                  LIMIT 1`,
                 [req.params.eventId, normalizedPhone, email]
@@ -763,8 +763,8 @@ app.post('/api/events/:eventId/guests/bulk', authMiddleware, async (req, res) =>
                     `SELECT g.name FROM guests g 
                      WHERE g.event_id = $1 
                      AND (
-                         ($2::text IS NOT NULL AND $2 != '' AND REPLACE(REPLACE(REPLACE(g.phone, ' ', ''), '-', ''), '+', '') = $2)
-                         OR ($3::text IS NOT NULL AND $3 != '' AND g.email = $3)
+                         ($2::text IS NOT NULL AND $2 != '' AND g.phone IS NOT NULL AND g.phone != '' AND REPLACE(REPLACE(REPLACE(g.phone, ' ', ''), '-', ''), '+', '') = $2)
+                         OR ($3::text IS NOT NULL AND $3 != '' AND g.email IS NOT NULL AND g.email != '' AND g.email = $3)
                      )
                      LIMIT 1`,
                     [req.params.eventId, normalizedPhone, guest.email]
