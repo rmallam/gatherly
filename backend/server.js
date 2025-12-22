@@ -665,6 +665,29 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
             return res.status(404).json({ error: 'Event not found' });
         }
 
+        // Check for duplicate guest (by phone or email)
+        if (phone || email) {
+            const normalizedPhone = phone ? phone.replace(/[\s\-\+]/g, '') : null;
+
+            const duplicateCheck = await query(
+                `SELECT g.name FROM guests g 
+                 WHERE g.event_id = $1 
+                 AND (
+                     ($2 IS NOT NULL AND REPLACE(REPLACE(REPLACE(g.phone, ' ', ''), '-', ''), '+', '') = $2)
+                     OR ($3 IS NOT NULL AND g.email = $3)
+                 )
+                 LIMIT 1`,
+                [req.params.eventId, normalizedPhone, email]
+            );
+
+            if (duplicateCheck.rows.length > 0) {
+                return res.status(400).json({
+                    error: `Already invited: ${duplicateCheck.rows[0].name}`,
+                    duplicate: true
+                });
+            }
+        }
+
         await query(
             'INSERT INTO guests (id, event_id, name, email, phone) VALUES ($1, $2, $3, $4, $5)',
             [guestId, req.params.eventId, name, email || null, phone || null]
@@ -724,7 +747,29 @@ app.post('/api/events/:eventId/guests/bulk', authMiddleware, async (req, res) =>
         }
 
         const addedGuests = [];
+        const skippedGuests = [];
+
         for (const guest of guests) {
+            // Check for duplicate
+            if (guest.phone || guest.email) {
+                const normalizedPhone = guest.phone ? guest.phone.replace(/[\s\-\+]/g, '') : null;
+                const duplicateCheck = await query(
+                    `SELECT g.name FROM guests g 
+                     WHERE g.event_id = $1 
+                     AND (
+                         ($2 IS NOT NULL AND REPLACE(REPLACE(REPLACE(g.phone, ' ', ''), '-', ''), '+', '') = $2)
+                         OR ($3 IS NOT NULL AND g.email = $3)
+                     )
+                     LIMIT 1`,
+                    [req.params.eventId, normalizedPhone, guest.email]
+                );
+
+                if (duplicateCheck.rows.length > 0) {
+                    skippedGuests.push({ name: guest.name, reason: `Already invited: ${duplicateCheck.rows[0].name}` });
+                    continue;
+                }
+            }
+
             const guestId = uuidv4();
             await query(
                 'INSERT INTO guests (id, event_id, name, email, phone) VALUES ($1, $2, $3, $4, $5)',
@@ -762,7 +807,11 @@ app.post('/api/events/:eventId/guests/bulk', authMiddleware, async (req, res) =>
             addedGuests.push({ id: guestId, ...guest, rsvp: null, attended: false, attended_count: 0 });
         }
 
-        res.json(addedGuests);
+        res.json({
+            added: addedGuests,
+            skipped: skippedGuests,
+            message: skippedGuests.length > 0 ? `${addedGuests.length} added, ${skippedGuests.length} skipped (duplicates)` : undefined
+        });
     } catch (error) {
         console.error('Bulk add guests error:', error);
         res.status(500).json({ error: 'Server error' });
