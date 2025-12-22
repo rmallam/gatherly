@@ -166,18 +166,41 @@ const EventWall = () => {
                 return;
             }
 
-            await fetch(`${API_URL}/wall/${eventId}/posts/${postId}/like`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ participantId })
-            });
+            // Find the current post
+            const post = posts.find(p => p.id === postId);
+            const isLiked = post?.user_has_liked;
 
-            loadEventWall();
+            // Optimistic UI update
+            setPosts(posts.map(p =>
+                p.id === postId
+                    ? { ...p, user_has_liked: !isLiked, like_count: (p.like_count || 0) + (isLiked ? -1 : 1) }
+                    : p
+            ));
+
+            if (isLiked) {
+                // Unlike
+                await fetch(`${API_URL}/wall/${eventId}/posts/${postId}/like/${participantId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } else {
+                // Like
+                await fetch(`${API_URL}/wall/${eventId}/posts/${postId}/like`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ participantId })
+                });
+            }
+
+            // Reload to get accurate count from server
+            await loadEventWall();
         } catch (error) {
-            console.error('Error liking post:', error);
+            console.error('Error toggling like:', error);
+            // Reload on error to restore correct state
+            await loadEventWall();
         }
     };
 
@@ -540,13 +563,14 @@ const EventWall = () => {
                                             gap: '6px',
                                             background: 'none',
                                             border: 'none',
-                                            color: '#f87171',
+                                            color: post.user_has_liked ? '#f87171' : '#6b7280',
                                             cursor: 'pointer',
                                             fontSize: '14px',
-                                            fontWeight: 600
+                                            fontWeight: 600,
+                                            transition: 'color 0.2s'
                                         }}
                                     >
-                                        <Heart size={18} /> {post.like_count || 0}
+                                        <Heart size={18} fill={post.user_has_liked ? '#f87171' : 'none'} /> {post.like_count || 0}
                                     </button>
                                 </div>
                             </div>

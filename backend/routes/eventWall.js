@@ -187,7 +187,13 @@ router.get('/:eventId/posts', authMiddleware, async (req, res) => {
                 part.profile_photo_url,
                 g.name as author_name,
                 COUNT(DISTINCT pl.id) as like_count,
-                COUNT(DISTINCT pc.id) as comment_count
+                COUNT(DISTINCT pc.id) as comment_count,
+                CASE WHEN EXISTS(
+                    SELECT 1 FROM post_likes pl2 
+                    JOIN event_participants ep2 ON pl2.participant_id = ep2.id
+                    JOIN guests g2 ON ep2.guest_id = g2.id
+                    WHERE pl2.post_id = ep.id AND g2.user_id = ${req.user.id}
+                ) THEN true ELSE false END as user_has_liked
             FROM event_posts ep
             JOIN event_participants part ON ep.participant_id = part.id
             JOIN guests g ON part.guest_id = g.id
