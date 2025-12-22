@@ -566,10 +566,11 @@ app.get('/api/events', authMiddleware, async (req, res) => {
 
         // Merge data column into each event
         const events = allEvents.map(event => {
-            const { data, ...eventFields } = event;
+            const { data, role, ...eventFields } = event;
             return {
                 ...eventFields,
                 ...(data || {}), // Spread the data jsonb fields
+                role, // IMPORTANT: Preserve role from query (guest vs organizer)
                 guests: event.guests || []
             };
         });
