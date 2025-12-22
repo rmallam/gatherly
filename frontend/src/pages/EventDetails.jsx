@@ -13,7 +13,7 @@ const EventDetails = () => {
     const { getEvent, addGuest, addBulkGuests, deleteGuest } = useApp();
     const event = getEvent(id);
 
-    const [newGuest, setNewGuest] = useState({ name: '', phone: '' });
+    const [newGuest, setNewGuest] = useState({ name: '', phone: '', email: '' });
     const [search, setSearch] = useState('');
     const [showQR, setShowQR] = useState(null);
     const [showBulkImport, setShowBulkImport] = useState(false);
@@ -55,7 +55,8 @@ const EventDetails = () => {
         try {
             const addedGuest = await addGuest(id, {
                 name: newGuest.name.trim(),
-                phone: newGuest.phone.trim()
+                phone: newGuest.phone.trim(),
+                email: newGuest.email.trim()
             });
 
             if (shouldInvite && addedGuest) {
@@ -64,7 +65,7 @@ const EventDetails = () => {
             }
 
             // Clear form and close modal on success
-            setNewGuest({ name: '', phone: '' });
+            setNewGuest({ name: '', phone: '', email: '' });
             setShowAddGuestModal(false);
         } catch (error) {
             console.error('Failed to add guest:', error);
@@ -489,6 +490,16 @@ const EventDetails = () => {
                                     value={newGuest.phone}
                                     onChange={e => setNewGuest({ ...newGuest, phone: e.target.value })}
                                     placeholder="+1 (555) 000-0000"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Email (optional)</label>
+                                <input
+                                    type="email"
+                                    className="input"
+                                    value={newGuest.email}
+                                    onChange={e => setNewGuest({ ...newGuest, email: e.target.value })}
+                                    placeholder="john@example.com"
                                 />
                             </div>
 
