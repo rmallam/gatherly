@@ -230,7 +230,12 @@ export const AppProvider = ({ children }) => {
             const res = await fetch(`${API_URL}/events/${eventId}/guests`, {
                 method: 'POST',
                 headers: getAuthHeaders(),
-                body: JSON.stringify(guestData)
+                body: JSON.stringify({
+                    ...guestData,
+                    // Convert empty strings to null
+                    email: guestData.email && guestData.email.trim() ? guestData.email : null,
+                    phone: guestData.phone && guestData.phone.trim() ? guestData.phone : null
+                })
             });
 
             if (!res.ok) {
