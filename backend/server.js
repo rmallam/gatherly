@@ -670,6 +670,37 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
             [guestId, req.params.eventId, name, email || null, phone || null]
         );
 
+        // Auto-link to existing user if phone or email matches
+        let linkedUserId = null;
+        if (phone) {
+            // Normalize phone for matching (remove spaces, +, etc)
+            const normalizedPhone = phone.replace(/[\s\-\+]/g, '');
+            const userByPhone = await query(
+                `SELECT id FROM users WHERE REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', '') = $1`,
+                [normalizedPhone]
+            );
+            if (userByPhone.rows.length > 0) {
+                linkedUserId = userByPhone.rows[0].id;
+            }
+        }
+        if (!linkedUserId && email) {
+            const userByEmail = await query(
+                'SELECT id FROM users WHERE email = $1',
+                [email]
+            );
+            if (userByEmail.rows.length > 0) {
+                linkedUserId = userByEmail.rows[0].id;
+            }
+        }
+
+        // Update guest with user_id if found
+        if (linkedUserId) {
+            await query(
+                'UPDATE guests SET user_id = $1 WHERE id = $2',
+                [linkedUserId, guestId]
+            );
+        }
+
         const guest = { id: guestId, name, email, phone, rsvp: null, attended: false, attended_count: 0 };
         res.json(guest);
     } catch (error) {
@@ -699,6 +730,35 @@ app.post('/api/events/:eventId/guests/bulk', authMiddleware, async (req, res) =>
                 'INSERT INTO guests (id, event_id, name, email, phone) VALUES ($1, $2, $3, $4, $5)',
                 [guestId, req.params.eventId, guest.name, guest.email || null, guest.phone || null]
             );
+
+            // Auto-link to existing user
+            let linkedUserId = null;
+            if (guest.phone) {
+                const normalizedPhone = guest.phone.replace(/[\s\-\+]/g, '');
+                const userByPhone = await query(
+                    `SELECT id FROM users WHERE REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', '') = $1`,
+                    [normalizedPhone]
+                );
+                if (userByPhone.rows.length > 0) {
+                    linkedUserId = userByPhone.rows[0].id;
+                }
+            }
+            if (!linkedUserId && guest.email) {
+                const userByEmail = await query(
+                    'SELECT id FROM users WHERE email = $1',
+                    [guest.email]
+                );
+                if (userByEmail.rows.length > 0) {
+                    linkedUserId = userByEmail.rows[0].id;
+                }
+            }
+            if (linkedUserId) {
+                await query(
+                    'UPDATE guests SET user_id = $1 WHERE id = $2',
+                    [linkedUserId, guestId]
+                );
+            }
+
             addedGuests.push({ id: guestId, ...guest, rsvp: null, attended: false, attended_count: 0 });
         }
 
