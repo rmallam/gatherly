@@ -17,6 +17,7 @@ import Scanner from './pages/Scanner';
 import RSVP from './pages/RSVP';
 import PublicInvitation from './pages/PublicInvitation';
 import EventWall from './pages/EventWall';
+import Profile from './pages/Profile';
 
 // Back button handler component
 function BackButtonHandler() {
@@ -91,6 +92,11 @@ function App() {
                         <Route path="/scanner" element={
                             <ProtectedRoute>
                                 <Scanner />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/profile" element={
+                            <ProtectedRoute>
+                                <Profile />
                             </ProtectedRoute>
                         } />
                     </Routes>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MessageSquare, Heart, Send, ArrowLeft, Plus, Users, Image as ImageIcon, X } from 'lucide-react';
+import { MessageSquare, Heart, Send, ArrowLeft, Plus, Users, Image as ImageIcon, X, Trash2 } from 'lucide-react';
 import { Camera } from '@capacitor/camera';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -10,11 +10,13 @@ const EventWall = () => {
     const navigate = useNavigate();
     const [posts, setPosts] = useState([]);
     const [participants, setParticipants] = useState([]);
+    const [currentParticipantId, setCurrentParticipantId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showNewPost, setShowNewPost] = useState(false);
     const [newPostContent, setNewPostContent] = useState('');
     const [selectedImage, setSelectedImage] = useState(null);
     const [event, setEvent] = useState(null);
+    const [currentUserId, setCurrentUserId] = useState(null);
 
     useEffect(() => {
         loadEventWall();
@@ -71,7 +73,14 @@ const EventWall = () => {
             }
 
             const participantsData = await participantsRes.json();
-            setParticipants(participantsData.participants || []);
+            const participantsList = participantsData.participants || [];
+            setParticipants(participantsList);
+
+            // Find and store current user's participant ID
+            const currentParticipant = participantsList.find(p => p.is_current_user);
+            if (currentParticipant) {
+                setCurrentParticipantId(currentParticipant.id);
+            }
 
             setLoading(false);
         } catch (error) {
@@ -79,6 +88,19 @@ const EventWall = () => {
             setLoading(false);
         }
     };
+
+    // Get current user ID from token
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                setCurrentUserId(payload.id);
+            } catch (e) {
+                console.error('Error parsing token:', e);
+            }
+        }
+    }, []);
 
     const pickImage = async () => {
         try {
@@ -102,27 +124,11 @@ const EventWall = () => {
         try {
             const token = localStorage.getItem('token');
 
-            // Reload participants to get fresh data including the auto-joined participant
-            const participantsRes = await fetch(`${API_URL}/wall/${eventId}/participants`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const participantsData = await participantsRes.json();
-            const currentParticipants = participantsData.participants || [];
-
-            console.log('Reloaded participants for posting:', currentParticipants);
-
-            // Use the first participant (should be current user)
-            const myParticipant = currentParticipants[0];
-
-            console.log('My participant:', myParticipant);
-
-            if (!myParticipant) {
+            if (!currentParticipantId) {
                 alert('Unable to post - no participant found. Please refresh the page.');
-                console.error('No participant found after reload');
+                console.error('No current participant ID found');
                 return;
             }
-
-            console.log('Attempting to create post with participantId:', myParticipant.id);
 
             const res = await fetch(`${API_URL}/wall/${eventId}/posts`, {
                 method: 'POST',
@@ -131,7 +137,7 @@ const EventWall = () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    participantId: myParticipant.id,
+                    participantId: currentParticipantId,
                     type: selectedImage ? 'photo' : 'message',
                     content: newPostContent || '',
                     photoUrl: selectedImage || null
@@ -159,10 +165,9 @@ const EventWall = () => {
     const handleLike = async (postId) => {
         try {
             const token = localStorage.getItem('token');
-            const participantId = participants[0]?.id;
 
-            if (!participantId) {
-                console.error('No participant ID found');
+            if (!currentParticipantId) {
+                console.error('No current participant ID found');
                 return;
             }
 
@@ -179,7 +184,7 @@ const EventWall = () => {
 
             if (isLiked) {
                 // Unlike
-                await fetch(`${API_URL}/wall/${eventId}/posts/${postId}/like/${participantId}`, {
+                await fetch(`${API_URL}/wall/${eventId}/posts/${postId}/like/${currentParticipantId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -191,7 +196,7 @@ const EventWall = () => {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ participantId })
+                    body: JSON.stringify({ participantId: currentParticipantId })
                 });
             }
 
@@ -203,6 +208,32 @@ const EventWall = () => {
             await loadEventWall();
         }
     };
+
+    const handleDeletePost = async (postId) => {
+        if (!window.confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/wall/${eventId}/posts/${postId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                // Remove post from UI
+                setPosts(posts.filter(p => p.id !== postId));
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Failed to delete post');
+            }
+        } catch (error) {
+            console.error('Error deleting post:', error);
+            alert('Failed to delete post');
+        }
+    };
+
 
     if (loading) {
         return (
@@ -517,6 +548,35 @@ const EventWall = () => {
                                             {new Date(post.created_at).toLocaleDateString()}
                                         </div>
                                     </div>
+                                    {/* Delete Button - only for event owner or post author */}
+                                    {(currentUserId === event?.user_id || currentUserId === post.author_user_id) && (
+                                        <button
+                                            onClick={() => handleDeletePost(post.id)}
+                                            style={{
+                                                padding: '8px',
+                                                borderRadius: '8px',
+                                                background: 'transparent',
+                                                border: '1px solid #e5e7eb',
+                                                color: '#ef4444',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.background = '#fee2e2';
+                                                e.currentTarget.style.borderColor = '#ef4444';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.background = 'transparent';
+                                                e.currentTarget.style.borderColor = '#e5e7eb';
+                                            }}
+                                            title="Delete post"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    )}
                                 </div>
 
                                 {/* Content */}

@@ -162,6 +162,22 @@
 
 ---
 
+### 11. User Profile Management
+- [ ] View and edit personal profile
+- [ ] Upload profile picture/avatar
+- [ ] Change password functionality
+- [ ] Update email address with verification
+- [ ] Update phone number
+- [ ] Display name / nickname preferences
+- [ ] Bio or personal description
+- [ ] Account deletion option
+- [ ] Profile visibility settings
+- [ ] Two-factor authentication (optional)
+
+**Priority:** P1 | **Effort:** Low | **Impact:** Medium
+
+---
+
 ## 🎉 Event-Specific Tools
 
 ### 11. Gift Registry Integration

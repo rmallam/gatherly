@@ -35,19 +35,27 @@ const Header = ({ showAuth = true }) => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     {user ? (
                         <>
-                            <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                padding: '0.5rem 0.75rem',
-                                background: 'var(--bg-secondary)',
-                                borderRadius: 'var(--radius-md)'
-                            }}>
+                            <Link
+                                to="/profile"
+                                style={{
+                                    textDecoration: 'none',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.5rem 0.75rem',
+                                    background: 'var(--bg-secondary)',
+                                    borderRadius: 'var(--radius-md)',
+                                    cursor: 'pointer',
+                                    transition: 'background 0.2s'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = '#e0e7ff'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                            >
                                 <User size={16} style={{ color: 'var(--primary)' }} />
                                 <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
                                     {user.name}
                                 </span>
-                            </div>
+                            </Link>
                             <button
                                 onClick={logout}
                                 className="btn btn-secondary"
