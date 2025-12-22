@@ -557,6 +557,10 @@ app.get('/api/events', authMiddleware, async (req, res) => {
             [req.user.id]
         );
 
+        console.log('📊 Events query for user:', req.user.id, req.user.email || req.user.phone);
+        console.log('  ✅ Created (organizer):', createdEvents.rows.length, createdEvents.rows.map(e => e.title));
+        console.log('  👥 Invited (guest):', invitedEvents.rows.length, invitedEvents.rows.map(e => e.title));
+
         // Merge created and invited events
         const allEvents = [...createdEvents.rows, ...invitedEvents.rows];
 
