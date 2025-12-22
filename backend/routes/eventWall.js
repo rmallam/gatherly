@@ -190,6 +190,7 @@ router.get('/:eventId/posts', authMiddleware, async (req, res) => {
                 ep.*,
                 part.profile_photo_url,
                 g.name as author_name,
+                g.user_id as author_user_id,
                 COUNT(DISTINCT pl.id) as like_count,
                 COUNT(DISTINCT pc.id) as comment_count,
                 CASE WHEN EXISTS(
