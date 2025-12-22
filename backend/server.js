@@ -666,15 +666,18 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
         }
 
         // Check for duplicate guest (by phone or email)
-        if (phone || email) {
-            const normalizedPhone = phone ? phone.replace(/[\s\-\+]/g, '') : null;
+        const hasPhone = phone && phone.trim().length > 0;
+        const hasEmail = email && email.trim().length > 0;
+
+        if (hasPhone || hasEmail) {
+            const normalizedPhone = hasPhone ? phone.replace(/[\s\-\+]/g, '') : null;
 
             const duplicateCheck = await query(
                 `SELECT g.name FROM guests g 
                  WHERE g.event_id = $1 
                  AND (
-                     ($2 IS NOT NULL AND REPLACE(REPLACE(REPLACE(g.phone, ' ', ''), '-', ''), '+', '') = $2)
-                     OR ($3 IS NOT NULL AND g.email = $3)
+                     ($2 IS NOT NULL AND $2 != '' AND REPLACE(REPLACE(REPLACE(g.phone, ' ', ''), '-', ''), '+', '') = $2)
+                     OR ($3 IS NOT NULL AND $3 != '' AND g.email = $3)
                  )
                  LIMIT 1`,
                 [req.params.eventId, normalizedPhone, email]
@@ -751,14 +754,17 @@ app.post('/api/events/:eventId/guests/bulk', authMiddleware, async (req, res) =>
 
         for (const guest of guests) {
             // Check for duplicate
-            if (guest.phone || guest.email) {
-                const normalizedPhone = guest.phone ? guest.phone.replace(/[\s\-\+]/g, '') : null;
+            const hasPhone = guest.phone && guest.phone.trim().length > 0;
+            const hasEmail = guest.email && guest.email.trim().length > 0;
+
+            if (hasPhone || hasEmail) {
+                const normalizedPhone = hasPhone ? guest.phone.replace(/[\s\-\+]/g, '') : null;
                 const duplicateCheck = await query(
                     `SELECT g.name FROM guests g 
                      WHERE g.event_id = $1 
                      AND (
-                         ($2 IS NOT NULL AND REPLACE(REPLACE(REPLACE(g.phone, ' ', ''), '-', ''), '+', '') = $2)
-                         OR ($3 IS NOT NULL AND g.email = $3)
+                         ($2 IS NOT NULL AND $2 != '' AND REPLACE(REPLACE(REPLACE(g.phone, ' ', ''), '-', ''), '+', '') = $2)
+                         OR ($3 IS NOT NULL AND $3 != '' AND g.email = $3)
                      )
                      LIMIT 1`,
                     [req.params.eventId, normalizedPhone, guest.email]

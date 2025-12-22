@@ -408,7 +408,14 @@ export const AppProvider = ({ children }) => {
                 throw new Error('Failed to add guests');
             }
 
-            const savedGuests = await res.json();
+            const data = await res.json();
+            // Handle new response format { added: [...], skipped: [...] }
+            const savedGuests = data.added || data;
+
+            if (data.skipped && data.skipped.length > 0) {
+                console.log(`Skipped ${data.skipped.length} duplicate guests:`, data.skipped);
+            }
+
             console.log('Bulk guests added successfully');
 
             // Update with server response

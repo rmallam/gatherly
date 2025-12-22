@@ -15,6 +15,7 @@ const EventWall = () => {
     const [showNewPost, setShowNewPost] = useState(false);
     const [newPostContent, setNewPostContent] = useState('');
     const [selectedImage, setSelectedImage] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [event, setEvent] = useState(null);
     const [currentUserId, setCurrentUserId] = useState(null);
 
@@ -120,8 +121,10 @@ const EventWall = () => {
 
     const handleCreatePost = async () => {
         if (!newPostContent.trim() && !selectedImage) return;
+        if (isSubmitting) return; // Prevent multiple submissions
 
         try {
+            setIsSubmitting(true);
             const token = localStorage.getItem('token');
 
             if (!currentParticipantId) {
@@ -159,6 +162,8 @@ const EventWall = () => {
         } catch (error) {
             console.error('Error creating post:', error);
             alert('Failed to create post. Check console for details.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -446,26 +451,28 @@ const EventWall = () => {
                             />
                             <button
                                 onClick={handleCreatePost}
-                                disabled={!newPostContent.trim()}
+                                disabled={!newPostContent.trim() || isSubmitting}
                                 style={{
                                     width: '100%',
                                     padding: '12px',
                                     borderRadius: '8px',
-                                    background: newPostContent.trim()
+                                    background: (newPostContent.trim() && !isSubmitting)
                                         ? '#6366f1'
                                         : '#f3f4f6',
                                     border: 'none',
-                                    color: newPostContent.trim() ? '#ffffff' : '#9ca3af',
+                                    color: (newPostContent.trim() && !isSubmitting) ? '#ffffff' : '#9ca3af',
                                     fontWeight: '600',
                                     fontSize: '15px',
-                                    cursor: newPostContent.trim() ? 'pointer' : 'not-allowed',
+                                    cursor: (newPostContent.trim() && !isSubmitting) ? 'pointer' : 'not-allowed',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    gap: '8px'
+                                    gap: '8px',
+                                    opacity: isSubmitting ? 0.6 : 1
                                 }}
                             >
-                                <Send size={18} strokeWidth={2.5} /> Post to Wall
+                                <Send size={18} strokeWidth={2.5} />
+                                {isSubmitting ? 'Posting...' : 'Post to Wall'}
                             </button>
                         </div>
                     </div>
