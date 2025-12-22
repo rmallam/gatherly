@@ -181,6 +181,8 @@ router.get('/:eventId/posts', authMiddleware, async (req, res) => {
         const { eventId } = req.params;
         const { limit = 20, offset = 0, type = 'all' } = req.query;
 
+        const params = [eventId];
+
         let sqlQuery = `
             SELECT 
                 ep.*,
@@ -192,7 +194,7 @@ router.get('/:eventId/posts', authMiddleware, async (req, res) => {
                     SELECT 1 FROM post_likes pl2 
                     JOIN event_participants ep2 ON pl2.participant_id = ep2.id
                     JOIN guests g2 ON ep2.guest_id = g2.id
-                    WHERE pl2.post_id = ep.id AND g2.user_id = ${req.user.id}
+                    WHERE pl2.post_id = ep.id AND g2.user_id = $2
                 ) THEN true ELSE false END as user_has_liked
             FROM event_posts ep
             JOIN event_participants part ON ep.participant_id = part.id
@@ -202,7 +204,7 @@ router.get('/:eventId/posts', authMiddleware, async (req, res) => {
             WHERE ep.event_id = $1 AND ep.is_approved = true
         `;
 
-        const params = [eventId];
+        params.push(req.user.id);
 
         if (type !== 'all') {
             sqlQuery += ` AND ep.post_type = $${params.length + 1}`;
