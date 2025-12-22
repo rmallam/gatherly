@@ -215,7 +215,7 @@ router.get('/:eventId/posts', authMiddleware, async (req, res) => {
         }
 
         sqlQuery += `
-            GROUP BY ep.id, part.profile_photo_url, g.name
+            GROUP BY ep.id, part.profile_photo_url, g.name, g.user_id
             ORDER BY ep.is_pinned DESC, ep.created_at DESC
             LIMIT $${params.length + 1} OFFSET $${params.length + 2}
         `;
