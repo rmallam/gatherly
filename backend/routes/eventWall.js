@@ -352,7 +352,31 @@ router.post('/:eventId/posts/:postId/like', authMiddleware, async (req, res) => 
 // Unlike a post
 router.delete('/:eventId/posts/:postId/like/:participantId', authMiddleware, async (req, res) => {
     try {
-        const { postId, participantId } = req.params;
+        const { eventId, postId, participantId } = req.params;
+        const userId = req.user.id;
+
+        // Check if user is event owner OR owns this like
+        const authCheck = await query(
+            `SELECT pl.*, e.user_id as event_owner_id, g.user_id as like_owner_id
+             FROM post_likes pl
+             JOIN event_participants ep ON pl.participant_id = ep.id
+             JOIN guests g ON ep.guest_id = g.id
+             JOIN events e ON e.id = $1
+             WHERE pl.post_id = $2 AND pl.participant_id = $3`,
+            [eventId, postId, participantId]
+        );
+
+        if (authCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Like not found' });
+        }
+
+        const like = authCheck.rows[0];
+        const isEventOwner = like.event_owner_id === userId;
+        const isLikeOwner = like.like_owner_id === userId;
+
+        if (!isEventOwner && !isLikeOwner) {
+            return res.status(403).json({ error: 'Not authorized to delete this like' });
+        }
 
         await query(
             'DELETE FROM post_likes WHERE post_id = $1 AND participant_id = $2',
