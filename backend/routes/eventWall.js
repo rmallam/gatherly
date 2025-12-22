@@ -1,6 +1,7 @@
 import express from 'express';
 import { query } from '../db/connection.js';
 import { authMiddleware } from '../server/auth.js';
+import { sendNotificationToUsers } from '../services/notificationService.js';
 
 const router = express.Router();
 
@@ -267,8 +268,9 @@ router.post('/:eventId/posts', authMiddleware, async (req, res) => {
         const postWithAuthor = await query(
             `SELECT 
                 ep.*,
-                part.profile_photo_url,
-                g.name as author_name
+            part.profile_photo_url,
+            g.name as author_name,
+            g.user_id as author_user_id
             FROM event_posts ep
             JOIN event_participants part ON ep.participant_id = part.id
             JOIN guests g ON part.guest_id = g.id
@@ -276,7 +278,62 @@ router.post('/:eventId/posts', authMiddleware, async (req, res) => {
             [result.rows[0].id]
         );
 
-        res.json({ post: postWithAuthor.rows[0] });
+        const post = postWithAuthor.rows[0];
+
+        // Send notifications to event organizer and guests
+        try {
+            // Get event details
+            const eventResult = await query(
+                'SELECT e.title, e.user_id FROM events e WHERE e.id = $1',
+                [eventId]
+            );
+
+            if (eventResult.rows.length > 0) {
+                const event = eventResult.rows[0];
+                const authorUserId = post.author_user_id;
+
+                // Get all user IDs to notify (organizer + guests, excluding author)
+                const recipientsResult = await query(
+                    `SELECT DISTINCT user_id 
+                     FROM (
+                         SELECT $1::uuid as user_id
+                         UNION
+                         SELECT g.user_id
+                         FROM guests g 
+                         WHERE g.event_id = $2 AND g.user_id IS NOT NULL
+                     ) AS all_users
+                     WHERE user_id IS NOT NULL AND user_id != $3`,
+                    [event.user_id, eventId, authorUserId || '']
+                );
+
+                const recipientIds = recipientsResult.rows.map(r => r.user_id);
+
+                if (recipientIds.length > 0) {
+                    // Create notification text with preview
+                    const contentPreview = content && content.length > 50
+                        ? content.substring(0, 50) + '...'
+                        : (content || 'Posted a photo');
+
+                    await sendNotificationToUsers(recipientIds, {
+                        type: 'event_wall_post',
+                        title: `New post in ${event.title}`,
+                        body: `${post.author_name}: ${contentPreview}`,
+                        data: {
+                            eventId: eventId,
+                            postId: post.id,
+                            eventTitle: event.title
+                        }
+                    });
+
+                    console.log(`📨 Sent event wall notification to ${recipientIds.length} users`);
+                }
+            }
+        } catch (notifError) {
+            // Don't fail the request if notification fails
+            console.error('Failed to send event wall notification:', notifError);
+        }
+
+        res.json({ post });
     } catch (error) {
         console.error('Error creating post:', error);
         res.status(500).json({ error: 'Failed to create post' });
@@ -296,7 +353,7 @@ router.delete('/:eventId/posts/:postId', authMiddleware, async (req, res) => {
             JOIN guests g ON part.guest_id = g.id
             JOIN events e ON ep.event_id = e.id
             WHERE ep.id = $1 AND ep.event_id = $2
-            AND (e.user_id = $3 OR g.user_id = $3)`,
+            AND(e.user_id = $3 OR g.user_id = $3)`,
             [postId, eventId, userId]
         );
 

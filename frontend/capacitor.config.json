@@ -8,5 +8,10 @@
             "https://gatherly-backend-3vmv.onrender.com"
         ],
         "cleartext": true
+    },
+    "plugins": {
+        "OneSignal": {
+            "appId": "a2ee0c7f-460f-4d5e-a36f-635a0492d6b5"
+        }
     }
 }

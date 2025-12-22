@@ -12,6 +12,13 @@ import { sendVerificationEmail } from './server/email.js';
 import { initTwilio } from './services/reminderService.js';
 import { startReminderCron } from './jobs/reminderCron.js';
 import { sendAnnouncement, sendThankYouMessages, getCommunications } from './controllers/communicationController.js';
+import {
+    sendNotificationToUser,
+    sendNotificationToUsers,
+    registerDeviceToken,
+    removeDeviceToken,
+    getUnreadCount
+} from './services/notificationService.js';
 import eventWallRoutes from './routes/eventWall.js';
 
 const app = express();
@@ -649,6 +656,134 @@ app.delete('/api/events/:id', authMiddleware, async (req, res) => {
     }
 });
 
+// === NOTIFICATION ROUTES ===
+
+// Register device token
+app.post('/api/notifications/register-device', authMiddleware, async (req, res) => {
+    try {
+        const { playerId, platform } = req.body;
+
+        if (!playerId) {
+            return res.status(400).json({ error: 'Player ID is required' });
+        }
+
+        if (!platform || !['android', 'ios', 'web'].includes(platform)) {
+            return res.status(400).json({ error: 'Valid platform is required (android/ios/web)' });
+        }
+
+        await registerDeviceToken(req.user.id, playerId, platform);
+
+        res.json({ success: true, message: 'Device registered successfully' });
+    } catch (error) {
+        console.error('Register device error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Remove device token
+app.delete('/api/notifications/device/:playerId', authMiddleware, async (req, res) => {
+    try {
+        await removeDeviceToken(req.params.playerId);
+        res.json({ success: true, message: 'Device removed successfully' });
+    } catch (error) {
+        console.error('Remove device error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Get user's notifications (paginated)
+app.get('/api/notifications', authMiddleware, async (req, res) => {
+    try {
+        const { limit = 20, offset = 0, unreadOnly = 'false' } = req.query;
+
+        let sqlQuery = `
+            SELECT id, type, title, body, data, read, created_at
+            FROM notifications
+            WHERE user_id = $1
+        `;
+
+        if (unreadOnly === 'true') {
+            sqlQuery += ' AND read = FALSE';
+        }
+
+        sqlQuery += ' ORDER BY created_at DESC LIMIT $2 OFFSET $3';
+
+        const result = await query(sqlQuery, [req.user.id, limit, offset]);
+
+        res.json({
+            notifications: result.rows,
+            hasMore: result.rows.length === parseInt(limit)
+        });
+    } catch (error) {
+        console.error('Get notifications error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Get unread notification count
+app.get('/api/notifications/unread-count', authMiddleware, async (req, res) => {
+    try {
+        const count = await getUnreadCount(req.user.id);
+        res.json({ count });
+    } catch (error) {
+        console.error('Get unread count error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Mark notification as read
+app.patch('/api/notifications/:id/read', authMiddleware, async (req, res) => {
+    try {
+        const result = await query(
+            'UPDATE notifications SET read = TRUE WHERE id = $1 AND user_id = $2 RETURNING *',
+            [req.params.id, req.user.id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Notification not found' });
+        }
+
+        res.json({ success: true, notification: result.rows[0] });
+    } catch (error) {
+        console.error('Mark as read error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Mark all notifications as read
+app.patch('/api/notifications/mark-all-read', authMiddleware, async (req, res) => {
+    try {
+        await query(
+            'UPDATE notifications SET read = TRUE WHERE user_id = $1 AND read = FALSE',
+            [req.user.id]
+        );
+
+        res.json({ success: true, message: 'All notifications marked as read' });
+    } catch (error) {
+        console.error('Mark all as read error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Delete notification
+app.delete('/api/notifications/:id', authMiddleware, async (req, res) => {
+    try {
+        const result = await query(
+            'DELETE FROM notifications WHERE id = $1 AND user_id = $2 RETURNING id',
+            [req.params.id, req.user.id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Notification not found' });
+        }
+
+        res.json({ success: true, message: 'Notification deleted' });
+    } catch (error) {
+        console.error('Delete notification error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // === GUEST ROUTES ===
 app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
     try {
@@ -748,6 +883,34 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
                 'UPDATE guests SET user_id = $1 WHERE id = $2',
                 [linkedUserId, guestId]
             );
+
+            // Send notification to the guest if they have a user account
+            try {
+                // Get event details for notification
+                const eventResult = await query(
+                    'SELECT title FROM events WHERE id = $1',
+                    [req.params.eventId]
+                );
+
+                if (eventResult.rows.length > 0) {
+                    const eventTitle = eventResult.rows[0].title;
+
+                    await sendNotificationToUser(linkedUserId, {
+                        type: 'guest_added',
+                        title: 'New Event Invitation',
+                        body: `You've been added to ${eventTitle}`,
+                        data: {
+                            eventId: req.params.eventId,
+                            eventTitle: eventTitle
+                        }
+                    });
+
+                    console.log(`📨 Notification sent to user ${linkedUserId} for event ${eventTitle}`);
+                }
+            } catch (notifError) {
+                // Don't fail the request if notification fails
+                console.error('Failed to send notification:', notifError);
+            }
         }
 
         const guest = { id: guestId, name, email, phone, rsvp: null, attended: false, attended_count: 0 };
