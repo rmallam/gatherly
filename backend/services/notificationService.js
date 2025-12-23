@@ -30,43 +30,51 @@ export async function sendNotificationToUsers(userIds, notification) {
             return null;
         }
 
-        // Get all player IDs for these users
-        const result = await query(
-            'SELECT DISTINCT player_id FROM device_tokens WHERE user_id = ANY($1)',
-            [userIds]
-        );
-
-        if (result.rows.length === 0) {
-            console.log('No device tokens found for users:', userIds);
-            return null;
-        }
-
-        const playerIds = result.rows.map(row => row.player_id);
-        console.log(`📱 Sending notification to ${playerIds.length} devices for ${userIds.length} users`);
-
-        // Create OneSignal notification
-        const onesignalNotification = {
-            headings: { en: notification.title },
-            contents: { en: notification.body },
-            include_player_ids: playerIds,
-            data: {
-                type: notification.type,
-                ...notification.data
-            },
-            ios_badgeType: 'Increase',
-            ios_badgeCount: 1
-        };
-
-        // Send push notification via OneSignal
-        const response = await onesignalClient.createNotification(onesignalNotification);
-        console.log('✅ OneSignal notification sent:', response.body.id);
-
-        // Save notification to database for in-app notification center
+        // ALWAYS save to database first for in-app notifications
         await saveNotificationsToDatabase(userIds, notification);
 
-        return response;
+        // Try to send push notification via OneSignal
+        try {
+            // Get all player IDs for these users
+            const result = await query(
+                'SELECT DISTINCT player_id FROM device_tokens WHERE user_id = ANY($1)',
+                [userIds]
+            );
+
+            if (result.rows.length === 0) {
+                console.log('⚠️ No device tokens found for users:', userIds);
+                console.log('📱 In-app notification saved, but push notification skipped (no devices registered)');
+                return null;
+            }
+
+            const playerIds = result.rows.map(row => row.player_id);
+            console.log(`📱 Sending push notification to ${playerIds.length} devices for ${userIds.length} users`);
+
+            // Create OneSignal notification
+            const onesignalNotification = {
+                headings: { en: notification.title },
+                contents: { en: notification.body },
+                include_player_ids: playerIds,
+                data: {
+                    type: notification.type,
+                    ...notification.data
+                },
+                ios_badgeType: 'Increase',
+                ios_badgeCount: 1
+            };
+
+            // Send push notification via OneSignal
+            const response = await onesignalClient.createNotification(onesignalNotification);
+            console.log('✅ Push notification sent via OneSignal:', response.body.id);
+
+            return response;
+        } catch (pushError) {
+            // Push notification failed, but in-app notification was already saved
+            console.error('⚠️ Push notification failed (in-app notification still saved):', pushError.message);
+            return null;
+        }
     } catch (error) {
-        console.error('❌ Error sending notification:', error);
+        console.error('❌ Error in notification system:', error);
         throw error;
     }
 }
