@@ -14,6 +14,7 @@ const EventDetails = () => {
     const event = getEvent(id);
 
     const [newGuest, setNewGuest] = useState({ name: '', phone: '', email: '' });
+    const [guestCountryCode, setGuestCountryCode] = useState('+91');
     const [search, setSearch] = useState('');
     const [showQR, setShowQR] = useState(null);
     const [showBulkImport, setShowBulkImport] = useState(false);
@@ -55,7 +56,7 @@ const EventDetails = () => {
         try {
             const addedGuest = await addGuest(id, {
                 name: newGuest.name.trim(),
-                phone: newGuest.phone.trim() || null,
+                phone: newGuest.phone.trim() ? `${guestCountryCode}${newGuest.phone.trim()}` : null,
                 email: newGuest.email.trim() || null
             });
 
@@ -484,13 +485,29 @@ const EventDetails = () => {
                             </div>
                             <div>
                                 <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Phone (optional)</label>
-                                <input
-                                    type="tel"
-                                    className="input"
-                                    value={newGuest.phone}
-                                    onChange={e => setNewGuest({ ...newGuest, phone: e.target.value })}
-                                    placeholder="+1 (555) 000-0000"
-                                />
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <select
+                                        value={guestCountryCode}
+                                        onChange={e => setGuestCountryCode(e.target.value)}
+                                        className="input"
+                                        style={{ width: '120px' }}
+                                    >
+                                        <option value="+91">🇮🇳 +91</option>
+                                        <option value="+1">🇺🇸 +1</option>
+                                        <option value="+44">🇬🇧 +44</option>
+                                        <option value="+61">🇦🇺 +61</option>
+                                        <option value="+971">🇦🇪 +971</option>
+                                    </select>
+                                    <input
+                                        type="tel"
+                                        className="input"
+                                        value={newGuest.phone}
+                                        onChange={e => setNewGuest({ ...newGuest, phone: e.target.value.replace(/\D/g, '') })}
+                                        placeholder="9876543210"
+                                        maxLength={10}
+                                        style={{ flex: 1 }}
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Email (optional)</label>
