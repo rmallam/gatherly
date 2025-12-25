@@ -238,7 +238,17 @@ app.post('/api/auth/login', async (req, res) => {
         if (email) {
             result = await query('SELECT * FROM users WHERE email = $1', [email.toLowerCase().trim()]);
         } else if (phone) {
-            result = await query('SELECT * FROM users WHERE phone = $1', [phone.trim()]);
+            // Use flexible phone matching - compare last 10 digits
+            const normalized = normalizePhone(phone);
+            if (!normalized) {
+                return res.status(401).json({ error: 'Invalid phone number' });
+            }
+            result = await query(
+                `SELECT * FROM users WHERE 
+                 phone IS NOT NULL AND 
+                 SUBSTRING(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', ''), -10) = $1`,
+                [normalized]
+            );
         }
 
         if (result.rows.length === 0) {
