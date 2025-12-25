@@ -1,0 +1,71 @@
+name: Security - MobSF Mobile App Scan
+
+on:
+  workflow_dispatch: # Manual trigger only
+    inputs:
+      apk_path:
+        description: 'Path to APK file'
+        required: false
+        default: 'frontend/android/app/build/outputs/apk/release/app-release.apk'
+
+jobs:
+  build-apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+      
+      - name: Build web app
+        working-directory: ./frontend
+        run: npm run build
+      
+      - name: Sync Capacitor
+        working-directory: ./frontend
+        run: npx cap sync android
+      
+      - name: Build APK
+        working-directory: ./frontend/android
+        run: ./gradlew assembleRelease
+      
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: frontend/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 7
+
+  mobsf-scan:
+    name: MobSF Security Scan
+    runs-on: ubuntu-latest
+    needs: build-apk
+    
+    steps:
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: app-release
+      
+      - name: Run MobSF Scan
+        run: |
+          echo "⚠️  MobSF scan requires a running MobSF instance"
+          echo "To scan manually:"
+          echo "1. Run: docker run -it -p 8000:8000 opensecurity/mobile-security-framework-mobsf"
+          echo "2. Upload the APK at http://localhost:8000"
+          echo "3. Review the security report"
