@@ -1,5 +1,5 @@
 /**
- * CSV Export utilities for Dravify
+ * CSV Export utilities for HostEze
  * Export guest lists with RSVP and check-in data
  */
 

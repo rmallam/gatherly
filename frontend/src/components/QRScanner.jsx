@@ -93,7 +93,7 @@ const QRScanner = ({ onScan, onError, onClose }) => {
                 }).catch(err => console.error("Failed to stop scanner", err));
             }
         };
-    }, [onScan]);
+    }, []); // Empty dependency array - onScan changes are handled via onScanRef
 
     const toggleTorch = async () => {
         if (scannerRef.current && isRunning.current) {

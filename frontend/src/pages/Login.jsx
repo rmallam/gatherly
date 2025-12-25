@@ -22,7 +22,7 @@ const Login = () => {
             if (biometricAvailable) {
                 try {
                     const { BiometricService } = await import('../services/biometric');
-                    const hasSavedCredentials = await BiometricService.hasCredentials('dravify-app');
+                    const hasSavedCredentials = await BiometricService.hasCredentials('hosteze-app');
 
                     if (hasSavedCredentials) {
                         // Automatically trigger biometric auth
@@ -30,7 +30,7 @@ const Login = () => {
 
                         if (authenticated) {
                             // Retrieve and login with saved credentials
-                            const credentials = await BiometricService.getCredentials('dravify-app');
+                            const credentials = await BiometricService.getCredentials('hosteze-app');
                             if (credentials && credentials.username && credentials.password) {
                                 await login(credentials.username, credentials.password);
                                 navigate('/');
@@ -62,7 +62,7 @@ const Login = () => {
             if (biometricAvailable) {
                 // Check if credentials are already saved
                 const { BiometricService } = await import('../services/biometric');
-                const hasSavedCredentials = await BiometricService.hasCredentials('dravify-app');
+                const hasSavedCredentials = await BiometricService.hasCredentials('hosteze-app');
 
                 if (!hasSavedCredentials) {
                     // Only show prompt if not already set up
@@ -147,7 +147,7 @@ const Login = () => {
             <div style={{ padding: '2rem 0', borderBottom: '1px solid var(--border)' }}>
                 <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
                     <Scan size={32} style={{ color: 'var(--primary)' }} />
-                    <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>Dravify</h1>
+                    <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>HostEze</h1>
                 </div>
             </div>
 

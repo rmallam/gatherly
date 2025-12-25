@@ -148,7 +148,7 @@ const PublicInvitation = () => {
 
                 {/* Footer */}
                 <div style={{ textAlign: 'center', color: 'white', opacity: 0.7, fontSize: '0.75rem' }}>
-                    Powered by Dravify ✨
+                    Powered by HostEze ✨
                 </div>
             </div>
 

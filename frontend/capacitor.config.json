@@ -1,6 +1,6 @@
 {
     "appId": "com.guestscanner.app",
-    "appName": "Dravify",
+    "appName": "HostEze",
     "webDir": "dist",
     "server": {
         "androidScheme": "https",

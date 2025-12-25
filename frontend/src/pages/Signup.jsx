@@ -68,7 +68,7 @@ const Signup = () => {
                 <div style={{ padding: '2rem 0', borderBottom: '1px solid var(--border)' }}>
                     <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
                         <Scan size={32} style={{ color: 'var(--primary)' }} />
-                        <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>Dravify</h1>
+                        <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>HostEze</h1>
                     </div>
                 </div>
 
@@ -113,7 +113,7 @@ const Signup = () => {
             <div style={{ padding: '2rem 0', borderBottom: '1px solid var(--border)' }}>
                 <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
                     <Scan size={32} style={{ color: 'var(--primary)' }} />
-                    <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>Dravify</h1>
+                    <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>HostEze</h1>
                 </div>
             </div>
 

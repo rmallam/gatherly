@@ -1,5 +1,5 @@
 import express from 'express';
-import pool from '../db/index.js';
+import { query } from '../db/connection.js';
 import { authenticateToken } from '../server/auth.js';
 
 const router = express.Router();
@@ -9,7 +9,7 @@ router.get('/', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.id;
 
-        const result = await pool.query(
+        const result = await query(
             `SELECT 
                 c.*,
                 COUNT(DISTINCT g.event_id) as events_count,
@@ -33,9 +33,9 @@ router.get('/', authenticateToken, async (req, res) => {
 router.get('/search', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.id;
-        const query = req.query.q || '';
+        const searchQuery = req.query.q || '';
 
-        const result = await pool.query(
+        const result = await query(
             `SELECT * FROM user_contacts 
             WHERE user_id = $1 
             AND (
@@ -44,7 +44,7 @@ router.get('/search', authenticateToken, async (req, res) => {
                 email ILIKE $2
             )
             ORDER BY name ASC`,
-            [userId, `%${query}%`]
+            [userId, `%${searchQuery}%`]
         );
 
         res.json(result.rows);
@@ -60,7 +60,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
         const userId = req.user.id;
         const contactId = req.params.id;
 
-        const result = await pool.query(
+        const result = await query(
             'SELECT * FROM user_contacts WHERE id = $1 AND user_id = $2',
             [contactId, userId]
         );
@@ -90,7 +90,7 @@ router.post('/', authenticateToken, async (req, res) => {
             return res.status(400).json({ error: 'Phone or email is required' });
         }
 
-        const result = await pool.query(
+        const result = await query(
             `INSERT INTO user_contacts (user_id, name, phone, email, notes)
             VALUES ($1, $2, $3, $4, $5)
             RETURNING *`,
@@ -130,7 +130,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
             return res.status(400).json({ error: 'Phone or email is required' });
         }
 
-        const result = await pool.query(
+        const result = await query(
             `UPDATE user_contacts 
             SET name = $1, phone = $2, email = $3, notes = $4
             WHERE id = $5 AND user_id = $6
@@ -166,7 +166,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
         const userId = req.user.id;
         const contactId = req.params.id;
 
-        const result = await pool.query(
+        const result = await query(
             'DELETE FROM user_contacts WHERE id = $1 AND user_id = $2 RETURNING *',
             [contactId, userId]
         );
@@ -192,48 +192,37 @@ router.post('/bulk', authenticateToken, async (req, res) => {
             return res.status(400).json({ error: 'Contacts array is required' });
         }
 
-        const client = await pool.connect();
         const createdContacts = [];
 
-        try {
-            await client.query('BEGIN');
+        for (const contact of contacts) {
+            const { name, phone, email, notes } = contact;
 
-            for (const contact of contacts) {
-                const { name, phone, email, notes } = contact;
-
-                if (!name || !name.trim() || (!phone && !email)) {
-                    continue; // Skip invalid contacts
-                }
-
-                try {
-                    const result = await client.query(
-                        `INSERT INTO user_contacts (user_id, name, phone, email, notes)
-                        VALUES ($1, $2, $3, $4, $5)
-                        ON CONFLICT DO NOTHING
-                        RETURNING *`,
-                        [userId, name.trim(), phone || null, email || null, notes || null]
-                    );
-
-                    if (result.rows.length > 0) {
-                        createdContacts.push(result.rows[0]);
-                    }
-                } catch (err) {
-                    // Skip duplicates, continue with others
-                    console.log('Skipping duplicate contact:', name);
-                }
+            if (!name || !name.trim() || (!phone && !email)) {
+                continue; // Skip invalid contacts
             }
 
-            await client.query('COMMIT');
-            res.status(201).json({
-                created: createdContacts.length,
-                contacts: createdContacts
-            });
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
+            try {
+                const result = await query(
+                    `INSERT INTO user_contacts (user_id, name, phone, email, notes)
+                    VALUES ($1, $2, $3, $4, $5)
+                    ON CONFLICT DO NOTHING
+                    RETURNING *`,
+                    [userId, name.trim(), phone || null, email || null, notes || null]
+                );
+
+                if (result.rows.length > 0) {
+                    createdContacts.push(result.rows[0]);
+                }
+            } catch (err) {
+                // Skip duplicates, continue with others
+                console.log('Skipping duplicate contact:', name);
+            }
         }
+
+        res.status(201).json({
+            created: createdContacts.length,
+            contacts: createdContacts
+        });
     } catch (error) {
         console.error('Error bulk creating contacts:', error);
         res.status(500).json({ error: 'Failed to bulk create contacts' });
@@ -252,7 +241,7 @@ router.post('/add-to-event/:eventId', authenticateToken, async (req, res) => {
         }
 
         // Verify event ownership
-        const eventCheck = await pool.query(
+        const eventCheck = await query(
             'SELECT id FROM events WHERE id = $1 AND user_id = $2',
             [eventId, userId]
         );
@@ -261,53 +250,42 @@ router.post('/add-to-event/:eventId', authenticateToken, async (req, res) => {
             return res.status(404).json({ error: 'Event not found' });
         }
 
-        const client = await pool.connect();
         const addedGuests = [];
 
-        try {
-            await client.query('BEGIN');
+        for (const contactId of contactIds) {
+            // Get contact details
+            const contactResult = await query(
+                'SELECT * FROM user_contacts WHERE id = $1 AND user_id = $2',
+                [contactId, userId]
+            );
 
-            for (const contactId of contactIds) {
-                // Get contact details
-                const contactResult = await client.query(
-                    'SELECT * FROM user_contacts WHERE id = $1 AND user_id = $2',
-                    [contactId, userId]
-                );
+            if (contactResult.rows.length === 0) continue;
 
-                if (contactResult.rows.length === 0) continue;
+            const contact = contactResult.rows[0];
 
-                const contact = contactResult.rows[0];
+            // Check if already added to this event
+            const existingGuest = await query(
+                'SELECT id FROM guests WHERE event_id = $1 AND (phone = $2 OR (email IS NOT NULL AND email = $3))',
+                [eventId, contact.phone, contact.email]
+            );
 
-                // Check if already added to this event
-                const existingGuest = await client.query(
-                    'SELECT id FROM guests WHERE event_id = $1 AND (phone = $2 OR (email IS NOT NULL AND email = $3))',
-                    [eventId, contact.phone, contact.email]
-                );
+            if (existingGuest.rows.length > 0) continue; // Skip if already added
 
-                if (existingGuest.rows.length > 0) continue; // Skip if already added
+            // Add as guest
+            const guestResult = await query(
+                `INSERT INTO guests (event_id, name, phone, email, contact_id, created_at)
+                VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+                RETURNING *`,
+                [eventId, contact.name, contact.phone, contact.email, contact.id]
+            );
 
-                // Add as guest
-                const guestResult = await client.query(
-                    `INSERT INTO guests (event_id, name, phone, email, contact_id, created_at)
-                    VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
-                    RETURNING *`,
-                    [eventId, contact.name, contact.phone, contact.email, contact.id]
-                );
-
-                addedGuests.push(guestResult.rows[0]);
-            }
-
-            await client.query('COMMIT');
-            res.json({
-                added: addedGuests.length,
-                guests: addedGuests
-            });
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
+            addedGuests.push(guestResult.rows[0]);
         }
+
+        res.json({
+            added: addedGuests.length,
+            guests: addedGuests
+        });
     } catch (error) {
         console.error('Error adding contacts to event:', error);
         res.status(500).json({ error: 'Failed to add contacts to event' });

@@ -20,6 +20,7 @@ import PublicInvitation from './pages/PublicInvitation';
 import EventWall from './pages/EventWall';
 import Profile from './pages/Profile';
 import NotificationList from './pages/NotificationList';
+import MyContacts from './pages/MyContacts';
 
 // Back button handler component
 function BackButtonHandler() {
@@ -120,6 +121,13 @@ function App() {
                             <ProtectedRoute>
                                 <Layout>
                                     <NotificationList />
+                                </Layout>
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/contacts" element={
+                            <ProtectedRoute>
+                                <Layout>
+                                    <MyContacts />
                                 </Layout>
                             </ProtectedRoute>
                         } />

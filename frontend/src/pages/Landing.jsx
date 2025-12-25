@@ -160,7 +160,7 @@ const Landing = () => {
                     <Scan size={40} color="white" strokeWidth={2} />
                 </div>
                 <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem', lineHeight: 1.2, color: 'var(--text-primary)' }}>
-                    Dravify
+                    HostEze
                 </h1>
                 <p style={{ fontSize: '0.9375rem', fontWeight: 400, maxWidth: '400px', margin: '0 auto', color: 'var(--text-secondary)' }}>
                     Seamless event management and guest tracking

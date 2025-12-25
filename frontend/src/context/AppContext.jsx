@@ -637,136 +637,160 @@ export const AppProvider = ({ children }) => {
         });
     };
 
-    // Public Invitation Functions
-    const fetchPublicEvent = async (eventId) => {
-        // Always try localStorage first (works for everyone, logged in or not)
-        // This allows the event creator's localStorage to be the source of truth
-        const guestEvents = localStorage.getItem('guestEvents');
-        if (guestEvents) {
-            const events = JSON.parse(guestEvents);
-            const event = events.find(e => e.id === eventId);
-            if (event) {
-                return {
-                    id: event.id,
-                    title: event.title,
-                    venue: event.venue,
-                    date: event.date,
-                    time: event.time,
-                    description: event.description
-                };
-            }
-        }
-
-        // Try server for authenticated users or as fallback
+    const addContactsToEvent = async (eventId, contactIds) => {
         try {
-            const res = await fetch(`${API_URL}/public/events/${eventId}`);
-            if (res.ok) {
-                return await res.json();
-            }
-        } catch (err) {
-            console.error('Failed to fetch public event:', err);
-        }
-
-        throw new Error('Event not found');
-    };
-
-    const submitPublicRSVP = async (eventId, rsvpData) => {
-        // Always try localStorage first (event might be stored there)
-        const guestEvents = localStorage.getItem('guestEvents');
-        if (guestEvents) {
-            const events = JSON.parse(guestEvents);
-            const eventIndex = events.findIndex(e => e.id === eventId);
-
-            if (eventIndex !== -1) {
-                const event = events[eventIndex];
-
-                // Check for existing guest
-                let guest = event.guests.find(g =>
-                    (rsvpData.phone && g.phone === rsvpData.phone) ||
-                    (rsvpData.email && g.email === rsvpData.email)
-                );
-
-                if (guest) {
-                    // Update existing
-                    guest.rsvp = rsvpData.response === 'yes' ? true : rsvpData.response === 'no' ? false : null;
-                    guest.rsvpTime = new Date().toISOString();
-                    guest.plusOnes = rsvpData.plusOnes || 0;
-                    guest.dietaryRestrictions = rsvpData.dietaryRestrictions || '';
-                } else {
-                    // Add new guest
-                    const newGuest = {
-                        id: Date.now().toString(),
-                        name: rsvpData.name,
-                        phone: rsvpData.phone || '',
-                        email: rsvpData.email || '',
-                        rsvp: rsvpData.response === 'yes' ? true : rsvpData.response === 'no' ? false : null,
-                        rsvpTime: new Date().toISOString(),
-                        plusOnes: rsvpData.plusOnes || 0,
-                        dietaryRestrictions: rsvpData.dietaryRestrictions || '',
-                        addedAt: new Date().toISOString(),
-                        attended: false,
-                        attendedCount: 0,
-                        source: 'public_invitation'
-                    };
-                    event.guests.push(newGuest);
-                }
-
-                localStorage.setItem('guestEvents', JSON.stringify(events));
-                return { success: true, message: 'RSVP submitted successfully' };
-            }
-        }
-
-        // Try server for authenticated users
-        try {
-            const res = await fetch(`${API_URL}/public/events/${eventId}/rsvp`, {
+            const res = await fetch(`${API_URL}/contacts/add-to-event/${eventId}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(rsvpData)
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ contactIds })
             });
 
-            if (res.ok) {
-                return await res.json();
+            if (!res.ok) {
+                throw new Error('Failed to add contacts to event');
             }
+
+            const data = await res.json();
+
+            // Refresh events to show newly added guests
+            await fetchEvents();
+
+            return data;
         } catch (err) {
-            console.error('Failed to submit RSVP:', err);
+            console.error('Error adding contacts to event:', err);
+            throw err;
         }
 
-        throw new Error('Failed to submit RSVP');
-    };
+        // Public Invitation Functions
+        const fetchPublicEvent = async (eventId) => {
+            // Always try localStorage first (works for everyone, logged in or not)
+            // This allows the event creator's localStorage to be the source of truth
+            const guestEvents = localStorage.getItem('guestEvents');
+            if (guestEvents) {
+                const events = JSON.parse(guestEvents);
+                const event = events.find(e => e.id === eventId);
+                if (event) {
+                    return {
+                        id: event.id,
+                        title: event.title,
+                        venue: event.venue,
+                        date: event.date,
+                        time: event.time,
+                        description: event.description
+                    };
+                }
+            }
 
-    return (
-        <AppContext.Provider value={{
-            API_URL,
-            events,
-            contacts,
-            loading,
-            error,
-            createEvent,
-            deleteEvent,
-            getEvent,
-            addGuest,
-            addBulkGuests,
-            deleteGuest,
-            markGuestAttended,
-            rsvpGuest,
-            updateEvent,
-            fetchContacts,
-            addContact,
-            updateContact,
-            deleteContact,
-            saveGuestToContacts,
-            fetchPublicEvent,
-            submitPublicRSVP
-        }}>
-            {children}
-        </AppContext.Provider>
-    );
+            // Try server for authenticated users or as fallback
+            try {
+                const res = await fetch(`${API_URL}/public/events/${eventId}`);
+                if (res.ok) {
+                    return await res.json();
+                }
+            } catch (err) {
+                console.error('Failed to fetch public event:', err);
+            }
+
+            throw new Error('Event not found');
+        };
+
+        const submitPublicRSVP = async (eventId, rsvpData) => {
+            // Always try localStorage first (event might be stored there)
+            const guestEvents = localStorage.getItem('guestEvents');
+            if (guestEvents) {
+                const events = JSON.parse(guestEvents);
+                const eventIndex = events.findIndex(e => e.id === eventId);
+
+                if (eventIndex !== -1) {
+                    const event = events[eventIndex];
+
+                    // Check for existing guest
+                    let guest = event.guests.find(g =>
+                        (rsvpData.phone && g.phone === rsvpData.phone) ||
+                        (rsvpData.email && g.email === rsvpData.email)
+                    );
+
+                    if (guest) {
+                        // Update existing
+                        guest.rsvp = rsvpData.response === 'yes' ? true : rsvpData.response === 'no' ? false : null;
+                        guest.rsvpTime = new Date().toISOString();
+                        guest.plusOnes = rsvpData.plusOnes || 0;
+                        guest.dietaryRestrictions = rsvpData.dietaryRestrictions || '';
+                    } else {
+                        // Add new guest
+                        const newGuest = {
+                            id: Date.now().toString(),
+                            name: rsvpData.name,
+                            phone: rsvpData.phone || '',
+                            email: rsvpData.email || '',
+                            rsvp: rsvpData.response === 'yes' ? true : rsvpData.response === 'no' ? false : null,
+                            rsvpTime: new Date().toISOString(),
+                            plusOnes: rsvpData.plusOnes || 0,
+                            dietaryRestrictions: rsvpData.dietaryRestrictions || '',
+                            addedAt: new Date().toISOString(),
+                            attended: false,
+                            attendedCount: 0,
+                            source: 'public_invitation'
+                        };
+                        event.guests.push(newGuest);
+                    }
+
+                    localStorage.setItem('guestEvents', JSON.stringify(events));
+                    return { success: true, message: 'RSVP submitted successfully' };
+                }
+            }
+
+            // Try server for authenticated users
+            try {
+                const res = await fetch(`${API_URL}/public/events/${eventId}/rsvp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(rsvpData)
+                });
+
+                if (res.ok) {
+                    return await res.json();
+                }
+            } catch (err) {
+                console.error('Failed to submit RSVP:', err);
+            }
+
+            throw new Error('Failed to submit RSVP');
+        };
+
+        return (
+            <AppContext.Provider value={{
+                API_URL,
+                events,
+                contacts,
+                loading,
+                error,
+                createEvent,
+                deleteEvent,
+                getEvent,
+                addGuest,
+                addBulkGuests,
+                deleteGuest,
+                markGuestAttended,
+                rsvpGuest,
+                updateEvent,
+                fetchContacts,
+                addContact,
+                updateContact,
+                deleteContact,
+                addContactsToEvent,
+                saveGuestToContacts,
+                fetchPublicEvent,
+                submitPublicRSVP
+            }}>
+                {children}
+            </AppContext.Provider>
+        );
+
 };
-
 export const useApp = () => {
     const context = useContext(AppContext);
     if (!context) {
         throw new Error('useApp must be used within an AppProvider');
     }
     return context;
-};
+}

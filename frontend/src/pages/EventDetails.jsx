@@ -143,7 +143,7 @@ const EventDetails = () => {
                 : window.location.origin;
 
             const guestQRUrl = `${baseUrl}/invite/${id}?guest=${guest.id}`;
-            const inviteText = `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue ? `Venue: ${event.venue}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}\n\nRSVP here: ${guestQRUrl}\n\n📱 Download the Dravify app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/dravify`;
+            const inviteText = `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue ? `Venue: ${event.venue}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}\n\nRSVP here: ${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/hosteze`;
 
             const cleanPhone = guest.phone.replace(/\D/g, '');
             const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(inviteText)}`;
@@ -172,7 +172,7 @@ const EventDetails = () => {
                 : window.location.origin;
 
             const guestQRUrl = `${baseUrl}/invite/${id}?guest=${guest.id}`;
-            const inviteText = `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue ? `Venue: ${event.venue}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}\n\nRSVP here: ${guestQRUrl}\n\n📱 Download the Dravify app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/dravify`;
+            const inviteText = `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue ? `Venue: ${event.venue}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}\n\nRSVP here: ${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/hosteze`;
 
             const { Share } = await import('@capacitor/share');
 

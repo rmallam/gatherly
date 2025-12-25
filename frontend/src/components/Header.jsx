@@ -67,7 +67,7 @@ const Header = ({ showAuth = true }) => {
                 </span>
             </Link>
 
-            {/* Center - Gatherly Branding */}
+            {/* Center - HostEze Branding */}
             <Link to="/" style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -81,7 +81,7 @@ const Header = ({ showAuth = true }) => {
                 transform: 'translateX(-50%)'
             }}>
                 <Scan size={22} style={{ color: '#6366f1' }} />
-                <span>Dravify</span>
+                <span>HostEze</span>
             </Link>
 
             {/* Right - Logout */}

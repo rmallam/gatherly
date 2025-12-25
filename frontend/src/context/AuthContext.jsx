@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [biometricAvailable, setBiometricAvailable] = useState(false);
 
-    const SERVER_NAME = 'dravify-app';
+    const SERVER_NAME = 'hosteze-app';
 
     // Check if user is logged in on mount
     useEffect(() => {
