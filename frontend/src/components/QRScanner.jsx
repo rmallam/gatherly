@@ -9,7 +9,13 @@ const QRScanner = ({ onScan, onError, onClose }) => {
     const [torchOn, setTorchOn] = useState(false);
     const scannerRef = useRef(null);
     const isRunning = useRef(false);
+    const onScanRef = useRef(onScan); // Use ref to avoid re-running useEffect
     const navigate = useNavigate();
+
+    // Update ref when onScan changes
+    useEffect(() => {
+        onScanRef.current = onScan;
+    }, [onScan]);
 
     useEffect(() => {
         const scannerId = "reader";
@@ -53,7 +59,7 @@ const QRScanner = ({ onScan, onError, onClose }) => {
                         (decodedText) => {
                             try {
                                 const data = JSON.parse(decodedText);
-                                onScan(data);
+                                onScanRef.current(data); // Use ref instead of prop
                             } catch (e) {
                                 console.warn("Non-JSON QR Code", e);
                             }
@@ -115,7 +121,13 @@ const QRScanner = ({ onScan, onError, onClose }) => {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}>
                     {/* Back Button */}
                     <button
-                        onClick={() => navigate(-1)}
+                        onClick={() => {
+                            if (onClose) {
+                                onClose(); // Use callback if provided
+                            } else {
+                                navigate(-1); // Fallback to navigate
+                            }
+                        }}
                         style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}
                     >
                         <ArrowLeft size={20} />
