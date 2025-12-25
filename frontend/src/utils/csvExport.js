@@ -1,5 +1,5 @@
 /**
- * CSV Export utilities for Gatherly
+ * CSV Export utilities for Dravify
  * Export guest lists with RSVP and check-in data
  */
 

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "821497777110",
+    "project_id": "rakesh-blog",
+    "storage_bucket": "rakesh-blog.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:821497777110:android:bf14722cde5a5d4342f277",
+        "android_client_info": {
+          "package_name": "com.guestscanner.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYJe_m5ElehTUSVe_vpA2Khw0pRY69C2Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

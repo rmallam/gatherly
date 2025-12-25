@@ -1,13 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { Calendar, MapPin, ArrowLeft, MessageCircle, CheckCircle, XCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Calendar, MapPin, ArrowLeft, MessageCircle, CheckCircle, XCircle, QrCode } from 'lucide-react';
+import QRGenerator from '../components/QRGenerator';
 
 const GuestEventView = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { getEvent } = useApp();
+    const { getEvent, rsvpGuest } = useApp();
+    const { user } = useAuth();
     const event = getEvent(id);
+    const [currentGuest, setCurrentGuest] = useState(null);
+    const [isRSVPing, setIsRSVPing] = useState(false);
+
+    // Find the current guest in the event's guest list
+    useEffect(() => {
+        if (!event || !event.guests) return;
+
+        const guest = event.guests.find(g => {
+            const emailMatch = user?.email && g.email === user.email;
+            const phoneMatch = user?.phone && g.phone === user.phone;
+            const idMatch = g.id === user?.id;
+
+            return emailMatch || phoneMatch || idMatch;
+        });
+
+        setCurrentGuest(guest);
+    }, [event, user]);
 
     if (!event) {
         return (
@@ -20,7 +40,8 @@ const GuestEventView = () => {
         );
     }
 
-    const rsvpStatus = event.rsvp;
+    // Get RSVP status from currentGuest if matched, otherwise from event
+    const rsvpStatus = currentGuest ? currentGuest.rsvp : event.rsvp;
     const hasRSVPd = rsvpStatus !== null && rsvpStatus !== undefined;
 
     return (
@@ -170,7 +191,100 @@ const GuestEventView = () => {
                         )}
                     </div>
                 </div>
+
+                {/* RSVP Buttons - Only show if current user ismatched to a guest */}
+                {currentGuest && (
+                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+                        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                            {hasRSVPd ? 'Want to change your response?' : 'Will you be attending?'}
+                        </p>
+                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                            <button
+                                onClick={async () => {
+                                    setIsRSVPing(true);
+                                    try {
+                                        await rsvpGuest(event.id, currentGuest.id, false);
+                                    } catch (err) {
+                                        console.error('RSVP error:', err);
+                                        alert('Failed to update RSVP. Please try again.');
+                                    } finally {
+                                        setIsRSVPing(false);
+                                    }
+                                }}
+                                disabled={isRSVPing}
+                                className="btn"
+                                style={{
+                                    flex: 1,
+                                    padding: '0.75rem',
+                                    background: rsvpStatus === false ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'var(--bg-secondary)',
+                                    color: rsvpStatus === false ? 'white' : 'var(--text-primary)',
+                                    border: rsvpStatus === false ? 'none' : '1px solid var(--border)',
+                                    fontWeight: 600,
+                                    fontSize: '14px'
+                                }}
+                            >
+                                {rsvpStatus === false ? '✓ Not Attending' : "Can't Make It"}
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    setIsRSVPing(true);
+                                    try {
+                                        await rsvpGuest(event.id, currentGuest.id, true);
+                                    } catch (err) {
+                                        console.error('RSVP error:', err);
+                                        alert('Failed to update RSVP. Please try again.');
+                                    } finally {
+                                        setIsRSVPing(false);
+                                    }
+                                }}
+                                disabled={isRSVPing}
+                                className="btn btn-primary"
+                                style={{
+                                    flex: 1,
+                                    padding: '0.75rem',
+                                    background: rsvpStatus === true ? 'linear-gradient(135deg, #10b981, #059669)' : '',
+                                    fontWeight: 600,
+                                    fontSize: '14px'
+                                }}
+                            >
+                                {rsvpStatus === true ? '✓ Attending' : "I'll Be There!"}
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
+
+            {/* Guest QR Code for Check-in - Only show if guest is found in list */}
+            {currentGuest && (
+                <div className="card" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            <QrCode size={20} color="var(--primary)" />
+                            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                                Your Check-in QR Code
+                            </h3>
+                        </div>
+                        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: 0 }}>
+                            Show this QR code at the event entrance for quick check-in
+                        </p>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <QRGenerator
+                            payload={{
+                                eventId: event.id,
+                                guestId: currentGuest.id,
+                                name: currentGuest.name,
+                                valid: true,
+                                timestamp: Date.now()
+                            }}
+                            name={currentGuest.name}
+                            eventTitle={event.title}
+                            phoneNumber={currentGuest.phone}
+                        />
+                    </div>
+                </div>
+            )}
 
             {/* Event Wall Button */}
             <Link

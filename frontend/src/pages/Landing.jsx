@@ -4,6 +4,7 @@ import { Calendar, QrCode, Users, ScanLine, ArrowRight, Scan, LogOut } from 'luc
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 import Header from '../components/Header';
+import BottomNavigation from '../components/BottomNavigation';
 
 const Landing = () => {
     const { user, logout } = useAuth();
@@ -15,9 +16,7 @@ const Landing = () => {
     // Logged-in user view
     if (user && !user.isGuest) {
         return (
-            <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
-                <Header showAuth={true} />
-
+            <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', paddingBottom: 'calc(60px + env(safe-area-inset-bottom))' }}>
                 {/* Header */}
                 <div style={{ padding: '3rem 1rem 2rem', textAlign: 'center' }}>
                     <div style={{ width: '64px', height: '64px', margin: '0 auto 1.5rem', borderRadius: '16px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -146,6 +145,8 @@ const Landing = () => {
                         <div style={{ fontSize: '0.9375rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Guests</div>
                     </div>
                 </div>
+
+                <BottomNavigation />
             </div>
         );
     }
@@ -153,15 +154,13 @@ const Landing = () => {
     // Guest/non-logged-in view
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
-            <Header showAuth={true} />
-
             {/* Header */}
             <div style={{ padding: '3rem 1rem 2rem', textAlign: 'center' }}>
                 <div style={{ width: '72px', height: '72px', margin: '0 auto 1.5rem', borderRadius: '18px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Scan size={40} color="white" strokeWidth={2} />
                 </div>
                 <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem', lineHeight: 1.2, color: 'var(--text-primary)' }}>
-                    Gatherly
+                    Dravify
                 </h1>
                 <p style={{ fontSize: '0.9375rem', fontWeight: 400, maxWidth: '400px', margin: '0 auto', color: 'var(--text-secondary)' }}>
                     Seamless event management and guest tracking

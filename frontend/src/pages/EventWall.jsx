@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MessageSquare, Heart, Send, ArrowLeft, Plus, Users, Image as ImageIcon, X, Trash2 } from 'lucide-react';
 import { Camera } from '@capacitor/camera';
+import Header from '../components/Header';
+import confetti from 'canvas-confetti';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -152,6 +154,14 @@ const EventWall = () => {
             console.log('Post creation response data:', responseData);
 
             if (res.ok) {
+                // Celebration confetti!
+                confetti({
+                    particleCount: 80,
+                    spread: 60,
+                    origin: { y: 0.7 },
+                    colors: ['#6366f1', '#a855f7', '#ec4899']
+                });
+
                 setNewPostContent('');
                 setSelectedImage(null);
                 setShowNewPost(false);
@@ -259,15 +269,13 @@ const EventWall = () => {
     return (
         <div style={{
             minHeight: '100vh',
-            background: '#fff',
-            paddingTop: 'max(20px, env(safe-area-inset-top))',
-            paddingBottom: 'max(80px, env(safe-area-inset-bottom))'
+            background: '#fff'
         }}>
-            {/* Header */}
+
+            {/* Event Header */}
             <div style={{
                 background: '#fff',
                 padding: '20px 16px',
-                paddingTop: 'max(20px, calc(env(safe-area-inset-top) + 10px))',
                 borderBottom: '1px solid #e5e7eb',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
             }}>
@@ -350,7 +358,10 @@ const EventWall = () => {
                             borderTopLeftRadius: '16px',
                             borderTopRightRadius: '16px',
                             padding: '24px',
-                            boxShadow: '0 -4px 20px rgba(0,0,0,0.1)'
+                            paddingBottom: 'calc(24px + 60px + env(safe-area-inset-bottom))',
+                            boxShadow: '0 -4px 20px rgba(0,0,0,0.1)',
+                            maxHeight: '80vh',
+                            overflowY: 'auto'
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
                                 <h3 style={{ color: '#1f2937', fontSize: '18px', fontWeight: '600', margin: 0 }}>
@@ -480,7 +491,10 @@ const EventWall = () => {
             }
 
             {/* Posts Feed */}
-            <div style={{ padding: '16px' }}>
+            <div style={{
+                padding: '16px',
+                paddingBottom: 'max(80px, env(safe-area-inset-bottom))'
+            }}>
                 {posts.length === 0 ? (
                     <div style={{
                         textAlign: 'center',

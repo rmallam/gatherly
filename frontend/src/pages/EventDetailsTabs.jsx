@@ -116,9 +116,9 @@ const EventDetailsTabs = () => {
     ];
 
     return (
-        <div style={{ maxWidth: '75rem', margin: '0 auto' }}>
+        <div style={{ maxWidth: '75rem', margin: '0 auto', padding: '16px' }}>
             {/* Header with Back Button and Event Wall */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
                 <Link
                     to="/manager"
                     style={{

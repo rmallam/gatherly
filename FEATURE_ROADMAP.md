@@ -380,6 +380,34 @@
 
 ---
 
+### 31. Guest List Management & Reusable Groups
+
+**Objective:** Create a centralized guest database with reusable contact groups that can be invited to multiple events.
+
+**Features:**
+- [ ] **Centralized Guest Database**
+  - Store all guests in a global database (not just per-event)
+  - Maintain guest contact details, RSVP history, and attendance records across all events
+  - Prevent duplicate entries and auto-suggest existing contacts when adding guests
+
+- [ ] **Guest Grouping System**
+  - Create custom groups (e.g., "Family", "College Friends", "Work Colleagues", "Neighbors")
+  - Tag guests with multiple group labels for flexible organization
+  - Quick-add entire groups to new events with a single click
+
+- [ ] **Smart Guest Suggestions**
+  - Recommend frequently invited guests when creating new events
+  - Show guest attendance patterns and RSVP reliability
+  - Suggest groups based on event type or past similar events
+
+**Use Cases:**
+- Event organizers who host multiple events can reuse their guest lists
+- Family events can quickly invite the same "Family" group
+- Corporate events can maintain professional contact groups
+
+**Priority:** P4 | **Effort:** High | **Impact:** Medium
+
+
 ## 🚀 Recommended Implementation Order
 
 ### Phase 1: Foundation (Next 2-3 months)
@@ -451,6 +479,10 @@ Add user-requested features here as they come in:
 - [ ] Comment count display
 - [ ] Delete own comments
 - [ ] Comment notifications
+- [ ] Event admin delete any posts
+- [ ] Event admin delete any comments
+- [ ] Event admin delete any likes
+
 
 **Priority:** P1 | **Effort:** Low | **Impact:** High
 **Database:** Schema already exists (post_comments table)
@@ -459,3 +491,16 @@ Add user-requested features here as they come in:
 
 **Last Updated:** December 15, 2024
 **Next Review:** January 15, 2025
+
+
+
+### 5. Instagram-Style Event Cards  
+- [ ] Redesign My Events cards with gradient headers
+- [ ] Vertical layout with larger titles (18-20px, weight 800)
+- [ ] Date badge on gradient header
+- [ ] Grid layout for modern look
+
+**Progress**: Gradient badges ✅, Date sorting ✅, Full redesign 🔄  
+**Priority:** P1 | **Effort:** Low | **Impact:** Medium
+
+---

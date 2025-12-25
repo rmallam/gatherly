@@ -348,6 +348,9 @@ export const AppProvider = ({ children }) => {
     };
 
     const rsvpGuest = async (eventId, guestId, response) => {
+        // Store previous state for rollback
+        const previousEvents = events;
+
         // Optimistic update
         setEvents(prev => prev.map(event => {
             if (event.id === eventId) {
@@ -368,11 +371,25 @@ export const AppProvider = ({ children }) => {
             return event;
         }));
 
-        await fetch(`${API_URL}/events/${eventId}/guests/${guestId}/rsvp`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ response })
-        });
+        try {
+            const res = await fetch(`${API_URL}/events/${eventId}/guests/${guestId}/rsvp`, {
+                method: 'PUT',
+                headers: {
+                    ...getAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ rsvp: response })
+            });
+
+            if (!res.ok) {
+                throw new Error('Failed to update RSVP');
+            }
+        } catch (error) {
+            console.error('RSVP update failed:', error);
+            // Revert optimistic update on error
+            setEvents(previousEvents);
+            throw error; // Re-throw so the UI can handle it
+        }
     };
 
     const addBulkGuests = async (eventId, guestsArray) => {

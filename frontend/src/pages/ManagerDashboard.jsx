@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Plus, Trash2, Calendar, ChevronRight, MapPin, Users } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 const ManagerDashboard = () => {
     const { events, createEvent, deleteEvent } = useApp();
@@ -12,6 +13,15 @@ const ManagerDashboard = () => {
         e.preventDefault();
         if (!newEvent.title) return;
         createEvent(newEvent);
+
+        // Celebration confetti!
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#6366f1', '#a855f7', '#ec4899', '#f472b6']
+        });
+
         setNewEvent({ title: '', date: '', location: '' });
         setIsCreating(false);
     };
@@ -24,19 +34,19 @@ const ManagerDashboard = () => {
     };
 
     return (
-        <div style={{ maxWidth: '56rem', margin: '0 auto' }}>
+        <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '16px' }}>
             {/* Header */}
-            <div style={{ marginBottom: '2.5rem' }}>
-                <div style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <h1 style={{ fontSize: '2.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                        Your Events
+            <div style={{ marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
+                        My Events
                     </h1>
-                    <button onClick={() => setIsCreating(true)} className="btn btn-primary">
-                        <Plus size={18} /> New Event
+                    <button onClick={() => setIsCreating(true)} className="btn btn-primary" style={{ fontSize: '14px', padding: '8px 16px' }}>
+                        <Plus size={16} /> New Event
                     </button>
                 </div>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '1rem' }}>
-                    Create and manage events for your organization
+                <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>
+                    Create and manage your events
                 </p>
             </div>
 
@@ -108,83 +118,132 @@ const ManagerDashboard = () => {
                     <p style={{ color: 'var(--text-secondary)' }}>Click "New Event" to create your first event</p>
                 </div>
             ) : (
-                <div style={{ display: 'grid', gap: '1rem' }}>
-                    {events.map(event => {
-                        const isGuest = event.role === 'guest';
-                        const linkPath = isGuest ? `/guest/event/${event.id}` : `/event/${event.id}`;
+                <div style={{ display: 'grid', gap: '12px' }}>
+                    {events
+                        .sort((a, b) => {
+                            // Sort by date - upcoming events first
+                            if (!a.date && !b.date) return 0;
+                            if (!a.date) return 1;
+                            if (!b.date) return -1;
+                            return new Date(a.date) - new Date(b.date);
+                        })
+                        .map(event => {
+                            const isGuest = event.role === 'guest';
+                            const linkPath = isGuest ? `/guest/event/${event.id}` : `/event/${event.id}`;
 
-                        // Debug logging
-                        console.log('📋 Event:', event.title, '| Role:', event.role, '| isGuest:', isGuest, '| Path:', linkPath);
-
-                        return (
-                            <Link to={linkPath} key={event.id} style={{ textDecoration: 'none' }}>
-                                <div className="card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'all 0.2s' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flex: 1 }}>
+                            return (
+                                <Link to={linkPath} key={event.id} style={{ textDecoration: 'none' }}>
+                                    <div style={{
+                                        background: 'white',
+                                        borderRadius: '12px',
+                                        padding: '16px',
+                                        border: '1px solid #e5e7eb',
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '16px',
+                                        transition: 'all 0.2s',
+                                        cursor: 'pointer'
+                                    }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.transform = 'translateY(-2px)';
+                                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.transform = 'translateY(0)';
+                                            e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+                                        }}>
                                         {/* Date Badge */}
-                                        <div style={{ width: '4rem', height: '4rem', backgroundColor: isGuest ? '#e0f2fe' : '#e0e7ff', color: isGuest ? '#0284c7' : 'var(--primary)', borderRadius: 'var(--radius-lg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                            <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                                        <div style={{
+                                            width: '56px',
+                                            height: '56px',
+                                            background: isGuest ? 'linear-gradient(135deg, #60a5fa, #3b82f6)' : 'linear-gradient(135deg, #6366f1, #a855f7)',
+                                            borderRadius: '12px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            flexShrink: 0,
+                                            color: 'white'
+                                        }}>
+                                            <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', opacity: 0.9 }}>
                                                 {event.date ? new Date(event.date).toLocaleString('default', { month: 'short' }) : 'TBD'}
                                             </span>
-                                            <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>
+                                            <span style={{ fontSize: '20px', fontWeight: 700, lineHeight: 1 }}>
                                                 {event.date ? new Date(event.date).getDate() : '?'}
                                             </span>
                                         </div>
 
                                         {/* Event Details */}
-                                        <div style={{ flex: 1 }}>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                                                <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#1f2937', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                     {event.title}
                                                 </h3>
                                                 {isGuest && (
                                                     <span style={{
-                                                        display: 'inline-block',
                                                         padding: '2px 8px',
-                                                        background: 'rgba(99,102,241,0.1)',
-                                                        color: 'var(--primary)',
-                                                        borderRadius: '9999px',
-                                                        fontSize: '11px',
+                                                        background: '#dbeafe',
+                                                        color: '#1e40af',
+                                                        borderRadius: '12px',
+                                                        fontSize: '10px',
                                                         fontWeight: 700,
-                                                        textTransform: 'uppercase'
+                                                        textTransform: 'uppercase',
+                                                        flexShrink: 0
                                                     }}>
                                                         GUEST
                                                     </span>
                                                 )}
                                             </div>
-                                            <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                            <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: '#6b7280' }}>
                                                 {event.location && (
-                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                                                        <MapPin size={14} />
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                        <MapPin size={12} />
                                                         {event.location}
                                                     </span>
                                                 )}
                                                 {!isGuest && (
-                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                                                        <Users size={14} />
-                                                        {event.guests?.length || 0} guests
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <Users size={12} />
+                                                        {event.guests?.length || 0}
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
-                                    </div>
 
-                                    {/* Actions */}
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                        {!isGuest && (
-                                            <button
-                                                onClick={(e) => handleDelete(e, event.id)}
-                                                style={{ padding: '0.5rem', color: 'var(--text-tertiary)', transition: 'color 0.2s', border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                                                title="Delete Event"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        )}
-                                        <ChevronRight size={20} style={{ color: 'var(--text-tertiary)' }} />
+                                        {/* Actions */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                                            {!isGuest && (
+                                                <button
+                                                    onClick={(e) => handleDelete(e, event.id)}
+                                                    style={{
+                                                        padding: '8px',
+                                                        color: '#9ca3af',
+                                                        transition: 'all 0.2s',
+                                                        border: 'none',
+                                                        background: 'none',
+                                                        cursor: 'pointer',
+                                                        borderRadius: '8px'
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.background = '#fee2e2';
+                                                        e.currentTarget.style.color = '#ef4444';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.background = 'none';
+                                                        e.currentTarget.style.color = '#9ca3af';
+                                                    }}
+                                                    title="Delete Event"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            )}
+                                            <ChevronRight size={18} style={{ color: '#9ca3af' }} />
+                                        </div>
                                     </div>
-                                </div>
-                            </Link>
-                        );
-                    })}
+                                </Link>
+                            );
+                        })}
                 </div>
             )}
         </div>

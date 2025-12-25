@@ -6,6 +6,7 @@
 .notification-list-header {
     background: white;
     padding: 16px;
+    padding-top: calc(env(safe-area-inset-top) + 16px);
     display: flex;
     align-items: center;
     gap: 16px;

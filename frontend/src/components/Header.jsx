@@ -2,122 +2,110 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Scan, LogOut, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import NotificationCenter from './NotificationCenter';
 
 const Header = ({ showAuth = true }) => {
     const { user, logout } = useAuth();
-    const [token, setToken] = useState(localStorage.getItem('token'));
 
-    // Update token when it changes
-    useEffect(() => {
-        const handleStorageChange = () => {
-            setToken(localStorage.getItem('token'));
-        };
-
-        window.addEventListener('storage', handleStorageChange);
-
-        // Also check on mount
-        setToken(localStorage.getItem('token'));
-
-        return () => window.removeEventListener('storage', handleStorageChange);
-    }, [user]);
+    if (!showAuth || !user) {
+        return null;
+    }
 
     return (
         <div style={{
-            padding: '1rem 1.5rem',
-            paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)',
+            padding: '12px 16px',
+            paddingTop: 'calc(env(safe-area-inset-top) + 12px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: '1px solid var(--border)',
-            backgroundColor: 'var(--bg-primary)'
+            borderBottom: '1px solid #e5e7eb',
+            backgroundColor: 'white',
+            position: 'sticky',
+            top: 0,
+            zIndex: 100
         }}>
-            {/* Branding */}
+            {/* Left - User Profile */}
+            <Link
+                to="/profile"
+                style={{
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '6px 12px',
+                    background: '#f3f4f6',
+                    borderRadius: '20px',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
+                onMouseLeave={(e) => e.currentTarget.style.background = '#f3f4f6'}
+            >
+                <div style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '12px',
+                    fontWeight: '700'
+                }}>
+                    {user.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <span style={{
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: '#1f2937',
+                    maxWidth: '100px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                }}>
+                    {user.name}
+                </span>
+            </Link>
+
+            {/* Center - Gatherly Branding */}
             <Link to="/" style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.5rem',
-                fontSize: '1.125rem',
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-                textDecoration: 'none'
+                gap: '6px',
+                fontSize: '18px',
+                fontWeight: '700',
+                color: '#1f2937',
+                textDecoration: 'none',
+                position: 'absolute',
+                left: '50%',
+                transform: 'translateX(-50%)'
             }}>
-                <Scan size={24} style={{ color: 'var(--primary)' }} />
-                <span>Gatherly</span>
+                <Scan size={22} style={{ color: '#6366f1' }} />
+                <span>Dravify</span>
             </Link>
 
-            {/* Right Side - Auth Buttons or User Menu */}
-            {showAuth && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    {user ? (
-                        <>
-                            <Link
-                                to="/profile"
-                                style={{
-                                    textDecoration: 'none',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    padding: '0.5rem 0.75rem',
-                                    background: 'var(--bg-secondary)',
-                                    borderRadius: 'var(--radius-md)',
-                                    cursor: 'pointer',
-                                    transition: 'background 0.2s'
-                                }}
-                                onMouseEnter={(e) => e.currentTarget.style.background = '#e0e7ff'}
-                                onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
-                            >
-                                <User size={16} style={{ color: 'var(--primary)' }} />
-                                <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                                    {user.name}
-                                </span>
-                            </Link>
-
-                            {/* Notification Bell Icon */}
-                            {token && <NotificationCenter authToken={token} />}
-
-                            <button
-                                onClick={logout}
-                                className="btn btn-secondary"
-                                style={{
-                                    padding: '0.5rem 0.875rem',
-                                    fontSize: '0.8125rem',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.375rem'
-                                }}
-                            >
-                                <LogOut size={14} /> Logout
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <Link to="/login">
-                                <button
-                                    className="btn btn-secondary"
-                                    style={{
-                                        padding: '0.5rem 0.875rem',
-                                        fontSize: '0.8125rem'
-                                    }}
-                                >
-                                    Login
-                                </button>
-                            </Link>
-                            <Link to="/signup">
-                                <button
-                                    className="btn btn-primary"
-                                    style={{
-                                        padding: '0.5rem 0.875rem',
-                                        fontSize: '0.8125rem'
-                                    }}
-                                >
-                                    Sign Up
-                                </button>
-                            </Link>
-                        </>
-                    )}
-                </div>
-            )}
+            {/* Right - Logout */}
+            <button
+                onClick={logout}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 12px',
+                    background: '#fee2e2',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#dc2626',
+                    fontWeight: '600',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'}
+                onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'}
+            >
+                <LogOut size={16} />
+            </button>
         </div>
     );
 };

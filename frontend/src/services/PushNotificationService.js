@@ -11,6 +11,14 @@ class PushNotificationService {
     }
 
     /**
+     * Get OneSignal instance (works for Cordova/Capacitor)
+     */
+    getOneSignal() {
+        // For Cordova/Capacitor, OneSignal is available on window.plugins
+        return window.plugins?.OneSignal || window.OneSignal;
+    }
+
+    /**
      * Initialize OneSignal
      */
     async initialize() {
@@ -19,20 +27,23 @@ class PushNotificationService {
             return;
         }
 
+        // Wait for device to be ready
+        await this.waitForOneSignal();
+
         try {
             console.log('🔔 Initializing OneSignal...');
 
-            // Initialize OneSignal
-            OneSignal.setAppId(ONESIGNAL_APP_ID);
+            // Initialize OneSignal (v5.x API)
+            window.plugins.OneSignal.initialize(ONESIGNAL_APP_ID);
 
             // Set up notification handlers
             this.setupNotificationHandlers();
 
             // Request permission
-            const hasPermission = await OneSignal.getDeviceState();
-            if (hasPermission && !hasPermission.hasNotificationPermission) {
-                await OneSignal.promptForPushNotificationsWithUserResponse();
-            }
+            console.log('📱 Requesting notification permission...');
+            window.plugins.OneSignal.Notifications.requestPermission(true).then((accepted) => {
+                console.log('📱 Notification permission:', accepted ? 'Granted' : 'Denied');
+            });
 
             this.initialized = true;
             console.log('✅ OneSignal initialized successfully');
@@ -42,23 +53,50 @@ class PushNotificationService {
     }
 
     /**
+     * Wait for OneSignal to be available
+     */
+    async waitForOneSignal() {
+        return new Promise((resolve) => {
+            if (window.plugins?.OneSignal) {
+                resolve();
+                return;
+            }
+
+            // Poll for OneSignal availability
+            const checkInterval = setInterval(() => {
+                if (window.plugins?.OneSignal) {
+                    clearInterval(checkInterval);
+                    resolve();
+                }
+            }, 100);
+
+            // Timeout after 10 seconds
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                if (!window.plugins?.OneSignal) {
+                    console.error('❌ OneSignal not available after timeout');
+                }
+                resolve();
+            }, 10000);
+        });
+    }
+
+    /**
      * Setup notification event handlers
      */
     setupNotificationHandlers() {
-        // Handle notification received (foreground)
-        OneSignal.setNotificationWillShowInForegroundHandler((notificationReceivedEvent) => {
-            console.log('📨 Notification received in foreground:', notificationReceivedEvent);
-            const notification = notificationReceivedEvent.getNotification();
-
-            // Display the notification
-            notificationReceivedEvent.complete(notification);
+        // Handle notification received (foreground) - v5 API
+        window.plugins.OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event) => {
+            console.log('📨 Notification will display in foreground:', event);
+            // Let it display
+            event.preventDefault();
+            event.notification.display();
         });
 
-        // Handle notification opened/tapped
-        OneSignal.setNotificationOpenedHandler((openedEvent) => {
-            console.log('👆 Notification opened:', openedEvent);
-            const notification = openedEvent.notification;
-            const data = notification.additionalData;
+        // Handle notification opened/tapped - v5 API
+        window.plugins.OneSignal.Notifications.addEventListener('click', (event) => {
+            console.log('👆 Notification clicked:', event);
+            const data = event.notification.additionalData;
 
             if (data) {
                 this.handleNotificationTap(data);
@@ -76,14 +114,14 @@ class PushNotificationService {
             case 'guest_added':
                 // Navigate to event details
                 if (data.eventId) {
-                    window.location.href = `/events/${data.eventId}`;
+                    window.location.href = `/event/${data.eventId}`;
                 }
                 break;
 
             case 'event_wall_post':
                 // Navigate to event wall
                 if (data.eventId) {
-                    window.location.href = `/event-wall/${data.eventId}`;
+                    window.location.href = `/event/${data.eventId}/wall`;
                 }
                 break;
 
@@ -99,16 +137,16 @@ class PushNotificationService {
         try {
             this.userId = userId;
 
-            // Get OneSignal player ID
-            const deviceState = await OneSignal.getDeviceState();
+            // Get OneSignal subscription ID (player ID in v5)
+            const subscriptionId = await window.plugins.OneSignal.User.pushSubscription.getIdAsync();
 
-            if (!deviceState || !deviceState.userId) {
-                console.error('No OneSignal player ID available');
+            if (!subscriptionId) {
+                console.error('No OneSignal subscription ID available');
                 return;
             }
 
-            this.playerId = deviceState.userId;
-            console.log('📱 OneSignal Player ID:', this.playerId);
+            this.playerId = subscriptionId;
+            console.log('📱 OneSignal Subscription ID:', this.playerId);
 
             // Determine platform
             const platform = this.getPlatform();
@@ -130,8 +168,8 @@ class PushNotificationService {
                 throw new Error('Failed to register device');
             }
 
-            // Set external user ID in OneSignal
-            OneSignal.setExternalUserId(userId);
+            // Set external user ID in OneSignal (v5 API)
+            window.plugins.OneSignal.login(userId);
 
             console.log('✅ Device registered successfully');
         } catch (error) {
@@ -148,13 +186,35 @@ class PushNotificationService {
                 return;
             }
 
-            // Remove external user ID
-            OneSignal.removeExternalUserId();
+            // Logout from OneSignal (v5 API)
+            window.plugins.OneSignal.logout();
 
             console.log('✅ Device unregistered');
             this.userId = null;
         } catch (error) {
             console.error('❌ Error unregistering device:', error);
+        }
+    }
+
+    /**
+     * Get unread notification count
+     */
+    async getUnreadCount(authToken) {
+        try {
+            const response = await fetch(`${API_URL}/notifications/unread-count`, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                return data.count || 0;
+            }
+            return 0;
+        } catch (error) {
+            console.error('Error fetching unread count:', error);
+            return 0;
         }
     }
 

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Gatherly</string>
-    <string name="title_activity_main">Gatherly</string>
+    <string name="app_name">Dravify</string>
+    <string name="title_activity_main">Dravify</string>
     <string name="package_name">com.guestscanner.app</string>
     <string name="custom_url_scheme">com.guestscanner.app</string>
 </resources>

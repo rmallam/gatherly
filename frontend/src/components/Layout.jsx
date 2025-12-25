@@ -1,19 +1,14 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import Header from './Header';
+import BottomNavigation from './BottomNavigation';
 
 const Layout = ({ children }) => {
     const { user } = useAuth();
 
     return (
-        <div className="min-h-screen flex flex-col">
-            <nav style={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 50
-            }}>
-                <Header showAuth={true} />
-            </nav>
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+            <Header showAuth={true} />
 
             {/* Guest User Banner */}
             {user?.isGuest && (
@@ -31,20 +26,16 @@ const Layout = ({ children }) => {
             )}
 
             {/* Main Content */}
-            <main className="flex-1 container py-8">
+            <main style={{
+                flex: 1,
+                paddingBottom: 'calc(60px + env(safe-area-inset-bottom))',
+                overflow: 'auto'
+            }}>
                 {children}
             </main>
 
-            {/* Footer */}
-            <footer style={{
-                borderTop: '1px solid var(--border)',
-                padding: '2rem 1rem',
-                textAlign: 'center',
-                color: 'var(--text-tertiary)',
-                fontSize: '0.875rem'
-            }}>
-                <p>Gatherly &copy; {new Date().getFullYear()}</p>
-            </footer>
+            {/* Bottom Navigation */}
+            <BottomNavigation />
         </div>
     );
 };

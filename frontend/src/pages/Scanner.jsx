@@ -1,13 +1,83 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import QRScanner from '../components/QRScanner';
-import { CheckCircle, XCircle, Users, ArrowRight, RefreshCcw, ScanLine } from 'lucide-react';
+import { CheckCircle, XCircle, Users, ArrowRight, RefreshCcw, ScanLine, Lock } from 'lucide-react';
 
 const Scanner = () => {
+    const navigate = useNavigate();
+    const { user } = useAuth();
     const { events, markGuestAttended } = useApp();
     const [scanResult, setScanResult] = useState(null);
     const [guestCount, setGuestCount] = useState(1);
     const [selectedEventId, setSelectedEventId] = useState('');
+
+    // Check if user is an organizer (has created events)
+    const isOrganizer = events && events.length > 0 && !user?.isGuest;
+
+    // Show unauthorized message if not an organizer
+    if (!isOrganizer) {
+        return (
+            <div style={{
+                minHeight: '100vh',
+                background: 'linear-gradient(to bottom, #0a0b1e, #101127, #0a0b1e)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '2rem'
+            }}>
+                <div style={{
+                    maxWidth: '400px',
+                    textAlign: 'center',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '24px',
+                    padding: '3rem 2rem'
+                }}>
+                    <div style={{
+                        display: 'inline-flex',
+                        padding: '20px',
+                        borderRadius: '50%',
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        marginBottom: '1.5rem'
+                    }}>
+                        <Lock size={48} color="#ef4444" />
+                    </div>
+
+                    <h1 style={{
+                        fontSize: '24px',
+                        fontWeight: 700,
+                        color: 'white',
+                        marginBottom: '1rem'
+                    }}>
+                        Unauthorized Access
+                    </h1>
+
+                    <p style={{
+                        fontSize: '16px',
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        marginBottom: '2rem',
+                        lineHeight: '1.6'
+                    }}>
+                        Only event organizers can access the QR code scanner. Please create an event to use this feature.
+                    </p>
+
+                    <button
+                        onClick={() => navigate('/')}
+                        className="btn btn-primary"
+                        style={{
+                            width: '100%',
+                            padding: '0.875rem'
+                        }}
+                    >
+                        Go to Events
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     const resetScanner = () => {
         setScanResult(null);

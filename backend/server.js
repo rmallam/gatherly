@@ -88,6 +88,18 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files (for email verification page)
 app.use(express.static('public'));
 
+// Helper function to normalize phone numbers for matching
+// Handles: +919876543210, 919876543210, 9876543210
+function normalizePhone(phone) {
+    if (!phone) return null;
+    // Remove all non-digits
+    const digitsOnly = phone.replace(/\D/g, '');
+
+    // Return last 10 digits (standard Indian mobile number)
+    // This handles +91XXXXXXXXXX, 91XXXXXXXXXX, or XXXXXXXXXX
+    return digitsOnly.slice(-10);
+}
+
 // === HEALTH CHECK ===
 app.get('/api/health', async (req, res) => {
     try {
@@ -858,14 +870,17 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
         // Auto-link to existing user if phone or email matches
         let linkedUserId = null;
         if (phone) {
-            // Normalize phone for matching (remove spaces, +, etc)
-            const normalizedPhone = phone.replace(/[\s\-\+]/g, '');
-            const userByPhone = await query(
-                `SELECT id FROM users WHERE REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', '') = $1`,
-                [normalizedPhone]
-            );
-            if (userByPhone.rows.length > 0) {
-                linkedUserId = userByPhone.rows[0].id;
+            const normalized = normalizePhone(phone);
+            if (normalized) {
+                const userByPhone = await query(
+                    `SELECT id FROM users WHERE 
+                     phone IS NOT NULL AND 
+                     SUBSTRING(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', ''), -10) = $1`,
+                    [normalized]
+                );
+                if (userByPhone.rows.length > 0) {
+                    linkedUserId = userByPhone.rows[0].id;
+                }
             }
         }
         if (!linkedUserId && email) {
@@ -972,13 +987,17 @@ app.post('/api/events/:eventId/guests/bulk', authMiddleware, async (req, res) =>
             // Auto-link to existing user
             let linkedUserId = null;
             if (guest.phone) {
-                const normalizedPhone = guest.phone.replace(/[\s\-\+]/g, '');
-                const userByPhone = await query(
-                    `SELECT id FROM users WHERE REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', '') = $1`,
-                    [normalizedPhone]
-                );
-                if (userByPhone.rows.length > 0) {
-                    linkedUserId = userByPhone.rows[0].id;
+                const normalized = normalizePhone(guest.phone);
+                if (normalized) {
+                    const userByPhone = await query(
+                        `SELECT id FROM users WHERE 
+                         phone IS NOT NULL AND 
+                         SUBSTRING(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', ''), -10) = $1`,
+                        [normalized]
+                    );
+                    if (userByPhone.rows.length > 0) {
+                        linkedUserId = userByPhone.rows[0].id;
+                    }
                 }
             }
             if (!linkedUserId && guest.email) {

@@ -8,12 +8,45 @@ const Login = () => {
     const { login, loginWithBiometric, enableBiometric, continueAsGuest, biometricAvailable } = useAuth();
     const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
     const [email, setEmail] = useState('');
+    const [countryCode, setCountryCode] = useState('+91');
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [showBiometricPrompt, setShowBiometricPrompt] = useState(false);
     const [savedCredentials, setSavedCredentials] = useState(null);
+
+    // Auto-trigger biometric authentication on mount if available
+    useEffect(() => {
+        const attemptBiometricLogin = async () => {
+            if (biometricAvailable) {
+                try {
+                    const { BiometricService } = await import('../services/biometric');
+                    const hasSavedCredentials = await BiometricService.hasCredentials('dravify-app');
+
+                    if (hasSavedCredentials) {
+                        // Automatically trigger biometric auth
+                        const authenticated = await BiometricService.authenticate();
+
+                        if (authenticated) {
+                            // Retrieve and login with saved credentials
+                            const credentials = await BiometricService.getCredentials('dravify-app');
+                            if (credentials && credentials.username && credentials.password) {
+                                await login(credentials.username, credentials.password);
+                                navigate('/');
+                            }
+                        }
+                        // If authentication fails or is cancelled, just show the login form
+                    }
+                } catch (err) {
+                    // Silent fail - user can still login with password
+                    console.log('Auto biometric login failed:', err);
+                }
+            }
+        };
+
+        attemptBiometricLogin();
+    }, [biometricAvailable]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -22,14 +55,14 @@ const Login = () => {
 
         try {
             const isPhone = loginMethod === 'phone';
-            const identifier = isPhone ? phone : email;
+            const identifier = isPhone ? `${countryCode}${phone}` : email;
             await login(identifier, password, isPhone);
 
             // Check if biometric is already enabled before prompting
             if (biometricAvailable) {
                 // Check if credentials are already saved
                 const { BiometricService } = await import('../services/biometric');
-                const hasSavedCredentials = await BiometricService.hasCredentials('gatherly');
+                const hasSavedCredentials = await BiometricService.hasCredentials('dravify-app');
 
                 if (!hasSavedCredentials) {
                     // Only show prompt if not already set up
@@ -44,20 +77,6 @@ const Login = () => {
             }
         } catch (err) {
             setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleBiometricLogin = async () => {
-        setError('');
-        setLoading(true);
-
-        try {
-            await loginWithBiometric();
-            navigate('/');
-        } catch (err) {
-            setError(err.message || 'Biometric authentication failed');
         } finally {
             setLoading(false);
         }
@@ -128,7 +147,7 @@ const Login = () => {
             <div style={{ padding: '2rem 0', borderBottom: '1px solid var(--border)' }}>
                 <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
                     <Scan size={32} style={{ color: 'var(--primary)' }} />
-                    <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>Gatherly</h1>
+                    <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>Dravify</h1>
                 </div>
             </div>
 
@@ -158,36 +177,6 @@ const Login = () => {
                             <AlertCircle size={18} style={{ color: '#dc2626', flexShrink: 0, marginTop: '0.125rem' }} />
                             <span style={{ color: '#991b1b', fontSize: '0.875rem', lineHeight: '1.5' }}>{error}</span>
                         </div>
-                    )}
-
-                    {/* Biometric Login Button */}
-                    {biometricAvailable && (
-                        <>
-                            <button
-                                onClick={handleBiometricLogin}
-                                className="btn"
-                                disabled={loading}
-                                style={{
-                                    width: '100%',
-                                    padding: '0.875rem',
-                                    fontSize: '1rem',
-                                    fontWeight: 600,
-                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                    color: 'white',
-                                    border: 'none',
-                                    marginBottom: '1.5rem'
-                                }}
-                            >
-                                <Fingerprint size={20} />
-                                Login with Fingerprint/Face
-                            </button>
-
-                            <div style={{ margin: '1.5rem 0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
-                                <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500 }}>OR USE PASSWORD</span>
-                                <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
-                            </div>
-                        </>
                     )}
 
                     {/* Email/Phone Toggle */}
@@ -265,18 +254,34 @@ const Login = () => {
                                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
                                     Phone Number
                                 </label>
-                                <div style={{ position: 'relative' }}>
-                                    <Phone size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-                                    <input
-                                        type="tel"
-                                        value={phone}
-                                        onChange={(e) => setPhone(e.target.value)}
-                                        className="form-input"
-                                        style={{ paddingLeft: '2.75rem' }}
-                                        placeholder="9876543210"
-                                        maxLength={10}
-                                        required
-                                    />
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <div style={{ position: 'relative', width: '120px' }}>
+                                        <select
+                                            value={countryCode}
+                                            onChange={(e) => setCountryCode(e.target.value)}
+                                            className="form-input"
+                                            style={{ paddingLeft: '1rem', paddingRight: '0.5rem' }}
+                                        >
+                                            <option value="+91">🇮🇳 +91</option>
+                                            <option value="+1">🇺🇸 +1</option>
+                                            <option value="+44">🇬🇧 +44</option>
+                                            <option value="+61">🇦🇺 +61</option>
+                                            <option value="+971">🇦🇪 +971</option>
+                                        </select>
+                                    </div>
+                                    <div style={{ position: 'relative', flex: 1 }}>
+                                        <Phone size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                                        <input
+                                            type="tel"
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                                            className="form-input"
+                                            style={{ paddingLeft: '2.75rem' }}
+                                            placeholder="9876543210"
+                                            maxLength={10}
+                                            required
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         )}

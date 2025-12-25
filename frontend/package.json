@@ -1,5 +1,5 @@
 {
-    "name": "gatherly-frontend",
+    "name": "dravify-frontend",
     "private": true,
     "version": "5.0.0",
     "type": "module",
@@ -23,6 +23,7 @@
         "@capacitor/ios": "^8.0.0",
         "@capacitor/share": "^8.0.0",
         "@capgo/capacitor-native-biometric": "^8.0.2",
+        "canvas-confetti": "^1.9.4",
         "html5-qrcode": "^2.3.8",
         "lucide-react": "^0.300.0",
         "onesignal-cordova-plugin": "^5.2.19",

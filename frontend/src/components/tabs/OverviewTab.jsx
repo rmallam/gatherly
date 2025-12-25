@@ -27,7 +27,7 @@ const OverviewTab = ({ event }) => {
         <div>
             {/* Event Header */}
             <div className="card" style={{ marginBottom: '2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', padding: '2rem' }}>
-                <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1rem', color: 'white' }}>{event.title}</h1>
+                <h1 style={{ fontSize: '2.25rem', fontWeight: 900, marginBottom: '1rem', color: 'white', lineHeight: '1.2', letterSpacing: '-0.02em', textShadow: '0 2px 12px rgba(0,0,0,0.15)' }}>{event.title}</h1>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', fontSize: '0.9375rem', opacity: 0.95 }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Calendar size={16} />

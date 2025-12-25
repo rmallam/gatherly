@@ -69,7 +69,9 @@ function App() {
                         {/* Protected routes */}
                         <Route path="/" element={
                             <ProtectedRoute>
-                                <Landing />
+                                <Layout>
+                                    <Landing />
+                                </Layout>
                             </ProtectedRoute>
                         } />
                         <Route path="/manager" element={
@@ -88,27 +90,37 @@ function App() {
                         } />
                         <Route path="/guest/event/:id" element={
                             <ProtectedRoute>
-                                <GuestEventView />
+                                <Layout>
+                                    <GuestEventView />
+                                </Layout>
                             </ProtectedRoute>
                         } />
                         <Route path="/event/:eventId/wall" element={
                             <ProtectedRoute>
-                                <EventWall />
+                                <Layout>
+                                    <EventWall />
+                                </Layout>
                             </ProtectedRoute>
                         } />
                         <Route path="/scanner" element={
                             <ProtectedRoute>
-                                <Scanner />
+                                <Layout>
+                                    <Scanner />
+                                </Layout>
                             </ProtectedRoute>
                         } />
                         <Route path="/profile" element={
                             <ProtectedRoute>
-                                <Profile />
+                                <Layout>
+                                    <Profile />
+                                </Layout>
                             </ProtectedRoute>
                         } />
                         <Route path="/notifications" element={
                             <ProtectedRoute>
-                                <NotificationList />
+                                <Layout>
+                                    <NotificationList />
+                                </Layout>
                             </ProtectedRoute>
                         } />
                     </Routes>
