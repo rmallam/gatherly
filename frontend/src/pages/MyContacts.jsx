@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Users, Search, Edit2, Trash2, Plus, X, Mail, Phone as PhoneIcon, Calendar } from 'lucide-react';
-import Header from '../components/Header';
-import BottomNavigation from '../components/BottomNavigation';
 
 const MyContacts = () => {
     const { contacts, addContact, updateContact, deleteContact } = useApp();
@@ -64,7 +62,6 @@ const MyContacts = () => {
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)', paddingBottom: 'calc(60px + env(safe-area-inset-bottom))' }}>
-            <Header />
 
             <div className="container" style={{ padding: '2rem 1rem 1rem' }}>
                 {/* Header */}
@@ -288,7 +285,6 @@ const MyContacts = () => {
                 </div>
             )}
 
-            <BottomNavigation />
         </div>
     );
 };
