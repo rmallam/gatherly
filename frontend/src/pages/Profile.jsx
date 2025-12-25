@@ -26,6 +26,8 @@ const Profile = () => {
         new: false,
         confirm: false
     });
+    const [countryCode, setCountryCode] = useState('+91');
+    const [phoneDigits, setPhoneDigits] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
@@ -55,6 +57,24 @@ const Profile = () => {
                     bio: data.bio || '',
                     profilePictureUrl: data.profilePictureUrl || null
                 });
+
+                // Parse phone number into country code and digits
+                if (data.phone) {
+                    // Check if phone starts with +
+                    if (data.phone.startsWith('+')) {
+                        // Extract country code (e.g., +91, +1, +44)
+                        const match = data.phone.match(/^(\+\d{1,3})(\d+)$/);
+                        if (match) {
+                            setCountryCode(match[1]);
+                            setPhoneDigits(match[2]);
+                        } else {
+                            setPhoneDigits(data.phone.replace(/\D/g, '').slice(-10));
+                        }
+                    } else {
+                        // No country code, just digits
+                        setPhoneDigits(data.phone.replace(/\D/g, '').slice(-10));
+                    }
+                }
             } else {
                 const errorText = await res.text();
                 console.error('Profile load failed:', res.status, errorText);
@@ -99,7 +119,7 @@ const Profile = () => {
                 },
                 body: JSON.stringify({
                     name: profile.name,
-                    phone: profile.phone,
+                    phone: phoneDigits ? `${countryCode}${phoneDigits}` : '',
                     bio: profile.bio,
                     profilePictureUrl: profile.profilePictureUrl
                 })
@@ -444,20 +464,41 @@ const Profile = () => {
                                 <Phone size={16} />
                                 Phone
                             </label>
-                            <input
-                                type="tel"
-                                value={profile.phone}
-                                onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                                placeholder="Enter phone number"
-                                style={{
-                                    width: '100%',
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #e5e7eb',
-                                    fontSize: '15px',
-                                    fontFamily: 'inherit'
-                                }}
-                            />
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <select
+                                    value={countryCode}
+                                    onChange={(e) => setCountryCode(e.target.value)}
+                                    style={{
+                                        width: '120px',
+                                        padding: '12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #e5e7eb',
+                                        fontSize: '15px',
+                                        fontFamily: 'inherit'
+                                    }}
+                                >
+                                    <option value="+91">🇮🇳 +91</option>
+                                    <option value="+1">🇺🇸 +1</option>
+                                    <option value="+44">🇬🇧 +44</option>
+                                    <option value="+61">🇦🇺 +61</option>
+                                    <option value="+971">🇦🇪 +971</option>
+                                </select>
+                                <input
+                                    type="tel"
+                                    value={phoneDigits}
+                                    onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, ''))}
+                                    placeholder="9876543210"
+                                    maxLength={10}
+                                    style={{
+                                        flex: 1,
+                                        padding: '12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #e5e7eb',
+                                        fontSize: '15px',
+                                        fontFamily: 'inherit'
+                                    }}
+                                />
+                            </div>
                         </div>
 
                         {/* Bio */}
