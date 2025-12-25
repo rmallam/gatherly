@@ -1,11 +1,11 @@
 import express from 'express';
 import { query } from '../db/connection.js';
-import { authenticateToken } from '../server/auth.js';
+import { authMiddleware } from '../server/auth.js';
 
 const router = express.Router();
 
 // Get all user's contacts
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
 
@@ -30,7 +30,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Search contacts
-router.get('/search', authenticateToken, async (req, res) => {
+router.get('/search', authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
         const searchQuery = req.query.q || '';
@@ -55,7 +55,7 @@ router.get('/search', authenticateToken, async (req, res) => {
 });
 
 // Get single contact
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:id', authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
         const contactId = req.params.id;
@@ -77,7 +77,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // Create new contact
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
         const { name, phone, email, notes } = req.body;
@@ -116,7 +116,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Update contact
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
         const contactId = req.params.id;
@@ -161,7 +161,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Delete contact
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
         const contactId = req.params.id;
@@ -183,7 +183,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 });
 
 // Bulk create contacts
-router.post('/bulk', authenticateToken, async (req, res) => {
+router.post('/bulk', authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
         const { contacts } = req.body;
@@ -230,7 +230,7 @@ router.post('/bulk', authenticateToken, async (req, res) => {
 });
 
 // Add contacts to event (bulk add from library to event)
-router.post('/add-to-event/:eventId', authenticateToken, async (req, res) => {
+router.post('/add-to-event/:eventId', authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
         const eventId = req.params.eventId;
