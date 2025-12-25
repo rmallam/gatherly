@@ -41,14 +41,13 @@ export const AppProvider = ({ children }) => {
             console.log('Fetching from server with headers');
             const res = await fetchWithRetry(`${API_URL}/events`, {
                 headers: getAuthHeaders()
-            }, 3, 30000); // 3 retries, 30s timeout
+            }, 3, 30000);
 
             console.log('Fetch response status:', res.status);
 
             if (!res.ok) {
                 if (res.status === 401) {
                     console.error('401 Unauthorized - clearing token');
-                    // Token expired or invalid - just clear it, ProtectedRoute will handle redirect
                     localStorage.removeItem('token');
                     setEvents([]);
                     return;
@@ -77,7 +76,7 @@ export const AppProvider = ({ children }) => {
 
             const res = await fetchWithRetry(`${API_URL}/contacts`, {
                 headers: getAuthHeaders()
-            }, 3, 30000); // 3 retries, 30s timeout
+            }, 3, 30000);
             if (res.ok) {
                 const data = await res.json();
                 setContacts(data);
@@ -90,7 +89,6 @@ export const AppProvider = ({ children }) => {
     useEffect(() => {
         const token = localStorage.getItem('token');
 
-        // Only fetch if we have a token
         if (!token) {
             setLoading(false);
             return;
@@ -99,21 +97,17 @@ export const AppProvider = ({ children }) => {
         fetchEvents();
         fetchContacts();
 
-        // Only poll for authenticated users, not guest users
         if (!token.startsWith('guest_')) {
             const interval = setInterval(() => {
-                // Double-check token still exists before polling
                 const currentToken = localStorage.getItem('token');
                 if (!currentToken) {
                     clearInterval(interval);
                     return;
                 }
-
                 fetchEvents();
                 fetchContacts();
             }, 5000);
 
-            // Keep backend alive - ping every 4 minutes to prevent Render spin-down
             const keepAliveInterval = setInterval(async () => {
                 try {
                     await fetch(`${API_URL}/health`, { method: 'GET' });
@@ -121,14 +115,14 @@ export const AppProvider = ({ children }) => {
                 } catch (err) {
                     console.log('Keep-alive ping failed:', err);
                 }
-            }, 240000); // 4 minutes
+            }, 240000);
 
             return () => {
                 clearInterval(interval);
                 clearInterval(keepAliveInterval);
             };
         }
-    }, [user]); // Re-fetch when user changes (login/logout)
+    }, [user]);
 
     const createEvent = async (eventData) => {
         const newEvent = {
@@ -138,41 +132,33 @@ export const AppProvider = ({ children }) => {
             ...eventData,
         };
 
-        // Optimistic update
         setEvents(prev => [newEvent, ...prev]);
 
         const token = localStorage.getItem('token');
 
-        // Guest users: save to local storage
         if (token?.startsWith('guest_')) {
             const updatedEvents = [newEvent, ...events];
             localStorage.setItem('guestEvents', JSON.stringify(updatedEvents));
         } else {
-            // Regular users: save to server
             try {
                 const res = await fetch(`${API_URL}/events`, {
                     method: 'POST',
                     headers: getAuthHeaders(),
-                    body: JSON.stringify(eventData), // Send only the event data fields
+                    body: JSON.stringify(eventData),
                 });
 
                 if (!res.ok) {
                     console.error('Failed to save event to server:', res.status);
-                    // Revert optimistic update
                     setEvents(prev => prev.filter(e => e.id !== newEvent.id));
                     throw new Error('Failed to save event');
                 }
 
                 const savedEvent = await res.json();
                 console.log('Event saved successfully:', savedEvent);
-
-                // Replace optimistic event with server response
                 setEvents(prev => prev.map(e => e.id === newEvent.id ? savedEvent : e));
-
                 return savedEvent;
             } catch (err) {
                 console.error('Error saving event:', err);
-                // Revert optimistic update
                 setEvents(prev => prev.filter(e => e.id !== newEvent.id));
                 throw err;
             }
@@ -182,7 +168,6 @@ export const AppProvider = ({ children }) => {
     };
 
     const deleteEvent = async (eventId) => {
-        // Optimistic update
         setEvents(prev => prev.filter(e => e.id !== eventId));
 
         try {
@@ -193,13 +178,11 @@ export const AppProvider = ({ children }) => {
 
             if (!res.ok) {
                 console.error('Failed to delete event on server:', res.status);
-                // Revert optimistic update
                 await fetchEvents();
                 throw new Error('Failed to delete event');
             }
         } catch (err) {
             console.error('Error deleting event:', err);
-            // Revert optimistic update
             await fetchEvents();
             throw err;
         }
@@ -218,7 +201,6 @@ export const AppProvider = ({ children }) => {
             ...guestData
         };
 
-        // Optimistic update
         setEvents(prev => prev.map(event => {
             if (event.id === eventId) {
                 return { ...event, guests: [...event.guests, newGuest] };
@@ -232,7 +214,6 @@ export const AppProvider = ({ children }) => {
                 headers: getAuthHeaders(),
                 body: JSON.stringify({
                     ...guestData,
-                    // Convert empty strings to null
                     email: guestData.email && guestData.email.trim() ? guestData.email : null,
                     phone: guestData.phone && guestData.phone.trim() ? guestData.phone : null
                 })
@@ -240,7 +221,6 @@ export const AppProvider = ({ children }) => {
 
             if (!res.ok) {
                 console.error('Failed to add guest to server:', res.status);
-                // Revert optimistic update
                 setEvents(prev => prev.map(event => {
                     if (event.id === eventId) {
                         return { ...event, guests: event.guests.filter(g => g.id !== newGuest.id) };
@@ -253,7 +233,6 @@ export const AppProvider = ({ children }) => {
             const savedGuest = await res.json();
             console.log('Guest added successfully:', savedGuest);
 
-            // Update with server response (in case server modified the guest)
             setEvents(prev => prev.map(event => {
                 if (event.id === eventId) {
                     return {
@@ -267,7 +246,6 @@ export const AppProvider = ({ children }) => {
             return savedGuest;
         } catch (err) {
             console.error('Error adding guest:', err);
-            // Revert optimistic update
             setEvents(prev => prev.map(event => {
                 if (event.id === eventId) {
                     return { ...event, guests: event.guests.filter(g => g.id !== newGuest.id) };
@@ -281,7 +259,6 @@ export const AppProvider = ({ children }) => {
     const markGuestAttended = async (eventId, guestId, count = 1) => {
         console.log('markGuestAttended called:', { eventId, guestId, count });
 
-        // Optimistic update
         setEvents(prev => prev.map(event => {
             if (event.id === eventId) {
                 return {
@@ -319,11 +296,9 @@ export const AppProvider = ({ children }) => {
             }
 
             console.log('Check-in successful');
-            // Optionally refresh events to ensure sync
             await fetchEvents();
         } catch (error) {
             console.error('markGuestAttended error:', error);
-            // Revert optimistic update on error
             setEvents(prev => prev.map(event => {
                 if (event.id === eventId) {
                     return {
@@ -348,10 +323,8 @@ export const AppProvider = ({ children }) => {
     };
 
     const rsvpGuest = async (eventId, guestId, response) => {
-        // Store previous state for rollback
         const previousEvents = events;
 
-        // Optimistic update
         setEvents(prev => prev.map(event => {
             if (event.id === eventId) {
                 return {
@@ -386,9 +359,8 @@ export const AppProvider = ({ children }) => {
             }
         } catch (error) {
             console.error('RSVP update failed:', error);
-            // Revert optimistic update on error
             setEvents(previousEvents);
-            throw error; // Re-throw so the UI can handle it
+            throw error;
         }
     };
 
@@ -401,7 +373,6 @@ export const AppProvider = ({ children }) => {
             ...guestData
         }));
 
-        // Optimistic update
         setEvents(prev => prev.map(event => {
             if (event.id === eventId) {
                 return { ...event, guests: [...event.guests, ...newGuests] };
@@ -410,7 +381,6 @@ export const AppProvider = ({ children }) => {
         }));
 
         try {
-            // Use bulk endpoint
             const res = await fetch(`${API_URL}/events/${eventId}/guests/bulk`, {
                 method: 'POST',
                 headers: getAuthHeaders(),
@@ -419,7 +389,6 @@ export const AppProvider = ({ children }) => {
 
             if (!res.ok) {
                 console.error('Failed to add guests to server:', res.status);
-                // Revert optimistic update
                 setEvents(prev => prev.map(event => {
                     if (event.id === eventId) {
                         const guestIds = newGuests.map(g => g.id);
@@ -431,7 +400,6 @@ export const AppProvider = ({ children }) => {
             }
 
             const data = await res.json();
-            // Handle new response format { added: [...], skipped: [...] }
             const savedGuests = data.added || data;
 
             if (data.skipped && data.skipped.length > 0) {
@@ -440,10 +408,8 @@ export const AppProvider = ({ children }) => {
 
             console.log('Bulk guests added successfully');
 
-            // Update with server response
             setEvents(prev => prev.map(event => {
                 if (event.id === eventId) {
-                    // Replace optimistic guests with server guests
                     const nonNewGuests = event.guests.filter(g => !newGuests.some(ng => ng.id === g.id));
                     return { ...event, guests: [...nonNewGuests, ...savedGuests] };
                 }
@@ -453,7 +419,6 @@ export const AppProvider = ({ children }) => {
             return savedGuests;
         } catch (err) {
             console.error('Error adding bulk guests:', err);
-            // Revert optimistic update
             setEvents(prev => prev.map(event => {
                 if (event.id === eventId) {
                     const guestIds = newGuests.map(g => g.id);
@@ -466,10 +431,8 @@ export const AppProvider = ({ children }) => {
     };
 
     const deleteGuest = async (eventId, guestId) => {
-        // Store the guest for potential revert
         let deletedGuest = null;
 
-        // Optimistic update
         setEvents(prev => prev.map(event => {
             if (event.id === eventId) {
                 deletedGuest = event.guests.find(g => g.id === guestId);
@@ -486,7 +449,6 @@ export const AppProvider = ({ children }) => {
 
             if (!res.ok) {
                 console.error('Failed to delete guest from server:', res.status);
-                // Revert optimistic update
                 if (deletedGuest) {
                     setEvents(prev => prev.map(event => {
                         if (event.id === eventId) {
@@ -501,7 +463,6 @@ export const AppProvider = ({ children }) => {
             console.log('Guest deleted successfully');
         } catch (err) {
             console.error('Error deleting guest:', err);
-            // Revert optimistic update
             if (deletedGuest) {
                 setEvents(prev => prev.map(event => {
                     if (event.id === eventId) {
@@ -515,10 +476,8 @@ export const AppProvider = ({ children }) => {
     };
 
     const updateEvent = async (eventId, updatedEventData) => {
-        // Store original state for potential revert
         const originalEvents = [...events];
 
-        // Optimistic update
         setEvents(prev => prev.map(event => {
             if (event.id === eventId) {
                 return { ...event, ...updatedEventData };
@@ -528,14 +487,12 @@ export const AppProvider = ({ children }) => {
 
         const token = localStorage.getItem('token');
 
-        // Guest users: save to local storage
         if (token?.startsWith('guest_')) {
             const updatedEvents = events.map(event =>
                 event.id === eventId ? { ...event, ...updatedEventData } : event
             );
             localStorage.setItem('guestEvents', JSON.stringify(updatedEvents));
         } else {
-            // Regular users: save to server
             try {
                 const res = await fetch(`${API_URL}/events/${eventId}`, {
                     method: 'PUT',
@@ -545,20 +502,17 @@ export const AppProvider = ({ children }) => {
 
                 if (!res.ok) {
                     console.error('Failed to update event, reverting:', res.status);
-                    // Revert optimistic update on failure
                     setEvents(originalEvents);
                     throw new Error('Failed to update event');
                 }
             } catch (error) {
                 console.error('Error updating event:', error);
-                // Revert optimistic update
                 setEvents(originalEvents);
                 throw error;
             }
         }
     };
 
-    // Contact Library Functions
     const addContact = async (contactData) => {
         const token = localStorage.getItem('token');
 
@@ -624,19 +578,6 @@ export const AppProvider = ({ children }) => {
         setContacts(prev => prev.filter(c => c.id !== contactId));
     };
 
-    const saveGuestToContacts = async (guestData) => {
-        // Check if contact already exists by phone
-        const existing = contacts.find(c => c.phone && c.phone === guestData.phone);
-        if (existing) return existing;
-
-        return await addContact({
-            name: guestData.name,
-            phone: guestData.phone || '',
-            email: guestData.email || '',
-            notes: ''
-        });
-    };
-
     const addContactsToEvent = async (eventId, contactIds) => {
         try {
             const res = await fetch(`${API_URL}/contacts/add-to-event/${eventId}`, {
@@ -650,147 +591,148 @@ export const AppProvider = ({ children }) => {
             }
 
             const data = await res.json();
-
-            // Refresh events to show newly added guests
             await fetchEvents();
-
             return data;
         } catch (err) {
             console.error('Error adding contacts to event:', err);
             throw err;
         }
+    };
 
-        // Public Invitation Functions
-        const fetchPublicEvent = async (eventId) => {
-            // Always try localStorage first (works for everyone, logged in or not)
-            // This allows the event creator's localStorage to be the source of truth
-            const guestEvents = localStorage.getItem('guestEvents');
-            if (guestEvents) {
-                const events = JSON.parse(guestEvents);
-                const event = events.find(e => e.id === eventId);
-                if (event) {
-                    return {
-                        id: event.id,
-                        title: event.title,
-                        venue: event.venue,
-                        date: event.date,
-                        time: event.time,
-                        description: event.description
+    const saveGuestToContacts = async (guestData) => {
+        const existing = contacts.find(c => c.phone && c.phone === guestData.phone);
+        if (existing) return existing;
+
+        return await addContact({
+            name: guestData.name,
+            phone: guestData.phone || '',
+            email: guestData.email || '',
+            notes: ''
+        });
+    };
+
+    const fetchPublicEvent = async (eventId) => {
+        const guestEvents = localStorage.getItem('guestEvents');
+        if (guestEvents) {
+            const events = JSON.parse(guestEvents);
+            const event = events.find(e => e.id === eventId);
+            if (event) {
+                return {
+                    id: event.id,
+                    title: event.title,
+                    venue: event.venue,
+                    date: event.date,
+                    time: event.time,
+                    description: event.description
+                };
+            }
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/public/events/${eventId}`);
+            if (res.ok) {
+                return await res.json();
+            }
+        } catch (err) {
+            console.error('Failed to fetch public event:', err);
+        }
+
+        throw new Error('Event not found');
+    };
+
+    const submitPublicRSVP = async (eventId, rsvpData) => {
+        const guestEvents = localStorage.getItem('guestEvents');
+        if (guestEvents) {
+            const events = JSON.parse(guestEvents);
+            const eventIndex = events.findIndex(e => e.id === eventId);
+
+            if (eventIndex !== -1) {
+                const event = events[eventIndex];
+
+                let guest = event.guests.find(g =>
+                    (rsvpData.phone && g.phone === rsvpData.phone) ||
+                    (rsvpData.email && g.email === rsvpData.email)
+                );
+
+                if (guest) {
+                    guest.rsvp = rsvpData.response === 'yes' ? true : rsvpData.response === 'no' ? false : null;
+                    guest.rsvpTime = new Date().toISOString();
+                    guest.plusOnes = rsvpData.plusOnes || 0;
+                    guest.dietaryRestrictions = rsvpData.dietaryRestrictions || '';
+                } else {
+                    const newGuest = {
+                        id: Date.now().toString(),
+                        name: rsvpData.name,
+                        phone: rsvpData.phone || '',
+                        email: rsvpData.email || '',
+                        rsvp: rsvpData.response === 'yes' ? true : rsvpData.response === 'no' ? false : null,
+                        rsvpTime: new Date().toISOString(),
+                        plusOnes: rsvpData.plusOnes || 0,
+                        dietaryRestrictions: rsvpData.dietaryRestrictions || '',
+                        addedAt: new Date().toISOString(),
+                        attended: false,
+                        attendedCount: 0,
+                        source: 'public_invitation'
                     };
+                    event.guests.push(newGuest);
                 }
+
+                localStorage.setItem('guestEvents', JSON.stringify(events));
+                return { success: true, message: 'RSVP submitted successfully' };
             }
+        }
 
-            // Try server for authenticated users or as fallback
-            try {
-                const res = await fetch(`${API_URL}/public/events/${eventId}`);
-                if (res.ok) {
-                    return await res.json();
-                }
-            } catch (err) {
-                console.error('Failed to fetch public event:', err);
+        try {
+            const res = await fetch(`${API_URL}/public/events/${eventId}/rsvp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(rsvpData)
+            });
+
+            if (res.ok) {
+                return await res.json();
             }
+        } catch (err) {
+            console.error('Failed to submit RSVP:', err);
+        }
 
-            throw new Error('Event not found');
-        };
+        throw new Error('Failed to submit RSVP');
+    };
 
-        const submitPublicRSVP = async (eventId, rsvpData) => {
-            // Always try localStorage first (event might be stored there)
-            const guestEvents = localStorage.getItem('guestEvents');
-            if (guestEvents) {
-                const events = JSON.parse(guestEvents);
-                const eventIndex = events.findIndex(e => e.id === eventId);
-
-                if (eventIndex !== -1) {
-                    const event = events[eventIndex];
-
-                    // Check for existing guest
-                    let guest = event.guests.find(g =>
-                        (rsvpData.phone && g.phone === rsvpData.phone) ||
-                        (rsvpData.email && g.email === rsvpData.email)
-                    );
-
-                    if (guest) {
-                        // Update existing
-                        guest.rsvp = rsvpData.response === 'yes' ? true : rsvpData.response === 'no' ? false : null;
-                        guest.rsvpTime = new Date().toISOString();
-                        guest.plusOnes = rsvpData.plusOnes || 0;
-                        guest.dietaryRestrictions = rsvpData.dietaryRestrictions || '';
-                    } else {
-                        // Add new guest
-                        const newGuest = {
-                            id: Date.now().toString(),
-                            name: rsvpData.name,
-                            phone: rsvpData.phone || '',
-                            email: rsvpData.email || '',
-                            rsvp: rsvpData.response === 'yes' ? true : rsvpData.response === 'no' ? false : null,
-                            rsvpTime: new Date().toISOString(),
-                            plusOnes: rsvpData.plusOnes || 0,
-                            dietaryRestrictions: rsvpData.dietaryRestrictions || '',
-                            addedAt: new Date().toISOString(),
-                            attended: false,
-                            attendedCount: 0,
-                            source: 'public_invitation'
-                        };
-                        event.guests.push(newGuest);
-                    }
-
-                    localStorage.setItem('guestEvents', JSON.stringify(events));
-                    return { success: true, message: 'RSVP submitted successfully' };
-                }
-            }
-
-            // Try server for authenticated users
-            try {
-                const res = await fetch(`${API_URL}/public/events/${eventId}/rsvp`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(rsvpData)
-                });
-
-                if (res.ok) {
-                    return await res.json();
-                }
-            } catch (err) {
-                console.error('Failed to submit RSVP:', err);
-            }
-
-            throw new Error('Failed to submit RSVP');
-        };
-
-        return (
-            <AppContext.Provider value={{
-                API_URL,
-                events,
-                contacts,
-                loading,
-                error,
-                createEvent,
-                deleteEvent,
-                getEvent,
-                addGuest,
-                addBulkGuests,
-                deleteGuest,
-                markGuestAttended,
-                rsvpGuest,
-                updateEvent,
-                fetchContacts,
-                addContact,
-                updateContact,
-                deleteContact,
-                addContactsToEvent,
-                saveGuestToContacts,
-                fetchPublicEvent,
-                submitPublicRSVP
-            }}>
-                {children}
-            </AppContext.Provider>
-        );
-
+    return (
+        <AppContext.Provider value={{
+            API_URL,
+            events,
+            contacts,
+            loading,
+            error,
+            createEvent,
+            deleteEvent,
+            getEvent,
+            addGuest,
+            addBulkGuests,
+            deleteGuest,
+            markGuestAttended,
+            rsvpGuest,
+            updateEvent,
+            fetchContacts,
+            addContact,
+            updateContact,
+            deleteContact,
+            addContactsToEvent,
+            saveGuestToContacts,
+            fetchPublicEvent,
+            submitPublicRSVP
+        }}>
+            {children}
+        </AppContext.Provider>
+    );
 };
+
 export const useApp = () => {
     const context = useContext(AppContext);
     if (!context) {
         throw new Error('useApp must be used within an AppProvider');
     }
     return context;
-}
+};
