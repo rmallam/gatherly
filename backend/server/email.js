@@ -16,7 +16,7 @@ export async function sendVerificationEmail(user, token) {
         const { data, error } = await resend.emails.send({
             from: FROM_EMAIL,
             to: [user.email],
-            subject: 'Verify your Gatherly account',
+            subject: 'Verify your HostEze account',
             html: `
                 <!DOCTYPE html>
                 <html>
@@ -78,7 +78,7 @@ export async function sendVerificationEmail(user, token) {
                 <body>
                     <div class="container">
                         <div class="header">
-                            <h1>🎉 Welcome to Gatherly!</h1>
+                            <h1>🎉 Welcome to HostEze!</h1>
                         </div>
                         <div class="content">
                             <p>Hi ${user.name},</p>
@@ -89,10 +89,10 @@ export async function sendVerificationEmail(user, token) {
                             <p>Or copy and paste this link into your browser:</p>
                             <p class="link">${verificationUrl}</p>
                             <p><strong>This link will expire in 24 hours.</strong></p>
-                            <p>If you didn't create an account with Gatherly, you can safely ignore this email.</p>
+                            <p>If you didn't create an account with HostEze, you can safely ignore this email.</p>
                         </div>
                         <div class="footer">
-                            <p>Thanks,<br>The Gatherly Team</p>
+                            <p>Thanks,<br>The HostEze Team</p>
                         </div>
                     </div>
                 </body>
@@ -123,7 +123,7 @@ export async function sendPasswordResetEmail(user, resetToken) {
         const { data, error } = await resend.emails.send({
             from: FROM_EMAIL,
             to: [user.email],
-            subject: 'Reset your Gatherly password',
+            subject: 'Reset your HostEze password',
             html: `
                 <!DOCTYPE html>
                 <html>
@@ -137,7 +137,7 @@ export async function sendPasswordResetEmail(user, resetToken) {
                     <p>Or copy this link: ${resetUrl}</p>
                     <p><strong>This link will expire in 1 hour.</strong></p>
                     <p>If you didn't request a password reset, please ignore this email.</p>
-                    <p>Thanks,<br>The Gatherly Team</p>
+                    <p>Thanks,<br>The HostEze Team</p>
                 </body>
                 </html>
             `

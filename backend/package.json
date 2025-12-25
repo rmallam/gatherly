@@ -1,8 +1,8 @@
 {
-    "name": "gatherly-backend",
+    "name": "hosteze-backend",
     "version": "5.0.0",
     "type": "module",
-    "description": "Gatherly Event Management - Backend API",
+    "description": "HostEze Event Management - Backend API",
     "main": "server.js",
     "scripts": {
         "start": "node server.js",

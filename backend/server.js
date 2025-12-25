@@ -20,6 +20,7 @@ import {
     getUnreadCount
 } from './services/notificationService.js';
 import eventWallRoutes from './routes/eventWall.js';
+import contactsRoutes from './routes/contacts.js';
 
 const app = express();
 
@@ -937,6 +938,48 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
                 // Don't fail the request if notification fails
                 console.error('Failed to send notification:', notifError);
             }
+        }
+
+        // Auto-save to user's contact library (if not already exists)
+        let contactId = null;
+        try {
+            const contactResult = await query(
+                `INSERT INTO user_contacts (user_id, name, phone, email)
+                 VALUES ($1, $2, $3, $4)
+                 ON CONFLICT DO NOTHING
+                 RETURNING id`,
+                [req.user.id, name, phone || null, email || null]
+            );
+
+            if (contactResult.rows.length > 0) {
+                contactId = contactResult.rows[0].id;
+
+                // Link the guest to the contact
+                await query(
+                    'UPDATE guests SET contact_id = $1 WHERE id = $2',
+                    [contactId, guestId]
+                );
+            } else {
+                // Contact already exists, find it and link
+                const existingContact = await query(
+                    `SELECT id FROM user_contacts 
+                     WHERE user_id = $1 
+                     AND ((phone IS NOT NULL AND phone = $2) OR (email IS NOT NULL AND email = $3))
+                     LIMIT 1`,
+                    [req.user.id, phone, email]
+                );
+
+                if (existingContact.rows.length > 0) {
+                    contactId = existingContact.rows[0].id;
+                    await query(
+                        'UPDATE guests SET contact_id = $1 WHERE id = $2',
+                        [contactId, guestId]
+                    );
+                }
+            }
+        } catch (contactError) {
+            // Don't fail guest addition if contact save fails
+            console.error('Failed to save to contact library:', contactError);
         }
 
         const guest = { id: guestId, name, email, phone, rsvp: null, attended: false, attended_count: 0 };
@@ -1876,6 +1919,9 @@ app.post('/api/admin/process-reminders', authMiddleware, async (req, res) => {
 
 // Event Social Wall Routes - using /api/wall prefix to avoid conflicts
 app.use('/api/wall', eventWallRoutes);
+
+// User Contacts Routes
+app.use('/api/contacts', contactsRoutes);
 
 // Send announcement to guests
 app.post('/api/events/:eventId/communications/announcement', authMiddleware, sendAnnouncement);
