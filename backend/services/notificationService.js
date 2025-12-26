@@ -64,9 +64,9 @@ export async function sendNotificationToUsers(userIds, notification) {
             // Comment out the old field and use the new one
             onesignalNotification.include_subscription_ids = playerIds;
 
-            // CRITICAL: Explicitly set Android notification channel for OneSignal v5.x
-            // This is required for Android 8.0+ (API 26+) to display notifications
-            onesignalNotification.android_channel_id = 'onesignal_default';
+
+            // NOTE: Removed android_channel_id - OneSignal v5.x doesn't accept it in API calls
+            // The notification channel is created in MainActivity.java and will be used automatically
 
             onesignalNotification.data = {
                 type: notification.type,
