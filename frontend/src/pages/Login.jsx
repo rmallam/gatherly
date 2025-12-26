@@ -150,15 +150,12 @@ const Login = () => {
                         src="/hosteze-logo-full.png"
                         alt="HostEze"
                         style={{
-                            width: '280px',
+                            width: '320px',
                             height: 'auto',
                             objectFit: 'contain',
                             margin: '0 auto'
                         }}
                     />
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '1rem' }}>
-                        Event Management Made Easy
-                    </p>
                 </div>
             </div>
 
