@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Users, Search, Edit2, Trash2, Plus, X, Mail, Phone as PhoneIcon, Calendar, Upload } from 'lucide-react';
+import { Users, Search, Edit2, Trash2, Plus, X, Mail, Phone as PhoneIcon, Calendar, Upload, FolderOpen } from 'lucide-react';
 import ContactPicker from '../components/ContactPicker';
+import GroupManager from '../components/GroupManager';
 
 const MyContacts = () => {
     const { contacts, addContact, updateContact, deleteContact } = useApp();
+    const [activeTab, setActiveTab] = useState('contacts'); // 'contacts' or 'groups'
     const [search, setSearch] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingContact, setEditingContact] = useState(null);
@@ -124,104 +126,156 @@ const MyContacts = () => {
                     </div>
                 </div>
 
-                {/* Search Bar */}
-                <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
-                    <Search size={18} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
-                    <input
-                        type="text"
-                        className="form-input"
-                        style={{ paddingLeft: '2.75rem' }}
-                        placeholder="Search contacts..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
+                {/* Tabs */}
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '2px solid var(--border-color)' }}>
+                    <button
+                        onClick={() => setActiveTab('contacts')}
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            background: 'none',
+                            border: 'none',
+                            borderBottom: activeTab === 'contacts' ? '2px solid var(--primary)' : '2px solid transparent',
+                            color: activeTab === 'contacts' ? 'var(--primary)' : 'var(--text-secondary)',
+                            fontWeight: activeTab === 'contacts' ? 600 : 400,
+                            cursor: 'pointer',
+                            marginBottom: '-2px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <Users size={18} />
+                        All Contacts
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('groups')}
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            background: 'none',
+                            border: 'none',
+                            borderBottom: activeTab === 'groups' ? '2px solid var(--primary)' : '2px solid transparent',
+                            color: activeTab === 'groups' ? 'var(--primary)' : 'var(--text-secondary)',
+                            fontWeight: activeTab === 'groups' ? 600 : 400,
+                            cursor: 'pointer',
+                            marginBottom: '-2px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <FolderOpen size={18} />
+                        Groups
+                    </button>
                 </div>
 
-                {/* Contacts List */}
-                {filteredContacts.length === 0 ? (
-                    <div className="card" style={{ padding: '3rem 2rem', textAlign: 'center', backgroundColor: 'var(--bg-secondary)' }}>
-                        <Users size={48} style={{ color: 'var(--text-tertiary)', margin: '0 auto 1rem' }} />
-                        <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                            {search ? 'No contacts found matching your search.' : 'No contacts saved yet.'}
-                        </p>
-                        {!search && (
-                            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                                <button
-                                    onClick={() => setShowContactPicker(true)}
-                                    className="btn btn-secondary"
-                                >
-                                    <Upload size={18} /> Import from Phone
-                                </button>
-                                <button
-                                    onClick={() => setShowAddModal(true)}
-                                    className="btn btn-primary"
-                                >
-                                    <Plus size={18} /> Add Your First Contact
-                                </button>
-                            </div>
-                        )}
+                {/* Search Bar (only show for contacts tab) */}
+                {activeTab === 'contacts' && (
+                    <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
+                        <Search size={18} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+                        <input
+                            type="text"
+                            className="form-input"
+                            style={{ paddingLeft: '2.75rem' }}
+                            placeholder="Search contacts..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
                     </div>
-                ) : (
-                    <div style={{ display: 'grid', gap: '0.75rem' }}>
-                        {filteredContacts.map(contact => (
-                            <div key={contact.id} className="card" style={{ padding: '1.25rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-                                            {contact.name}
-                                        </h3>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                            {contact.phone && (
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                    <PhoneIcon size={14} />
-                                                    <a href={`tel:${contact.phone}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
-                                                        {contact.phone}
-                                                    </a>
-                                                </div>
-                                            )}
-                                            {contact.email && (
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                    <Mail size={14} />
-                                                    <a href={`mailto:${contact.email}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
-                                                        {contact.email}
-                                                    </a>
-                                                </div>
-                                            )}
-                                            {contact.events_count > 0 && (
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
-                                                    <Calendar size={14} />
-                                                    <span>Used in {contact.events_count} event{contact.events_count !== 1 ? 's' : ''}</span>
-                                                </div>
+                )}
+
+                {/* Tab Content */}
+                {activeTab === 'contacts' ? (
+                    /* Contacts List */
+                    filteredContacts.length === 0 ? (
+                        <div className="card" style={{ padding: '3rem 2rem', textAlign: 'center', backgroundColor: 'var(--bg-secondary)' }}>
+                            <Users size={48} style={{ color: 'var(--text-tertiary)', margin: '0 auto 1rem' }} />
+                            <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                                {search ? 'No contacts found matching your search.' : 'No contacts saved yet.'}
+                            </p>
+                            {!search && (
+                                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                    <button
+                                        onClick={() => setShowContactPicker(true)}
+                                        className="btn btn-secondary"
+                                    >
+                                        <Upload size={18} /> Import from Phone
+                                    </button>
+                                    <button
+                                        onClick={() => setShowAddModal(true)}
+                                        className="btn btn-primary"
+                                    >
+                                        <Plus size={18} /> Add Your First Contact
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div style={{ display: 'grid', gap: '0.75rem' }}>
+                            {filteredContacts.map(contact => (
+                                <div key={contact.id} className="card" style={{ padding: '1.25rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+                                                {contact.name}
+                                            </h3>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                                {contact.phone && (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <PhoneIcon size={14} />
+                                                        <a href={`tel:${contact.phone}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                                                            {contact.phone}
+                                                        </a>
+                                                    </div>
+                                                )}
+                                                {contact.email && (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <Mail size={14} />
+                                                        <a href={`mailto:${contact.email}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                                                            {contact.email}
+                                                        </a>
+                                                    </div>
+                                                )}
+                                                {contact.events_count > 0 && (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
+                                                        <Calendar size={14} />
+                                                        <span>Used in {contact.events_count} event{contact.events_count !== 1 ? 's' : ''}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {contact.notes && (
+                                                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.75rem', fontStyle: 'italic' }}>
+                                                    {contact.notes}
+                                                </p>
                                             )}
                                         </div>
-                                        {contact.notes && (
-                                            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.75rem', fontStyle: 'italic' }}>
-                                                {contact.notes}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-                                        <button
-                                            onClick={() => handleEdit(contact)}
-                                            className="btn btn-secondary"
-                                            style={{ padding: '0.5rem', minWidth: 'auto' }}
-                                            title="Edit contact"
-                                        >
-                                            <Edit2 size={16} />
-                                        </button>
-                                        <button
-                                            onClick={() => setDeleteConfirm(contact)}
-                                            className="btn btn-secondary"
-                                            style={{ padding: '0.5rem', minWidth: 'auto', background: '#ef4444', color: 'white', border: 'none' }}
-                                            title="Delete contact"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
+                                        <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                                            <button
+                                                onClick={() => handleEdit(contact)}
+                                                className="btn btn-secondary"
+                                                style={{ padding: '0.5rem', minWidth: 'auto' }}
+                                                title="Edit contact"
+                                            >
+                                                <Edit2 size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => setDeleteConfirm(contact)}
+                                                className="btn btn-secondary"
+                                                style={{ padding: '0.5rem', minWidth: 'auto', background: '#ef4444', color: 'white', border: 'none' }}
+                                                title="Delete contact"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )
+                ) : (
+                    /* Groups Tab */
+                    <GroupManager />
                 )}
             </div>
 
