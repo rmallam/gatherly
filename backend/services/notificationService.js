@@ -59,6 +59,11 @@ export async function sendNotificationToUsers(userIds, notification) {
             onesignalNotification.headings = { en: notification.title };
             onesignalNotification.contents = { en: notification.body };
             onesignalNotification.include_player_ids = playerIds;
+
+            // CRITICAL: Explicitly set Android notification channel for OneSignal v5.x
+            // This is required for Android 8.0+ (API 26+) to display notifications
+            onesignalNotification.android_channel_id = 'onesignal_default';
+
             onesignalNotification.data = {
                 type: notification.type,
                 ...notification.data

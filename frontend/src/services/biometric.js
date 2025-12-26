@@ -15,15 +15,41 @@ export const BiometricService = {
     // Authenticate user with biometric
     async authenticate() {
         try {
-            await NativeBiometric.verifyIdentity({
+            const result = await NativeBiometric.verifyIdentity({
                 reason: 'Authenticate to access Guest Scanner',
                 title: 'Biometric Authentication',
                 subtitle: 'Please verify your identity',
                 description: 'Use your fingerprint or face to login',
+                maxAttempts: 3
             });
+
+            // Check result explicitly - some versions return object, some return undefined on success
+            console.log('Biometric verification result:', result);
+
+            // If result exists and has verified property, check it
+            // Otherwise, if no error was thrown, consider it successful
+            if (result && result.verified === false) {
+                return false;
+            }
+
             return true;
         } catch (error) {
-            console.error('Biometric authentication failed:', error);
+            // More specific error logging
+            console.error('Biometric authentication failed:', {
+                code: error.code,
+                message: error.message,
+                error: error
+            });
+
+            // Handle specific error codes
+            if (error.code === 10) {
+                // User cancelled
+                console.log('User cancelled biometric auth');
+            } else if (error.code === 13) {
+                // Too many attempts
+                console.log('Too many biometric auth attempts');
+            }
+
             return false;
         }
     },
