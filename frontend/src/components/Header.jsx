@@ -17,8 +17,8 @@ const Header = ({ showAuth = true }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: '1px solid #e5e7eb',
-            backgroundColor: 'white',
+            borderBottom: '1px solid var(--border)',
+            backgroundColor: 'var(--bg-primary)',
             position: 'sticky',
             top: 0,
             zIndex: 100
@@ -32,13 +32,13 @@ const Header = ({ showAuth = true }) => {
                     alignItems: 'center',
                     gap: '8px',
                     padding: '6px 12px',
-                    background: '#f3f4f6',
+                    background: 'var(--bg-secondary)',
                     borderRadius: '20px',
                     cursor: 'pointer',
                     transition: 'background 0.2s'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                onMouseLeave={(e) => e.currentTarget.style.background = '#f3f4f6'}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
             >
                 <div style={{
                     width: '28px',
@@ -57,7 +57,7 @@ const Header = ({ showAuth = true }) => {
                 <span style={{
                     fontSize: '14px',
                     fontWeight: '600',
-                    color: '#1f2937',
+                    color: 'var(--text-primary)',
                     maxWidth: '100px',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -74,13 +74,13 @@ const Header = ({ showAuth = true }) => {
                 gap: '6px',
                 fontSize: '18px',
                 fontWeight: '700',
-                color: '#1f2937',
+                color: 'var(--text-primary)',
                 textDecoration: 'none',
                 position: 'absolute',
                 left: '50%',
                 transform: 'translateX(-50%)'
             }}>
-                <Scan size={22} style={{ color: '#6366f1' }} />
+                <Scan size={22} style={{ color: 'var(--primary)' }} />
                 <span>HostEze</span>
             </Link>
 

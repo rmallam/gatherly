@@ -3,8 +3,8 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: white;
-    border-top: 1px solid #e5e7eb;
+    background: var(--bg-primary);
+    border-top: 1px solid var(--border);
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
     z-index: 1000;
     padding-bottom: env(safe-area-inset-bottom);
@@ -32,7 +32,7 @@
     padding: 8px 4px;
     transition: all 0.2s ease;
     position: relative;
-    color: #666;
+    color: var(--text-tertiary);
 }
 
 .nav-item:active {
@@ -40,7 +40,7 @@
 }
 
 .nav-item.active {
-    color: #6366f1;
+    color: var(--primary);
 }
 
 .nav-item.active::before {
@@ -50,7 +50,7 @@
     left: 10%;
     right: 10%;
     height: 2px;
-    background: #6366f1;
+    background: var(--primary);
     border-radius: 0 0 2px 2px;
 }
 
@@ -66,7 +66,7 @@
 }
 
 .nav-item.active .nav-icon {
-    color: #6366f1;
+    color: var(--primary);
 }
 
 .nav-label {
@@ -76,7 +76,7 @@
 }
 
 .nav-item.active .nav-label {
-    color: #6366f1;
+    color: var(--primary);
     font-weight: 600;
 }
 
