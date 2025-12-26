@@ -943,6 +943,9 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
         // Auto-save to user's contact library
         let contactId = null;
         try {
+            console.log('🔍 AUTO-SAVE: Starting auto-save to contacts for user:', req.user.id);
+            console.log('🔍 AUTO-SAVE: Guest data:', { name, phone, email });
+
             // Check if contact already exists (by phone or email)
             const existingContact = await query(
                 `SELECT id FROM user_contacts 
@@ -952,11 +955,15 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
                 [req.user.id, phone || null, email || null]
             );
 
+            console.log('🔍 AUTO-SAVE: Existing contact check result:', existingContact.rows);
+
             if (existingContact.rows.length > 0) {
                 // Contact exists, just link it
                 contactId = existingContact.rows[0].id;
+                console.log('✅ AUTO-SAVE: Found existing contact, ID:', contactId);
             } else {
                 // Create new contact
+                console.log('🔍 AUTO-SAVE: Creating new contact...');
                 const contactResult = await query(
                     `INSERT INTO user_contacts (user_id, name, phone, email)
                      VALUES ($1, $2, $3, $4)
@@ -966,19 +973,24 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
 
                 if (contactResult.rows.length > 0) {
                     contactId = contactResult.rows[0].id;
+                    console.log('✅ AUTO-SAVE: Created new contact, ID:', contactId);
                 }
             }
 
             // Link the guest to the contact
             if (contactId) {
+                console.log('🔍 AUTO-SAVE: Linking guest to contact...', { guestId, contactId });
                 await query(
                     'UPDATE guests SET contact_id = $1 WHERE id = $2',
                     [contactId, guestId]
                 );
+                console.log('✅ AUTO-SAVE: Successfully linked guest to contact!');
+            } else {
+                console.log('⚠️ AUTO-SAVE: No contactId found, skipping link');
             }
         } catch (contactError) {
             // Don't fail guest addition if contact save fails
-            console.error('Failed to save to contact library:', contactError);
+            console.error('❌ AUTO-SAVE ERROR: Failed to save to contact library:', contactError);
         }
 
         const guest = { id: guestId, name, email, phone, rsvp: null, attended: false, attended_count: 0 };

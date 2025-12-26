@@ -67,10 +67,12 @@ export const AppProvider = ({ children }) => {
 
     const fetchContacts = async () => {
         try {
+            console.log('📞 FETCH-CONTACTS: Starting fetch...');
             const token = localStorage.getItem('token');
             if (token?.startsWith('guest_')) {
                 const guestContacts = localStorage.getItem('guestContacts');
                 setContacts(guestContacts ? JSON.parse(guestContacts) : []);
+                console.log('📞 FETCH-CONTACTS: Loaded guest contacts from localStorage');
                 return;
             }
 
@@ -79,10 +81,13 @@ export const AppProvider = ({ children }) => {
             }, 3, 30000);
             if (res.ok) {
                 const data = await res.json();
+                console.log('✅ FETCH-CONTACTS: Received', data.length, 'contacts from server');
                 setContacts(data);
+            } else {
+                console.error('❌ FETCH-CONTACTS: Request failed with status', res.status);
             }
         } catch (err) {
-            console.error('Failed to fetch contacts:', err);
+            console.error('❌ FETCH-CONTACTS: Error -', err);
         }
     };
 
@@ -232,6 +237,7 @@ export const AppProvider = ({ children }) => {
 
             const savedGuest = await res.json();
             console.log('Guest added successfully:', savedGuest);
+            console.log('👤 ADD-GUEST: Guest contact_id:', savedGuest.contact_id);
 
             setEvents(prev => prev.map(event => {
                 if (event.id === eventId) {
@@ -244,7 +250,9 @@ export const AppProvider = ({ children }) => {
             }));
 
             // Refresh contacts to show newly auto-saved contact
+            console.log('👤 ADD-GUEST: Calling fetchContacts to refresh...');
             await fetchContacts();
+            console.log('👤 ADD-GUEST: fetchContacts completed');
 
             return savedGuest;
         } catch (err) {
