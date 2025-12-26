@@ -71,7 +71,7 @@ const Signup = () => {
                             src="/hosteze-logo-full.png"
                             alt="HostEze"
                             style={{
-                                width: '200px',
+                                width: '280px',
                                 height: 'auto',
                                 objectFit: 'contain',
                                 margin: '0 auto'
@@ -127,7 +127,7 @@ const Signup = () => {
                         src="/hosteze-logo-full.png"
                         alt="HostEze"
                         style={{
-                            width: '200px',
+                            width: '280px',
                             height: 'auto',
                             objectFit: 'contain',
                             margin: '0 auto'
