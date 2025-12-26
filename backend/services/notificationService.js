@@ -1,11 +1,14 @@
-import * as OneSignal from 'onesignal-node';
+import * as OneSignalSDK from '@onesignal/node-onesignal';
 import { query } from '../db/connection.js';
 
+const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID;
+const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY;
+
 // Initialize OneSignal client
-const onesignalClient = new OneSignal.Client(
-    process.env.ONESIGNAL_APP_ID,
-    process.env.ONESIGNAL_REST_API_KEY
-);
+const configuration = OneSignalSDK.createConfiguration({
+    restApiKey: ONESIGNAL_REST_API_KEY,
+});
+const oneSignalClient = new OneSignalSDK.DefaultApi(configuration);
 
 /**
  * Send notification to a specific user
@@ -50,22 +53,22 @@ export async function sendNotificationToUsers(userIds, notification) {
             const playerIds = result.rows.map(row => row.player_id);
             console.log(`📱 Sending push notification to ${playerIds.length} devices for ${userIds.length} users`);
 
-            // Create OneSignal notification
-            const onesignalNotification = {
-                headings: { en: notification.title },
-                contents: { en: notification.body },
-                include_player_ids: playerIds,
-                data: {
-                    type: notification.type,
-                    ...notification.data
-                },
-                ios_badgeType: 'Increase',
-                ios_badgeCount: 1
+            // Create OneSignal notification using new SDK
+            const onesignalNotification = new OneSignalSDK.Notification();
+            onesignalNotification.app_id = ONESIGNAL_APP_ID;
+            onesignalNotification.headings = { en: notification.title };
+            onesignalNotification.contents = { en: notification.body };
+            onesignalNotification.include_player_ids = playerIds;
+            onesignalNotification.data = {
+                type: notification.type,
+                ...notification.data
             };
+            onesignalNotification.ios_badgeType = 'Increase';
+            onesignalNotification.ios_badgeCount = 1;
 
             // Send push notification via OneSignal
-            const response = await onesignalClient.createNotification(onesignalNotification);
-            console.log('✅ Push notification sent via OneSignal:', response.body.id);
+            const response = await oneSignalClient.createNotification(onesignalNotification);
+            console.log('✅ Push notification sent via OneSignal:', response.id);
 
             return response;
         } catch (pushError) {
