@@ -177,7 +177,7 @@ const ManagerDashboard = () => {
                                         {/* Event Details */}
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                                <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, wordBreak: 'break-word', lineHeight: '1.3' }}>
                                                     {event.title}
                                                 </h3>
                                                 {isGuest && (
