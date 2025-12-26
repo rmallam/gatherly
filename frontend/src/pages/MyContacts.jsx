@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Users, Search, Edit2, Trash2, Plus, X, Mail, Phone as PhoneIcon, Calendar, Upload } from 'lucide-react';
-import { Contacts } from '@capacitor-community/contacts';
-import { Capacitor } from '@capacitor/core';
+import ContactPicker from '../components/ContactPicker';
 
 const MyContacts = () => {
     const { contacts, addContact, updateContact, deleteContact } = useApp();
@@ -11,7 +10,7 @@ const MyContacts = () => {
     const [editingContact, setEditingContact] = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [formData, setFormData] = useState({ name: '', phone: '', email: '', notes: '' });
-    const [importing, setImporting] = useState(false);
+    const [showContactPicker, setShowContactPicker] = useState(false);
 
     const filteredContacts = contacts.filter(contact =>
         contact.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -63,61 +62,21 @@ const MyContacts = () => {
         setFormData({ name: '', phone: '', email: '', notes: '' });
     };
 
-    const handleImportFromPhone = async () => {
-        if (!Capacitor.isNativePlatform()) {
-            alert('This feature only works on mobile devices');
-            return;
-        }
-
+    const handleImportContacts = async (selectedContacts) => {
         try {
-            setImporting(true);
-
-            const permission = await Contacts.requestPermissions();
-            if (permission.contacts !== 'granted') {
-                alert('Permission denied to access contacts');
-                return;
-            }
-
-            // Use pickContacts for selective import
-            const result = await Contacts.pickContacts({
-                projection: {
-                    name: true,
-                    phones: true,
-                    emails: true
-                }
-            });
-
-            if (!result.contacts || result.contacts.length === 0) {
-                setImporting(false);
-                return; // User cancelled or no contacts selected
-            }
-
-            // Transform selected contacts
-            const contactsToImport = result.contacts
-                .filter(c => c.name?.display && (c.phones?.length > 0 || c.emails?.length > 0))
-                .map(c => ({
-                    name: c.name.display,
-                    phone: c.phones?.[0]?.number || '',
-                    email: c.emails?.[0]?.address || '',
-                    notes: ''
-                }));
-
-            if (contactsToImport.length === 0) {
-                alert('No valid contacts to import');
-                setImporting(false);
-                return;
-            }
-
-            // Import selected contacts
             let successCount = 0;
             let skipCount = 0;
 
-            for (const contact of contactsToImport) {
+            for (const contact of selectedContacts) {
                 try {
-                    await addContact(contact);
+                    await addContact({
+                        name: contact.name,
+                        phone: contact.phone || '',
+                        email: '',
+                        notes: ''
+                    });
                     successCount++;
                 } catch (err) {
-                    // Skip duplicates or invalid contacts
                     skipCount++;
                 }
             }
@@ -129,9 +88,7 @@ const MyContacts = () => {
             }
         } catch (error) {
             console.error('Import error:', error);
-            alert('Failed to import contacts: ' + error.message);
-        } finally {
-            setImporting(false);
+            alert('Failed to import contacts');
         }
     };
 
@@ -151,12 +108,11 @@ const MyContacts = () => {
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                         <button
-                            onClick={handleImportFromPhone}
+                            onClick={() => setShowContactPicker(true)}
                             className="btn btn-secondary"
                             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                            disabled={importing}
                         >
-                            <Upload size={18} /> {importing ? 'Importing...' : 'Import'}
+                            <Upload size={18} /> Import
                         </button>
                         <button
                             onClick={() => setShowAddModal(true)}
@@ -191,7 +147,7 @@ const MyContacts = () => {
                         {!search && (
                             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                                 <button
-                                    onClick={handleImportFromPhone}
+                                    onClick={() => setShowContactPicker(true)}
                                     className="btn btn-secondary"
                                 >
                                     <Upload size={18} /> Import from Phone
@@ -376,6 +332,14 @@ const MyContacts = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Contact Picker Modal */}
+            {showContactPicker && (
+                <ContactPicker
+                    onImport={handleImportContacts}
+                    onClose={() => setShowContactPicker(false)}
+                />
             )}
         </div>
     );
