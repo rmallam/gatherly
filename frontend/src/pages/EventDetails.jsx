@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import QRGenerator from '../components/QRGenerator';
 import BulkImport from '../components/BulkImport';
@@ -10,7 +10,8 @@ import { UserPlus, QrCode, Search, CheckCircle2, ArrowLeft, Users, Upload, Smart
 
 const EventDetails = () => {
     const { id } = useParams();
-    const { getEvent, addGuest, addBulkGuests, deleteGuest } = useApp();
+    const navigate = useNavigate();
+    const { getEvent, addGuest, addBulkGuests, deleteGuest, deleteEvent } = useApp();
     const event = getEvent(id);
 
     const [newGuest, setNewGuest] = useState({ name: '', phone: '', email: '' });
@@ -25,6 +26,7 @@ const EventDetails = () => {
     const [invitingGuest, setInvitingGuest] = useState(null);
     const [addingGuest, setAddingGuest] = useState(false);
     const [deleteConfirmGuest, setDeleteConfirmGuest] = useState(null);
+    const [showDeleteEventConfirm, setShowDeleteEventConfirm] = useState(false);
 
     if (!event) {
         return (
@@ -216,6 +218,17 @@ const EventDetails = () => {
         }
     };
 
+    const handleDeleteEvent = async () => {
+        try {
+            await deleteEvent(id);
+            setShowDeleteEventConfirm(false);
+            navigate('/manager');
+        } catch (err) {
+            console.error('Error deleting event:', err);
+            alert('Failed to delete event. Please try again.');
+        }
+    };
+
     const filteredGuests = event.guests?.filter(g =>
         g.name.toLowerCase().includes(search.toLowerCase()) ||
         g.phone.includes(search)
@@ -228,9 +241,19 @@ const EventDetails = () => {
         <div style={{ maxWidth: '75rem', margin: '0 auto' }}>
             {/* Simple Header */}
             <div style={{ marginBottom: '2rem' }}>
-                <Link to="/manager" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1rem', textDecoration: 'none' }}>
-                    <ArrowLeft size={16} /> Back to Events
-                </Link>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <Link to="/manager" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>
+                        <ArrowLeft size={16} /> Back to Events
+                    </Link>
+                    <button
+                        onClick={() => setShowDeleteEventConfirm(true)}
+                        className="btn btn-secondary"
+                        style={{ fontSize: '0.875rem', padding: '0.5rem 0.875rem', background: '#ef4444', color: 'white', border: 'none' }}
+                        title="Delete event"
+                    >
+                        <Trash2 size={16} /> Delete Event
+                    </button>
+                </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
                     <div>
@@ -625,6 +648,36 @@ const EventDetails = () => {
                                     style={{ justifyContent: 'center', background: '#ef4444', border: 'none' }}
                                 >
                                     <Trash2 size={16} /> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Event Confirmation Modal */}
+            {showDeleteEventConfirm && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.75)' }} onClick={() => setShowDeleteEventConfirm(false)}>
+                    <div className="card" style={{ maxWidth: '400px', width: '100%', padding: '2rem' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>Delete Event?</h3>
+                            <p style={{ color: 'var(--text-secondary)' }}>
+                                Are you sure you want to delete <strong>{event.title}</strong>? This will permanently delete the event and all {totalGuests} guest{totalGuests !== 1 ? 's' : ''}. This action cannot be undone.
+                            </p>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
+                                <button
+                                    onClick={() => setShowDeleteEventConfirm(false)}
+                                    className="btn btn-secondary"
+                                    style={{ justifyContent: 'center' }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDeleteEvent}
+                                    className="btn btn-primary"
+                                    style={{ justifyContent: 'center', background: '#ef4444', border: 'none' }}
+                                >
+                                    <Trash2 size={16} /> Delete Event
                                 </button>
                             </div>
                         </div>

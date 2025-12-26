@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Plus, Trash2, Calendar, ChevronRight, MapPin, Users } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 const ManagerDashboard = () => {
     const { events, createEvent, deleteEvent } = useApp();
+    const navigate = useNavigate();
     const [isCreating, setIsCreating] = useState(false);
     const [newEvent, setNewEvent] = useState({ title: '', date: '', location: '' });
 
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!newEvent.title) return;
-        createEvent(newEvent);
+        const createdEvent = createEvent(newEvent);
 
         // Celebration confetti!
         confetti({
@@ -24,6 +25,11 @@ const ManagerDashboard = () => {
 
         setNewEvent({ title: '', date: '', location: '' });
         setIsCreating(false);
+
+        // Navigate to the newly created event
+        if (createdEvent && createdEvent.id) {
+            navigate(`/event/${createdEvent.id}`);
+        }
     };
 
     const handleDelete = (e, id) => {
