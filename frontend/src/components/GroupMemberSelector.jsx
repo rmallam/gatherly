@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Search, UserPlus, UserMinus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { API_URL } from '../config';
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://gatherly-backend-wl0v.onrender.com';
 
 const GroupMemberSelector = ({ group, onClose }) => {
     const { contacts } = useApp();

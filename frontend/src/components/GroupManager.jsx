@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Plus, Edit2, Trash2, X, UserPlus } from 'lucide-react';
-import { API_URL } from '../config';
 import GroupMemberSelector from './GroupMemberSelector';
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://gatherly-backend-wl0v.onrender.com';
 
 const GroupManager = () => {
     const [groups, setGroups] = useState([]);
