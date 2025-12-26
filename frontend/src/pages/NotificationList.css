@@ -66,32 +66,32 @@
 }
 
 .notification-filter {
-    background: white;
+    background: var(--bg-primary);
     padding: 12px 16px;
     display: flex;
     gap: 8px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border);
 }
 
 .notification-filter button {
     background: none;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border);
     padding: 8px 16px;
     border-radius: 20px;
     font-size: 14px;
     cursor: pointer;
     transition: all 0.2s;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .notification-filter button.active {
-    background: #007bff;
+    background: var(--primary);
     color: white;
-    border-color: #007bff;
+    border-color: var(--primary);
 }
 
 .notification-filter button:hover:not(.active) {
-    background: #f0f0f0;
+    background: var(--bg-tertiary);
 }
 
 .notification-list-content {
@@ -144,10 +144,10 @@
 }
 
 .notification-items {
-    background: white;
+    background: var(--bg-primary);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-sm);
 }
 
 .notification-list-item {
@@ -156,7 +156,7 @@
     padding: 16px;
     cursor: pointer;
     transition: background 0.2s;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--border);
     position: relative;
 }
 
@@ -165,15 +165,16 @@
 }
 
 .notification-list-item:hover {
-    background: #f8f9fa;
+    background: var(--bg-secondary);
 }
 
 .notification-list-item.unread {
-    background: #f0f8ff;
+    background: var(--bg-tertiary);
 }
 
 .notification-list-item.unread:hover {
-    background: #e3f2fd;
+    background: var(--bg-tertiary);
+    opacity: 0.9;
 }
 
 .notification-list-icon {
@@ -197,23 +198,23 @@
     font-weight: 600;
     font-size: 15px;
     margin-bottom: 6px;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .notification-list-item.unread .notification-list-title {
-    color: #007bff;
+    color: var(--primary);
 }
 
 .notification-list-body {
     font-size: 14px;
-    color: #666;
+    color: var(--text-secondary);
     line-height: 1.5;
     margin-bottom: 8px;
 }
 
 .notification-list-time {
     font-size: 13px;
-    color: #999;
+    color: var(--text-tertiary);
 }
 
 .notification-list-actions-inner {
