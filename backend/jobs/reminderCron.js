@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { query } from '../db/connection.js';
 import { sendReminder } from '../services/reminderService.js';
+import { checkAndSendReminders } from '../services/eventReminderService.js';
 
 /**
  * Check for pending reminders and send them
@@ -74,18 +75,20 @@ const processPendingReminders = async () => {
  */
 export const startReminderCron = () => {
     // Run every 15 minutes
-    cron.schedule('*/15 * * * *', () => {
+    cron.schedule('*/15 * * * *', async () => {
         const now = new Date().toLocaleString();
         console.log(`[${now}] Running reminder check...`);
-        processPendingReminders();
+        await processPendingReminders();
+        await checkAndSendReminders();
     });
 
     console.log('✓ Reminder cron job started (runs every 15 minutes)');
 
     // Also run once on startup after 30 seconds
-    setTimeout(() => {
+    setTimeout(async () => {
         console.log('Running initial reminder check...');
-        processPendingReminders();
+        await processPendingReminders();
+        await checkAndSendReminders();
     }, 30000);
 };
 
