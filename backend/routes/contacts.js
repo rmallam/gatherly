@@ -13,7 +13,7 @@ router.get('/', authMiddleware, async (req, res) => {
             `SELECT 
                 c.*,
                 COUNT(DISTINCT g.event_id) as events_count,
-                MAX(g.created_at) as last_invited_at
+                MAX(g.added_at) as last_invited_at
             FROM user_contacts c
             LEFT JOIN guests g ON g.contact_id = c.id
             WHERE c.user_id = $1
