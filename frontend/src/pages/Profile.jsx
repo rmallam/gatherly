@@ -409,14 +409,7 @@ const Profile = () => {
                                 type="text"
                                 value={profile.name}
                                 onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                                style={{
-                                    width: '100%',
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #e5e7eb',
-                                    fontSize: '15px',
-                                    fontFamily: 'inherit'
-                                }}
+                                className="input"
                             />
                         </div>
 
@@ -438,17 +431,7 @@ const Profile = () => {
                                 type="email"
                                 value={profile.email}
                                 disabled
-                                style={{
-                                    width: '100%',
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #e5e7eb',
-                                    fontSize: '15px',
-                                    background: 'var(--bg-secondary)',
-                                    color: '#6b7280',
-                                    cursor: 'not-allowed',
-                                    fontFamily: 'inherit'
-                                }}
+                                className="input"
                             />
                         </div>
 
@@ -470,14 +453,8 @@ const Profile = () => {
                                 <select
                                     value={countryCode}
                                     onChange={(e) => setCountryCode(e.target.value)}
-                                    style={{
-                                        width: '120px',
-                                        padding: '12px',
-                                        borderRadius: '8px',
-                                        border: '1px solid #e5e7eb',
-                                        fontSize: '15px',
-                                        fontFamily: 'inherit'
-                                    }}
+                                    className="input"
+                                    style={{ width: '120px' }}
                                 >
                                     <option value="+91">🇮🇳 +91</option>
                                     <option value="+1">🇺🇸 +1</option>
@@ -491,14 +468,8 @@ const Profile = () => {
                                     onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, ''))}
                                     placeholder="9876543210"
                                     maxLength={10}
-                                    style={{
-                                        flex: 1,
-                                        padding: '12px',
-                                        borderRadius: '8px',
-                                        border: '1px solid #e5e7eb',
-                                        fontSize: '15px',
-                                        fontFamily: 'inherit'
-                                    }}
+                                    className="input"
+                                    style={{ flex: 1 }}
                                 />
                             </div>
                         </div>
@@ -522,16 +493,8 @@ const Profile = () => {
                                 onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
                                 placeholder="Tell us about yourself..."
                                 maxLength={500}
-                                style={{
-                                    width: '100%',
-                                    minHeight: '100px',
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #e5e7eb',
-                                    fontSize: '15px',
-                                    resize: 'vertical',
-                                    fontFamily: 'inherit'
-                                }}
+                                className="input"
+                                style={{ minHeight: '100px', resize: 'vertical' }}
                             />
                             <div style={{
                                 textAlign: 'right',
@@ -608,15 +571,8 @@ const Profile = () => {
                                     type={showPassword.current ? 'text' : 'password'}
                                     value={passwords.currentPassword}
                                     onChange={(e) => setPasswords({ ...passwords, currentPassword: e.target.value })}
-                                    style={{
-                                        width: '100%',
-                                        padding: '12px',
-                                        paddingRight: '40px',
-                                        borderRadius: '8px',
-                                        border: '1px solid #e5e7eb',
-                                        fontSize: '15px',
-                                        fontFamily: 'inherit'
-                                    }}
+                                    className="input"
+                                    style={{ paddingRight: '40px' }}
                                 />
                                 <button
                                     type="button"
@@ -654,15 +610,8 @@ const Profile = () => {
                                     type={showPassword.new ? 'text' : 'password'}
                                     value={passwords.newPassword}
                                     onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
-                                    style={{
-                                        width: '100%',
-                                        padding: '12px',
-                                        paddingRight: '40px',
-                                        borderRadius: '8px',
-                                        border: '1px solid #e5e7eb',
-                                        fontSize: '15px',
-                                        fontFamily: 'inherit'
-                                    }}
+                                    className="input"
+                                    style={{ paddingRight: '40px' }}
                                 />
                                 <button
                                     type="button"
@@ -700,15 +649,8 @@ const Profile = () => {
                                     type={showPassword.confirm ? 'text' : 'password'}
                                     value={passwords.confirmPassword}
                                     onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
-                                    style={{
-                                        width: '100%',
-                                        padding: '12px',
-                                        paddingRight: '40px',
-                                        borderRadius: '8px',
-                                        border: '1px solid #e5e7eb',
-                                        fontSize: '15px',
-                                        fontFamily: 'inherit'
-                                    }}
+                                    className="input"
+                                    style={{ paddingRight: '40px' }}
                                 />
                                 <button
                                     type="button"
