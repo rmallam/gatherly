@@ -55,6 +55,9 @@ const GroupManager = () => {
                 ? `${API_URL}/api/contact-groups/${editingGroup.id}`
                 : `${API_URL}/api/contact-groups`;
 
+            console.log('Creating group with URL:', url);
+            console.log('Request data:', formData);
+
             const response = await fetch(url, {
                 method: editingGroup ? 'PUT' : 'POST',
                 headers: {
@@ -64,14 +67,29 @@ const GroupManager = () => {
                 body: JSON.stringify(formData)
             });
 
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers.get('content-type'));
+
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to save group');
+                // Try to parse as JSON if content-type is JSON
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to save group');
+                } else {
+                    const text = await response.text();
+                    console.error('Non-JSON error response:', text);
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                }
             }
+
+            const data = await response.json();
+            console.log('Group created:', data);
 
             await fetchGroups();
             closeModal();
         } catch (error) {
+            console.error('Full error:', error);
             alert(error.message);
         }
     };
