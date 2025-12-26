@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Users, Search, Edit2, Trash2, Plus, X, Mail, Phone as PhoneIcon, Calendar } from 'lucide-react';
+import { Users, Search, Edit2, Trash2, Plus, X, Mail, Phone as PhoneIcon, Calendar, Upload } from 'lucide-react';
+import { Contacts } from '@capacitor-community/contacts';
+import { Capacitor } from '@capacitor/core';
 
 const MyContacts = () => {
     const { contacts, addContact, updateContact, deleteContact } = useApp();
@@ -9,6 +11,7 @@ const MyContacts = () => {
     const [editingContact, setEditingContact] = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [formData, setFormData] = useState({ name: '', phone: '', email: '', notes: '' });
+    const [importing, setImporting] = useState(false);
 
     const filteredContacts = contacts.filter(contact =>
         contact.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -60,12 +63,78 @@ const MyContacts = () => {
         setFormData({ name: '', phone: '', email: '', notes: '' });
     };
 
+    const handleImportFromPhone = async () => {
+        if (!Capacitor.isNativePlatform()) {
+            alert('This feature only works on mobile devices');
+            return;
+        }
+
+        try {
+            setImporting(true);
+
+            const permission = await Contacts.requestPermissions();
+            if (permission.contacts !== 'granted') {
+                alert('Permission denied to access contacts');
+                return;
+            }
+
+            const result = await Contacts.getContacts({
+                projection: {
+                    name: true,
+                    phones: true,
+                    emails: true
+                }
+            });
+
+            if (!result.contacts || result.contacts.length === 0) {
+                alert('No contacts found');
+                return;
+            }
+
+            // Filter and transform contacts
+            const contactsToImport = result.contacts
+                .filter(c => c.name?.display && (c.phones?.length > 0 || c.emails?.length > 0))
+                .map(c => ({
+                    name: c.name.display,
+                    phone: c.phones?.[0]?.number || '',
+                    email: c.emails?.[0]?.address || '',
+                    notes: ''
+                }));
+
+            if (contactsToImport.length === 0) {
+                alert('No valid contacts to import');
+                return;
+            }
+
+            // Import contacts one by one
+            let successCount = 0;
+            let skipCount = 0;
+
+            for (const contact of contactsToImport) {
+                try {
+                    await addContact(contact);
+                    successCount++;
+                } catch (err) {
+                    // Skip duplicates or invalid contacts
+                    skipCount++;
+                }
+            }
+
+            alert(`Imported ${successCount} contacts${skipCount > 0 ? `, skipped ${skipCount} duplicates` : ''}`);
+        } catch (error) {
+            console.error('Import error:', error);
+            alert('Failed to import contacts: ' + error.message);
+        } finally {
+            setImporting(false);
+        }
+    };
+
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)', paddingBottom: 'calc(60px + env(safe-area-inset-bottom))' }}>
 
             <div className="container" style={{ padding: '2rem 1rem 1rem' }}>
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                     <div>
                         <h1 style={{ fontSize: '1.875rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                             My Contacts
@@ -74,13 +143,23 @@ const MyContacts = () => {
                             {contacts.length} saved contact{contacts.length !== 1 ? 's' : ''}
                         </p>
                     </div>
-                    <button
-                        onClick={() => setShowAddModal(true)}
-                        className="btn btn-primary"
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                    >
-                        <Plus size={18} /> Add Contact
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                        <button
+                            onClick={handleImportFromPhone}
+                            className="btn btn-secondary"
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                            disabled={importing}
+                        >
+                            <Upload size={18} /> {importing ? 'Importing...' : 'Import'}
+                        </button>
+                        <button
+                            onClick={() => setShowAddModal(true)}
+                            className="btn btn-primary"
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                        >
+                            <Plus size={18} /> Add Contact
+                        </button>
+                    </div>
                 </div>
 
                 {/* Search Bar */}
@@ -104,12 +183,20 @@ const MyContacts = () => {
                             {search ? 'No contacts found matching your search.' : 'No contacts saved yet.'}
                         </p>
                         {!search && (
-                            <button
-                                onClick={() => setShowAddModal(true)}
-                                className="btn btn-primary"
-                            >
-                                <Plus size={18} /> Add Your First Contact
-                            </button>
+                            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                <button
+                                    onClick={handleImportFromPhone}
+                                    className="btn btn-secondary"
+                                >
+                                    <Upload size={18} /> Import from Phone
+                                </button>
+                                <button
+                                    onClick={() => setShowAddModal(true)}
+                                    className="btn btn-primary"
+                                >
+                                    <Plus size={18} /> Add Your First Contact
+                                </button>
+                            </div>
                         )}
                     </div>
                 ) : (
@@ -284,7 +371,6 @@ const MyContacts = () => {
                     </div>
                 </div>
             )}
-
         </div>
     );
 };

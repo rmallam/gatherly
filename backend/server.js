@@ -940,42 +940,41 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
             }
         }
 
-        // Auto-save to user's contact library (if not already exists)
+        // Auto-save to user's contact library
         let contactId = null;
         try {
-            const contactResult = await query(
-                `INSERT INTO user_contacts (user_id, name, phone, email)
-                 VALUES ($1, $2, $3, $4)
-                 ON CONFLICT DO NOTHING
-                 RETURNING id`,
-                [req.user.id, name, phone || null, email || null]
+            // Check if contact already exists (by phone or email)
+            const existingContact = await query(
+                `SELECT id FROM user_contacts 
+                 WHERE user_id = $1 
+                 AND ((phone IS NOT NULL AND phone = $2) OR (email IS NOT NULL AND email = $3))
+                 LIMIT 1`,
+                [req.user.id, phone || null, email || null]
             );
 
-            if (contactResult.rows.length > 0) {
-                contactId = contactResult.rows[0].id;
+            if (existingContact.rows.length > 0) {
+                // Contact exists, just link it
+                contactId = existingContact.rows[0].id;
+            } else {
+                // Create new contact
+                const contactResult = await query(
+                    `INSERT INTO user_contacts (user_id, name, phone, email)
+                     VALUES ($1, $2, $3, $4)
+                     RETURNING id`,
+                    [req.user.id, name, phone || null, email || null]
+                );
 
-                // Link the guest to the contact
+                if (contactResult.rows.length > 0) {
+                    contactId = contactResult.rows[0].id;
+                }
+            }
+
+            // Link the guest to the contact
+            if (contactId) {
                 await query(
                     'UPDATE guests SET contact_id = $1 WHERE id = $2',
                     [contactId, guestId]
                 );
-            } else {
-                // Contact already exists, find it and link
-                const existingContact = await query(
-                    `SELECT id FROM user_contacts 
-                     WHERE user_id = $1 
-                     AND ((phone IS NOT NULL AND phone = $2) OR (email IS NOT NULL AND email = $3))
-                     LIMIT 1`,
-                    [req.user.id, phone, email]
-                );
-
-                if (existingContact.rows.length > 0) {
-                    contactId = existingContact.rows[0].id;
-                    await query(
-                        'UPDATE guests SET contact_id = $1 WHERE id = $2',
-                        [contactId, guestId]
-                    );
-                }
             }
         } catch (contactError) {
             // Don't fail guest addition if contact save fails
