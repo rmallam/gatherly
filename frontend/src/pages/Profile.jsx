@@ -230,9 +230,9 @@ const Profile = () => {
         }}>
             {/* Header */}
             <div style={{
-                background: '#fff',
+                background: 'var(--bg-primary)',
                 padding: '16px',
-                borderBottom: '1px solid #e5e7eb',
+                borderBottom: '1px solid var(--border)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '16px',
@@ -323,11 +323,11 @@ const Profile = () => {
 
                 {/* Profile Picture */}
                 <div style={{
-                    background: '#fff',
+                    background: 'var(--bg-primary)',
                     borderRadius: '12px',
                     padding: '24px',
                     marginBottom: '20px',
-                    border: '1px solid #e5e7eb'
+                    border: '1px solid var(--border)'
                 }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
                         <div style={{
@@ -374,11 +374,11 @@ const Profile = () => {
 
                 {/* Profile Information */}
                 <div style={{
-                    background: '#fff',
+                    background: 'var(--bg-primary)',
                     borderRadius: '12px',
                     padding: '24px',
                     marginBottom: '20px',
-                    border: '1px solid #e5e7eb'
+                    border: '1px solid var(--border)'
                 }}>
                     <h2 style={{
                         fontSize: '18px',
@@ -571,11 +571,11 @@ const Profile = () => {
 
                 {/* Change Password */}
                 <div style={{
-                    background: '#fff',
+                    background: 'var(--bg-primary)',
                     borderRadius: '12px',
                     padding: '24px',
                     marginBottom: '20px',
-                    border: '1px solid #e5e7eb'
+                    border: '1px solid var(--border)'
                 }}>
                     <h2 style={{
                         fontSize: '18px',
