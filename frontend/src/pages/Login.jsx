@@ -144,7 +144,7 @@ const Login = () => {
     return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
             {/* Header */}
-            <div style={{ padding: '2rem 0', borderBottom: '1px solid var(--border)' }}>
+            <div style={{ padding: '3rem 0 2rem', borderBottom: '1px solid var(--border)' }}>
                 <div className="container" style={{ textAlign: 'center' }}>
                     <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                         🎉 HostEze
