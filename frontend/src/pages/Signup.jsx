@@ -67,16 +67,12 @@ const Signup = () => {
             <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
                 <div style={{ padding: '3rem 0 2rem', borderBottom: '1px solid var(--border)' }}>
                     <div className="container" style={{ textAlign: 'center' }}>
-                        <img
-                            src="/hosteze-logo-full.png"
-                            alt="HostEze"
-                            style={{
-                                width: '320px',
-                                height: 'auto',
-                                objectFit: 'contain',
-                                margin: '0 auto'
-                            }}
-                        />
+                        <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                            🎉 HostEze
+                        </h1>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                            Event Management Made Easy
+                        </p>
                     </div>
                 </div>
 
@@ -120,16 +116,12 @@ const Signup = () => {
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
             <div style={{ padding: '3rem 0 2rem', borderBottom: '1px solid var(--border)' }}>
                 <div className="container" style={{ textAlign: 'center' }}>
-                    <img
-                        src="/hosteze-logo-full.png"
-                        alt="HostEze"
-                        style={{
-                            width: '320px',
-                            height: 'auto',
-                            objectFit: 'contain',
-                            margin: '0 auto'
-                        }}
-                    />
+                    <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                        🎉 HostEze
+                    </h1>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                        Event Management Made Easy
+                    </p>
                 </div>
             </div>
 
