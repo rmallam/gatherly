@@ -38,14 +38,14 @@ const ManagerDashboard = () => {
             {/* Header */}
             <div style={{ marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                         My Events
                     </h1>
                     <button onClick={() => setIsCreating(true)} className="btn btn-primary" style={{ fontSize: '14px', padding: '8px 16px' }}>
                         <Plus size={16} /> New Event
                     </button>
                 </div>
-                <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>
                     Create and manage your events
                 </p>
             </div>
@@ -134,10 +134,10 @@ const ManagerDashboard = () => {
                             return (
                                 <Link to={linkPath} key={event.id} style={{ textDecoration: 'none' }}>
                                     <div style={{
-                                        background: 'white',
+                                        background: 'var(--bg-primary)',
                                         borderRadius: '12px',
                                         padding: '16px',
-                                        border: '1px solid #e5e7eb',
+                                        border: '1px solid var(--border)',
                                         boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
                                         display: 'flex',
                                         alignItems: 'center',
@@ -177,7 +177,7 @@ const ManagerDashboard = () => {
                                         {/* Event Details */}
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                                <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#1f2937', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                     {event.title}
                                                 </h3>
                                                 {isGuest && (
@@ -195,7 +195,7 @@ const ManagerDashboard = () => {
                                                     </span>
                                                 )}
                                             </div>
-                                            <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: '#6b7280' }}>
+                                            <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: 'var(--text-secondary)' }}>
                                                 {event.location && (
                                                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                         <MapPin size={12} />

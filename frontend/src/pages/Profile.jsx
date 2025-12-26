@@ -209,7 +209,7 @@ const Profile = () => {
         return (
             <div style={{
                 minHeight: '100vh',
-                background: '#f9fafb',
+                background: 'var(--bg-secondary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -224,7 +224,7 @@ const Profile = () => {
     return (
         <div style={{
             minHeight: '100vh',
-            background: '#f9fafb',
+            background: 'var(--bg-secondary)',
             paddingTop: 'max(20px, env(safe-area-inset-top))',
             paddingBottom: 'max(20px, env(safe-area-inset-bottom))'
         }}>
@@ -444,7 +444,7 @@ const Profile = () => {
                                     borderRadius: '8px',
                                     border: '1px solid #e5e7eb',
                                     fontSize: '15px',
-                                    background: '#f9fafb',
+                                    background: 'var(--bg-secondary)',
                                     color: '#6b7280',
                                     cursor: 'not-allowed',
                                     fontFamily: 'inherit'
