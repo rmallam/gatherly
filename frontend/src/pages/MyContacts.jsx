@@ -78,7 +78,8 @@ const MyContacts = () => {
                 return;
             }
 
-            const result = await Contacts.getContacts({
+            // Use pickContacts for selective import
+            const result = await Contacts.pickContacts({
                 projection: {
                     name: true,
                     phones: true,
@@ -87,11 +88,11 @@ const MyContacts = () => {
             });
 
             if (!result.contacts || result.contacts.length === 0) {
-                alert('No contacts found');
-                return;
+                setImporting(false);
+                return; // User cancelled or no contacts selected
             }
 
-            // Filter and transform contacts
+            // Transform selected contacts
             const contactsToImport = result.contacts
                 .filter(c => c.name?.display && (c.phones?.length > 0 || c.emails?.length > 0))
                 .map(c => ({
@@ -103,10 +104,11 @@ const MyContacts = () => {
 
             if (contactsToImport.length === 0) {
                 alert('No valid contacts to import');
+                setImporting(false);
                 return;
             }
 
-            // Import contacts one by one
+            // Import selected contacts
             let successCount = 0;
             let skipCount = 0;
 
@@ -120,7 +122,11 @@ const MyContacts = () => {
                 }
             }
 
-            alert(`Imported ${successCount} contacts${skipCount > 0 ? `, skipped ${skipCount} duplicates` : ''}`);
+            if (successCount > 0) {
+                alert(`Imported ${successCount} contact${successCount !== 1 ? 's' : ''}${skipCount > 0 ? `, skipped ${skipCount} duplicate${skipCount !== 1 ? 's' : ''}` : ''}`);
+            } else if (skipCount > 0) {
+                alert(`All ${skipCount} contact${skipCount !== 1 ? 's were' : ' was'} already in your library`);
+            }
         } catch (error) {
             console.error('Import error:', error);
             alert('Failed to import contacts: ' + error.message);

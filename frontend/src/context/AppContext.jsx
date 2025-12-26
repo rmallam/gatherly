@@ -243,6 +243,9 @@ export const AppProvider = ({ children }) => {
                 return event;
             }));
 
+            // Refresh contacts to show newly auto-saved contact
+            await fetchContacts();
+
             return savedGuest;
         } catch (err) {
             console.error('Error adding guest:', err);
