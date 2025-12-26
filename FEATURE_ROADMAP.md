@@ -504,3 +504,6 @@ Add user-requested features here as they come in:
 **Priority:** P1 | **Effort:** Low | **Impact:** Medium
 
 ---
+
+
+6 vulnerabilities (4 moderate, 2 critical) -- backend

@@ -1178,68 +1178,6 @@ app.post('/api/events/:eventId/guests/:guestId/checkin', authMiddleware, async (
     }
 });
 
-// === CONTACT ROUTES ===
-app.get('/api/contacts', authMiddleware, async (req, res) => {
-    try {
-        const result = await query(
-            'SELECT * FROM contacts WHERE user_id = $1 ORDER BY name ASC',
-            [req.user.id]
-        );
-        res.json(result.rows);
-    } catch (error) {
-        console.error('Fetch contacts error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-app.post('/api/contacts', authMiddleware, async (req, res) => {
-    try {
-        const { name, email, phone } = req.body;
-        const contactId = uuidv4();
-
-        await query(
-            'INSERT INTO contacts (id, user_id, name, email, phone) VALUES ($1, $2, $3, $4, $5)',
-            [contactId, req.user.id, name, email || null, phone || null]
-        );
-
-        const contact = { id: contactId, name, email, phone };
-        res.json(contact);
-    } catch (error) {
-        console.error('Add contact error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-app.post('/api/contacts/bulk', authMiddleware, async (req, res) => {
-    try {
-        const { contacts } = req.body;
-        const addedContacts = [];
-
-        for (const contact of contacts) {
-            const contactId = uuidv4();
-            await query(
-                'INSERT INTO contacts (id, user_id, name, email, phone) VALUES ($1, $2, $3, $4, $5)',
-                [contactId, req.user.id, contact.name, contact.email || null, contact.phone || null]
-            );
-            addedContacts.push({ id: contactId, ...contact });
-        }
-
-        res.json(addedContacts);
-    } catch (error) {
-        console.error('Bulk add contacts error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-app.delete('/api/contacts/:id', authMiddleware, async (req, res) => {
-    try {
-        await query('DELETE FROM contacts WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Delete contact error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
 
 // === PUBLIC ROUTES (for RSVP) ===
 app.get('/api/public/events/:id', async (req, res) => {

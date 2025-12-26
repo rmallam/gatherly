@@ -2,8 +2,8 @@
 -- Allows users to save and reuse guest information across multiple events
 
 CREATE TABLE IF NOT EXISTS user_contacts (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     phone VARCHAR(20),
     email VARCHAR(255),
@@ -30,7 +30,7 @@ CREATE INDEX idx_user_contacts_user_id ON user_contacts(user_id);
 CREATE INDEX idx_user_contacts_name ON user_contacts(name);
 
 -- Add contact_id to guests table to link to user_contacts
-ALTER TABLE guests ADD COLUMN IF NOT EXISTS contact_id INTEGER REFERENCES user_contacts(id) ON DELETE SET NULL;
+ALTER TABLE guests ADD COLUMN IF NOT EXISTS contact_id UUID REFERENCES user_contacts(id) ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS idx_guests_contact_id ON guests(contact_id);
 
 -- Update trigger for updated_at

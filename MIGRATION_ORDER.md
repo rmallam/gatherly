@@ -30,6 +30,16 @@ The following migrations **MUST** be run in order on your production database:
 - Auto-links existing guests to users via email/phone
 - **DEPENDS ON:** users.phone column from Step 2
 
+## Step 4: User Contacts Library 📇
+```bash
+# File: 20241225_user_contacts.sql
+```
+**What it does:**
+- Creates user_contacts table for reusable guest information
+- Adds contact_id to guests table
+- Creates indexes and triggers for efficiency
+- Ensures at least one contact method (phone or email)
+
 ---
 
 ## Quick Copy-Paste for psql:
@@ -42,6 +52,7 @@ psql "your-database-connection-string"
 \i backend/db/migrations/20241219_event_social_wall.sql
 \i backend/db/migrations/20241219_optional_email_phone_signup.sql
 \i backend/db/migrations/20241219_link_guests_to_users.sql
+\i backend/db/migrations/20241225_user_contacts.sql
 ```
 
 ---
