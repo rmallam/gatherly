@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from
 import { App as CapacitorApp } from '@capacitor/app';
 import { AuthProvider } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import pushNotificationService from './services/PushNotificationService';
@@ -56,80 +57,82 @@ function App() {
     }, []);
 
     return (
-        <AuthProvider>
-            <AppProvider>
-                <BrowserRouter>
-                    <BackButtonHandler />
-                    <Routes>
-                        {/* Public routes */}
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/signup" element={<Signup />} />
-                        <Route path="/rsvp/:eventId/:guestId" element={<RSVP />} />
-                        <Route path="/invite/:id" element={<PublicInvitation />} />
+        <ThemeProvider>
+            <AuthProvider>
+                <AppProvider>
+                    <BrowserRouter>
+                        <BackButtonHandler />
+                        <Routes>
+                            {/* Public routes */}
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/signup" element={<Signup />} />
+                            <Route path="/rsvp/:eventId/:guestId" element={<RSVP />} />
+                            <Route path="/invite/:id" element={<PublicInvitation />} />
 
-                        {/* Protected routes */}
-                        <Route path="/" element={
-                            <ProtectedRoute>
-                                <Layout>
-                                    <ManagerDashboard />
-                                </Layout>
-                            </ProtectedRoute>
-                        } />
-                        {/* Redirect /manager to / to avoid duplicate routes */}
-                        <Route path="/manager" element={<Navigate to="/" replace />} />
-                        <Route path="/event/:id" element={
-                            <ProtectedRoute>
-                                <Layout>
-                                    <EventDetailsTabs />
-                                </Layout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/guest/event/:id" element={
-                            <ProtectedRoute>
-                                <Layout>
-                                    <GuestEventView />
-                                </Layout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/event/:eventId/wall" element={
-                            <ProtectedRoute>
-                                <Layout>
-                                    <EventWall />
-                                </Layout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/scanner" element={
-                            <ProtectedRoute>
-                                <Layout>
-                                    <Scanner />
-                                </Layout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/profile" element={
-                            <ProtectedRoute>
-                                <Layout>
-                                    <Profile />
-                                </Layout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/notifications" element={
-                            <ProtectedRoute>
-                                <Layout>
-                                    <NotificationList />
-                                </Layout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/contacts" element={
-                            <ProtectedRoute>
-                                <Layout>
-                                    <MyContacts />
-                                </Layout>
-                            </ProtectedRoute>
-                        } />
-                    </Routes>
-                </BrowserRouter>
-            </AppProvider>
-        </AuthProvider>
+                            {/* Protected routes */}
+                            <Route path="/" element={
+                                <ProtectedRoute>
+                                    <Layout>
+                                        <ManagerDashboard />
+                                    </Layout>
+                                </ProtectedRoute>
+                            } />
+                            {/* Redirect /manager to / to avoid duplicate routes */}
+                            <Route path="/manager" element={<Navigate to="/" replace />} />
+                            <Route path="/event/:id" element={
+                                <ProtectedRoute>
+                                    <Layout>
+                                        <EventDetailsTabs />
+                                    </Layout>
+                                </ProtectedRoute>
+                            } />
+                            <Route path="/guest/event/:id" element={
+                                <ProtectedRoute>
+                                    <Layout>
+                                        <GuestEventView />
+                                    </Layout>
+                                </ProtectedRoute>
+                            } />
+                            <Route path="/event/:eventId/wall" element={
+                                <ProtectedRoute>
+                                    <Layout>
+                                        <EventWall />
+                                    </Layout>
+                                </ProtectedRoute>
+                            } />
+                            <Route path="/scanner" element={
+                                <ProtectedRoute>
+                                    <Layout>
+                                        <Scanner />
+                                    </Layout>
+                                </ProtectedRoute>
+                            } />
+                            <Route path="/profile" element={
+                                <ProtectedRoute>
+                                    <Layout>
+                                        <Profile />
+                                    </Layout>
+                                </ProtectedRoute>
+                            } />
+                            <Route path="/notifications" element={
+                                <ProtectedRoute>
+                                    <Layout>
+                                        <NotificationList />
+                                    </Layout>
+                                </ProtectedRoute>
+                            } />
+                            <Route path="/contacts" element={
+                                <ProtectedRoute>
+                                    <Layout>
+                                        <MyContacts />
+                                    </Layout>
+                                </ProtectedRoute>
+                            } />
+                        </Routes>
+                    </BrowserRouter>
+                </AppProvider>
+            </AuthProvider>
+        </ThemeProvider>
     );
 }
 

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, User, Mail, Phone, FileText, Lock, Save, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Camera, User, Mail, Phone, FileText, Lock, Save, Eye, EyeOff, Moon, Sun } from 'lucide-react';
 import { Camera as CapCamera } from '@capacitor/camera';
+import { useTheme } from '../context/ThemeContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 const Profile = () => {
     const navigate = useNavigate();
+    const { theme, toggleTheme } = useTheme();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [profile, setProfile] = useState({
@@ -747,6 +749,63 @@ const Profile = () => {
                             {saving ? 'Changing...' : 'Change Password'}
                         </button>
                     </form>
+                </div>
+
+                {/* Theme Settings */}
+                <div style={{
+                    background: 'var(--bg-primary)',
+                    borderRadius: '12px',
+                    padding: '24px',
+                    marginBottom: '80px',
+                    border: '1px solid var(--border)'
+                }}>
+                    <h2 style={{
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        color: 'var(--text-primary)',
+                        marginTop: 0,
+                        marginBottom: '20px'
+                    }}>
+                        Appearance
+                    </h2>
+
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                background: 'var(--bg-secondary)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'var(--primary)'
+                            }}>
+                                {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
+                            </div>
+                            <div>
+                                <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px', color: 'var(--text-primary)' }}>
+                                    Dark Theme
+                                </h3>
+                                <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: 0 }}>
+                                    {theme === 'dark' ? 'Enabled' : 'Disabled'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <label className="theme-toggle">
+                            <input
+                                type="checkbox"
+                                checked={theme === 'dark'}
+                                onChange={toggleTheme}
+                            />
+                            <span className="slider"></span>
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
