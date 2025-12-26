@@ -66,8 +66,16 @@ const Signup = () => {
         return (
             <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
                 <div style={{ padding: '2rem 0', borderBottom: '1px solid var(--border)' }}>
-                    <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
-                        <Scan size={32} style={{ color: 'var(--primary)' }} />
+                    <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                        <img
+                            src="/hosteze-logo.png"
+                            alt="HostEze Logo"
+                            style={{
+                                width: '100px',
+                                height: '100px',
+                                objectFit: 'contain'
+                            }}
+                        />
                         <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>HostEze</h1>
                     </div>
                 </div>
@@ -111,8 +119,16 @@ const Signup = () => {
     return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
             <div style={{ padding: '2rem 0', borderBottom: '1px solid var(--border)' }}>
-                <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
-                    <Scan size={32} style={{ color: 'var(--primary)' }} />
+                <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                    <img
+                        src="/hosteze-logo.png"
+                        alt="HostEze Logo"
+                        style={{
+                            width: '100px',
+                            height: '100px',
+                            objectFit: 'contain'
+                        }}
+                    />
                     <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>HostEze</h1>
                 </div>
             </div>
