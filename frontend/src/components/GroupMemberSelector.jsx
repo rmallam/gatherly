@@ -18,7 +18,7 @@ const GroupMemberSelector = ({ group, onClose }) => {
     const fetchGroupMembers = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/api/contact-groups/${group.id}/members`, {
+            const response = await fetch(`${API_URL}/contact-groups/${group.id}/members`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -61,7 +61,7 @@ const GroupMemberSelector = ({ group, onClose }) => {
 
             // Add new members
             if (toAdd.length > 0) {
-                await fetch(`${API_URL}/api/contact-groups/${group.id}/members`, {
+                await fetch(`${API_URL}/contact-groups/${group.id}/members`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ const GroupMemberSelector = ({ group, onClose }) => {
 
             // Remove members
             for (const contactId of toRemove) {
-                await fetch(`${API_URL}/api/contact-groups/${group.id}/members/${contactId}`, {
+                await fetch(`${API_URL}/contact-groups/${group.id}/members/${contactId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });

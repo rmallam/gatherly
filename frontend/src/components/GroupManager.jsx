@@ -31,7 +31,7 @@ const GroupManager = () => {
     const fetchGroups = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/api/contact-groups`, {
+            const response = await fetch(`${API_URL}/contact-groups`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -52,8 +52,8 @@ const GroupManager = () => {
         try {
             const token = localStorage.getItem('token');
             const url = editingGroup
-                ? `${API_URL}/api/contact-groups/${editingGroup.id}`
-                : `${API_URL}/api/contact-groups`;
+                ? `${API_URL}/contact-groups/${editingGroup.id}`
+                : `${API_URL}/contact-groups`;
 
             console.log('Creating group with URL:', url);
             console.log('Request data:', formData);
@@ -97,7 +97,7 @@ const GroupManager = () => {
     const handleDelete = async (groupId) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/api/contact-groups/${groupId}`, {
+            const response = await fetch(`${API_URL}/contact-groups/${groupId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
