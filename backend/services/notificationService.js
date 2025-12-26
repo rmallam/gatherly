@@ -79,6 +79,21 @@ export async function sendNotificationToUsers(userIds, notification) {
         } catch (pushError) {
             // Push notification failed, but in-app notification was already saved
             console.error('⚠️ Push notification failed (in-app notification still saved):', pushError.message);
+
+            // Log detailed error information for debugging
+            if (pushError.statusCode) {
+                console.error('   HTTP Status Code:', pushError.statusCode);
+            }
+            if (pushError.body) {
+                console.error('   Error Body:', JSON.stringify(pushError.body, null, 2));
+            }
+            if (pushError['HTTP-Code']) {
+                console.error('   HTTP-Code:', pushError['HTTP-Code']);
+            }
+
+            // Log the full error object for complete debugging info
+            console.error('   Full Error:', JSON.stringify(pushError, Object.getOwnPropertyNames(pushError), 2));
+
             return null;
         }
     } catch (error) {
