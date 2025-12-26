@@ -21,6 +21,7 @@ import {
 } from './services/notificationService.js';
 import eventWallRoutes from './routes/eventWall.js';
 import contactsRoutes from './routes/contacts.js';
+import contactGroupsRoutes from './routes/contact-groups.js';
 
 const app = express();
 
@@ -1001,6 +1002,7 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
     }
 });
 
+
 app.post('/api/events/:eventId/guests/bulk', authMiddleware, async (req, res) => {
     try {
         const { guests } = req.body;
@@ -1090,6 +1092,126 @@ app.post('/api/events/:eventId/guests/bulk', authMiddleware, async (req, res) =>
         });
     } catch (error) {
         console.error('Bulk add guests error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Invite entire contact group to event
+app.post('/api/events/:eventId/invite-group/:groupId', authMiddleware, async (req, res) => {
+    try {
+        const { eventId, groupId } = req.params;
+        const userId = req.user.id;
+
+        // Verify event ownership
+        const eventCheck = await query(
+            'SELECT id FROM events WHERE id = $1 AND user_id = $2',
+            [eventId, userId]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        // Verify group ownership
+        const groupCheck = await query(
+            'SELECT id, name FROM contact_groups WHERE id = $1 AND user_id = $2',
+            [groupId, userId]
+        );
+
+        if (groupCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+
+        const groupName = groupCheck.rows[0].name;
+
+        // Get all contacts in the group
+        const groupMembers = await query(
+            `SELECT uc.* 
+            FROM user_contacts uc
+            INNER JOIN contact_group_members cgm ON cgm.contact_id = uc.id
+            WHERE cgm.group_id = $1`,
+            [groupId]
+        );
+
+        const addedGuests = [];
+        const skippedGuests = [];
+
+        for (const contact of groupMembers.rows) {
+            // Check if already invited
+            const hasPhone = contact.phone && contact.phone.trim().length > 0;
+            const hasEmail = contact.email && contact.email.trim().length > 0;
+
+            if (hasPhone || hasEmail) {
+                const normalizedPhone = hasPhone ? contact.phone.replace(/[\s\-\+]/g, '') : null;
+                const duplicateCheck = await query(
+                    `SELECT g.name FROM guests g 
+                     WHERE g.event_id = $1 
+                     AND (
+                         ($2::text IS NOT NULL AND $2 != '' AND g.phone IS NOT NULL AND g.phone != '' AND REPLACE(REPLACE(REPLACE(g.phone, ' ', ''), '-', ''), '+', '') = $2)
+                         OR ($3::text IS NOT NULL AND $3 != '' AND g.email IS NOT NULL AND g.email != '' AND g.email = $3)
+                     )
+                     LIMIT 1`,
+                    [eventId, normalizedPhone, contact.email]
+                );
+
+                if (duplicateCheck.rows.length > 0) {
+                    skippedGuests.push({ name: contact.name, reason: `Already invited` });
+                    continue;
+                }
+            }
+
+            // Add as guest
+            const guestId = uuidv4();
+            const insertResult = await query(
+                `INSERT INTO guests (id, event_id, name, email, phone, contact_id)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                RETURNING *`,
+                [guestId, eventId, contact.name, contact.email || null, contact.phone || null, contact.id]
+            );
+
+            // Auto-link to existing user
+            let linkedUserId = null;
+            if (contact.phone) {
+                const normalized = normalizePhone(contact.phone);
+                if (normalized) {
+                    const userByPhone = await query(
+                        `SELECT id FROM users WHERE 
+                         phone IS NOT NULL AND 
+                         SUBSTRING(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', ''), -10) = $1`,
+                        [normalized]
+                    );
+                    if (userByPhone.rows.length > 0) {
+                        linkedUserId = userByPhone.rows[0].id;
+                    }
+                }
+            }
+            if (!linkedUserId && contact.email) {
+                const userByEmail = await query(
+                    'SELECT id FROM users WHERE email = $1',
+                    [contact.email]
+                );
+                if (userByEmail.rows.length > 0) {
+                    linkedUserId = userByEmail.rows[0].id;
+                }
+            }
+            if (linkedUserId) {
+                await query(
+                    'UPDATE guests SET user_id = $1 WHERE id = $2',
+                    [linkedUserId, guestId]
+                );
+            }
+
+            addedGuests.push(insertResult.rows[0]);
+        }
+
+        res.json({
+            added: addedGuests.length,
+            skipped: skippedGuests.length,
+            guests: addedGuests,
+            message: `Invited ${addedGuests.length} contacts from "${groupName}" group${skippedGuests.length > 0 ? ` (${skippedGuests.length} already invited)` : ''}`
+        });
+    } catch (error) {
+        console.error('Invite group error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -1871,6 +1993,9 @@ app.use('/api/wall', eventWallRoutes);
 
 // User Contacts Routes
 app.use('/api/contacts', contactsRoutes);
+
+// Contact Groups Routes
+app.use('/api/contact-groups', contactGroupsRoutes);
 
 // Send announcement to guests
 app.post('/api/events/:eventId/communications/announcement', authMiddleware, sendAnnouncement);
