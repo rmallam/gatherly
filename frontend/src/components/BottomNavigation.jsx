@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Calendar, ScanLine, Bell, Users } from 'lucide-react';
+import { Home, ScanLine, Bell, Users } from 'lucide-react';
 import pushNotificationService from '../services/PushNotificationService';
 import './BottomNavigation.css';
 
@@ -31,14 +31,7 @@ const BottomNavigation = () => {
             label: 'Home',
             icon: Home,
             path: '/',
-            isActive: location.pathname === '/'
-        },
-        {
-            id: 'events',
-            label: 'Events',
-            icon: Calendar,
-            path: '/manager',
-            isActive: location.pathname.startsWith('/manager') || location.pathname.startsWith('/event')
+            isActive: location.pathname === '/' || location.pathname === '/manager' || location.pathname.startsWith('/event')
         },
         {
             id: 'scanner',

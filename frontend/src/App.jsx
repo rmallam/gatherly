@@ -71,17 +71,12 @@ function App() {
                         <Route path="/" element={
                             <ProtectedRoute>
                                 <Layout>
-                                    <Landing />
-                                </Layout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/manager" element={
-                            <ProtectedRoute>
-                                <Layout>
                                     <ManagerDashboard />
                                 </Layout>
                             </ProtectedRoute>
                         } />
+                        {/* Redirect /manager to / to avoid duplicate routes */}
+                        <Route path="/manager" element={<Navigate to="/" replace />} />
                         <Route path="/event/:id" element={
                             <ProtectedRoute>
                                 <Layout>
