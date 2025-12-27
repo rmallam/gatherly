@@ -275,13 +275,13 @@ const Profile = () => {
                         width: '40px',
                         height: '40px',
                         borderRadius: '50%',
-                        background: '#f3f4f6',
-                        border: '1px solid #e5e7eb',
+                        background: 'var(--bg-tertiary)',
+                        border: '1px solid var(--border)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         cursor: 'pointer',
-                        color: '#6b7280'
+                        color: 'var(--text-secondary)'
                     }}
                 >
                     <ArrowLeft size={20} />
@@ -289,7 +289,7 @@ const Profile = () => {
                 <h1 style={{
                     fontSize: '20px',
                     fontWeight: '600',
-                    color: '#1f2937',
+                    color: 'var(--text-primary)',
                     margin: 0
                 }}>
                     My Profile
@@ -414,7 +414,7 @@ const Profile = () => {
                     <h2 style={{
                         fontSize: '18px',
                         fontWeight: '600',
-                        color: '#1f2937',
+                        color: 'var(--text-primary)',
                         marginTop: 0,
                         marginBottom: '20px'
                     }}>
@@ -428,7 +428,7 @@ const Profile = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '8px',
-                                color: '#6b7280',
+                                color: 'var(--text-secondary)',
                                 fontSize: '14px',
                                 fontWeight: '500',
                                 marginBottom: '8px'
@@ -450,7 +450,7 @@ const Profile = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '8px',
-                                color: '#6b7280',
+                                color: 'var(--text-secondary)',
                                 fontSize: '14px',
                                 fontWeight: '500',
                                 marginBottom: '8px'
@@ -472,7 +472,7 @@ const Profile = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '8px',
-                                color: '#6b7280',
+                                color: 'var(--text-secondary)',
                                 fontSize: '14px',
                                 fontWeight: '500',
                                 marginBottom: '8px'
@@ -511,7 +511,7 @@ const Profile = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '8px',
-                                color: '#6b7280',
+                                color: 'var(--text-secondary)',
                                 fontSize: '14px',
                                 fontWeight: '500',
                                 marginBottom: '8px'
@@ -530,7 +530,7 @@ const Profile = () => {
                             <div style={{
                                 textAlign: 'right',
                                 fontSize: '12px',
-                                color: '#9ca3af',
+                                color: 'var(--text-tertiary)',
                                 marginTop: '4px'
                             }}>
                                 {profile.bio?.length || 0}/500
@@ -574,7 +574,7 @@ const Profile = () => {
                     <h2 style={{
                         fontSize: '18px',
                         fontWeight: '600',
-                        color: '#1f2937',
+                        color: 'var(--text-primary)',
                         marginTop: 0,
                         marginBottom: '20px',
                         display: 'flex',
@@ -589,7 +589,7 @@ const Profile = () => {
                         {/* Current Password */}
                         <div>
                             <label style={{
-                                color: '#6b7280',
+                                color: 'var(--text-secondary)',
                                 fontSize: '14px',
                                 fontWeight: '500',
                                 marginBottom: '8px',
@@ -616,7 +616,7 @@ const Profile = () => {
                                         background: 'none',
                                         border: 'none',
                                         cursor: 'pointer',
-                                        color: '#6b7280',
+                                        color: 'var(--text-secondary)',
                                         padding: 0
                                     }}
                                 >
@@ -628,7 +628,7 @@ const Profile = () => {
                         {/* New Password */}
                         <div>
                             <label style={{
-                                color: '#6b7280',
+                                color: 'var(--text-secondary)',
                                 fontSize: '14px',
                                 fontWeight: '500',
                                 marginBottom: '8px',
@@ -655,7 +655,7 @@ const Profile = () => {
                                         background: 'none',
                                         border: 'none',
                                         cursor: 'pointer',
-                                        color: '#6b7280',
+                                        color: 'var(--text-secondary)',
                                         padding: 0
                                     }}
                                 >
@@ -667,7 +667,7 @@ const Profile = () => {
                         {/* Confirm Password */}
                         <div>
                             <label style={{
-                                color: '#6b7280',
+                                color: 'var(--text-secondary)',
                                 fontSize: '14px',
                                 fontWeight: '500',
                                 marginBottom: '8px',
@@ -694,7 +694,7 @@ const Profile = () => {
                                         background: 'none',
                                         border: 'none',
                                         cursor: 'pointer',
-                                        color: '#6b7280',
+                                        color: 'var(--text-secondary)',
                                         padding: 0
                                     }}
                                 >
