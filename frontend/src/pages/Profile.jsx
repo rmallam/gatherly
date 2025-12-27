@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, User, Mail, Phone, FileText, Lock, Save, Eye, EyeOff, Moon, Sun, X } from 'lucide-react';
+import { ArrowLeft, Camera, User, Mail, Phone, FileText, Lock, Save, Eye, EyeOff, Moon, Sun, X, Check } from 'lucide-react';
 import { Camera as CapCamera } from '@capacitor/camera';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -791,17 +791,16 @@ const Profile = () => {
                     display: 'flex',
                     flexDirection: 'column'
                 }}>
-                    {/* Header */}
+                    {/* Header with X and Checkmark */}
                     <div style={{
                         padding: '16px',
                         paddingTop: 'calc(16px + env(safe-area-inset-top))',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        borderBottom: '1px solid rgba(255,255,255,0.1)',
-                        backgroundColor: '#000'
+                        backgroundColor: '#000',
+                        zIndex: 10
                     }}>
-                        <h3 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 600 }}>Crop Photo</h3>
                         <button
                             onClick={() => {
                                 setShowCropModal(false);
@@ -813,18 +812,40 @@ const Profile = () => {
                                 color: 'white',
                                 cursor: 'pointer',
                                 padding: '8px',
-                                fontSize: '16px'
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
                             }}
                         >
-                            <X size={24} />
+                            <X size={28} />
+                        </button>
+
+                        <h3 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 600 }}>Crop Photo</h3>
+
+                        <button
+                            onClick={handleCropSave}
+                            style={{
+                                background: '#10b981',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: '44px',
+                                height: '44px',
+                                color: 'white',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)'
+                            }}
+                        >
+                            <Check size={28} strokeWidth={3} />
                         </button>
                     </div>
 
-                    {/* Cropper Area */}
+                    {/* Cropper Area with Zoom Overlay */}
                     <div style={{
                         position: 'relative',
                         flex: 1,
-                        minHeight: 0,
                         backgroundColor: '#000'
                     }}>
                         <Cropper
@@ -838,17 +859,18 @@ const Profile = () => {
                             onZoomChange={setZoom}
                             onCropComplete={onCropComplete}
                         />
-                    </div>
 
-                    {/* Bottom Controls - Always Visible */}
-                    <div style={{
-                        padding: '16px',
-                        paddingBottom: 'calc(16px + env(safe-area-inset-bottom))',
-                        backgroundColor: '#000',
-                        borderTop: '1px solid rgba(255,255,255,0.1)'
-                    }}>
-                        {/* Zoom Slider */}
-                        <div style={{ marginBottom: '16px' }}>
+                        {/* Zoom Control Overlay */}
+                        <div style={{
+                            position: 'absolute',
+                            bottom: '20px',
+                            left: '20px',
+                            right: '20px',
+                            padding: '16px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            borderRadius: '12px',
+                            backdropFilter: 'blur(10px)'
+                        }}>
                             <label style={{
                                 color: 'white',
                                 fontSize: '14px',
@@ -868,53 +890,9 @@ const Profile = () => {
                                 style={{
                                     width: '100%',
                                     height: '6px',
-                                    accentColor: '#6366f1'
+                                    accentColor: '#10b981'
                                 }}
                             />
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: '1fr 1fr',
-                            gap: '12px'
-                        }}>
-                            <button
-                                onClick={() => {
-                                    setShowCropModal(false);
-                                    setImageSrc(null);
-                                }}
-                                style={{
-                                    padding: '16px',
-                                    borderRadius: '12px',
-                                    border: '2px solid rgba(255,255,255,0.3)',
-                                    background: 'transparent',
-                                    color: 'white',
-                                    fontSize: '16px',
-                                    fontWeight: 700,
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s'
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleCropSave}
-                                style={{
-                                    padding: '16px',
-                                    borderRadius: '12px',
-                                    border: 'none',
-                                    background: 'linear-gradient(135deg, #6366f1, #a855f7)',
-                                    color: 'white',
-                                    fontSize: '16px',
-                                    fontWeight: 700,
-                                    cursor: 'pointer',
-                                    boxShadow: '0 4px 12px rgba(99,102,241,0.4)',
-                                    transition: 'all 0.2s'
-                                }}
-                            >
-                                Save
-                            </button>
                         </div>
                     </div>
                 </div>
