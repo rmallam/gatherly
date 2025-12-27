@@ -151,6 +151,57 @@ const QRScanner = ({ onScan, onError, onClose }) => {
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 20 }}>
                     {/* Dark vignette overlay */}
                     <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.7) 80%)' }}></div>
+
+                    {/* Instructional Overlay */}
+                    <div style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        marginTop: '200px',
+                        padding: '16px 24px',
+                        background: 'rgba(0, 0, 0, 0.6)',
+                        backdropFilter: 'blur(12px)',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                        maxWidth: '280px',
+                        textAlign: 'center'
+                    }}>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            marginBottom: '8px'
+                        }}>
+                            <div style={{
+                                width: '6px',
+                                height: '6px',
+                                borderRadius: '50%',
+                                background: '#10b981',
+                                boxShadow: '0 0 12px rgba(16, 185, 129, 0.8)',
+                                animation: 'pulse 2s infinite'
+                            }}></div>
+                            <span style={{
+                                fontSize: '14px',
+                                fontWeight: 700,
+                                color: '#ffffff',
+                                letterSpacing: '0.5px'
+                            }}>
+                                READY TO SCAN
+                            </span>
+                        </div>
+                        <p style={{
+                            fontSize: '13px',
+                            color: 'rgba(255, 255, 255, 0.8)',
+                            margin: 0,
+                            lineHeight: '1.5',
+                            fontWeight: 500
+                        }}>
+                            Point camera at guest QR code to check them in
+                        </p>
+                    </div>
                 </div>
             )}
 
