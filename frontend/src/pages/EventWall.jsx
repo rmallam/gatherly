@@ -547,20 +547,34 @@ const EventWall = () => {
 
                                 {/* Author */}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                                    <div style={{
-                                        width: '40px',
-                                        height: '40px',
-                                        borderRadius: '50%',
-                                        background: 'linear-gradient(135deg, #6366f1, #a855f7)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: '#ffffff',
-                                        fontWeight: 900,
-                                        fontSize: '16px'
-                                    }}>
-                                        {post.author_name?.charAt(0) || '?'}
-                                    </div>
+                                    {post.author_profile_picture ? (
+                                        <img
+                                            src={post.author_profile_picture}
+                                            alt={post.author_name}
+                                            style={{
+                                                width: '40px',
+                                                height: '40px',
+                                                borderRadius: '50%',
+                                                objectFit: 'cover',
+                                                border: '2px solid #e5e7eb'
+                                            }}
+                                        />
+                                    ) : (
+                                        <div style={{
+                                            width: '40px',
+                                            height: '40px',
+                                            borderRadius: '50%',
+                                            background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            color: '#ffffff',
+                                            fontWeight: 900,
+                                            fontSize: '16px'
+                                        }}>
+                                            {post.author_name?.charAt(0) || '?'}
+                                        </div>
+                                    )}
                                     <div style={{ flex: 1 }}>
                                         <div style={{ color: '#1f2937', fontWeight: '600', fontSize: '15px' }}>
                                             {post.author_name}
