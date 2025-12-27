@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import TabNavigation from '../components/TabNavigation';
 import OverviewTab from '../components/tabs/OverviewTab';
@@ -14,16 +14,18 @@ import VendorsTab from '../components/tabs/VendorsTab';
 import BudgetTab from '../components/tabs/BudgetTab';
 import RemindersSettings from '../components/RemindersSettings';
 import MessagesTab from '../components/tabs/MessagesTab';
-import { LayoutDashboard, Users, UtensilsCrossed, CheckSquare, MapPin, Sparkles, Gift, Music, Briefcase, DollarSign, Bell, MessageCircle, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, Users, UtensilsCrossed, CheckSquare, MapPin, Sparkles, Gift, Music, Briefcase, DollarSign, Bell, MessageCircle, ArrowLeft, Trash2 } from 'lucide-react';
 
 // Import the old EventDetails as a component for the Guests tab temporarily
 import EventDetails from './EventDetails';
 
 const EventDetailsTabs = () => {
     const { id } = useParams();
-    const { getEvent, updateEvent } = useApp();
+    const navigate = useNavigate();
+    const { getEvent, updateEvent, deleteEvent } = useApp();
     const event = getEvent(id);
     const [activeTab, setActiveTab] = useState('overview');
+    const [showDeleteEventConfirm, setShowDeleteEventConfirm] = useState(false);
 
     if (!event) {
         return (
@@ -75,6 +77,17 @@ const EventDetailsTabs = () => {
         updateEvent(id, { ...event, vendors });
     };
 
+    const handleDeleteEvent = async () => {
+        try {
+            await deleteEvent(id);
+            setShowDeleteEventConfirm(false);
+            navigate('/manager');
+        } catch (err) {
+            console.error('Error deleting event:', err);
+            alert('Failed to delete event. Please try again.');
+        }
+    };
+
     const tabs = [
         {
             id: 'overview',
@@ -119,20 +132,43 @@ const EventDetailsTabs = () => {
         <div style={{ maxWidth: '75rem', margin: '0 auto', padding: '16px' }}>
             {/* Header with Back Button and Event Wall */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-                <Link
-                    to="/manager"
-                    style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        color: 'var(--text-secondary)',
-                        fontSize: '0.875rem',
-                        textDecoration: 'none',
-                        transition: 'color 0.2s'
-                    }}
-                >
-                    <ArrowLeft size={16} /> Back to Events
-                </Link>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <Link
+                        to="/manager"
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            color: 'var(--text-secondary)',
+                            fontSize: '0.875rem',
+                            textDecoration: 'none',
+                            transition: 'color 0.2s'
+                        }}
+                    >
+                        <ArrowLeft size={16} /> Back to Events
+                    </Link>
+                    <button
+                        onClick={() => setShowDeleteEventConfirm(true)}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 16px',
+                            borderRadius: '8px',
+                            background: '#ef4444',
+                            border: 'none',
+                            color: '#ffffff',
+                            fontWeight: 600,
+                            fontSize: '13px',
+                            cursor: 'pointer',
+                            transition: 'background 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = '#dc2626'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = '#ef4444'}
+                    >
+                        <Trash2 size={14} /> Delete Event
+                    </button>
+                </div>
 
                 <Link
                     to={`/event/${id}/wall`}
@@ -183,6 +219,54 @@ const EventDetailsTabs = () => {
                 {activeTab === 'reminders' && <RemindersSettings event={event} />}
                 {activeTab === 'messages' && <MessagesTab event={event} />}
             </div>
+
+            {/* Delete Event Confirmation Modal */}
+            {showDeleteEventConfirm && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.75)' }} onClick={() => setShowDeleteEventConfirm(false)}>
+                    <div style={{ maxWidth: '400px', width: '100%', padding: '2rem', background: 'var(--bg-primary)', borderRadius: '16px', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>Delete Event?</h3>
+                            <p style={{ color: 'var(--text-secondary)' }}>
+                                Are you sure you want to delete <strong>{event.title}</strong>? This will permanently delete the event and all {event.guests?.length || 0} guest{event.guests?.length !== 1 ? 's' : ''}. This action cannot be undone.
+                            </p>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
+                                <button
+                                    onClick={() => setShowDeleteEventConfirm(false)}
+                                    style={{
+                                        padding: '10px 20px',
+                                        borderRadius: '8px',
+                                        background: 'var(--bg-secondary)',
+                                        border: '1px solid var(--border)',
+                                        color: 'var(--text-primary)',
+                                        fontWeight: 600,
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDeleteEvent}
+                                    style={{
+                                        padding: '10px 20px',
+                                        borderRadius: '8px',
+                                        background: '#ef4444',
+                                        border: 'none',
+                                        color: '#ffffff',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '6px'
+                                    }}
+                                >
+                                    <Trash2 size={16} /> Delete Event
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
