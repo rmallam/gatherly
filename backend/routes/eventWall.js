@@ -192,6 +192,7 @@ router.get('/:eventId/posts', authMiddleware, async (req, res) => {
                 part.profile_photo_url,
                 g.name as author_name,
                 g.user_id as author_user_id,
+                u.profile_picture_url as author_profile_picture,
                 COUNT(DISTINCT pl.id) as like_count,
                 COUNT(DISTINCT pc.id) as comment_count,
                 CASE WHEN EXISTS(
@@ -203,6 +204,7 @@ router.get('/:eventId/posts', authMiddleware, async (req, res) => {
             FROM event_posts ep
             JOIN event_participants part ON ep.participant_id = part.id
             JOIN guests g ON part.guest_id = g.id
+            LEFT JOIN users u ON g.user_id = u.id
             LEFT JOIN post_likes pl ON ep.id = pl.post_id
             LEFT JOIN post_comments pc ON ep.id = pc.post_id
             WHERE ep.event_id = $1 AND ep.is_approved = true
@@ -216,7 +218,7 @@ router.get('/:eventId/posts', authMiddleware, async (req, res) => {
         }
 
         sqlQuery += `
-            GROUP BY ep.id, part.profile_photo_url, g.name, g.user_id
+            GROUP BY ep.id, part.profile_photo_url, g.name, g.user_id, u.profile_picture_url
             ORDER BY ep.is_pinned DESC, ep.created_at DESC
             LIMIT $${params.length + 1} OFFSET $${params.length + 2}
         `;
