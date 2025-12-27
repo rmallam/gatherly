@@ -17,7 +17,7 @@ Complete guide to build, sign, and submit Gatherly to the Apple App Store.
 
 ### 1.1 Enroll in Apple Developer Program
 
-1. Go to [Apple Developer](https://developer.apple.com/programs/)
+1. Go to [Apple Developer](https://ddo eveloper.apple.com/programs/)
 2. Click **Enroll**
 3. Sign in with your Apple ID
 4. Choose **Individual** or **Organization**
