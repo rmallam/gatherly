@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, User, Mail, Phone, FileText, Lock, Save, Eye, EyeOff, Moon, Sun, X } from 'lucide-react';
 import { Camera as CapCamera } from '@capacitor/camera';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/cropImage';
 
@@ -11,6 +12,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const Profile = () => {
     const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
+    const { refreshUser } = useAuth();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [profile, setProfile] = useState({

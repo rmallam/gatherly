@@ -183,6 +183,26 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
+    const refreshUser = async () => {
+        const storedToken = localStorage.getItem('token');
+        if (!storedToken || storedToken.startsWith('guest_')) {
+            return;
+        }
+
+        try {
+            const response = await fetchWithRetry(`${API_URL}/auth/me`, {
+                headers: { 'Authorization': `Bearer ${storedToken}` }
+            }, 3, 15000);
+
+            if (response.ok) {
+                const data = await response.json();
+                setUser(data.user);
+            }
+        } catch (error) {
+            console.error('Failed to refresh user:', error);
+        }
+    };
+
     return (
         <AuthContext.Provider value={{
             user,
@@ -196,6 +216,7 @@ export const AuthProvider = ({ children }) => {
             disableBiometric,
             continueAsGuest,
             logout,
+            refreshUser,
             isAuthenticated: !!user
         }}>
             {children}
