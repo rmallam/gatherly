@@ -94,7 +94,13 @@ const Scanner = () => {
 
         const event = events.find(e => e.id === data.eventId);
         if (!event) {
-            setScanResult({ status: 'invalid', message: 'Event not found in this system' });
+            setScanResult({ status: 'invalid', message: 'Event not found. You can only check in guests for your own events.' });
+            return;
+        }
+
+        // Verify event belongs to current user
+        if (event.user_id !== user?.id) {
+            setScanResult({ status: 'invalid', message: 'Unauthorized. You can only check in guests for your own events.' });
             return;
         }
 
