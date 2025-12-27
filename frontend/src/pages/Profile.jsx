@@ -782,19 +782,24 @@ const Profile = () => {
             {showCropModal && (
                 <div style={{
                     position: 'fixed',
-                    inset: 0,
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
                     zIndex: 1000,
-                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.95)',
                     display: 'flex',
                     flexDirection: 'column'
                 }}>
                     {/* Header */}
                     <div style={{
                         padding: '16px',
+                        paddingTop: 'calc(16px + env(safe-area-inset-top))',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        borderBottom: '1px solid rgba(255,255,255,0.1)'
+                        borderBottom: '1px solid rgba(255,255,255,0.1)',
+                        backgroundColor: '#000'
                     }}>
                         <h3 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 600 }}>Crop Photo</h3>
                         <button
@@ -807,15 +812,21 @@ const Profile = () => {
                                 border: 'none',
                                 color: 'white',
                                 cursor: 'pointer',
-                                padding: '8px'
+                                padding: '8px',
+                                fontSize: '16px'
                             }}
                         >
                             <X size={24} />
                         </button>
                     </div>
 
-                    {/* Cropper */}
-                    <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
+                    {/* Cropper Area */}
+                    <div style={{
+                        position: 'relative',
+                        flex: 1,
+                        minHeight: 0,
+                        backgroundColor: '#000'
+                    }}>
                         <Cropper
                             image={imageSrc}
                             crop={crop}
@@ -829,16 +840,23 @@ const Profile = () => {
                         />
                     </div>
 
-                    {/* Controls */}
+                    {/* Bottom Controls - Always Visible */}
                     <div style={{
-                        padding: '20px',
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: '16px',
+                        paddingBottom: 'calc(16px + env(safe-area-inset-bottom))',
+                        backgroundColor: '#000',
                         borderTop: '1px solid rgba(255,255,255,0.1)'
                     }}>
                         {/* Zoom Slider */}
-                        <div style={{ marginBottom: '20px' }}>
-                            <label style={{ color: 'white', fontSize: '14px', marginBottom: '8px', display: 'block' }}>
-                                Zoom
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{
+                                color: 'white',
+                                fontSize: '14px',
+                                marginBottom: '8px',
+                                display: 'block',
+                                fontWeight: 500
+                            }}>
+                                Zoom: {zoom.toFixed(1)}x
                             </label>
                             <input
                                 type="range"
@@ -849,27 +867,33 @@ const Profile = () => {
                                 onChange={(e) => setZoom(Number(e.target.value))}
                                 style={{
                                     width: '100%',
+                                    height: '6px',
                                     accentColor: '#6366f1'
                                 }}
                             />
                         </div>
 
                         {/* Action Buttons */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: '12px'
+                        }}>
                             <button
                                 onClick={() => {
                                     setShowCropModal(false);
                                     setImageSrc(null);
                                 }}
                                 style={{
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    padding: '16px',
+                                    borderRadius: '12px',
+                                    border: '2px solid rgba(255,255,255,0.3)',
                                     background: 'transparent',
                                     color: 'white',
                                     fontSize: '16px',
-                                    fontWeight: 600,
-                                    cursor: 'pointer'
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
                                 }}
                             >
                                 Cancel
@@ -877,14 +901,16 @@ const Profile = () => {
                             <button
                                 onClick={handleCropSave}
                                 style={{
-                                    padding: '12px',
-                                    borderRadius: '8px',
+                                    padding: '16px',
+                                    borderRadius: '12px',
                                     border: 'none',
                                     background: 'linear-gradient(135deg, #6366f1, #a855f7)',
                                     color: 'white',
                                     fontSize: '16px',
-                                    fontWeight: 600,
-                                    cursor: 'pointer'
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 12px rgba(99,102,241,0.4)',
+                                    transition: 'all 0.2s'
                                 }}
                             >
                                 Save
