@@ -144,6 +144,7 @@ export const AppProvider = ({ children }) => {
         if (token?.startsWith('guest_')) {
             const updatedEvents = [newEvent, ...events];
             localStorage.setItem('guestEvents', JSON.stringify(updatedEvents));
+            return newEvent;
         } else {
             try {
                 const res = await fetch(`${API_URL}/events`, {
@@ -168,8 +169,6 @@ export const AppProvider = ({ children }) => {
                 throw err;
             }
         }
-
-        return newEvent;
     };
 
     const deleteEvent = async (eventId) => {
