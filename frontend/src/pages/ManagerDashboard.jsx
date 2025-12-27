@@ -10,25 +10,31 @@ const ManagerDashboard = () => {
     const [isCreating, setIsCreating] = useState(false);
     const [newEvent, setNewEvent] = useState({ title: '', date: '', location: '' });
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!newEvent.title) return;
-        const createdEvent = createEvent(newEvent);
 
-        // Celebration confetti!
-        confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#6366f1', '#a855f7', '#ec4899', '#f472b6']
-        });
+        try {
+            const createdEvent = await createEvent(newEvent);
 
-        setNewEvent({ title: '', date: '', location: '' });
-        setIsCreating(false);
+            // Celebration confetti!
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#6366f1', '#a855f7', '#ec4899', '#f472b6']
+            });
 
-        // Navigate to the newly created event
-        if (createdEvent && createdEvent.id) {
-            navigate(`/event/${createdEvent.id}`);
+            setNewEvent({ title: '', date: '', location: '' });
+            setIsCreating(false);
+
+            // Navigate to the newly created event
+            if (createdEvent && createdEvent.id) {
+                navigate(`/event/${createdEvent.id}`);
+            }
+        } catch (error) {
+            console.error('Failed to create event:', error);
+            alert('Failed to create event. Please try again.');
         }
     };
 
