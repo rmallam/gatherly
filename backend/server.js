@@ -441,8 +441,9 @@ app.patch('/api/users/profile', authMiddleware, async (req, res) => {
 
         if (phone && phone.trim()) {
             const cleanPhone = phone.replace(/\D/g, '');
-            if (!/^\d{10}$/.test(cleanPhone)) {
-                return res.status(400).json({ error: 'Please enter a valid 10-digit phone number' });
+            // Accept either 10 digits (legacy) or 12+ digits (with country code like +91)
+            if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+                return res.status(400).json({ error: 'Please enter a valid phone number' });
             }
 
             // Check if phone is already used by another user
