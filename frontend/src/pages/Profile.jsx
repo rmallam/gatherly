@@ -159,6 +159,10 @@ const Profile = () => {
             if (res.ok) {
                 setSuccess('Profile updated successfully!');
                 setTimeout(() => setSuccess(''), 3000);
+                // Refresh user data to update header avatar
+                if (refreshUser) {
+                    await refreshUser();
+                }
             } else {
                 setError(data.error || 'Failed to update profile');
             }
@@ -863,11 +867,11 @@ const Profile = () => {
                         {/* Zoom Control Overlay */}
                         <div style={{
                             position: 'absolute',
-                            bottom: '20px',
+                            bottom: 'calc(80px + env(safe-area-inset-bottom))',
                             left: '20px',
                             right: '20px',
                             padding: '16px',
-                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
                             borderRadius: '12px',
                             backdropFilter: 'blur(10px)'
                         }}>
