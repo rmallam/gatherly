@@ -241,20 +241,6 @@ const EventDetails = () => {
         <div style={{ maxWidth: '75rem', margin: '0 auto' }}>
             {/* Simple Header */}
             <div style={{ marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                    <Link to="/manager" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>
-                        <ArrowLeft size={16} /> Back to Events
-                    </Link>
-                    <button
-                        onClick={() => setShowDeleteEventConfirm(true)}
-                        className="btn btn-secondary"
-                        style={{ fontSize: '0.875rem', padding: '0.5rem 0.875rem', background: '#ef4444', color: 'white', border: 'none' }}
-                        title="Delete event"
-                    >
-                        <Trash2 size={16} /> Delete Event
-                    </button>
-                </div>
-
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
                     <div>
                         <h1 style={{ fontSize: '1.875rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>

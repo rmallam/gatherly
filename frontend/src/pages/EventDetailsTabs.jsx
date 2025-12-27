@@ -130,45 +130,29 @@ const EventDetailsTabs = () => {
 
     return (
         <div style={{ maxWidth: '75rem', margin: '0 auto', padding: '16px' }}>
-            {/* Header with Back Button and Event Wall */}
+            {/* Header with Delete Button and Event Wall */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Link
-                        to="/manager"
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            color: 'var(--text-secondary)',
-                            fontSize: '0.875rem',
-                            textDecoration: 'none',
-                            transition: 'color 0.2s'
-                        }}
-                    >
-                        <ArrowLeft size={16} /> Back to Events
-                    </Link>
-                    <button
-                        onClick={() => setShowDeleteEventConfirm(true)}
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '8px',
-                            background: '#ef4444',
-                            border: 'none',
-                            color: '#ffffff',
-                            cursor: 'pointer',
-                            transition: 'background 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = '#dc2626'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = '#ef4444'}
-                        title="Delete Event"
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                </div>
+                <button
+                    onClick={() => setShowDeleteEventConfirm(true)}
+                    style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '8px',
+                        background: '#ef4444',
+                        border: 'none',
+                        color: '#ffffff',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#dc2626'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#ef4444'}
+                    title="Delete Event"
+                >
+                    <Trash2 size={16} />
+                </button>
 
                 <Link
                     to={`/event/${id}/wall`}
