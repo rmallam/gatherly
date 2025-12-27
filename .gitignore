@@ -43,3 +43,9 @@ temp/
 
 #scripts
 *.sh
+
+# Keystore files (NEVER commit these!)
+*.keystore
+*.jks
+keystore.properties
+gradle.properties
