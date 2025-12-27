@@ -40,20 +40,33 @@ const Header = ({ showAuth = true }) => {
                 onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-tertiary)'}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
             >
-                <div style={{
-                    width: '28px',
-                    height: '28px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #6366f1, #a855f7)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontSize: '12px',
-                    fontWeight: '700'
-                }}>
-                    {user.name?.charAt(0).toUpperCase() || 'U'}
-                </div>
+                {user.profilePictureUrl ? (
+                    <img
+                        src={user.profilePictureUrl}
+                        alt={user.name}
+                        style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '50%',
+                            objectFit: 'cover'
+                        }}
+                    />
+                ) : (
+                    <div style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontSize: '12px',
+                        fontWeight: '700'
+                    }}>
+                        {user.name?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                )}
                 <span style={{
                     fontSize: '14px',
                     fontWeight: '600',

@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, User, Mail, Phone, FileText, Lock, Save, Eye, EyeOff, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, Camera, User, Mail, Phone, FileText, Lock, Save, Eye, EyeOff, Moon, Sun, X } from 'lucide-react';
 import { Camera as CapCamera } from '@capacitor/camera';
 import { useTheme } from '../context/ThemeContext';
+import Cropper from 'react-easy-crop';
+import { getCroppedImg } from '../utils/cropImage';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -32,6 +34,13 @@ const Profile = () => {
     const [phoneDigits, setPhoneDigits] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+
+    // Crop states
+    const [imageSrc, setImageSrc] = useState(null);
+    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+    const [showCropModal, setShowCropModal] = useState(false);
 
     useEffect(() => {
         loadProfile();
@@ -93,16 +102,32 @@ const Profile = () => {
     const pickImage = async () => {
         try {
             const image = await CapCamera.getPhoto({
-                quality: 70,
+                quality: 90,
                 resultType: 'base64',
                 source: 'photos',
                 saveToGallery: false
             });
 
             const base64Image = `data:image/${image.format};base64,${image.base64String}`;
-            setProfile({ ...profile, profilePictureUrl: base64Image });
+            setImageSrc(base64Image);
+            setShowCropModal(true);
         } catch (error) {
             console.error('Error picking image:', error);
+        }
+    };
+
+    const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
+        setCroppedAreaPixels(croppedAreaPixels);
+    }, []);
+
+    const handleCropSave = async () => {
+        try {
+            const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels);
+            setProfile({ ...profile, profilePictureUrl: croppedImage });
+            setShowCropModal(false);
+            setImageSrc(null);
+        } catch (error) {
+            console.error('Error cropping image:', error);
         }
     };
 
@@ -750,6 +775,122 @@ const Profile = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Crop Modal */}
+            {showCropModal && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 1000,
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}>
+                    {/* Header */}
+                    <div style={{
+                        padding: '16px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        borderBottom: '1px solid rgba(255,255,255,0.1)'
+                    }}>
+                        <h3 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 600 }}>Crop Photo</h3>
+                        <button
+                            onClick={() => {
+                                setShowCropModal(false);
+                                setImageSrc(null);
+                            }}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'white',
+                                cursor: 'pointer',
+                                padding: '8px'
+                            }}
+                        >
+                            <X size={24} />
+                        </button>
+                    </div>
+
+                    {/* Cropper */}
+                    <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
+                        <Cropper
+                            image={imageSrc}
+                            crop={crop}
+                            zoom={zoom}
+                            aspect={1}
+                            cropShape="round"
+                            showGrid={false}
+                            onCropChange={setCrop}
+                            onZoomChange={setZoom}
+                            onCropComplete={onCropComplete}
+                        />
+                    </div>
+
+                    {/* Controls */}
+                    <div style={{
+                        padding: '20px',
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        borderTop: '1px solid rgba(255,255,255,0.1)'
+                    }}>
+                        {/* Zoom Slider */}
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ color: 'white', fontSize: '14px', marginBottom: '8px', display: 'block' }}>
+                                Zoom
+                            </label>
+                            <input
+                                type="range"
+                                min={1}
+                                max={3}
+                                step={0.1}
+                                value={zoom}
+                                onChange={(e) => setZoom(Number(e.target.value))}
+                                style={{
+                                    width: '100%',
+                                    accentColor: '#6366f1'
+                                }}
+                            />
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            <button
+                                onClick={() => {
+                                    setShowCropModal(false);
+                                    setImageSrc(null);
+                                }}
+                                style={{
+                                    padding: '12px',
+                                    borderRadius: '8px',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    background: 'transparent',
+                                    color: 'white',
+                                    fontSize: '16px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCropSave}
+                                style={{
+                                    padding: '12px',
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                                    color: 'white',
+                                    fontSize: '16px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
