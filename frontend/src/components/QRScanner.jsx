@@ -33,11 +33,11 @@ const QRScanner = ({ onScan, onError, onClose }) => {
                 }
 
                 const config = {
-                    fps: 20, // Increased from 10 for faster scanning
+                    fps: 30, // Increased to 30 for faster scanning (like PhonePe/Paytm)
                     qrbox: function (viewfinderWidth, viewfinderHeight) {
-                        // Make box 90% of screen width for more flexible scanning
+                        // Reduced to 70% for better far-distance scanning
                         const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-                        const qrboxSize = Math.floor(minEdge * 0.9);
+                        const qrboxSize = Math.floor(minEdge * 0.7);
                         return {
                             width: qrboxSize,
                             height: qrboxSize
@@ -45,21 +45,32 @@ const QRScanner = ({ onScan, onError, onClose }) => {
                     },
                     aspectRatio: 1.0,
                     formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-                    // More aggressive scanning for better detection
-                    disableFlip: false, // Enable scanning flipped codes
+                    disableFlip: false,
                     experimentalFeatures: {
                         useBarCodeDetectorIfSupported: true
+                    },
+                    // Advanced video constraints for better scanning
+                    videoConstraints: {
+                        facingMode: "environment",
+                        focusMode: "continuous",
+                        advanced: [{ zoom: 1.0 }]
                     }
                 };
 
                 if (!isRunning.current) {
                     await scannerRef.current.start(
-                        { facingMode: "environment" },
+                        {
+                            facingMode: "environment",
+                            advanced: [{
+                                focusMode: "continuous",
+                                zoom: 1.0
+                            }]
+                        },
                         config,
                         (decodedText) => {
                             try {
                                 const data = JSON.parse(decodedText);
-                                onScanRef.current(data); // Use ref instead of prop
+                                onScanRef.current(data);
                             } catch (e) {
                                 console.warn("Non-JSON QR Code", e);
                             }
