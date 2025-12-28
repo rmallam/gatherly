@@ -1,13 +1,14 @@
 name: Security - CodeQL Analysis
 
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
-  schedule:
-    # Run every day at 6am UTC
-    - cron: '0 6 * * *'
+# Workflow disabled - uncomment to re-enable
+# on:
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
+#   schedule:
+#     - cron: '0 0 * * 1'day at 6am UTC
+#     - cron: '0 6 * * *'
 
 jobs:
   analyze:

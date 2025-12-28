@@ -1,13 +1,14 @@
 name: Security - Dependency Scanning
 
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
-  schedule:
-    # Run every Monday at 9am UTC
-    - cron: '0 9 * * 1'
+# Workflow disabled - uncomment to re-enable
+# on:
+#   push:
+#     branches: [ main, develop ]
+#   pull_request:
+#     branches: [ main, develop ]
+#   schedule:
+#     # Run every Monday at 9am UTC
+#     - cron: '0 9 * * 1'
 
 jobs:
   npm-audit:

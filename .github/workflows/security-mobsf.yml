@@ -1,12 +1,12 @@
-name: Security - MobSF Mobile App Scan
+name: Security - MobSF Mobile App Scan # Workflow disabled - uncomment to re-enable
 
-on:
-  workflow_dispatch: # Manual trigger only
-    inputs:
-      apk_path:
-        description: 'Path to APK file'
-        required: false
-        default: 'frontend/android/app/build/outputs/apk/release/app-release.apk'
+# on:
+#   workflow_dispatch: # Manual trigger only
+#     inputs:
+#       apk_path:
+#         description: 'Path to APK file'
+#         required: false
+#         default: 'frontend/android/app/build/outputs/apk/release/app-release.apk'
 
 jobs:
   build-apk:
