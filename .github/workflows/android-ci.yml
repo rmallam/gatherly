@@ -30,7 +30,8 @@ jobs:
       working-directory: ./frontend
       env:
         CI: true
-      run: npm test -- --run --reporter=verbose
+        NODE_ENV: test
+      run: npm test -- --run --reporter=verbose --pool=threads --poolOptions.threads.singleThread=true --testTimeout=10000
     
     - name: Run linter
       working-directory: ./frontend
