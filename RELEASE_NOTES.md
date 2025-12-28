@@ -430,18 +430,18 @@
 ## Support & Feedback
 
 ### Get Help
-- Email: support@hosteze.com
+- Email: reach.hosteze@gmail.com
 - Documentation: [docs.hosteze.com](https://docs.hosteze.com)
 - FAQ: [hosteze.com/faq](https://hosteze.com/faq)
 
 ### Report Issues
 - GitHub: [github.com/hosteze/issues](https://github.com/hosteze/issues)
 - In-app feedback form
-- Email: bugs@hosteze.com
+- Email: reach.hosteze@gmail.com
 
 ### Feature Requests
 - Submit via in-app form
-- Email: features@hosteze.com
+- Email: reach.hosteze@gmail.com
 - Community forum: [community.hosteze.com](https://community.hosteze.com)
 
 ---
