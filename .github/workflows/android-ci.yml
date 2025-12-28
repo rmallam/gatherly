@@ -28,7 +28,9 @@ jobs:
     
     - name: Run unit tests
       working-directory: ./frontend
-      run: npm test
+      env:
+        CI: true
+      run: npm test -- --run --reporter=verbose
     
     - name: Run linter
       working-directory: ./frontend
@@ -36,7 +38,9 @@ jobs:
     
     - name: Generate test coverage
       working-directory: ./frontend
-      run: npm run test:coverage || true
+      env:
+        CI: true
+      run: npm run test:coverage -- --run || true
     
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
