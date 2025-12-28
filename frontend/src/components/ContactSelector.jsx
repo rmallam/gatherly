@@ -13,6 +13,7 @@ const ContactSelector = ({ isOpen, onClose, onSelectContacts, event }) => {
     const [selectedGroupIds, setSelectedGroupIds] = useState(new Set());
     const [loadingGroups, setLoadingGroups] = useState(false);
     const [groupContacts, setGroupContacts] = useState({});
+    const [groupsError, setGroupsError] = useState(null);
 
     // Fetch contact groups when dialog opens
     useEffect(() => {
@@ -23,17 +24,31 @@ const ContactSelector = ({ isOpen, onClose, onSelectContacts, event }) => {
 
     const fetchGroups = async () => {
         setLoadingGroups(true);
+        setGroupsError(null);
         try {
             const token = localStorage.getItem('token');
+            console.log('Fetching contact groups from:', `${API_URL}/api/contact-groups`);
             const response = await fetch(`${API_URL}/api/contact-groups`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            console.log('Contact groups response status:', response.status);
             if (response.ok) {
                 const data = await response.json();
+                console.log('Contact groups data:', data);
                 setGroups(data);
+                setGroupsError(null);
+            } else {
+                const errorText = await response.text();
+                console.error('Failed to fetch groups:', response.status, errorText);
+                if (response.status === 404) {
+                    setGroupsError('Contact groups feature not available. Please update the backend.');
+                } else {
+                    setGroupsError(`Failed to load groups (${response.status})`);
+                }
             }
         } catch (error) {
             console.error('Error fetching groups:', error);
+            setGroupsError('Network error. Please check your connection.');
         } finally {
             setLoadingGroups(false);
         }
