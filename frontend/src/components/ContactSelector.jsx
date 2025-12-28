@@ -1,11 +1,58 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { X, Search, Users, Check, AlertCircle } from 'lucide-react';
+import { X, Search, Users, Check, AlertCircle, FolderOpen } from 'lucide-react';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 const ContactSelector = ({ isOpen, onClose, onSelectContacts, event }) => {
     const { contacts } = useApp();
     const [search, setSearch] = useState('');
     const [selectedIds, setSelectedIds] = useState(new Set());
+    const [activeTab, setActiveTab] = useState('contacts'); // 'contacts' or 'groups'
+    const [groups, setGroups] = useState([]);
+    const [selectedGroupIds, setSelectedGroupIds] = useState(new Set());
+    const [loadingGroups, setLoadingGroups] = useState(false);
+    const [groupContacts, setGroupContacts] = useState({});
+
+    // Fetch contact groups when dialog opens
+    useEffect(() => {
+        if (isOpen && activeTab === 'groups') {
+            fetchGroups();
+        }
+    }, [isOpen, activeTab]);
+
+    const fetchGroups = async () => {
+        setLoadingGroups(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_URL}/api/contact-groups`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setGroups(data);
+            }
+        } catch (error) {
+            console.error('Error fetching groups:', error);
+        } finally {
+            setLoadingGroups(false);
+        }
+    };
+
+    const fetchGroupContacts = async (groupId) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_URL}/api/contact-groups/${groupId}/members`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setGroupContacts(prev => ({ ...prev, [groupId]: data }));
+            }
+        } catch (error) {
+            console.error('Error fetching group contacts:', error);
+        }
+    };
 
     if (!isOpen) return null;
 
@@ -25,6 +72,10 @@ const ContactSelector = ({ isOpen, onClose, onSelectContacts, event }) => {
         contact.phone.includes(search)
     );
 
+    const filteredGroups = groups.filter(group =>
+        group.name.toLowerCase().includes(search.toLowerCase())
+    );
+
     const toggleSelect = (contactId) => {
         const newSelected = new Set(selectedIds);
         if (newSelected.has(contactId)) {
@@ -35,12 +86,68 @@ const ContactSelector = ({ isOpen, onClose, onSelectContacts, event }) => {
         setSelectedIds(newSelected);
     };
 
-    const handleAdd = () => {
-        const selectedContacts = contacts.filter(c => selectedIds.has(c.id));
-        onSelectContacts(selectedContacts);
+    const toggleGroupSelect = async (groupId) => {
+        const newSelected = new Set(selectedGroupIds);
+        if (newSelected.has(groupId)) {
+            newSelected.delete(groupId);
+        } else {
+            newSelected.add(groupId);
+            // Fetch contacts for this group if not already loaded
+            if (!groupContacts[groupId]) {
+                await fetchGroupContacts(groupId);
+            }
+        }
+        setSelectedGroupIds(newSelected);
+    };
+
+    const handleAdd = async (shouldInvite = false) => {
+        let selectedContacts = [];
+
+        if (activeTab === 'contacts') {
+            selectedContacts = contacts.filter(c => selectedIds.has(c.id));
+        } else {
+            // Collect all contacts from selected groups
+            const allGroupContacts = [];
+            for (const groupId of selectedGroupIds) {
+                const contacts = groupContacts[groupId] || [];
+                allGroupContacts.push(...contacts);
+            }
+
+            // Deduplicate by phone/name
+            const seen = new Set();
+            selectedContacts = allGroupContacts.filter(contact => {
+                const key = contact.phone || contact.name.toLowerCase();
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+        }
+
+        onSelectContacts(selectedContacts, shouldInvite);
         setSelectedIds(new Set());
+        setSelectedGroupIds(new Set());
         setSearch('');
         onClose();
+    };
+
+    const getSelectedCount = () => {
+        if (activeTab === 'contacts') {
+            return selectedIds.size;
+        } else {
+            // Count unique contacts from selected groups
+            const allContacts = [];
+            for (const groupId of selectedGroupIds) {
+                const contacts = groupContacts[groupId] || [];
+                allContacts.push(...contacts);
+            }
+            const seen = new Set();
+            return allContacts.filter(contact => {
+                const key = contact.phone || contact.name.toLowerCase();
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            }).length;
+        }
     };
 
     return (
@@ -69,10 +176,56 @@ const ContactSelector = ({ isOpen, onClose, onSelectContacts, event }) => {
                 <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Users size={24} style={{ color: 'var(--primary)' }} />
-                        Select from Contacts
+                        Import Contacts
                     </h2>
                     <button onClick={onClose} className="btn btn-secondary" style={{ padding: '0.5rem' }}>
                         <X size={20} />
+                    </button>
+                </div>
+
+                {/* Tabs */}
+                <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
+                    <button
+                        onClick={() => setActiveTab('contacts')}
+                        style={{
+                            flex: 1,
+                            padding: '1rem',
+                            background: 'none',
+                            border: 'none',
+                            borderBottom: `3px solid ${activeTab === 'contacts' ? 'var(--primary)' : 'transparent'}`,
+                            color: activeTab === 'contacts' ? 'var(--primary)' : 'var(--text-secondary)',
+                            fontWeight: activeTab === 'contacts' ? 600 : 500,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem'
+                        }}
+                    >
+                        <Users size={18} />
+                        Contacts
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('groups')}
+                        style={{
+                            flex: 1,
+                            padding: '1rem',
+                            background: 'none',
+                            border: 'none',
+                            borderBottom: `3px solid ${activeTab === 'groups' ? 'var(--primary)' : 'transparent'}`,
+                            color: activeTab === 'groups' ? 'var(--primary)' : 'var(--text-secondary)',
+                            fontWeight: activeTab === 'groups' ? 600 : 500,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem'
+                        }}
+                    >
+                        <FolderOpen size={18} />
+                        Groups
                     </button>
                 </div>
 
@@ -85,101 +238,150 @@ const ContactSelector = ({ isOpen, onClose, onSelectContacts, event }) => {
                             className="form-input"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search by name or phone..."
+                            placeholder={activeTab === 'contacts' ? "Search by name or phone..." : "Search groups..."}
                             style={{ paddingLeft: '2.5rem' }}
                         />
                     </div>
                 </div>
 
-                {/* Contact List */}
+                {/* Content */}
                 <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
-                    {filteredContacts.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
-                            <Users size={48} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
-                            <p>No contacts found</p>
-                        </div>
+                    {activeTab === 'contacts' ? (
+                        // Contacts Tab
+                        filteredContacts.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                                <Users size={48} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
+                                <p>No contacts found</p>
+                            </div>
+                        ) : (
+                            <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                {filteredContacts.map(contact => {
+                                    const isDuplicate = isAlreadyGuest(contact);
+                                    return (
+                                        <label
+                                            key={contact.id}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.75rem',
+                                                padding: '0.75rem',
+                                                borderRadius: 'var(--radius-md)',
+                                                background: isDuplicate ? '#f3f4f6' : (selectedIds.has(contact.id) ? 'var(--bg-secondary)' : 'transparent'),
+                                                border: `2px solid ${isDuplicate ? '#e5e7eb' : (selectedIds.has(contact.id) ? 'var(--primary)' : 'var(--border)')}`,
+                                                cursor: isDuplicate ? 'not-allowed' : 'pointer',
+                                                opacity: isDuplicate ? 0.6 : 1,
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.has(contact.id)}
+                                                onChange={() => toggleSelect(contact.id)}
+                                                disabled={isDuplicate}
+                                                style={{ cursor: isDuplicate ? 'not-allowed' : 'pointer', width: '18px', height: '18px' }}
+                                            />
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    {contact.name}
+                                                    {isDuplicate && (
+                                                        <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 500 }}>
+                                                            (Already added)
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {contact.phone && (
+                                                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{contact.phone}</div>
+                                                )}
+                                            </div>
+                                            {selectedIds.has(contact.id) && !isDuplicate && (
+                                                <Check size={20} style={{ color: 'var(--primary)' }} />
+                                            )}
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                        )
                     ) : (
-                        <div style={{ display: 'grid', gap: '0.5rem' }}>
-                            {filteredContacts.map(contact => {
-                                const isDuplicate = isAlreadyGuest(contact);
-                                return (
+                        // Groups Tab
+                        loadingGroups ? (
+                            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                                <p>Loading groups...</p>
+                            </div>
+                        ) : filteredGroups.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                                <FolderOpen size={48} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
+                                <p>No groups found</p>
+                                <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>Create contact groups in the Contacts page</p>
+                            </div>
+                        ) : (
+                            <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                {filteredGroups.map(group => (
                                     <label
-                                        key={contact.id}
+                                        key={group.id}
                                         style={{
                                             display: 'flex',
                                             alignItems: 'center',
                                             gap: '0.75rem',
                                             padding: '0.75rem',
                                             borderRadius: 'var(--radius-md)',
-                                            background: isDuplicate ? '#f3f4f6' : (selectedIds.has(contact.id) ? 'var(--bg-secondary)' : 'transparent'),
-                                            border: `2px solid ${isDuplicate ? '#e5e7eb' : (selectedIds.has(contact.id) ? 'var(--primary)' : 'var(--border)')}`,
-                                            cursor: isDuplicate ? 'not-allowed' : 'pointer',
-                                            opacity: isDuplicate ? 0.6 : 1,
+                                            background: selectedGroupIds.has(group.id) ? 'var(--bg-secondary)' : 'transparent',
+                                            border: `2px solid ${selectedGroupIds.has(group.id) ? 'var(--primary)' : 'var(--border)'}`,
+                                            cursor: 'pointer',
                                             transition: 'all 0.2s'
                                         }}
                                     >
                                         <input
                                             type="checkbox"
-                                            checked={selectedIds.has(contact.id)}
-                                            onChange={() => toggleSelect(contact.id)}
-                                            disabled={isDuplicate}
-                                            style={{ cursor: isDuplicate ? 'not-allowed' : 'pointer', width: '18px', height: '18px' }}
+                                            checked={selectedGroupIds.has(group.id)}
+                                            onChange={() => toggleGroupSelect(group.id)}
+                                            style={{ cursor: 'pointer', width: '18px', height: '18px' }}
+                                        />
+                                        <div
+                                            style={{
+                                                width: '12px',
+                                                height: '12px',
+                                                borderRadius: '50%',
+                                                background: group.color || '#6B7280'
+                                            }}
                                         />
                                         <div style={{ flex: 1 }}>
-                                            <div style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                {contact.name}
-                                                {isDuplicate && (
-                                                    <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 500 }}>
-                                                        (Already added)
-                                                    </span>
-                                                )}
+                                            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                                                {group.name}
                                             </div>
-                                            {contact.phone && (
-                                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{contact.phone}</div>
-                                            )}
+                                            <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                                {group.member_count || 0} contacts
+                                            </div>
                                         </div>
-                                        {selectedIds.has(contact.id) && !isDuplicate && (
+                                        {selectedGroupIds.has(group.id) && (
                                             <Check size={20} style={{ color: 'var(--primary)' }} />
                                         )}
                                     </label>
-                                );
-                            })}
-                        </div>
+                                ))}
+                            </div>
+                        )
                     )}
                 </div>
 
                 {/* Footer */}
                 <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                        {selectedIds.size} selected
+                        {getSelectedCount()} contacts selected
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
                         <button onClick={onClose} className="btn btn-secondary">
                             Cancel
                         </button>
                         <button
-                            onClick={() => {
-                                const selectedContacts = contacts.filter(c => selectedIds.has(c.id));
-                                onSelectContacts(selectedContacts, false);
-                                setSelectedIds(new Set());
-                                setSearch('');
-                                onClose();
-                            }}
+                            onClick={() => handleAdd(false)}
                             className="btn btn-secondary"
-                            disabled={selectedIds.size === 0}
+                            disabled={getSelectedCount() === 0}
                         >
                             <Check size={16} /> Add to List
                         </button>
                         <button
-                            onClick={() => {
-                                const selectedContacts = contacts.filter(c => selectedIds.has(c.id));
-                                onSelectContacts(selectedContacts, true);
-                                setSelectedIds(new Set());
-                                setSearch('');
-                                onClose();
-                            }}
+                            onClick={() => handleAdd(true)}
                             className="btn btn-primary"
-                            disabled={selectedIds.size === 0}
+                            disabled={getSelectedCount() === 0}
                         >
                             <Check size={16} /> Add & Invite All
                         </button>
