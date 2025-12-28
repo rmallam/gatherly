@@ -27,8 +27,8 @@ const ContactSelector = ({ isOpen, onClose, onSelectContacts, event }) => {
         setGroupsError(null);
         try {
             const token = localStorage.getItem('token');
-            console.log('Fetching contact groups from:', `${API_URL}/api/contact-groups`);
-            const response = await fetch(`${API_URL}/api/contact-groups`, {
+            console.log('Fetching contact groups from:', `${API_URL}/contact-groups`);
+            const response = await fetch(`${API_URL}/contact-groups`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             console.log('Contact groups response status:', response.status);
@@ -57,7 +57,7 @@ const ContactSelector = ({ isOpen, onClose, onSelectContacts, event }) => {
     const fetchGroupContacts = async (groupId) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/api/contact-groups/${groupId}/members`, {
+            const response = await fetch(`${API_URL}/contact-groups/${groupId}/members`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
