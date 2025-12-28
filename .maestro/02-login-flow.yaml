@@ -1,0 +1,23 @@
+appId: com.guestscanner.app
+---
+# Test: User Login Flow
+- launchApp
+
+# Navigate to login if needed
+- assertVisible: "Email"
+
+# Enter valid credentials
+- tapOn: "Email"
+- inputText: "test@hosteze.com"
+
+- tapOn: "Password"
+- inputText: "Test123!@#"
+
+# Submit login
+- tapOn: "Login"
+
+# Wait for dashboard to load
+- assertVisible: "Dashboard"
+
+# Verify user is logged in
+- assertVisible: "Events"

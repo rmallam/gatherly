@@ -1,0 +1,7 @@
+appId: com.guestscanner.app
+---
+# Smoke Test - Verify app launches successfully
+- launchApp
+- assertVisible: "HostEze"
+- assertVisible: "Email"
+- assertVisible: "Password"
