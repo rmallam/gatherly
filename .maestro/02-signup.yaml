@@ -1,8 +1,8 @@
 appId: com.guestscanner.app
 ---
-# Test: User Signup Flow
-- launchApp
-- clearState
+# Test: User Login Flow (with Screenshots)
+- launchApp:
+    clearState: true
 
 # Handle notification permission if it appears
 - runFlow:
@@ -15,13 +15,12 @@ appId: com.guestscanner.app
 - waitForAnimationToEnd
 
 # Navigate to signup
-- assertVisible: "Don't have an account"
-- tapOn: "Sign Up"
+- assertVisible: "Don't have an account?"
+- tapOn: "Create Account"
 
 # Should see signup form
 - waitForAnimationToEnd
-- assertVisible: "Create Account"
-- assertVisible: "Name"
+- assertVisible: "Full Name"
 
 # Fill signup form with unique email
 - tapOn:
