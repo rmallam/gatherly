@@ -5,11 +5,11 @@ appId: com.guestscanner.app
 - clearState
 
 # Login first
-- tapOn: "Email Address"
-- inputText: "test@example.com"
+- tapOn: "Email"
+- inputText: "mallamrakeshkumar@gmail.com"
 - tapOn: "Password"
-- inputText: "Test@1234"
-- tapOn: "Sign In"
+- inputText: "Rakeshkumar@123"
+- tapOn: "Login"
 - waitForAnimationToEnd
 
 # Create new event
@@ -17,29 +17,29 @@ appId: com.guestscanner.app
 - waitForAnimationToEnd
 
 # Fill event details
-- assertVisible: "Event Details"
+- assertVisible: "Event Title"
 - tapOn: "Event Title"
-- inputText: "Birthday Party"
+- inputText: "Test Birthday Party ${randomInt(100,999)}"
 
 - tapOn: "Venue"
 - inputText: "My House"
 
 - tapOn: "Description"
-- inputText: "Celebrating my 30th birthday!"
+- inputText: "Celebrating my birthday!"
 
 # Save event
 - tapOn: "Create Event"
 - waitForAnimationToEnd
 
 # Should see event in list
-- assertVisible: "Birthday Party"
+- assertVisible: "Test Birthday Party"
 - assertVisible: "My House"
 
 # Tap to view details
-- tapOn: "Birthday Party"
+- tapOn: "Test Birthday Party"
 - waitForAnimationToEnd
 
-# Should see event details page
+# Should see event details tabs
 - assertVisible: "Overview"
 - assertVisible: "Guests"
 

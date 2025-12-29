@@ -8,18 +8,18 @@ appId: com.guestscanner.app
 - waitForAnimationToEnd
 
 # Should see login screen
-- assertVisible: "Sign In"
-- assertVisible: "Email Address"
+- assertVisible: "Login"
+- assertVisible: "Email"
 - assertVisible: "Password"
 
 # Enter credentials
-- tapOn: "Email Address"
+- tapOn: "Email"
 - inputText: "mallamrakeshkumar@gmail.com"
 - tapOn: "Password"
 - inputText: "Rakeshkumar@123"
 
 # Submit login
-- tapOn: "Sign In"
+- tapOn: "Login"
 
 # Should navigate to dashboard
 - waitForAnimationToEnd

@@ -1,0 +1,31 @@
+appId: com.guestscanner.app
+---
+# Test: Dark Theme Toggle
+- launchApp
+- clearState
+
+# Login
+- tapOn: "Email"
+- inputText: "mallamrakeshkumar@gmail.com"
+- tapOn: "Password"
+- inputText: "Rakeshkumar@123"
+- tapOn: "Login"
+- waitForAnimationToEnd
+
+# Go to profile
+- tapOn:
+    id: ".*profile.*"
+- waitForAnimationToEnd
+
+# Should see theme toggle
+- assertVisible: "Dark Mode"
+
+# Toggle dark mode on
+- tapOn: "Dark Mode"
+- waitForAnimationToEnd
+
+# Toggle dark mode off
+- tapOn: "Dark Mode"
+- waitForAnimationToEnd
+
+# Success!

@@ -1,0 +1,41 @@
+appId: com.guestscanner.app
+---
+# Test: Admin Dashboard Access
+- launchApp
+- clearState
+
+# Login as admin
+- tapOn: "Email"
+- inputText: "mallamrakeshkumar@gmail.com"
+- tapOn: "Password"
+- inputText: "Rakeshkumar@123"
+- tapOn: "Login"
+- waitForAnimationToEnd
+
+# Should see Admin button in header
+- assertVisible: "Admin"
+
+# Click Admin button
+- tapOn: "Admin"
+- waitForAnimationToEnd
+
+# Should see admin dashboard
+- assertVisible: "Admin Dashboard"
+- assertVisible: "TOTAL USERS"
+- assertVisible: "TOTAL EVENTS"
+- assertVisible: "TOTAL GUESTS"
+
+# Should see user management section
+- assertVisible: "User Management"
+- assertVisible: "Search by name, email, or phone"
+
+# Test search
+- tapOn: "Search by name, email, or phone"
+- inputText: "test"
+- waitForAnimationToEnd
+
+# Should see filtered results
+- assertVisible: "NAME"
+- assertVisible: "EMAIL"
+
+# Success!
