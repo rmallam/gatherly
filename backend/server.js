@@ -2026,6 +2026,106 @@ app.post('/api/events/:eventId/communications/thank-you', authMiddleware, sendTh
 // Get communication history
 app.get('/api/events/:eventId/communications', authMiddleware, getCommunications);
 
+// === ADMIN MIDDLEWARE ===
+function adminMiddleware(req, res, next) {
+    if (!req.user || !req.user.is_admin) {
+        return res.status(403).json({ error: 'Admin access required' });
+    }
+    next();
+}
+
+// === ADMIN ROUTES ===
+app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const usersCount = await query('SELECT COUNT(*) as count FROM users');
+        const eventsCount = await query('SELECT COUNT(*) as count FROM events');
+        const guestsCount = await query('SELECT COUNT(*) as count FROM guests');
+        const recentSignups = await query(`SELECT COUNT(*) as count FROM users WHERE created_at >= NOW() - INTERVAL '7 days'`);
+        const monthlySignups = await query(`SELECT COUNT(*) as count FROM users WHERE created_at >= NOW() - INTERVAL '30 days'`);
+        const activeEvents = await query(`SELECT COUNT(*) as count FROM events WHERE date >= CURRENT_DATE`);
+
+        res.json({
+            users: {
+                total: parseInt(usersCount.rows[0].count),
+                last7Days: parseInt(recentSignups.rows[0].count),
+                last30Days: parseInt(monthlySignups.rows[0].count)
+            },
+            events: {
+                total: parseInt(eventsCount.rows[0].count),
+                active: parseInt(activeEvents.rows[0].count)
+            },
+            guests: {
+                total: parseInt(guestsCount.rows[0].count)
+            }
+        });
+    } catch (error) {
+        console.error('Admin stats error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { page = 1, limit = 20, search = '' } = req.query;
+        const offset = (page - 1) * limit;
+
+        let queryText = `SELECT id, name, email, phone, is_admin, email_verified, created_at FROM users`;
+        let countQuery = 'SELECT COUNT(*) as count FROM users';
+        const params = [];
+
+        if (search) {
+            queryText += ` WHERE name ILIKE $1 OR email ILIKE $1 OR phone ILIKE $1`;
+            countQuery += ` WHERE name ILIKE $1 OR email ILIKE $1 OR phone ILIKE $1`;
+            params.push(`%${search}%`);
+        }
+
+        queryText += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+        params.push(limit, offset);
+
+        const users = await query(queryText, params);
+        const totalCount = await query(countQuery, search ? [`%${search}%`] : []);
+
+        res.json({
+            users: users.rows,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total: parseInt(totalCount.rows[0].count),
+                pages: Math.ceil(parseInt(totalCount.rows[0].count) / limit)
+            }
+        });
+    } catch (error) {
+        console.error('Admin users list error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const userId = req.params.id;
+
+        if (userId === req.user.id) {
+            return res.status(400).json({ error: 'Cannot delete your own admin account' });
+        }
+
+        const userCheck = await query('SELECT id, name FROM users WHERE id = $1', [userId]);
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        await query('DELETE FROM events WHERE user_id = $1', [userId]);
+        await query('DELETE FROM guests WHERE user_id = $1', [userId]);
+        await query('DELETE FROM user_contacts WHERE user_id = $1', [userId]);
+        await query('DELETE FROM notifications WHERE user_id = $1', [userId]);
+        await query('DELETE FROM users WHERE id = $1', [userId]);
+
+        res.json({ success: true, message: `User ${userCheck.rows[0].name} deleted successfully` });
+    } catch (error) {
+        console.error('Admin delete user error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Initialize database and start server
 const PORT = process.env.PORT || 3001;
 
