@@ -247,12 +247,13 @@ app.post('/api/auth/login', async (req, res) => {
             console.log('Login attempt - Phone received:', phone);
             console.log('Login attempt - Normalized (last 10 digits):', normalized);
             if (!normalized) {
-                return res.status(401).json({ error: 'Invalid phone number' });
+                return res.status(400).json({ error: 'Invalid phone number' });
             }
+            // Use RIGHT() to get last 10 digits - works correctly in PostgreSQL
             result = await query(
                 `SELECT * FROM users WHERE 
                  phone IS NOT NULL AND 
-                 SUBSTRING(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', ''), -10) = $1`,
+                 RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
                 [normalized]
             );
             console.log('Login attempt - Users found:', result.rows.length);
