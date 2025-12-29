@@ -197,7 +197,15 @@ app.post('/api/auth/signup', async (req, res) => {
             await query('UPDATE guests SET user_id = $1 WHERE email = $2 AND user_id IS NULL', [userId, validatedEmail]);
         }
         if (validatedPhone) {
-            await query('UPDATE guests SET user_id = $1 WHERE phone = $2 AND user_id IS NULL', [userId, validatedPhone]);
+            // Use flexible phone matching - compare last 10 digits
+            const normalizedUserPhone = normalizePhone(validatedPhone);
+            await query(
+                `UPDATE guests SET user_id = $1 
+                 WHERE user_id IS NULL 
+                 AND phone IS NOT NULL 
+                 AND RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $2`,
+                [userId, normalizedUserPhone]
+            );
         }
 
         // Send verification email (only if email provided)
