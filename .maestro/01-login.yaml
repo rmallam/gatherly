@@ -30,10 +30,12 @@ appId: com.guestscanner.app
 # Enter email
 - tapOn: "Email"
 - inputText: "mallamrakeshkumar@gmail.com"
+- waitForAnimationToEnd  # Wait for keyboard and text to appear
 
 # Enter password
 - tapOn: "Password"
 - inputText: "Rakeshkumar@123"
+- waitForAnimationToEnd  # Wait for password dots to appear
 
 - takeScreenshot: "04-credentials-entered"
 
