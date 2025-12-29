@@ -150,11 +150,12 @@ app.post('/api/auth/signup', async (req, res) => {
         // Normalize phone if provided
         let validatedPhone = null;
         if (phone) {
-            validatedPhone = phone.trim();
-            // Basic phone validation (10 digits for India)
-            if (!/^\d{10}$/.test(validatedPhone.replace(/\D/g, ''))) {
-                return res.status(400).json({ error: 'Please enter a valid 10-digit phone number' });
+            // Accept international format (+919876543210) or 10 digits (9876543210)
+            const phoneDigits = phone.replace(/\D/g, ''); // Remove non-digits
+            if (phoneDigits.length < 10) {
+                return res.status(400).json({ error: 'Phone number must be at least 10 digits' });
             }
+            validatedPhone = phoneDigits; // Assign the cleaned digits to validatedPhone
         }
 
         // Validate password strength
