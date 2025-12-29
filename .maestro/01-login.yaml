@@ -1,18 +1,15 @@
 appId: com.guestscanner.app
 ---
-# Test: User Login Flow
+# Test: User Login Flow with Screen Recording
 - launchApp
 
-# Wait longer for app to fully load
+# Wait for app to load
 - extendedWaitUntil:
     visible:
-      text: ".*"  # Wait for any text
+      text: ".*"
     timeout: 30000
 
-# Take screenshot to see what's on screen
-- takeScreenshot: "01-app-loaded"
-
-# Handle notification permission if it appears
+# Handle notification permission
 - runFlow:
     when:
       visible: "Allow"
@@ -25,8 +22,6 @@ appId: com.guestscanner.app
     when:
       visible: "Logout"
     commands:
-      # Already logged in, logout first
-      - takeScreenshot: "02-already-logged-in"
       - tapOn: "Logout"
       - extendedWaitUntil:
           visible: "Sign In"
@@ -37,35 +32,24 @@ appId: com.guestscanner.app
     visible: "Sign In"
     timeout: 20000
 
-- takeScreenshot: "03-login-screen"
-
-# Verify login screen elements
+# Verify login screen
 - assertVisible: "Email"
 - assertVisible: "Password"
 
-# Clear any existing text and enter credentials
+# Enter credentials
 - tapOn: "Email"
 - inputText: "mallamrakeshkumar@gmail.com"
 
 - tapOn: "Password"
 - inputText: "Rakeshkumar@123"
 
-- takeScreenshot: "04-credentials-entered"
-
 # Submit login
 - tapOn: "Sign In"
 
-# Wait for any response (success or error)
-- waitForAnimationToEnd
-
-- takeScreenshot: "05-after-login-click"
-
-# Wait for dashboard (look for any of these)
+# Wait for dashboard
 - extendedWaitUntil:
     visible:
-      text: ".*Event.*"  # Any text containing "Event"
+      text: ".*Event.*"
     timeout: 20000
-
-- takeScreenshot: "06-dashboard-loaded"
 
 # Success!
