@@ -5,11 +5,13 @@ appId: com.guestscanner.app
 - clearState
 
 # Login
-- tapOn: "Email"
+- tapOn:
+    text: "your@email.com"
 - inputText: "mallamrakeshkumar@gmail.com"
-- tapOn: "Password"
+- tapOn:
+    text: "Enter your password"
 - inputText: "Rakeshkumar@123"
-- tapOn: "Login"
+- tapOn: "Sign In"
 - waitForAnimationToEnd
 
 # Go to profile

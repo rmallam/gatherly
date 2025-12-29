@@ -5,18 +5,22 @@ appId: com.guestscanner.app
 - clearState
 
 # Login as admin
-- tapOn: "Email"
+- tapOn:
+    text: "your@email.com"
 - inputText: "mallamrakeshkumar@gmail.com"
-- tapOn: "Password"
+- tapOn:
+    text: "Enter your password"
 - inputText: "Rakeshkumar@123"
-- tapOn: "Login"
+- tapOn: "Sign In"
 - waitForAnimationToEnd
 
-# Should see Admin button in header
-- assertVisible: "Admin"
+# Should see Admin button in header (shield icon)
+- assertVisible: "Admin Dashboard"
 
-# Click Admin button
-- tapOn: "Admin"
+# Navigate to admin (shield icon is visible but text-based assertion won't work)
+# Try tapping on the admin route directly or use coordinates
+- tapOn:
+    point: "90%,5%"
 - waitForAnimationToEnd
 
 # Should see admin dashboard
