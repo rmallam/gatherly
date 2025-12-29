@@ -244,6 +244,8 @@ app.post('/api/auth/login', async (req, res) => {
         } else if (phone) {
             // Use flexible phone matching - compare last 10 digits
             const normalized = normalizePhone(phone);
+            console.log('Login attempt - Phone received:', phone);
+            console.log('Login attempt - Normalized (last 10 digits):', normalized);
             if (!normalized) {
                 return res.status(401).json({ error: 'Invalid phone number' });
             }
@@ -253,6 +255,10 @@ app.post('/api/auth/login', async (req, res) => {
                  SUBSTRING(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', ''), -10) = $1`,
                 [normalized]
             );
+            console.log('Login attempt - Users found:', result.rows.length);
+            if (result.rows.length > 0) {
+                console.log('Login attempt - Stored phone in DB:', result.rows[0].phone);
+            }
         }
 
         if (result.rows.length === 0) {
