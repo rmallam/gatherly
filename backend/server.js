@@ -310,7 +310,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
     try {
-        const result = await query('SELECT id, name, email, phone, email_verified, profile_picture_url, bio FROM users WHERE id = $1', [req.user.id]);
+        const result = await query('SELECT id, name, email, phone, email_verified, profile_picture_url, bio, is_admin FROM users WHERE id = $1', [req.user.id]);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'User not found' });
@@ -325,7 +325,8 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
                 phone: user.phone,
                 emailVerified: user.email_verified,
                 profilePictureUrl: user.profile_picture_url,
-                bio: user.bio
+                bio: user.bio,
+                is_admin: user.is_admin
             }
         });
     } catch (error) {
