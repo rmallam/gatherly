@@ -18,10 +18,23 @@ const GuestEventView = () => {
     useEffect(() => {
         if (!event || !event.guests) return;
 
+        const normalizePhone = (phone) => {
+            if (!phone) return null;
+            // Remove all non-digits and get last 10 digits
+            const digits = phone.replace(/\D/g, '');
+            return digits.slice(-10);
+        };
+
         const guest = event.guests.find(g => {
             const emailMatch = user?.email && g.email === user.email;
-            const phoneMatch = user?.phone && g.phone === user.phone;
-            const idMatch = g.id === user?.id;
+
+            // Flexible phone matching - compare last 10 digits
+            const userPhoneNormalized = normalizePhone(user?.phone);
+            const guestPhoneNormalized = normalizePhone(g.phone);
+            const phoneMatch = userPhoneNormalized && guestPhoneNormalized &&
+                userPhoneNormalized === guestPhoneNormalized;
+
+            const idMatch = g.user_id === user?.id;
 
             return emailMatch || phoneMatch || idMatch;
         });
