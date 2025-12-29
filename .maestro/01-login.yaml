@@ -20,22 +20,26 @@ appId: com.guestscanner.app
       - waitForAnimationToEnd
       - takeScreenshot: "02-permission-granted"
 
-# Verify login screen
+# Verify we're on login screen (NOT dashboard)
 - assertVisible: "Email"
 - assertVisible: "Password"
 - assertVisible: "Sign In"
+
+# Make sure we're NOT on dashboard yet
+- assertNotVisible: "My Events"
+- assertNotVisible: "Create Event"
 
 - takeScreenshot: "03-login-screen"
 
 # Enter email
 - tapOn: "Email"
 - inputText: "mallamrakeshkumar@gmail.com"
-- waitForAnimationToEnd  # Wait for keyboard and text to appear
+- waitForAnimationToEnd
 
 # Enter password
 - tapOn: "Password"
 - inputText: "Rakeshkumar@123"
-- waitForAnimationToEnd  # Wait for password dots to appear
+- waitForAnimationToEnd
 
 - takeScreenshot: "04-credentials-entered"
 
@@ -47,11 +51,14 @@ appId: com.guestscanner.app
 
 - takeScreenshot: "05-after-login-click"
 
-# Wait for dashboard
+# Wait for dashboard - be very specific
 - extendedWaitUntil:
-    visible:
-      text: ".*Event.*"
+    visible: "My Events"
     timeout: 20000
+
+# Verify we're actually on dashboard
+- assertVisible: "My Events"
+- assertVisible: "Create Event"
 
 - takeScreenshot: "06-dashboard-loaded"
 
