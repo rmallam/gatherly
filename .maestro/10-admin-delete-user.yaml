@@ -1,0 +1,68 @@
+appId: com.guestscanner.app
+---
+# Test: Admin Delete User
+- launchApp:
+    clearState: true
+
+# Wait for app to load
+- extendedWaitUntil:
+    visible: "Sign In"
+    timeout: 30000
+
+# Handle notification permission
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+      - waitForAnimationToEnd
+
+# Login as admin
+- tapOn:
+    text: "your@email.com"
+- inputText: "mallamrakeshkumar@gmail.com"
+- tapOn:
+    text: "Enter your password"
+- inputText: "Rakeshkumar@123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# Wait for dashboard
+- extendedWaitUntil:
+    visible: "My Events"
+    timeout: 20000
+
+# Navigate to admin dashboard (tap shield icon at top right)
+- tapOn:
+    point: "90%,5%"
+- waitForAnimationToEnd
+
+# Should see admin dashboard
+- assertVisible: "Admin Dashboard"
+- assertVisible: "User Management"
+
+# Search for test user
+- tapOn:
+    text: "Search by name, email, or phone..."
+- inputText: "testuser@test.com"
+- waitForAnimationToEnd
+
+# Should see the test user in results
+- assertVisible: "testuser@test.com"
+
+# Tap delete button (trash icon) for the user
+# The delete button is in the same row as the user
+- tapOn:
+    id: ".*delete.*"
+- waitForAnimationToEnd
+
+# Confirm deletion in modal
+- assertVisible: "Delete User"
+- assertVisible: "Are you sure"
+- tapOn: "Delete"
+- waitForAnimationToEnd
+
+# User should be removed from list
+- assertNotVisible: "testuser@test.com"
+
+# Success!
