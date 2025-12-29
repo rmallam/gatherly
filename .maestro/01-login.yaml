@@ -1,17 +1,12 @@
 appId: com.guestscanner.app
 ---
-# Test: User Login Flow
+# Test: User Login Flow (No Clear State)
 - launchApp
-- clearState
 
-# Wait longer for app to fully load (30 seconds)
+# Wait for app to load (up to 20 seconds)
 - extendedWaitUntil:
-    visible:
-      text: ".*"  # Wait for any text to appear
-    timeout: 30000
-
-# Take a screenshot to see what's on screen
-- takeScreenshot: "app-loaded"
+    visible: "Sign In"
+    timeout: 20000
 
 # Handle notification permission if it appears
 - runFlow:
@@ -20,25 +15,21 @@ appId: com.guestscanner.app
     commands:
       - tapOn: "Allow"
 
-# Wait for login screen
-- extendedWaitUntil:
-    visible: "Sign In"
-    timeout: 15000
-
-# Should see login screen
+# Verify login screen elements
 - assertVisible: "Email"
 - assertVisible: "Password"
 
 # Enter credentials
 - tapOn: "Email"
 - inputText: "mallamrakeshkumar@gmail.com"
+
 - tapOn: "Password"
 - inputText: "Rakeshkumar@123"
 
 # Submit login
 - tapOn: "Sign In"
 
-# Should navigate to dashboard
+# Wait for dashboard
 - extendedWaitUntil:
     visible: "My Events"
     timeout: 15000
