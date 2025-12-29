@@ -32,12 +32,14 @@ appId: com.guestscanner.app
 - takeScreenshot: "03-login-screen"
 
 # Enter email
-- tapOn: "Email Address"
+- tapOn: 
+    text: "your@email.com"
 - inputText: "mallamrakeshkumar@gmail.com"
 - waitForAnimationToEnd
 
 # Enter password
-- tapOn: "Password"
+- tapOn:
+    text: "Enter your password"
 - inputText: "Rakeshkumar@123"
 - waitForAnimationToEnd
 
