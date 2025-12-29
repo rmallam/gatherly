@@ -28,14 +28,18 @@ appId: com.guestscanner.app
 - inputText: "Test User"
 - tapOn:
     text: "your@email.com"
-- inputText: "testuser${randomInt(1000,9999)}@example.com"
+- inputText: "testuser@test.com"
 - tapOn:
     text: "Strong password"
 - inputText: "Test@1234"
 
+# Hide keyboard and scroll to reveal confirm password field
+- hideKeyboard
+- scroll
+
 # Confirm password
 - tapOn:
-    text: "Confirm password"
+    text: "Confirm your password"
 - inputText: "Test@1234"
 
 # Submit signup
