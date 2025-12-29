@@ -11,7 +11,8 @@ export function generateToken(user) {
             id: user.id,
             email: user.email,
             name: user.name,
-            phone: user.phone
+            phone: user.phone,
+            is_admin: user.is_admin || false
         },
         JWT_SECRET,
         { expiresIn: '7d' }
@@ -61,12 +62,13 @@ export const authMiddleware = async (req, res, next) => {
         const decoded = jwt.verify(token, JWT_SECRET);
         console.log('Auth middleware: Token verified for user:', decoded.id);
 
-        // Use decoded.id because generateToken sets { id, email, name, phone }
+        // Use decoded.id because generateToken sets { id, email, name, phone, is_admin }
         req.user = {
             id: decoded.id,
             name: decoded.name,
             email: decoded.email,
-            phone: decoded.phone
+            phone: decoded.phone,
+            is_admin: decoded.is_admin || false
         };
         next();
     } catch (error) {

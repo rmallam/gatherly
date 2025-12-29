@@ -53,22 +53,29 @@ const AdminDashboard = () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('token');
-            const response = await fetch(
-                `${import.meta.env.VITE_API_URL}/admin/users?page=${page}&limit=20&search=${searchTerm}`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+            console.log('🔍 Admin Dashboard: Fetching users...', { page, searchTerm });
+            const url = `${import.meta.env.VITE_API_URL}/admin/users?page=${page}&limit=20&search=${searchTerm}`;
+            console.log('🔍 Admin Dashboard: URL:', url);
+
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
                 }
-            );
+            });
+
+            console.log('🔍 Admin Dashboard: Response status:', response.status);
 
             if (response.ok) {
                 const data = await response.json();
+                console.log('🔍 Admin Dashboard: Received data:', data);
                 setUsers(data.users);
                 setPagination(data.pagination);
+            } else {
+                const errorText = await response.text();
+                console.error('🔍 Admin Dashboard: Error response:', errorText);
             }
         } catch (error) {
-            console.error('Failed to fetch users:', error);
+            console.error('🔍 Admin Dashboard: Failed to fetch users:', error);
         } finally {
             setLoading(false);
         }
