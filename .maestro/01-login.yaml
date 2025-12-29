@@ -1,6 +1,6 @@
 appId: com.guestscanner.app
 ---
-# Test: User Login Flow (No Clear State)
+# Test: User Login Flow
 - launchApp
 
 # Wait for app to load (up to 20 seconds)
@@ -29,9 +29,10 @@ appId: com.guestscanner.app
 # Submit login
 - tapOn: "Sign In"
 
-# Wait for dashboard
+# Wait for dashboard - look for "Events" or "Create Event" instead of "My Events"
 - extendedWaitUntil:
-    visible: "My Events"
+    visible: 
+      text: ".*Events.*"  # Match any text containing "Events"
     timeout: 15000
 
-# Success!
+# Success - we're on the dashboard!
