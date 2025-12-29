@@ -4,6 +4,13 @@ appId: com.guestscanner.app
 - launchApp
 - clearState
 
+# Handle notification permission if it appears
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+
 # Wait for app to load
 - waitForAnimationToEnd
 

@@ -4,12 +4,19 @@ appId: com.guestscanner.app
 - launchApp
 - clearState
 
+# Handle notification permission if it appears
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+
 # Login first
 - tapOn: "Email"
 - inputText: "mallamrakeshkumar@gmail.com"
 - tapOn: "Password"
 - inputText: "Rakeshkumar@123"
-- tapOn: "Login"
+- tapOn: "Sign In"
 - waitForAnimationToEnd
 
 # Create new event

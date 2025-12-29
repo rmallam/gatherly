@@ -2,9 +2,20 @@ appId: com.guestscanner.app
 ---
 # Smoke Test - Verify app launches successfully
 - launchApp
+
+# Handle notification permission if it appears
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+
+# Wait for app to load
 - extendedWaitUntil:
     visible: "Sign In"
     timeout: 10000
+
+# Verify login screen elements
 - assertVisible: "Host"
 - assertVisible: "Email"
 - assertVisible: "Password"
