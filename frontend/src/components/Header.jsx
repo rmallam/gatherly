@@ -94,7 +94,7 @@ const Header = ({ showAuth = true }) => {
                 transform: 'translateX(-50%)'
             }}>
                 <Scan size={22} style={{ color: 'var(--primary)' }} />
-                <span>HostEze</span>
+                <span>Host<i>Eze</i></span>
             </Link>
 
             {/* Right - Logout */}

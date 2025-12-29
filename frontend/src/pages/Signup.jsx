@@ -68,7 +68,7 @@ const Signup = () => {
                 <div style={{ padding: '3rem 0 2rem', borderBottom: '1px solid var(--border)' }}>
                     <div className="container" style={{ textAlign: 'center' }}>
                         <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                            🎉 HostEze
+                            🎉 Host<i>Eze</i>
                         </h1>
                         <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
                             Event Management Made Easy
@@ -117,7 +117,7 @@ const Signup = () => {
             <div style={{ padding: '3rem 0 2rem', borderBottom: '1px solid var(--border)' }}>
                 <div className="container" style={{ textAlign: 'center' }}>
                     <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                        🎉 HostEze
+                        🎉 Host<i>Eze</i>
                     </h1>
                     <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
                         Event Management Made Easy
