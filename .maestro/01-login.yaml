@@ -6,9 +6,12 @@ appId: com.guestscanner.app
 
 # Wait for app to load
 - waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "Sign In"
+    timeout: 10000
 
 # Should see login screen
-- assertVisible: "Login"
+- assertVisible: "Sign In"
 - assertVisible: "Email"
 - assertVisible: "Password"
 
@@ -19,10 +22,11 @@ appId: com.guestscanner.app
 - inputText: "Rakeshkumar@123"
 
 # Submit login
-- tapOn: "Login"
+- tapOn: "Sign In"
 
 # Should navigate to dashboard
-- waitForAnimationToEnd
-- assertVisible: "My Events"
+- extendedWaitUntil:
+    visible: "My Events"
+    timeout: 10000
 
 # Success!

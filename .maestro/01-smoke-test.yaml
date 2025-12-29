@@ -2,7 +2,10 @@ appId: com.guestscanner.app
 ---
 # Smoke Test - Verify app launches successfully
 - launchApp
-- assertVisible: "Host"  # HostEze is now Host<i>Eze</i> in HTML
+- extendedWaitUntil:
+    visible: "Sign In"
+    timeout: 10000
+- assertVisible: "Host"
 - assertVisible: "Email"
 - assertVisible: "Password"
-- assertVisible: "Login"
+- assertVisible: "Sign In"
