@@ -292,7 +292,14 @@ app.post('/api/auth/login', async (req, res) => {
         }
 
         const token = generateToken(user);
-        const userResponse = { id: user.id, name: user.name, email: user.email, phone: user.phone, emailVerified: user.email_verified };
+        const userResponse = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            emailVerified: user.email_verified,
+            is_admin: user.is_admin
+        };
 
         res.json({ token, user: userResponse });
     } catch (error) {

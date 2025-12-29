@@ -32,7 +32,7 @@ appId: com.guestscanner.app
 - takeScreenshot: "03-login-screen"
 
 # Enter email
-- tapOn: "Email"
+- tapOn: "Email Address"
 - inputText: "mallamrakeshkumar@gmail.com"
 - waitForAnimationToEnd
 
