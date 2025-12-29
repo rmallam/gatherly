@@ -142,9 +142,11 @@ const Header = ({ showAuth = true }) => {
                     onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'}
                 >
                     <LogOut size={16} />
+                    Logout
                 </button>
             </div>
-            );
+        </div>
+    );
 };
 
-            export default Header;
+export default Header;
