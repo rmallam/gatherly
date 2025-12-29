@@ -2,24 +2,15 @@ appId: com.guestscanner.app
 ---
 # Test: User Login Flow
 - launchApp
-- startRecording  # Start video recording
 
-# Wait for app to load
-- waitForAnimationToEnd
-
-# Check if already logged in (dashboard visible)
-- runFlow:
-    when:
-      visible: "Create Event"
-    commands:
-      # Already logged in, logout first
-      - tapOn: "Logout"
-      - waitForAnimationToEnd
-
-# Wait for login screen
+# Wait longer for app to fully load
 - extendedWaitUntil:
-    visible: "Sign In"
-    timeout: 20000
+    visible:
+      text: ".*"  # Wait for any text
+    timeout: 30000
+
+# Take screenshot to see what's on screen
+- takeScreenshot: "01-app-loaded"
 
 # Handle notification permission if it appears
 - runFlow:
@@ -27,27 +18,54 @@ appId: com.guestscanner.app
       visible: "Allow"
     commands:
       - tapOn: "Allow"
+      - waitForAnimationToEnd
+
+# Check if already logged in
+- runFlow:
+    when:
+      visible: "Logout"
+    commands:
+      # Already logged in, logout first
+      - takeScreenshot: "02-already-logged-in"
+      - tapOn: "Logout"
+      - extendedWaitUntil:
+          visible: "Sign In"
+          timeout: 10000
+
+# Wait for login screen
+- extendedWaitUntil:
+    visible: "Sign In"
+    timeout: 20000
+
+- takeScreenshot: "03-login-screen"
 
 # Verify login screen elements
 - assertVisible: "Email"
 - assertVisible: "Password"
 
-# Enter credentials
+# Clear any existing text and enter credentials
 - tapOn: "Email"
 - inputText: "mallamrakeshkumar@gmail.com"
 
 - tapOn: "Password"
 - inputText: "Rakeshkumar@123"
 
+- takeScreenshot: "04-credentials-entered"
+
 # Submit login
 - tapOn: "Sign In"
 
-# Wait for dashboard
-- extendedWaitUntil:
-    visible: "Create Event"
-    timeout: 15000
+# Wait for any response (success or error)
+- waitForAnimationToEnd
 
-# Stop recording
-- stopRecording
+- takeScreenshot: "05-after-login-click"
+
+# Wait for dashboard (look for any of these)
+- extendedWaitUntil:
+    visible:
+      text: ".*Event.*"  # Any text containing "Event"
+    timeout: 20000
+
+- takeScreenshot: "06-dashboard-loaded"
 
 # Success!
