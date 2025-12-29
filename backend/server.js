@@ -907,7 +907,7 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
                 const userByPhone = await query(
                     `SELECT id FROM users WHERE 
                      phone IS NOT NULL AND 
-                     SUBSTRING(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', ''), -10) = $1`,
+                     RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
                     [normalized]
                 );
                 if (userByPhone.rows.length > 0) {
@@ -1078,7 +1078,7 @@ app.post('/api/events/:eventId/guests/bulk', authMiddleware, async (req, res) =>
                     const userByPhone = await query(
                         `SELECT id FROM users WHERE 
                          phone IS NOT NULL AND 
-                         SUBSTRING(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', ''), -10) = $1`,
+                         RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
                         [normalized]
                     );
                     if (userByPhone.rows.length > 0) {
