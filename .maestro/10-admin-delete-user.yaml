@@ -32,10 +32,16 @@ appId: com.guestscanner.app
     visible: "My Events"
     timeout: 20000
 
-# Navigate to admin dashboard using deeplink
-- launchApp:
-    appId: com.guestscanner.app
-    url: "hosteze://admin"
+# Scroll to top to ensure header is fully visible
+- swipe:
+    direction: DOWN
+    duration: 100
+
+# Navigate to admin dashboard
+# The shield icon is in the top right, we'll tap near the right edge of header
+# Using a more conservative position
+- tapOn:
+    point: "92%,8%"
 - waitForAnimationToEnd
 
 # Should see admin dashboard
