@@ -2,6 +2,7 @@ appId: com.guestscanner.app
 ---
 # Test: User Login Flow
 - launchApp
+- startRecording  # Start video recording
 
 # Wait for app to load
 - waitForAnimationToEnd
@@ -45,5 +46,8 @@ appId: com.guestscanner.app
 - extendedWaitUntil:
     visible: "Create Event"
     timeout: 15000
+
+# Stop recording
+- stopRecording
 
 # Success!
