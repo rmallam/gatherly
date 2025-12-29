@@ -32,9 +32,10 @@ appId: com.guestscanner.app
     visible: "My Events"
     timeout: 20000
 
-# Navigate to admin dashboard (tap shield icon at top right, left of logout)
-- tapOn:
-    point: "85%,5%"
+# Navigate to admin dashboard using deeplink
+- launchApp:
+    appId: com.guestscanner.app
+    url: "hosteze://admin"
 - waitForAnimationToEnd
 
 # Should see admin dashboard
