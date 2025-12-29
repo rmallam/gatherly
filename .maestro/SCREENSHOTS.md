@@ -1,74 +1,88 @@
-# Maestro Screenshots - Where Are They?
+# Maestro Screenshot Storage Guide
 
-## The Issue
+## Where Screenshots Are Stored
 
-Maestro's `takeScreenshot` command logs that it's taking screenshots, but they're not being saved as separate PNG files in the test output folder.
+### 1. **Automatic Failure Screenshots** ❌
+When a test fails, Maestro automatically saves a screenshot:
 
-## Where Screenshots Actually Are
-
-### 1. **Embedded in HTML Report** ✅
-Screenshots are embedded as base64 images in the HTML report:
-```bash
-open ~/.maestro/tests/LATEST_FOLDER/ai-report-01-login.html
+**Location:**
+```
+~/.maestro/tests/YYYY-MM-DD_HHMMSS/screenshot-❌-timestamp-(test-name).png
 ```
 
-The HTML report contains all screenshots inline - you can view them in your browser!
-
-### 2. **Only on Failures** ❌
-Maestro automatically saves PNG files ONLY when tests fail (marked with ❌ in filename).
-
-### 3. **Commands JSON**
-Screenshot data is also in the commands JSON file as base64.
-
-## Solution: Extract Screenshots from HTML
-
-Since screenshots are embedded in the HTML report, you have two options:
-
-### Option A: View in Browser (Easiest)
-```bash
-# Open the HTML report - all screenshots are there!
-open ~/.maestro/tests/$(ls -t ~/.maestro/tests | head -1)/ai-report-01-login.html
+**Example:**
+```
+~/.maestro/tests/2025-12-29_131109/screenshot-❌-1766994160436-(01-login.yaml).png
 ```
 
-### Option B: Use Maestro Studio (Better)
-Maestro Studio provides a better UI for viewing test results:
-```bash
-maestro studio
+These are saved in the test output folder with the test results.
+
+### 2. **Manual Screenshots** (takeScreenshot command) 📸
+When you use `takeScreenshot: "name"` in your test:
+
+**Location:**
+```
+<current-working-directory>/name.png
 ```
 
-### Option C: Save Screenshots to Files
-Modify the test to use `--format` flag:
-```bash
-maestro test --format html,json .maestro/01-login.yaml
+**For our tests, this is:**
+```
+/Users/rakeshkumarmallam/Rakesh-work/guest-scanner/name.png
 ```
 
-## Why This Happens
+Screenshots are saved to wherever you ran `maestro test` from.
 
-Maestro's `takeScreenshot` command is designed for:
-1. **Labeling** screenshots in the report (not saving files)
-2. **Debugging** - screenshots appear in HTML report
-3. **CI/CD** - embedded screenshots travel with the report
+### 3. **No Screenshots on Success** ✅
+When tests pass, Maestro does NOT save automatic screenshots. You must use `takeScreenshot` commands explicitly.
 
-To get actual PNG files, you need:
-- Test failures (automatic)
-- Or use Maestro Cloud/Studio
-- Or extract from HTML report manually
+## Current Setup
 
-## Recommended Approach
-
-**Just use the HTML report!** It has all your screenshots embedded and is easier to share.
-
+**Your test screenshots are in:**
 ```bash
-# Quick command to open latest test report
-open ~/.maestro/tests/$(ls -t ~/.maestro/tests | head -1)/ai-report-01-login.html
+/Users/rakeshkumarmallam/Rakesh-work/guest-scanner/
 ```
 
-The HTML report shows:
-- ✅ All screenshots taken during the test
-- ✅ Test steps and results
-- ✅ Timing information
-- ✅ Error details (if any)
+**Files from last run with takeScreenshot:**
+- `01-app-loaded.png`
+- `03-login-screen.png`
+- `04-credentials-entered.png`
+- `05-after-login-click.png`
+- `06-dashboard-loaded.png`
 
-## For CI/CD
+## Quick Access Commands
 
-In CI/CD, publish the HTML report as an artifact - it contains everything you need!
+```bash
+# View all test failure screenshots
+find ~/.maestro/tests -name "screenshot-*.png" -mtime -1
+
+# View manual screenshots in project
+ls -lh /Users/rakeshkumarmallam/Rakesh-work/guest-scanner/*.png
+
+# Open latest test folder
+open ~/.maestro/tests/$(ls -t ~/.maestro/tests | head -1)
+
+# Open project folder (manual screenshots)
+open /Users/rakeshkumarmallam/Rakesh-work/guest-scanner/
+```
+
+## Best Practice
+
+For visual test documentation, add `takeScreenshot` commands at key steps:
+
+```yaml
+- tapOn: "Login"
+- takeScreenshot: "after-login-click"
+- assertVisible: "Dashboard"
+- takeScreenshot: "dashboard-loaded"
+```
+
+Screenshots will be saved to your project directory.
+
+## Cleanup
+
+Manual screenshots are NOT automatically cleaned up. Remove them manually:
+
+```bash
+# Remove all test screenshots from project root
+rm /Users/rakeshkumarmallam/Rakesh-work/guest-scanner/0*.png
+```
