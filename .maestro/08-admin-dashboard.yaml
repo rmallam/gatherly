@@ -18,9 +18,9 @@ appId: com.guestscanner.app
 - assertVisible: "Admin Dashboard"
 
 # Navigate to admin (shield icon is visible but text-based assertion won't work)
-# Try tapping on the admin route directly or use coordinates
+# Try tapping on the admin route directly or use coordinates (left of logout)
 - tapOn:
-    point: "90%,5%"
+    point: "85%,5%"
 - waitForAnimationToEnd
 
 # Should see admin dashboard

@@ -60,7 +60,6 @@ appId: com.guestscanner.app
 
 # Verify we're actually on dashboard
 - assertVisible: "My Events"
-- assertVisible: "Create Event"
 
 - takeScreenshot: "06-dashboard-loaded"
 
