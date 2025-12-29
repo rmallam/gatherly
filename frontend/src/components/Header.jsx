@@ -97,30 +97,54 @@ const Header = ({ showAuth = true }) => {
                 <span>Host<i>Eze</i></span>
             </Link>
 
-            {/* Right - Logout */}
-            <button
-                onClick={logout}
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 12px',
-                    background: '#fee2e2',
-                    border: 'none',
-                    borderRadius: '8px',
-                    color: '#dc2626',
-                    fontWeight: '600',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                    transition: 'background 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'}
-                onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'}
-            >
-                <LogOut size={16} />
-            </button>
-        </div>
-    );
+            {/* Right - Admin Link (if admin) + Logout */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {user?.is_admin && (
+                    <Link
+                        to="/admin"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 12px',
+                            background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                            border: 'none',
+                            borderRadius: '8px',
+                            color: 'white',
+                            fontWeight: '600',
+                            fontSize: '13px',
+                            textDecoration: 'none',
+                            transition: 'opacity 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                    >
+                        Admin
+                    </Link>
+                )}
+                <button
+                    onClick={logout}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 12px',
+                        background: '#fee2e2',
+                        border: 'none',
+                        borderRadius: '8px',
+                        color: '#dc2626',
+                        fontWeight: '600',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'}
+                >
+                    <LogOut size={16} />
+                </button>
+            </div>
+            );
 };
 
-export default Header;
+            export default Header;

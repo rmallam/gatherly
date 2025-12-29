@@ -22,6 +22,7 @@ import EventWall from './pages/EventWall';
 import Profile from './pages/Profile';
 import NotificationList from './pages/NotificationList';
 import MyContacts from './pages/MyContacts';
+import AdminDashboard from './pages/AdminDashboard';
 
 // Back button handler component
 function BackButtonHandler() {
@@ -125,6 +126,13 @@ function App() {
                                 <ProtectedRoute>
                                     <Layout>
                                         <MyContacts />
+                                    </Layout>
+                                </ProtectedRoute>
+                            } />
+                            <Route path="/admin" element={
+                                <ProtectedRoute>
+                                    <Layout>
+                                        <AdminDashboard />
                                     </Layout>
                                 </ProtectedRoute>
                             } />

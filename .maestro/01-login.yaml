@@ -14,9 +14,9 @@ appId: com.guestscanner.app
 
 # Enter credentials
 - tapOn: "Email Address"
-- inputText: "test@example.com"
+- inputText: "mallamrakeshkumar@gmail.com"
 - tapOn: "Password"
-- inputText: "Test@1234"
+- inputText: "Rakeshkumar@123"
 
 # Submit login
 - tapOn: "Sign In"
