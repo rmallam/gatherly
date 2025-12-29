@@ -3,7 +3,19 @@ appId: com.guestscanner.app
 # Test: User Login Flow
 - launchApp
 
-# Wait for app to load (up to 20 seconds)
+# Wait for app to load
+- waitForAnimationToEnd
+
+# Check if already logged in (dashboard visible)
+- runFlow:
+    when:
+      visible: "Create Event"
+    commands:
+      # Already logged in, logout first
+      - tapOn: "Logout"
+      - waitForAnimationToEnd
+
+# Wait for login screen
 - extendedWaitUntil:
     visible: "Sign In"
     timeout: 20000
@@ -29,10 +41,9 @@ appId: com.guestscanner.app
 # Submit login
 - tapOn: "Sign In"
 
-# Wait for dashboard - look for "Events" or "Create Event" instead of "My Events"
+# Wait for dashboard
 - extendedWaitUntil:
-    visible: 
-      text: ".*Events.*"  # Match any text containing "Events"
+    visible: "Create Event"
     timeout: 15000
 
-# Success - we're on the dashboard!
+# Success!
