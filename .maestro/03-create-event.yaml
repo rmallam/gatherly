@@ -12,9 +12,11 @@ appId: com.guestscanner.app
       - tapOn: "Allow"
 
 # Login first
-- tapOn: "Email"
+- tapOn:
+    text: "your@email.com"
 - inputText: "mallamrakeshkumar@gmail.com"
-- tapOn: "Password"
+- tapOn:
+    text: "Enter your password"
 - inputText: "Rakeshkumar@123"
 - tapOn: "Sign In"
 - waitForAnimationToEnd

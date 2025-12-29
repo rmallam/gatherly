@@ -24,17 +24,19 @@ appId: com.guestscanner.app
 - assertVisible: "Name"
 
 # Fill signup form with unique email
-- tapOn: "Name"
+- tapOn:
+    text: "John Doe"
 - inputText: "Test User"
-- tapOn: "Email"
+- tapOn:
+    text: "your@email.com"
 - inputText: "testuser${randomInt(1000,9999)}@example.com"
-- tapOn: 
-    text: "Password"
-    index: 0
+- tapOn:
+    text: "Strong password"
 - inputText: "Test@1234"
 
 # Confirm password
-- tapOn: "Confirm Password"
+- tapOn:
+    text: "Confirm password"
 - inputText: "Test@1234"
 
 # Submit signup

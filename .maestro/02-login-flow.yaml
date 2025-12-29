@@ -7,10 +7,12 @@ appId: com.guestscanner.app
 - assertVisible: "Email"
 
 # Enter valid credentials
-- tapOn: "Email"
+- tapOn:
+    text: "your@email.com"
 - inputText: "test@hosteze.com"
 
-- tapOn: "Password"
+- tapOn:
+    text: "Enter your password"
 - inputText: "Test123!@#"
 
 # Submit login
