@@ -103,6 +103,7 @@ const Header = ({ showAuth = true }) => {
                     <Link
                         to="/admin"
                         title="Admin Dashboard"
+                        data-testid="admin-dashboard-button"
                         style={{
                             display: 'flex',
                             alignItems: 'center',
