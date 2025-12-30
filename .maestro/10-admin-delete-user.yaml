@@ -39,14 +39,25 @@ appId: com.guestscanner.app
 # Should see admin dashboard
 - assertVisible: "User Management"
 
+# Scroll down to find search field
+- scroll
+
 # Search for test user
 - tapOn:
     text: "Search by name, email, or phone..."
 - inputText: "testuser@test.com"
 - waitForAnimationToEnd
 
+# Scroll down to see search results
+- scroll
+
 # Should see the test user in results
 - assertVisible: "testuser@test.com"
+
+# Scroll horizontally to the left to find delete button
+- swipe:
+    direction: LEFT
+    duration: 500
 
 # Tap delete button (trash icon) for the user
 # The delete button is in the same row as the user
