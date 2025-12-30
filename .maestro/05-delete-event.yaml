@@ -22,9 +22,10 @@ appId: com.guestscanner.app
 - waitForAnimationToEnd
 
 # Create event
-- tapOn: "Create Event"
+- tapOn: "New Event"
 - waitForAnimationToEnd
-- tapOn: "Event Title"
+- tapOn:
+    text: "e.g. Annual Conference 2024"
 - inputText: "Event to Delete"
 - tapOn: "Create Event"
 - waitForAnimationToEnd

@@ -24,7 +24,8 @@ appId: com.guestscanner.app
 # Create event with guest
 - tapOn: "New Event"
 - waitForAnimationToEnd
-- tapOn: "Event Title"
+- tapOn:
+    text: "e.g. Annual Conference 2024"
 - inputText: "Scanner Test Event"
 - tapOn: "Create Event"
 - waitForAnimationToEnd
@@ -38,7 +39,8 @@ appId: com.guestscanner.app
 - waitForAnimationToEnd
 - tapOn: "Add Guest"
 - waitForAnimationToEnd
-- tapOn: "Guest Name"
+- tapOn:
+    text: "John Doe"
 - inputText: "Scanner Guest"
 - tapOn: "Add to List"
 - waitForAnimationToEnd

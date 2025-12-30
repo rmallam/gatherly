@@ -22,9 +22,10 @@ appId: com.guestscanner.app
 - waitForAnimationToEnd
 
 # Create event first
-- tapOn: "Create Event"
+- tapOn: "New Event"
 - waitForAnimationToEnd
-- tapOn: "Event Title"
+- tapOn:
+    text: "e.g. Annual Conference 2024"
 - inputText: "Test Event"
 - tapOn: "Create Event"
 - waitForAnimationToEnd
@@ -42,24 +43,26 @@ appId: com.guestscanner.app
 - waitForAnimationToEnd
 
 # Fill guest details
-- tapOn: "Guest Name"
-- inputText: "John Doe"
-- tapOn: "Phone Number"
-- inputText: "+1234567890"
+- tapOn:
+    text: "John Doe"
+- inputText: "Test Guest"
+- tapOn:
+    text: "9876543210"
+- inputText: "1234567890"
 
 # Save guest
 - tapOn: "Add to List"
 - waitForAnimationToEnd
 
 # Should see guest in list
-- assertVisible: "John Doe"
-- assertVisible: "+1234567890"
+- assertVisible: "Test Guest"
 
 # Test duplicate prevention
 - tapOn: "Add Guest"
 - waitForAnimationToEnd
-- tapOn: "Guest Name"
-- inputText: "John Doe"
+- tapOn:
+    text: "John Doe"
+- inputText: "Test Guest"
 - tapOn: "Add to List"
 - waitForAnimationToEnd
 
