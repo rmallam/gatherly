@@ -54,13 +54,16 @@ appId: com.guestscanner.app
 # Should see the test user in results
 - assertVisible: "testuser@test.com"
 
-# Tap delete button using aria-label (requires rebuilt app)
-- tapOn: "Delete Test User"
+# Scroll down to ensure delete button is visible
+- scroll
+
+# Tap delete button (already has accessibilityText="Delete")
+- tapOn: "Delete"
 - waitForAnimationToEnd
 
 # Confirm deletion in modal
 - assertVisible: "Delete User"
-- assertVisible: "Are you sure you want to delete"
+- assertVisible: "Are you sure you want to delete Test User? This will permanently delete their account, events, and all associated data. This action cannot be undone."
 - tapOn: "Delete"
 - waitForAnimationToEnd
 
