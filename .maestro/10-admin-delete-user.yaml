@@ -54,13 +54,14 @@ appId: com.guestscanner.app
 # Should see the test user in results
 - assertVisible: "testuser@test.com"
 
-# Scroll horizontally to the left to find delete button
+# Swipe left on the user row to reveal delete button
 - swipe:
     direction: LEFT
     duration: 500
+    from:
+      text: "testuser@test.com"
 
 # Tap delete button (trash icon) for the user
-# The delete button is in the same row as the user
 - tapOn:
     id: ".*delete.*"
 - waitForAnimationToEnd
