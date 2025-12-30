@@ -1,9 +1,9 @@
 appId: com.guestscanner.app
 ---
-# Test: Add Guest Manually
-- launchApp
-- clearState
-
+# Test: User Login Flow (with Screenshots)
+- launchApp:
+    clearState: true
+    
 # Login first
 # Enter email
 - tapOn: 
@@ -33,6 +33,11 @@ appId: com.guestscanner.app
 # Open event
 - tapOn: "Test Event"
 - waitForAnimationToEnd
+
+# Wait for event details to load
+- extendedWaitUntil:
+    visible: "Overview"
+    timeout: 10000
 
 # Go to Guests tab
 - tapOn: "Guests"
