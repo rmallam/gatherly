@@ -4,13 +4,20 @@ appId: com.guestscanner.app
 - launchApp
 - clearState
 
-# Login
-- tapOn:
+# Login first
+# Enter email
+- tapOn: 
     text: "your@email.com"
-- inputText: "test@example.com"
+- inputText: "testuser@test.com"
+- waitForAnimationToEnd
+
+# Enter password
 - tapOn:
     text: "Enter your password"
 - inputText: "Test@1234"
+- waitForAnimationToEnd
+
+# Submit login
 - tapOn: "Sign In"
 - waitForAnimationToEnd
 

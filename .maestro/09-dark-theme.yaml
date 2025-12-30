@@ -1,8 +1,8 @@
 appId: com.guestscanner.app
 ---
 # Test: Dark Theme Toggle
-- launchApp
-- clearState
+- launchApp:
+    clearState: true
 
 # Login
 - tapOn:

@@ -1,8 +1,8 @@
 appId: com.guestscanner.app
 ---
-# Test: Create Event Flow
-- launchApp
-- clearState
+# Test: User Login Flow (with Screenshots)
+- launchApp:
+    clearState: true
 
 # Handle notification permission if it appears
 - runFlow:
@@ -12,29 +12,38 @@ appId: com.guestscanner.app
       - tapOn: "Allow"
 
 # Login first
-- tapOn:
+# Enter email
+- tapOn: 
     text: "your@email.com"
-- inputText: "mallamrakeshkumar@gmail.com"
+- inputText: "testuser@test.com"
+- waitForAnimationToEnd
+
+# Enter password
 - tapOn:
     text: "Enter your password"
-- inputText: "Rakeshkumar@123"
+- inputText: "Test@1234"
+- waitForAnimationToEnd
+
+# Submit login
 - tapOn: "Sign In"
+
+# Wait for response
 - waitForAnimationToEnd
 
 # Create new event
-- tapOn: "Create Event"
+- tapOn: "New Event"
 - waitForAnimationToEnd
 
 # Fill event details
 - assertVisible: "Event Title"
-- tapOn: "Event Title"
-- inputText: "Test Birthday Party ${randomInt(100,999)}"
+- tapOn:
+    text: "e.g. Annual Conference 2024"
+- inputText: "Test Birthday Party"
 
-- tapOn: "Venue"
+# Location field
+- tapOn:
+    text: "Grand Hall"
 - inputText: "My House"
-
-- tapOn: "Description"
-- inputText: "Celebrating my birthday!"
 
 # Save event
 - tapOn: "Create Event"
