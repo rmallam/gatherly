@@ -312,6 +312,7 @@ const AdminDashboard = () => {
                                                     {u.id !== user.id && !u.is_admin && (
                                                         <button
                                                             onClick={() => setDeleteConfirm(u)}
+                                                            aria-label={`Delete ${u.name}`}
                                                             style={{
                                                                 padding: '0.5rem',
                                                                 background: 'transparent',
