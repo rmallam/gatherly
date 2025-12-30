@@ -56,9 +56,12 @@ appId: com.guestscanner.app
 
 # Scroll down to ensure delete button is visible
 - scroll
+- waitForAnimationToEnd
 
-# Tap delete button (already has accessibilityText="Delete")
-- tapOn: "Delete"
+# Tap delete button in the user row (use index 0 for first Delete button after search)
+- tapOn:
+    text: "Delete"
+    index: 0
 - waitForAnimationToEnd
 
 # Confirm deletion in modal
