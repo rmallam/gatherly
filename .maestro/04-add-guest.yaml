@@ -40,8 +40,7 @@ appId: com.guestscanner.app
     timeout: 10000
 
 # Scroll up to ensure tabs are visible
-- scroll:
-    direction: UP
+- scroll
 
 # Verify we can see the tabs
 - assertVisible: "Overview"
