@@ -54,10 +54,8 @@ appId: com.guestscanner.app
 # Should see the test user in results
 - assertVisible: "testuser@test.com"
 
-# Tap delete button using coordinates from hierarchy
-# Bounds: [922,230][1048,356], center point: ~985,293
-- tapOn:
-    point: "985,293"
+# Tap delete button using aria-label (requires rebuilt app)
+- tapOn: "Delete Test User"
 - waitForAnimationToEnd
 
 # Confirm deletion in modal
