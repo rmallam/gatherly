@@ -60,7 +60,7 @@ appId: com.guestscanner.app
 
 # Confirm deletion in modal
 - assertVisible: "Delete User"
-- assertVisible: "Are you sure"
+- assertVisible: "Are you sure you want to delete"
 - tapOn: "Delete"
 - waitForAnimationToEnd
 
