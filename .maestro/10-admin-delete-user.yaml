@@ -54,16 +54,24 @@ appId: com.guestscanner.app
 # Should see the test user in results
 - assertVisible: "testuser@test.com"
 
-# Swipe left on the user row to reveal delete button
+# Scroll the table horizontally to reveal ACTIONS column
+# Tap on the table area first to focus it
+- tapOn: "Test User"
+- waitForAnimationToEnd
+
+# Now scroll horizontally to the right to see the ACTIONS column
 - swipe:
     direction: LEFT
     duration: 500
-    from:
-      text: "testuser@test.com"
+    start: "80%,50%"
+    end: "20%,50%"
 
-# Tap delete button (trash icon) for the user
+# Wait for scroll to complete
+- waitForAnimationToEnd
+
+# Tap delete button (Trash icon)
 - tapOn:
-    id: ".*delete.*"
+    id: ".*trash.*|.*delete.*"
 - waitForAnimationToEnd
 
 # Confirm deletion in modal
