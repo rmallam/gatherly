@@ -1,0 +1,44 @@
+appId: com.guestscanner.app
+---
+# Debug Test: Check what's visible after opening event
+- launchApp:
+    clearState: true
+
+# Login
+- tapOn: 
+    text: "your@email.com"
+- inputText: "testuser@test.com"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Enter your password"
+- inputText: "Test@1234"
+- waitForAnimationToEnd
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# Create event
+- tapOn: "New Event"
+- waitForAnimationToEnd
+- tapOn:
+    text: "e.g. Annual Conference 2024"
+- inputText: "Debug Event"
+- tapOn: "Create Event"
+- waitForAnimationToEnd
+
+# Open event
+- tapOn: "Debug Event"
+- waitForAnimationToEnd
+
+# Take screenshot to see what's visible
+- takeScreenshot: after-opening-event
+
+# Wait for tabs
+- extendedWaitUntil:
+    visible: "Overview"
+    timeout: 10000
+
+# Take another screenshot
+- takeScreenshot: after-overview-visible
+
+# Try to find Guests tab - this will show in hierarchy if it fails
+- assertVisible: "Guests"
