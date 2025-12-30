@@ -61,7 +61,6 @@ appId: com.guestscanner.app
 
 # Now scroll horizontally to the right to see the ACTIONS column
 - swipe:
-    direction: LEFT
     duration: 500
     start: "80%,50%"
     end: "20%,50%"
