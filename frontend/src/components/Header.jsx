@@ -104,6 +104,8 @@ const Header = ({ showAuth = true }) => {
                         to="/admin"
                         title="Admin Dashboard"
                         data-testid="admin-dashboard-button"
+                        aria-label="Admin Dashboard"
+                        accessibilityLabel="Admin Dashboard"
                         style={{
                             display: 'flex',
                             alignItems: 'center',

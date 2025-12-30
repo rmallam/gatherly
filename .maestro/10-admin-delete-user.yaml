@@ -32,13 +32,11 @@ appId: com.guestscanner.app
     visible: "My Events"
     timeout: 20000
 
-# Navigate to admin dashboard using testID
-- tapOn:
-    id: "admin-dashboard-button"
+# Navigate to admin dashboard by tapping the title text
+- tapOn: "Admin Dashboard"
 - waitForAnimationToEnd
 
 # Should see admin dashboard
-- assertVisible: "Admin Dashboard"
 - assertVisible: "User Management"
 
 # Search for test user
