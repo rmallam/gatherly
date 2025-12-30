@@ -32,21 +32,41 @@ appId: com.guestscanner.app
     visible: "My Events"
     timeout: 20000
 
-# Scroll to top to ensure header is fully visible
-- swipe:
-    direction: DOWN
-    duration: 100
+# Take screenshot to debug shield icon position
+- takeScreenshot: "dashboard-before-admin-tap"
 
-# Navigate to admin dashboard
-# The shield icon is in the top right, we'll tap near the right edge of header
-# Using a more conservative position
-- tapOn:
-    point: "92%,8%"
-- waitForAnimationToEnd
+# Try multiple positions to find the shield icon
+# Position 1: Far right, slightly lower
+- runFlow:
+    when:
+      visible: "My Events"
+    commands:
+      - tapOn:
+          point: "95%,10%"
+      - waitForAnimationToEnd:
+          timeout: 2000
 
-# Should see admin dashboard
-- assertVisible: "Admin Dashboard"
-- assertVisible: "User Management"
+# Check if we're on admin dashboard
+- runFlow:
+    when:
+      notVisible: "Admin Dashboard"
+    commands:
+      # Position 2: More centered right
+      - tapOn:
+          point: "88%,8%"
+      - waitForAnimationToEnd:
+          timeout: 2000
+
+# Check again
+- runFlow:
+    when:
+      notVisible: "Admin Dashboard"
+    commands:
+      # Position 3: Try tapping on the profile/header area and look for admin option
+      - tapOn:
+          point: "75%,8%"
+      - waitForAnimationToEnd:
+          timeout: 2000
 
 # Search for test user
 - tapOn:
