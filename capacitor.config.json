@@ -2,6 +2,8 @@
     "appId": "com.guestscanner.app",
     "appName": "Guest Scanner",
     "webDir": "frontend/dist",
+    "version": "5.1.0",
+    "buildNumber": "51",
     "server": {
         "androidScheme": "https"
     }

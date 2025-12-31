@@ -418,6 +418,20 @@ const BudgetTab = ({ event }) => {
                                 <span style={{ color: 'var(--warning)', fontWeight: 700 }}>${formatCurrency(amount)}</span>
                             </div>
                         ))}
+                        {/* Total Row */}
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '0.75rem',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            borderRadius: 'var(--radius-md)',
+                            marginTop: '0.5rem',
+                            color: 'white'
+                        }}>
+                            <span style={{ fontWeight: 700, fontSize: '1.0625rem' }}>Total Expenses</span>
+                            <span style={{ fontWeight: 700, fontSize: '1.0625rem' }}>${formatCurrency(totalExpenses)}</span>
+                        </div>
                     </div>
                 </div>
             )}
