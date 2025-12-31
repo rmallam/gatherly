@@ -7,7 +7,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
         currency: 'USD',
         description: '',
         category: 'food',
-        paidBy: localStorage.getItem('userId'),
+        paidBy: '',
         expenseDate: new Date().toISOString().split('T')[0],
         splitType: 'equal'
     });
@@ -28,10 +28,17 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
         index === self.findIndex(t => t.id === p.id)
     );
 
-    // Initialize selected participants with all participants
+    // Initialize selected participants and paidBy with current user
     React.useEffect(() => {
-        if (selectedParticipants.length === 0) {
+        if (selectedParticipants.length === 0 && participants.length > 0) {
             setSelectedParticipants(participants.map(p => p.id));
+
+            // Set paidBy to current user if available, otherwise first participant
+            const userId = localStorage.getItem('userId');
+            const defaultPayer = participants.find(p => p.id === userId) ? userId : participants[0]?.id;
+            if (defaultPayer && !formData.paidBy) {
+                setFormData(prev => ({ ...prev, paidBy: defaultPayer }));
+            }
         }
     }, [participants.length]);
 
@@ -104,7 +111,9 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
             if (response.ok) {
                 const data = JSON.parse(responseText);
                 console.log('Expense created successfully:', data);
+                // Close modal and refresh data
                 onExpenseAdded();
+                onClose();
             } else {
                 const data = responseText ? JSON.parse(responseText) : {};
                 console.error('Expense creation failed:', data);
