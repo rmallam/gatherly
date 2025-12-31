@@ -8,6 +8,19 @@ export const createExpense = async (req, res) => {
     const { amount, currency, description, category, paidBy, receiptUrl, expenseDate, splits } = req.body;
     const userId = req.user.id;
 
+    console.log('Create expense request:', {
+        eventId,
+        amount,
+        currency,
+        description,
+        category,
+        paidBy,
+        receiptUrl,
+        expenseDate,
+        splits,
+        userId
+    });
+
     try {
         // Verify user has access to event
         const eventCheck = await query(
@@ -24,6 +37,7 @@ export const createExpense = async (req, res) => {
 
         // Validate required fields
         if (!amount || !description || !paidBy || !splits || splits.length === 0) {
+            console.error('Missing required fields:', { amount, description, paidBy, splits: splits?.length });
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
