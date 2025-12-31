@@ -43,6 +43,7 @@ const Profile = () => {
     const [zoom, setZoom] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
     const [showCropModal, setShowCropModal] = useState(false);
+    const [showEnlargedImage, setShowEnlargedImage] = useState(false);
 
     useEffect(() => {
         loadProfile();
@@ -361,23 +362,38 @@ const Profile = () => {
                     border: '1px solid var(--border)'
                 }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                        <div style={{
-                            width: '120px',
-                            height: '120px',
-                            borderRadius: '50%',
-                            background: profile.profilePictureUrl
-                                ? `url(${profile.profilePictureUrl})`
-                                : 'linear-gradient(135deg, #6366f1, #a855f7)',
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#fff',
-                            fontSize: '48px',
-                            fontWeight: '900',
-                            border: '4px solid #f3f4f6'
-                        }}>
+                        <div
+                            onClick={() => profile.profilePictureUrl && setShowEnlargedImage(true)}
+                            style={{
+                                width: '120px',
+                                height: '120px',
+                                borderRadius: '50%',
+                                background: profile.profilePictureUrl
+                                    ? `url(${profile.profilePictureUrl})`
+                                    : 'linear-gradient(135deg, #6366f1, #a855f7)',
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#fff',
+                                fontSize: '48px',
+                                fontWeight: '900',
+                                border: '4px solid #f3f4f6',
+                                cursor: profile.profilePictureUrl ? 'pointer' : 'default',
+                                transition: 'transform 0.2s, box-shadow 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                                if (profile.profilePictureUrl) {
+                                    e.currentTarget.style.transform = 'scale(1.05)';
+                                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'scale(1)';
+                                e.currentTarget.style.boxShadow = 'none';
+                            }}
+                        >
                             {!profile.profilePictureUrl && (profile.name?.charAt(0).toUpperCase() || 'U')}
                         </div>
 
@@ -899,6 +915,66 @@ const Profile = () => {
                             />
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* Enlarged Image Modal */}
+            {showEnlargedImage && profile.profilePictureUrl && (
+                <div
+                    onClick={() => setShowEnlargedImage(false)}
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 9999,
+                        padding: '20px',
+                        cursor: 'zoom-out'
+                    }}
+                >
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setShowEnlargedImage(false);
+                        }}
+                        style={{
+                            position: 'absolute',
+                            top: '20px',
+                            right: '20px',
+                            background: 'rgba(255, 255, 255, 0.2)',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '40px',
+                            height: '40px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            backdropFilter: 'blur(10px)',
+                            transition: 'background 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
+                    >
+                        <X size={24} color="white" />
+                    </button>
+                    <img
+                        src={profile.profilePictureUrl}
+                        alt="Profile"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            maxWidth: '90%',
+                            maxHeight: '90%',
+                            borderRadius: '12px',
+                            boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+                            cursor: 'default'
+                        }}
+                    />
                 </div>
             )}
         </div>
