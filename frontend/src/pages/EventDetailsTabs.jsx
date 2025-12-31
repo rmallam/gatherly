@@ -14,7 +14,8 @@ import VendorsTab from '../components/tabs/VendorsTab';
 import BudgetTab from '../components/tabs/BudgetTab';
 import RemindersSettings from '../components/RemindersSettings';
 import MessagesTab from '../components/tabs/MessagesTab';
-import { LayoutDashboard, Users, UtensilsCrossed, CheckSquare, MapPin, Sparkles, Gift, Music, Briefcase, DollarSign, Bell, MessageCircle, ArrowLeft, Trash2 } from 'lucide-react';
+import ScheduleTab from '../components/tabs/ScheduleTab';
+import { LayoutDashboard, Users, UtensilsCrossed, CheckSquare, MapPin, Sparkles, Gift, Music, Briefcase, DollarSign, Bell, MessageCircle, ArrowLeft, Trash2, Calendar } from 'lucide-react';
 
 // Import the old EventDetails as a component for the Guests tab temporarily
 import EventDetails from './EventDetails';
@@ -110,6 +111,7 @@ const EventDetailsTabs = () => {
     // Tabs for Shared Events (Trip, Outing, Group Activity)
     const sharedEventTabs = [
         { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+        { id: 'schedule', label: 'Schedule', icon: Calendar, badge: null },
         { id: 'guests', label: 'Participants', icon: Users, badge: event.guests?.length || 0 },
         { id: 'expenses', label: 'Expenses', icon: DollarSign, badge: null },
         { id: 'messages', label: 'Messages', icon: MessageCircle, badge: null }
@@ -179,6 +181,7 @@ const EventDetailsTabs = () => {
             {/* Tab Content */}
             <div>
                 {activeTab === 'overview' && <OverviewTab event={event} />}
+                {activeTab === 'schedule' && <ScheduleTab event={event} />}
                 {activeTab === 'guests' && <EventDetails />}
                 {activeTab === 'expenses' && <ExpensesDashboard eventId={id} event={event} />}
                 {activeTab === 'catering' && <CateringTab event={event} onUpdate={handleUpdateCatering} />}
