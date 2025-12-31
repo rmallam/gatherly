@@ -43,7 +43,7 @@ export const createExpense = async (req, res) => {
         try {
             // Create expense
             const expenseResult = await query(
-                `INSERT INTO expenses (event_id, amount, currency, description, category, paid_by, receipt_url, expense_date)
+                `INSERT INTO event_expenses (event_id, amount, currency, description, category, paid_by, receipt_url, expense_date)
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                  RETURNING *`,
                 [
@@ -63,7 +63,7 @@ export const createExpense = async (req, res) => {
             // Create splits
             for (const split of splits) {
                 await query(
-                    `INSERT INTO expense_splits (expense_id, user_id, amount)
+                    `INSERT INTO event_expense_splits (expense_id, user_id, amount)
                      VALUES ($1, $2, $3)`,
                     [expense.id, split.userId, split.amount]
                 );
@@ -121,9 +121,9 @@ export const getExpenses = async (req, res) => {
                            'settledAt', es.settled_at
                        ) ORDER BY us.name
                    ) as splits
-            FROM expenses e
+            FROM event_expenses e
             JOIN users u ON e.paid_by = u.id
-            LEFT JOIN expense_splits es ON e.id = es.expense_id
+            LEFT JOIN event_expense_splits es ON e.id = es.expense_id
             LEFT JOIN users us ON es.user_id = us.id
             WHERE e.event_id = $1
         `;
@@ -265,7 +265,7 @@ export const updateExpense = async (req, res) => {
 
             if (updateFields.length > 0) {
                 await query(
-                    `UPDATE expenses SET ${updateFields.join(', ')} WHERE id = $1`,
+                    `UPDATE event_expenses SET ${updateFields.join(', ')} WHERE id = $1`,
                     updateParams
                 );
             }
@@ -273,12 +273,12 @@ export const updateExpense = async (req, res) => {
             // Update splits if provided
             if (splits) {
                 // Delete existing splits
-                await query('DELETE FROM expense_splits WHERE expense_id = $1', [expenseId]);
+                await query('DELETE FROM event_expense_splits WHERE expense_id = $1', [expenseId]);
 
                 // Create new splits
                 for (const split of splits) {
                     await query(
-                        `INSERT INTO expense_splits (expense_id, user_id, amount)
+                        `INSERT INTO event_expense_splits (expense_id, user_id, amount)
                          VALUES ($1, $2, $3)`,
                         [expenseId, split.userId, split.amount]
                     );
@@ -322,7 +322,7 @@ export const deleteExpense = async (req, res) => {
 
         // Delete expense (splits will be deleted automatically due to CASCADE)
         const result = await query(
-            'DELETE FROM expenses WHERE id = $1 AND event_id = $2 RETURNING id',
+            'DELETE FROM event_expenses WHERE id = $1 AND event_id = $2 RETURNING id',
             [expenseId, eventId]
         );
 
@@ -362,7 +362,7 @@ export const getBalances = async (req, res) => {
         const splitsResult = await query(
             `SELECT es.user_id, es.amount, e.paid_by, e.currency,
                     u1.name as user_name, u2.name as paid_by_name
-             FROM expense_splits es
+             FROM event_expense_splits es
              JOIN expenses e ON es.expense_id = e.id
              JOIN users u1 ON es.user_id = u1.id
              JOIN users u2 ON e.paid_by = u2.id
@@ -381,16 +381,16 @@ export const getBalances = async (req, res) => {
                     'userId', u.id,
                     'userName', u.name,
                     'totalPaid', COALESCE((
-                        SELECT SUM(amount) FROM expenses 
+                        SELECT SUM(amount) FROM event_expenses 
                         WHERE event_id = $1 AND paid_by = u.id
                     ), 0),
                     'totalOwed', COALESCE((
-                        SELECT SUM(amount) FROM expense_splits es2
+                        SELECT SUM(amount) FROM event_expense_splits es2
                         JOIN expenses e2 ON es2.expense_id = e2.id
                         WHERE e2.event_id = $1 AND es2.user_id = u.id AND es2.settled = FALSE
                     ), 0)
                 )) as user_summary
-             FROM expenses e
+             FROM event_expenses e
              CROSS JOIN users u
              WHERE e.event_id = $1
              GROUP BY e.event_id`,
@@ -442,7 +442,7 @@ export const recordSettlement = async (req, res) => {
         try {
             // Record settlement
             const settlementResult = await query(
-                `INSERT INTO settlements (event_id, from_user, to_user, amount, currency, notes)
+                `INSERT INTO event_settlements (event_id, from_user, to_user, amount, currency, notes)
                  VALUES ($1, $2, $3, $4, $5, $6)
                  RETURNING *`,
                 [eventId, fromUser, toUser, amount, currency || 'USD', notes || null]
@@ -450,9 +450,9 @@ export const recordSettlement = async (req, res) => {
 
             // Mark relevant splits as settled
             await query(
-                `UPDATE expense_splits es
+                `UPDATE event_expense_splits es
                  SET settled = TRUE, settled_at = CURRENT_TIMESTAMP
-                 FROM expenses e
+                 FROM event_expenses e
                  WHERE es.expense_id = e.id
                    AND e.event_id = $1
                    AND es.user_id = $2
@@ -501,7 +501,7 @@ export const getExpenseSummary = async (req, res) => {
                 COUNT(*) as count,
                 SUM(amount) as total,
                 currency
-             FROM expenses
+             FROM event_expenses
              WHERE event_id = $1
              GROUP BY category, currency
              ORDER BY total DESC`,
@@ -531,9 +531,9 @@ async function getExpenseWithDetails(expenseId) {
                         'settledAt', es.settled_at
                     ) ORDER BY us.name
                 ) as splits
-         FROM expenses e
+         FROM event_expenses e
          JOIN users u ON e.paid_by = u.id
-         LEFT JOIN expense_splits es ON e.id = es.expense_id
+         LEFT JOIN event_expense_splits es ON e.id = es.expense_id
          LEFT JOIN users us ON es.user_id = us.id
          WHERE e.id = $1
          GROUP BY e.id, u.name, u.email`,
