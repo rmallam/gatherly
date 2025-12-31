@@ -184,7 +184,7 @@ const EventDetailsTabs = () => {
                 {activeTab === 'schedule' && <ScheduleTab event={event} />}
                 {activeTab === 'guests' && <EventDetails />}
                 {activeTab === 'expenses' && <ExpensesDashboard eventId={id} event={event} />}
-                {activeTab === 'catering' && <CateringTab event={event} onUpdate={handleUpdateCatering} />}
+                {activeTab === 'catering' && <CateringTab event={event} onUpdateCatering={handleUpdateCatering} />}
 
                 {activeTab === 'tasks' && <TasksTab event={event} onUpdateTasks={handleUpdateTasks} />}
                 {activeTab === 'venue' && <VenueTab event={event} onUpdateVenue={handleUpdateVenue} />}
