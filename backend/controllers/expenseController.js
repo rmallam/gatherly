@@ -363,7 +363,7 @@ export const getBalances = async (req, res) => {
             `SELECT es.user_id, es.amount, e.paid_by, e.currency,
                     u1.name as user_name, u2.name as paid_by_name
              FROM event_expense_splits es
-             JOIN expenses e ON es.expense_id = e.id
+             JOIN event_expenses e ON es.expense_id = e.id
              JOIN users u1 ON es.user_id = u1.id
              JOIN users u2 ON e.paid_by = u2.id
              WHERE e.event_id = $1 AND es.settled = FALSE`,
@@ -386,7 +386,7 @@ export const getBalances = async (req, res) => {
                     ), 0),
                     'totalOwed', COALESCE((
                         SELECT SUM(amount) FROM event_expense_splits es2
-                        JOIN expenses e2 ON es2.expense_id = e2.id
+                        JOIN event_expenses e2 ON es2.expense_id = e2.id
                         WHERE e2.event_id = $1 AND es2.user_id = u.id AND es2.settled = FALSE
                     ), 0)
                 )) as user_summary
