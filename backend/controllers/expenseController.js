@@ -36,9 +36,19 @@ export const createExpense = async (req, res) => {
         }
 
         // Validate required fields
-        if (!amount || !description || !paidBy || !splits || splits.length === 0) {
-            console.error('Missing required fields:', { amount, description, paidBy, splits: splits?.length });
-            return res.status(400).json({ error: 'Missing required fields' });
+        const missingFields = [];
+        if (!amount) missingFields.push('amount');
+        if (!description) missingFields.push('description');
+        if (!paidBy) missingFields.push('paidBy');
+        if (!splits || splits.length === 0) missingFields.push('splits');
+
+        if (missingFields.length > 0) {
+            console.error('Missing required fields:', missingFields, { amount, description, paidBy, splits: splits?.length });
+            return res.status(400).json({
+                error: `Missing required fields: ${missingFields.join(', ')}`,
+                missingFields,
+                received: { amount, description, paidBy, splitsCount: splits?.length }
+            });
         }
 
         // Validate splits sum equals amount
