@@ -76,10 +76,10 @@ const ExpensesDashboard = ({ eventId, event }) => {
 
     const userId = localStorage.getItem('userId');
     const iOwe = balances
-        .filter(b => b.fromUser === userId)
+        .filter(b => b.fromUser === userId || b.from_user === userId)
         .reduce((sum, b) => sum + parseFloat(b.amount || 0), 0);
     const owedToMe = balances
-        .filter(b => b.toUser === userId)
+        .filter(b => b.toUser === userId || b.to_user === userId)
         .reduce((sum, b) => sum + parseFloat(b.amount || 0), 0);
 
     const categories = ['all', 'food', 'transport', 'accommodation', 'activities', 'entertainment', 'other'];
