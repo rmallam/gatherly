@@ -6,7 +6,7 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
     const handleSettle = async (balance) => {
-        if (!confirm(`Settle ${balance.currency} ${balance.amount.toFixed(2)} from ${balance.fromUserName} to ${balance.toUserName}?`)) {
+        if (!confirm(`Settle ${balance.currency} ${parseFloat(balance.amount).toFixed(2)} from ${balance.fromUserName} to ${balance.toUserName}?`)) {
             return;
         }
 
@@ -69,7 +69,7 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
                             </span>
                         </div>
                         <span style={{ fontSize: '1.125rem', fontWeight: 700, color: '#ef4444' }}>
-                            {balance.currency} {balance.amount.toFixed(2)}
+                            {balance.currency} {parseFloat(balance.amount).toFixed(2)}
                         </span>
                         <button
                             onClick={() => handleSettle(balance)}
