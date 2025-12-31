@@ -71,6 +71,24 @@ const ManagerDashboard = () => {
                             Create New Event
                         </h2>
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                            {/* Event Type Selector */}
+                            <div>
+                                <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Event Type</label>
+                                <select
+                                    className="input"
+                                    value={newEvent.eventType || 'host'}
+                                    onChange={(e) => setNewEvent({ ...newEvent, eventType: e.target.value })}
+                                >
+                                    <option value="host">🎉 Host Event (Birthday, Wedding, Party)</option>
+                                    <option value="shared">🌍 Shared Event (Trip, Outing, Group Activity)</option>
+                                </select>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.5rem' }}>
+                                    {newEvent.eventType === 'shared'
+                                        ? 'Everyone can add expenses and manage the event together'
+                                        : 'You host, others are guests with limited permissions'}
+                                </p>
+                            </div>
+
                             <div>
                                 <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Event Title</label>
                                 <input
