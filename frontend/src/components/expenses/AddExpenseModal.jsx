@@ -79,17 +79,22 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
             }
 
             const token = localStorage.getItem('token');
+            const payload = {
+                ...formData,
+                amount,
+                splits
+            };
+
+            console.log('Sending expense creation request:', payload);
+            console.log('Splits:', splits);
+
             const response = await fetch(`${API_URL}/api/events/${eventId}/expenses`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    ...formData,
-                    amount,
-                    splits
-                })
+                body: JSON.stringify(payload)
             });
 
             console.log('Expense creation response status:', response.status);
