@@ -159,7 +159,9 @@ const ManagerDashboard = () => {
                         })
                         .map(event => {
                             const isGuest = event.role === 'guest';
-                            const linkPath = isGuest ? `/guest/event/${event.id}` : `/event/${event.id}`;
+                            const isSharedEvent = event.event_type === 'shared';
+                            // Shared event participants get full access, only host event guests get limited view
+                            const linkPath = (isGuest && !isSharedEvent) ? `/guest/event/${event.id}` : `/event/${event.id}`;
 
                             return (
                                 <Link to={linkPath} key={event.id} style={{ textDecoration: 'none' }}>
