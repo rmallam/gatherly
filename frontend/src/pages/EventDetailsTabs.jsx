@@ -18,6 +18,7 @@ import { LayoutDashboard, Users, UtensilsCrossed, CheckSquare, MapPin, Sparkles,
 
 // Import the old EventDetails as a component for the Guests tab temporarily
 import EventDetails from './EventDetails';
+import ExpensesDashboard from '../components/expenses/ExpensesDashboard';
 
 const EventDetailsTabs = () => {
     const { id } = useParams();
@@ -99,6 +100,12 @@ const EventDetailsTabs = () => {
             label: 'Guests',
             icon: Users,
             badge: event.guests?.length || 0
+        },
+        {
+            id: 'expenses',
+            label: 'Expenses',
+            icon: DollarSign,
+            badge: null
         },
         {
             id: 'catering',
@@ -191,7 +198,8 @@ const EventDetailsTabs = () => {
             <div>
                 {activeTab === 'overview' && <OverviewTab event={event} />}
                 {activeTab === 'guests' && <EventDetails />}
-                {activeTab === 'catering' && <CateringTab event={event} onUpdateCatering={handleUpdateCatering} />}
+                {activeTab === 'expenses' && <ExpensesDashboard eventId={id} event={event} />}
+                {activeTab === 'catering' && <CateringTab event={event} onUpdate={handleUpdateCatering} />}
 
                 {activeTab === 'tasks' && <TasksTab event={event} onUpdateTasks={handleUpdateTasks} />}
                 {activeTab === 'venue' && <VenueTab event={event} onUpdateVenue={handleUpdateVenue} />}
