@@ -18,6 +18,7 @@ import { LayoutDashboard, Users, UtensilsCrossed, CheckSquare, MapPin, Sparkles,
 
 // Import the old EventDetails as a component for the Guests tab temporarily
 import EventDetails from './EventDetails';
+import ExpensesDashboard from '../components/expenses/ExpensesDashboard';
 
 const EventDetailsTabs = () => {
     const { id } = useParams();
@@ -88,37 +89,15 @@ const EventDetailsTabs = () => {
         }
     };
 
-    const tabs = [
-        {
-            id: 'overview',
-            label: 'Overview',
-            icon: LayoutDashboard,
-        },
-        {
-            id: 'guests',
-            label: 'Guests',
-            icon: Users,
-            badge: event.guests?.length || 0
-        },
-        {
-            id: 'catering',
-            label: 'Catering',
-            icon: UtensilsCrossed,
-            badge: event.catering?.items?.length || null
-        },
+    const isSharedEvent = event.event_type === 'shared';
 
-        {
-            id: 'tasks',
-            label: 'Tasks',
-            icon: CheckSquare,
-            badge: event.tasks?.length || null
-        },
-        {
-            id: 'venue',
-            label: 'Venue',
-            icon: MapPin,
-            badge: null
-        },
+    // Tabs for Host Events (Birthday, Wedding, Party)
+    const hostEventTabs = [
+        { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+        { id: 'guests', label: 'Guests', icon: Users, badge: event.guests?.length || 0 },
+        { id: 'catering', label: 'Catering', icon: UtensilsCrossed, badge: event.catering?.items?.length || null },
+        { id: 'tasks', label: 'Tasks', icon: CheckSquare, badge: event.tasks?.length || null },
+        { id: 'venue', label: 'Venue', icon: MapPin, badge: null },
         { id: 'decorations', label: 'Decorations', icon: Sparkles, badge: event.decorations?.items?.length || null },
         { id: 'gifts', label: 'Gifts', icon: Gift, badge: event.gifts?.items?.length || null },
         { id: 'entertainment', label: 'Entertainment', icon: Music, badge: event.entertainment?.activities?.length || null },
@@ -127,6 +106,16 @@ const EventDetailsTabs = () => {
         { id: 'reminders', label: 'Reminders', icon: Bell, badge: null },
         { id: 'messages', label: 'Messages', icon: MessageCircle, badge: null }
     ];
+
+    // Tabs for Shared Events (Trip, Outing, Group Activity)
+    const sharedEventTabs = [
+        { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+        { id: 'guests', label: 'Participants', icon: Users, badge: event.guests?.length || 0 },
+        { id: 'expenses', label: 'Expenses', icon: DollarSign, badge: null },
+        { id: 'messages', label: 'Messages', icon: MessageCircle, badge: null }
+    ];
+
+    const tabs = isSharedEvent ? sharedEventTabs : hostEventTabs;
 
     return (
         <div style={{ maxWidth: '75rem', margin: '0 auto', padding: '16px' }}>
@@ -191,7 +180,8 @@ const EventDetailsTabs = () => {
             <div>
                 {activeTab === 'overview' && <OverviewTab event={event} />}
                 {activeTab === 'guests' && <EventDetails />}
-                {activeTab === 'catering' && <CateringTab event={event} onUpdateCatering={handleUpdateCatering} />}
+                {activeTab === 'expenses' && <ExpensesDashboard eventId={id} event={event} />}
+                {activeTab === 'catering' && <CateringTab event={event} onUpdate={handleUpdateCatering} />}
 
                 {activeTab === 'tasks' && <TasksTab event={event} onUpdateTasks={handleUpdateTasks} />}
                 {activeTab === 'venue' && <VenueTab event={event} onUpdateVenue={handleUpdateVenue} />}

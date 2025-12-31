@@ -1,7 +1,7 @@
 {
     "appId": "com.guestscanner.app",
     "appName": "Guest Scanner",
-    "webDir": "dist",
+    "webDir": "frontend/dist",
     "server": {
         "androidScheme": "https"
     }

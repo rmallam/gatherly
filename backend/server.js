@@ -22,6 +22,7 @@ import {
 import eventWallRoutes from './routes/eventWall.js';
 import contactsRoutes from './routes/contacts.js';
 import contactGroupsRoutes from './routes/contact-groups.js';
+import expenseRoutes from './routes/expenses.js';
 
 const app = express();
 
@@ -644,17 +645,18 @@ app.get('/api/events', authMiddleware, async (req, res) => {
 
 app.post('/api/events', authMiddleware, async (req, res) => {
     try {
-        const { title, date, location, description } = req.body;
+        const { title, date, location, description, eventType } = req.body;
         const eventId = uuidv4();
 
         // Convert empty strings to null for optional fields
         const eventDate = date && date.trim() !== '' ? date : null;
         const eventLocation = location && location.trim() !== '' ? location : null;
         const eventDescription = description && description.trim() !== '' ? description : null;
+        const eventTypeValue = eventType || 'host'; // Default to 'host' if not provided
 
         await query(
-            'INSERT INTO events (id, user_id, title, date, location, description) VALUES ($1, $2, $3, $4, $5, $6)',
-            [eventId, req.user.id, title, eventDate, eventLocation, eventDescription]
+            'INSERT INTO events (id, user_id, title, date, location, description, event_type) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [eventId, req.user.id, title, eventDate, eventLocation, eventDescription, eventTypeValue]
         );
 
         const event = {
@@ -664,6 +666,7 @@ app.post('/api/events', authMiddleware, async (req, res) => {
             date: eventDate,
             location: eventLocation,
             description: eventDescription,
+            event_type: eventTypeValue,
             guests: []
         };
 
@@ -2024,6 +2027,9 @@ app.use('/api/contacts', contactsRoutes);
 
 // Contact Groups Routes
 app.use('/api/contact-groups', contactGroupsRoutes);
+
+// Expense Routes
+app.use('/api', expenseRoutes);
 
 // Send announcement to guests
 app.post('/api/events/:eventId/communications/announcement', authMiddleware, sendAnnouncement);
