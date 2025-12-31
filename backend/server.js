@@ -23,6 +23,7 @@ import eventWallRoutes from './routes/eventWall.js';
 import contactsRoutes from './routes/contacts.js';
 import contactGroupsRoutes from './routes/contact-groups.js';
 import expenseRoutes from './routes/expenses.js';
+import scheduleRoutes from './routes/schedule.js';
 
 const app = express();
 
@@ -2030,6 +2031,9 @@ app.use('/api/contact-groups', contactGroupsRoutes);
 
 // Expense Routes
 app.use('/api', expenseRoutes);
+
+// Schedule Routes
+app.use('/api', scheduleRoutes);
 
 // Send announcement to guests
 app.post('/api/events/:eventId/communications/announcement', authMiddleware, sendAnnouncement);
