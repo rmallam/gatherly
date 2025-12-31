@@ -187,6 +187,7 @@ const ExpensesDashboard = ({ eventId, event }) => {
             {/* Add Expense Modal */}
             {showAddModal && (
                 <AddExpenseModal
+                    eventId={eventId}
                     event={event}
                     onClose={() => setShowAddModal(false)}
                     onExpenseAdded={() => {
