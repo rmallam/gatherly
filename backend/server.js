@@ -1600,7 +1600,7 @@ app.delete('/api/events/:eventId/budget', authMiddleware, async (req, res) => {
 });
 
 // Get all expenses for event
-app.get('/api/events/:eventId/expenses', authMiddleware, async (req, res) => {
+app.get('/api/events/:eventId/budget-expenses', authMiddleware, async (req, res) => {
     try {
         const { eventId } = req.params;
 
@@ -1631,7 +1631,7 @@ app.get('/api/events/:eventId/expenses', authMiddleware, async (req, res) => {
 });
 
 // Add expense
-app.post('/api/events/:eventId/expenses', authMiddleware, async (req, res) => {
+app.post('/api/events/:eventId/budget-expenses', authMiddleware, async (req, res) => {
     try {
         const { eventId } = req.params;
         const { category, description, amount, vendor, paid, date } = req.body;
@@ -1664,7 +1664,7 @@ app.post('/api/events/:eventId/expenses', authMiddleware, async (req, res) => {
 });
 
 // Update expense
-app.put('/api/events/:eventId/expenses/:expenseId', authMiddleware, async (req, res) => {
+app.put('/api/events/:eventId/budget-expenses/:expenseId', authMiddleware, async (req, res) => {
     try {
         const { eventId, expenseId } = req.params;
         const { category, description, amount, vendor, paid, date } = req.body;
@@ -1700,7 +1700,7 @@ app.put('/api/events/:eventId/expenses/:expenseId', authMiddleware, async (req, 
 });
 
 // Delete expense
-app.delete('/api/events/:eventId/expenses/:expenseId', authMiddleware, async (req, res) => {
+app.delete('/api/events/:eventId/budget-expenses/:expenseId', authMiddleware, async (req, res) => {
     try {
         const { eventId, expenseId } = req.params;
 
@@ -1727,7 +1727,7 @@ app.delete('/api/events/:eventId/expenses/:expenseId', authMiddleware, async (re
 });
 
 // Get expense summary
-app.get('/api/events/:eventId/expenses/summary', authMiddleware, async (req, res) => {
+app.get('/api/events/:eventId/budget-expenses/summary', authMiddleware, async (req, res) => {
     try {
         const { eventId } = req.params;
 
