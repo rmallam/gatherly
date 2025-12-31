@@ -1,7 +1,7 @@
 import React from 'react';
-import { Trash2, Calendar, User, DollarSign } from 'lucide-react';
+import { Trash2, DollarSign } from 'lucide-react';
 
-const ExpenseList = ({ expenses, eventId, onExpenseDeleted }) => {
+const ExpenseList = ({ expenses, eventId, onExpenseDeleted, userId }) => {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
     const handleDelete = async (expenseId) => {
@@ -22,6 +22,64 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted }) => {
         }
     };
 
+    // Group expenses by month
+    const groupByMonth = (expenses) => {
+        const groups = {};
+        expenses.forEach(expense => {
+            const date = new Date(expense.expense_date);
+            const monthYear = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            if (!groups[monthYear]) {
+                groups[monthYear] = [];
+            }
+            groups[monthYear].push(expense);
+        });
+        return groups;
+    };
+
+    // Determine expense status for current user
+    const getExpenseStatus = (expense) => {
+        const isPaidByMe = expense.paid_by === userId || expense.paid_by_id === userId;
+        const splits = expense.splits || [];
+        const mySplit = splits.find(s => s.user_id === userId);
+
+        if (!mySplit) {
+            return { type: 'not_involved', text: 'not involved', color: 'var(--text-tertiary)' };
+        }
+
+        if (isPaidByMe) {
+            // I paid, so others owe me
+            const othersOwe = splits
+                .filter(s => s.user_id !== userId)
+                .reduce((sum, s) => sum + parseFloat(s.amount || 0), 0);
+            return {
+                type: 'lent',
+                text: 'you lent',
+                amount: othersOwe,
+                color: '#10b981'
+            };
+        } else {
+            // Someone else paid, I owe them
+            return {
+                type: 'borrowed',
+                text: 'you borrowed',
+                amount: parseFloat(mySplit.amount || 0),
+                color: '#f59e0b'
+            };
+        }
+    };
+
+    const getCategoryIcon = (category) => {
+        const icons = {
+            food: '🍽️',
+            transport: '🚗',
+            accommodation: '🏨',
+            activities: '🎯',
+            entertainment: '🎬',
+            other: '📝'
+        };
+        return icons[category] || '📝';
+    };
+
     if (expenses.length === 0) {
         return (
             <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
@@ -36,161 +94,157 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted }) => {
         );
     }
 
+    const groupedExpenses = groupByMonth(expenses);
+    const sortedMonths = Object.keys(groupedExpenses).sort((a, b) => {
+        return new Date(b) - new Date(a); // Most recent first
+    });
+
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {expenses.map(expense => (
-                <div
-                    key={expense.id}
-                    className="card"
-                    style={{
-                        padding: '1.5rem',
-                        position: 'relative',
-                        transition: 'transform 0.2s, box-shadow 0.2s'
-                    }}
-                >
-                    {/* Delete Button - Top Right */}
-                    <button
-                        onClick={() => handleDelete(expense.id)}
-                        style={{
-                            position: 'absolute',
-                            top: '1rem',
-                            right: '1rem',
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            color: 'var(--text-tertiary)',
-                            padding: '0.5rem',
-                            borderRadius: 'var(--radius)',
-                            transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-                            e.currentTarget.style.color = '#ef4444';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'none';
-                            e.currentTarget.style.color = 'var(--text-tertiary)';
-                        }}
-                        title="Delete expense"
-                    >
-                        <Trash2 size={18} />
-                    </button>
+        <div>
+            {sortedMonths.map(month => (
+                <div key={month} style={{ marginBottom: '2rem' }}>
+                    {/* Month Header */}
+                    <h3 style={{
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        color: 'var(--text-secondary)',
+                        marginBottom: '1rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em'
+                    }}>
+                        {month}
+                    </h3>
 
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.25rem' }}>
-                        {/* Category Icon */}
-                        <div style={{
-                            width: '3.5rem',
-                            height: '3.5rem',
-                            borderRadius: 'var(--radius-lg)',
-                            background: getCategoryGradient(expense.category),
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                        }}>
-                            <span style={{ fontSize: '1.75rem' }}>{getCategoryEmoji(expense.category)}</span>
-                        </div>
+                    {/* Expense Items */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {groupedExpenses[month]
+                            .sort((a, b) => new Date(b.expense_date) - new Date(a.expense_date))
+                            .map(expense => {
+                                const status = getExpenseStatus(expense);
+                                const date = new Date(expense.expense_date);
 
-                        {/* Expense Details */}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                            <h4 style={{
-                                fontSize: '1.0625rem',
-                                fontWeight: 600,
-                                color: 'var(--text-primary)',
-                                marginBottom: '0.5rem',
-                                paddingRight: '2rem' // Space for delete button
-                            }}>
-                                {expense.description}
-                            </h4>
+                                return (
+                                    <div
+                                        key={expense.id}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '1rem',
+                                            padding: '1rem',
+                                            background: 'var(--bg-secondary)',
+                                            borderRadius: 'var(--radius)',
+                                            transition: 'background 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                                    >
+                                        {/* Date */}
+                                        <div style={{
+                                            minWidth: '3rem',
+                                            textAlign: 'center',
+                                            color: 'var(--text-tertiary)',
+                                            fontSize: '0.75rem'
+                                        }}>
+                                            <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                                                {date.toLocaleDateString('en-US', { month: 'short' })}
+                                            </div>
+                                            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                                {date.getDate()}
+                                            </div>
+                                        </div>
 
-                            {/* Meta Information */}
-                            <div style={{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: '0.75rem',
-                                fontSize: '0.8125rem',
-                                color: 'var(--text-secondary)',
-                                marginBottom: '0.75rem'
-                            }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                                    <User size={14} />
-                                    {expense.paid_by_name}
-                                </span>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                                    <Calendar size={14} />
-                                    {new Date(expense.expense_date).toLocaleDateString()}
-                                </span>
-                                <span style={{
-                                    padding: '0.125rem 0.5rem',
-                                    borderRadius: 'var(--radius)',
-                                    background: 'var(--bg-secondary)',
-                                    fontWeight: 500,
-                                    fontSize: '0.75rem'
-                                }}>
-                                    {expense.category}
-                                </span>
-                            </div>
+                                        {/* Icon */}
+                                        <div style={{
+                                            width: '2.5rem',
+                                            height: '2.5rem',
+                                            borderRadius: 'var(--radius)',
+                                            background: 'var(--bg-primary)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '1.25rem',
+                                            flexShrink: 0
+                                        }}>
+                                            {getCategoryIcon(expense.category)}
+                                        </div>
 
-                            {/* Amount and Split Info */}
-                            <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                paddingTop: '0.75rem',
-                                borderTop: '1px solid var(--border)'
-                            }}>
-                                <div style={{
-                                    fontSize: '1.5rem',
-                                    fontWeight: 700,
-                                    color: 'var(--text-primary)',
-                                    display: 'flex',
-                                    alignItems: 'baseline',
-                                    gap: '0.25rem'
-                                }}>
-                                    <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-secondary)' }}>
-                                        {expense.currency}
-                                    </span>
-                                    {parseFloat(expense.amount).toFixed(2)}
-                                </div>
-                                <div style={{
-                                    fontSize: '0.8125rem',
-                                    color: 'var(--text-secondary)',
-                                    fontWeight: 500
-                                }}>
-                                    Split {expense.splits?.length || 0} ways
-                                </div>
-                            </div>
-                        </div>
+                                        {/* Content */}
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{
+                                                fontSize: '0.9375rem',
+                                                fontWeight: 600,
+                                                color: 'var(--text-primary)',
+                                                marginBottom: '0.25rem',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap'
+                                            }}>
+                                                {expense.description}
+                                            </div>
+                                            <div style={{
+                                                fontSize: '0.8125rem',
+                                                color: 'var(--text-secondary)'
+                                            }}>
+                                                {expense.paid_by_name} paid {expense.currency} {parseFloat(expense.amount).toFixed(2)}
+                                            </div>
+                                        </div>
+
+                                        {/* Amount & Status */}
+                                        <div style={{
+                                            textAlign: 'right',
+                                            minWidth: '5rem'
+                                        }}>
+                                            {status.type !== 'not_involved' && (
+                                                <div style={{
+                                                    fontSize: '0.9375rem',
+                                                    fontWeight: 600,
+                                                    color: status.color,
+                                                    marginBottom: '0.125rem'
+                                                }}>
+                                                    {expense.currency} {status.amount.toFixed(2)}
+                                                </div>
+                                            )}
+                                            <div style={{
+                                                fontSize: '0.75rem',
+                                                color: status.color,
+                                                fontWeight: 500
+                                            }}>
+                                                {status.text}
+                                            </div>
+                                        </div>
+
+                                        {/* Delete Button */}
+                                        <button
+                                            onClick={() => handleDelete(expense.id)}
+                                            style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                color: 'var(--text-tertiary)',
+                                                padding: '0.5rem',
+                                                borderRadius: 'var(--radius)',
+                                                transition: 'all 0.2s',
+                                                flexShrink: 0
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                                                e.currentTarget.style.color = '#ef4444';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.background = 'none';
+                                                e.currentTarget.style.color = 'var(--text-tertiary)';
+                                            }}
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                );
+                            })}
                     </div>
                 </div>
             ))}
         </div>
     );
-};
-
-const getCategoryEmoji = (category) => {
-    const emojis = {
-        food: '🍽️',
-        transport: '🚗',
-        accommodation: '🏨',
-        activities: '🎯',
-        entertainment: '🎬',
-        other: '📝'
-    };
-    return emojis[category] || '📝';
-};
-
-const getCategoryGradient = (category) => {
-    const gradients = {
-        food: 'linear-gradient(135deg, #667eea, #764ba2)',
-        transport: 'linear-gradient(135deg, #f093fb, #f5576c)',
-        accommodation: 'linear-gradient(135deg, #4facfe, #00f2fe)',
-        activities: 'linear-gradient(135deg, #43e97b, #38f9d7)',
-        entertainment: 'linear-gradient(135deg, #fa709a, #fee140)',
-        other: 'linear-gradient(135deg, #a8edea, #fed6e3)'
-    };
-    return gradients[category] || gradients.other;
 };
 
 export default ExpenseList;
