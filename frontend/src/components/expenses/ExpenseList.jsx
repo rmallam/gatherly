@@ -194,23 +194,33 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, userId }) => {
                                             textAlign: 'right',
                                             minWidth: '5rem'
                                         }}>
-                                            {status.type !== 'not_involved' && (
+                                            {status.type !== 'not_involved' ? (
+                                                <>
+                                                    <div style={{
+                                                        fontSize: '0.9375rem',
+                                                        fontWeight: 600,
+                                                        color: status.color,
+                                                        marginBottom: '0.125rem'
+                                                    }}>
+                                                        {expense.currency} {status.amount.toFixed(2)}
+                                                    </div>
+                                                    <div style={{
+                                                        fontSize: '0.75rem',
+                                                        color: status.color,
+                                                        fontWeight: 500
+                                                    }}>
+                                                        {status.text}
+                                                    </div>
+                                                </>
+                                            ) : (
                                                 <div style={{
-                                                    fontSize: '0.9375rem',
-                                                    fontWeight: 600,
+                                                    fontSize: '0.75rem',
                                                     color: status.color,
-                                                    marginBottom: '0.125rem'
+                                                    fontWeight: 500
                                                 }}>
-                                                    {expense.currency} {status.amount.toFixed(2)}
+                                                    {status.text}
                                                 </div>
                                             )}
-                                            <div style={{
-                                                fontSize: '0.75rem',
-                                                color: status.color,
-                                                fontWeight: 500
-                                            }}>
-                                                {status.text}
-                                            </div>
                                         </div>
 
                                         {/* Delete Button */}
