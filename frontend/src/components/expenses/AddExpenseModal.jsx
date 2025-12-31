@@ -92,10 +92,17 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
                 })
             });
 
+            console.log('Expense creation response status:', response.status);
+            const responseText = await response.text();
+            console.log('Expense creation response:', responseText);
+
             if (response.ok) {
+                const data = JSON.parse(responseText);
+                console.log('Expense created successfully:', data);
                 onExpenseAdded();
             } else {
-                const data = await response.json();
+                const data = responseText ? JSON.parse(responseText) : {};
+                console.error('Expense creation failed:', data);
                 setError(data.error || 'Failed to create expense');
             }
         } catch (error) {
