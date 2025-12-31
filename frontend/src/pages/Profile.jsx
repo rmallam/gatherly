@@ -53,7 +53,7 @@ const Profile = () => {
             const token = localStorage.getItem('token');
             console.log('Loading profile with token:', token ? 'present' : 'missing');
 
-            const res = await fetch(`${API_URL}/users/profile`, {
+            const res = await fetch(`${API_URL}/api/users/profile`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -140,7 +140,7 @@ const Profile = () => {
             setSuccess('');
 
             const token = localStorage.getItem('token');
-            const res = await fetch(`${API_URL}/users/profile`, {
+            const res = await fetch(`${API_URL}/api/users/profile`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
