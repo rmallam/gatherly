@@ -70,6 +70,9 @@ const BudgetTab = ({ event }) => {
             if (expensesRes.ok) {
                 const expensesData = await expensesRes.json();
 
+                // Handle both old and new API response formats
+                const manualExpenses = Array.isArray(expensesData) ? expensesData : (expensesData.expenses || []);
+
                 // Auto-aggregate expenses from other tabs
                 const autoExpenses = [];
 
@@ -153,7 +156,7 @@ const BudgetTab = ({ event }) => {
                 }
 
                 // Merge auto-generated with manual expenses
-                setExpenses([...autoExpenses, ...expensesData]);
+                setExpenses([...autoExpenses, ...manualExpenses]);
             }
 
             // Fetch summary
