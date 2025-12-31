@@ -360,13 +360,13 @@ export const getBalances = async (req, res) => {
 
         // Get all unsettled splits with user details
         const splitsResult = await query(
-            `SELECT es.user_id, es.amount, e.paid_by, e.currency,
+            `SELECT es.user_id, es.amount, ee.paid_by, ee.currency,
                     u1.name as user_name, u2.name as paid_by_name
              FROM event_expense_splits es
-             JOIN event_expenses e ON es.expense_id = e.id
+             JOIN event_expenses ee ON es.expense_id = ee.id
              JOIN users u1 ON es.user_id = u1.id
-             JOIN users u2 ON e.paid_by = u2.id
-             WHERE e.event_id = $1 AND es.settled = FALSE`,
+             JOIN users u2 ON ee.paid_by = u2.id
+             WHERE ee.event_id = $1 AND es.settled = FALSE`,
             [eventId]
         );
 
