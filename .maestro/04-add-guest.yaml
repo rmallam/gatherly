@@ -38,21 +38,9 @@ appId: com.guestscanner.app
 # Wait a moment for event to load
 - waitForAnimationToEnd
     
-# Try tapping Guests tab - attempt 1: by text
-- runFlow:
-    when:
-      visible: "Guests"
-    commands:
-      - tapOn: "Guests"
-
-# Try tapping Guests tab - attempt 2: by index (second tab)
-- runFlow:
-    when:
-      notVisible: "Add Guest"
-    commands:
-      - tapOn:
-          point: "50%,15%"
-          
+# Go to Guests tab using aria-label
+- tapOn:
+    label: "Guests"
 - waitForAnimationToEnd
 
 # Add guest
