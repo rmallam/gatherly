@@ -569,6 +569,7 @@ async function getExpenseWithDetails(expenseId) {
 
 // Helper function to calculate net balances
 function calculateBalances(splits) {
+    console.log('💰 Calculating balances from splits:', JSON.stringify(splits.map(s => ({ user_id: s.user_id, paid_by: s.paid_by, amount: s.amount }))));
     const balanceMap = new Map();
 
     // Calculate who owes whom
