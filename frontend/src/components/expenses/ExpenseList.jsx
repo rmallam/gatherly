@@ -40,9 +40,11 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, userId }) => {
     const getExpenseStatus = (expense) => {
         const isPaidByMe = expense.paid_by === userId || expense.paid_by_id === userId;
         const splits = expense.splits || [];
-        const mySplit = splits.find(s => s.user_id === userId);
+        // Convert to string for comparison to handle type mismatches
+        const userIdStr = String(userId);
+        const mySplit = splits.find(s => String(s.user_id) === userIdStr);
 
-        console.log('💰 Expense Debug:', { userId, userIdType: typeof userId, splitsCount: splits.length, splits: splits.map(s => ({ user_id: s.user_id, type: typeof s.user_id })), foundMatch: !!mySplit });
+        console.log('💰 Expense Debug:', JSON.stringify({ userId: userIdStr, splitsCount: splits.length, splits: splits.map(s => String(s.user_id)), foundMatch: !!mySplit }));
 
         if (!mySplit) {
             return { type: 'not_involved', text: 'not involved', color: 'var(--text-tertiary)' };
