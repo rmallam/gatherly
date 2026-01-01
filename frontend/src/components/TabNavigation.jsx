@@ -22,6 +22,7 @@ const TabNavigation = ({ tabs, activeTab, onTabChange }) => {
                             key={tab.id}
                             onClick={() => onTabChange(tab.id)}
                             title={tab.label}
+                            data-testid={`tab-${tab.id}`}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',

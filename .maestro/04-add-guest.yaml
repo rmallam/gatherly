@@ -34,25 +34,13 @@ appId: com.guestscanner.app
 - tapOn: "Test Event"
 - waitForAnimationToEnd
 
-# Wait for event details to load
-- extendedWaitUntil:
-    visible: "Overview"
-    timeout: 10000
 
-# Scroll up to see tabs at the top
-- scroll:
-    direction: UP
-
-# Wait a moment for scroll to complete
+# Wait a moment for event to load
 - waitForAnimationToEnd
     
-# Wait for Guests tab to be visible
-- extendedWaitUntil:
-    visible: "Guests"
-    timeout: 5000
-
-# Go to Guests tab
-- tapOn: "Guests"
+# Go to Guests tab using testID
+- tapOn:
+    id: "tab-guests"
 - waitForAnimationToEnd
 
 # Add guest
