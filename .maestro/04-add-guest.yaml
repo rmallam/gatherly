@@ -39,18 +39,17 @@ appId: com.guestscanner.app
     visible: "Overview"
     timeout: 10000
 
-# Scroll down to see all tabs
+# Scroll up to see tabs at the top
 - scroll:
-    direction: DOWN
+    direction: UP
+
+# Wait a moment for scroll to complete
+- waitForAnimationToEnd
     
-# Wait for tabs to be visible
+# Wait for Guests tab to be visible
 - extendedWaitUntil:
     visible: "Guests"
     timeout: 5000
-
-# Verify we can see the tabs
-- assertVisible: "Overview"
-- assertVisible: "Guests"
 
 # Go to Guests tab
 - tapOn: "Guests"
