@@ -23,6 +23,7 @@ const TabNavigation = ({ tabs, activeTab, onTabChange }) => {
                             onClick={() => onTabChange(tab.id)}
                             title={tab.label}
                             data-testid={`tab-${tab.id}`}
+                            aria-label={tab.label}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',

@@ -38,9 +38,21 @@ appId: com.guestscanner.app
 # Wait a moment for event to load
 - waitForAnimationToEnd
     
-# Go to Guests tab using testID
-- tapOn:
-    id: "tab-guests"
+# Try tapping Guests tab - attempt 1: by text
+- runFlow:
+    when:
+      visible: "Guests"
+    commands:
+      - tapOn: "Guests"
+
+# Try tapping Guests tab - attempt 2: by index (second tab)
+- runFlow:
+    when:
+      notVisible: "Add Guest"
+    commands:
+      - tapOn:
+          point: "50%,15%"
+          
 - waitForAnimationToEnd
 
 # Add guest
