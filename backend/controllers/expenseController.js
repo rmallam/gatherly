@@ -574,15 +574,19 @@ function calculateBalances(splits) {
 
     // Calculate who owes whom
     splits.forEach(split => {
-        if (split.user_id === split.paid_by) {
-            console.log('  ⏭️  Skipping (user paid for themselves):', split.user_id);
+        // Convert to strings to ensure comparison works
+        const userId = String(split.user_id);
+        const paidBy = String(split.paid_by);
+
+        if (userId === paidBy) {
+            console.log('  ⏭️  Skipping (user paid for themselves):', userId);
             return; // Skip if user paid for themselves
         }
 
-        console.log('  ✅ Processing split:', { user_id: split.user_id, paid_by: split.paid_by, amount: split.amount });
+        console.log('  ✅ Processing split:', { user_id: userId, paid_by: paidBy, amount: split.amount });
 
-        const key = `${split.user_id}-${split.paid_by}`;
-        const reverseKey = `${split.paid_by}-${split.user_id}`;
+        const key = `${userId}-${paidBy}`;
+        const reverseKey = `${paidBy}-${userId}`;
 
         if (balanceMap.has(reverseKey)) {
             // Net out opposite debts
@@ -607,11 +611,11 @@ function calculateBalances(splits) {
         } else {
             const existing = balanceMap.get(key);
             balanceMap.set(key, {
-                fromUser: split.user_id,
+                fromUser: userId,
                 fromUserName: split.user_name,
-                toUser: split.paid_by,
+                toUser: paidBy,
                 toUserName: split.paid_by_name,
-                amount: (existing?.amount || 0) + split.amount,
+                amount: (existing?.amount || 0) + parseFloat(split.amount),
                 currency: split.currency
             });
         }
