@@ -569,7 +569,6 @@ async function getExpenseWithDetails(expenseId) {
 
 // Helper function to calculate net balances
 function calculateBalances(splits) {
-    console.log('💰 Calculating balances from splits:', JSON.stringify(splits.map(s => ({ user_id: s.user_id, paid_by: s.paid_by, amount: s.amount }))));
     const balanceMap = new Map();
 
     // Calculate who owes whom
@@ -579,11 +578,8 @@ function calculateBalances(splits) {
         const paidBy = String(split.paid_by);
 
         if (userId === paidBy) {
-            console.log('  ⏭️  Skipping (user paid for themselves):', userId);
             return; // Skip if user paid for themselves
         }
-
-        console.log('  ✅ Processing split:', { user_id: userId, paid_by: paidBy, amount: split.amount });
 
         const key = `${userId}-${paidBy}`;
         const reverseKey = `${paidBy}-${userId}`;
@@ -621,7 +617,5 @@ function calculateBalances(splits) {
         }
     });
 
-    const result = Array.from(balanceMap.values()).filter(b => b.amount > 0.01);
-    console.log('💰 Final balances:', JSON.stringify(result));
-    return result;
+    return Array.from(balanceMap.values()).filter(b => b.amount > 0.01);
 }
