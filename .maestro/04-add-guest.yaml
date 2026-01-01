@@ -38,10 +38,9 @@ appId: com.guestscanner.app
 # Wait a moment for event to load
 - waitForAnimationToEnd
     
-# Tap on the second tab (Guests) by index
+# Tap on Guests tab by coordinates (second tab, ~25% from left, near top)
 - tapOn:
-    index: 1
-    label: "Guests"
+    point: "25%,12%"
 - waitForAnimationToEnd
 
 # Add guest
