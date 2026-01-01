@@ -574,7 +574,12 @@ function calculateBalances(splits) {
 
     // Calculate who owes whom
     splits.forEach(split => {
-        if (split.user_id === split.paid_by) return; // Skip if user paid for themselves
+        if (split.user_id === split.paid_by) {
+            console.log('  ⏭️  Skipping (user paid for themselves):', split.user_id);
+            return; // Skip if user paid for themselves
+        }
+
+        console.log('  ✅ Processing split:', { user_id: split.user_id, paid_by: split.paid_by, amount: split.amount });
 
         const key = `${split.user_id}-${split.paid_by}`;
         const reverseKey = `${split.paid_by}-${split.user_id}`;
