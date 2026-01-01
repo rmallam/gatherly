@@ -54,7 +54,7 @@ const AdminDashboard = () => {
             setLoading(true);
             const token = localStorage.getItem('token');
             console.log('🔍 Admin Dashboard: Fetching users...', { page, searchTerm });
-            const url = `${import.meta.env.VITE_API_URL}/admin/users?page=${page}&limit=20&search=${searchTerm}`;
+            const url = `${import.meta.env.VITE_API_URL}/api/admin/users?page=${page}&limit=20&search=${searchTerm}`;
             console.log('🔍 Admin Dashboard: URL:', url);
 
             const response = await fetch(url, {
@@ -84,7 +84,7 @@ const AdminDashboard = () => {
     const handleDeleteUser = async (userId) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${userId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/users/${userId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
