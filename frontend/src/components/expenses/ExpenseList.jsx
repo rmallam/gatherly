@@ -42,6 +42,8 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, userId }) => {
         const splits = expense.splits || [];
         const mySplit = splits.find(s => s.user_id === userId);
 
+        console.log('💰 Expense Debug:', { userId, userIdType: typeof userId, splitsCount: splits.length, splits: splits.map(s => ({ user_id: s.user_id, type: typeof s.user_id })), foundMatch: !!mySplit });
+
         if (!mySplit) {
             return { type: 'not_involved', text: 'not involved', color: 'var(--text-tertiary)' };
         }
