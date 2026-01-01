@@ -54,7 +54,19 @@ const ExpensesDashboard = ({ eventId, event }) => {
         loadData();
     }, [eventId]);
 
-    const userId = localStorage.getItem('userId');
+    // Get userId from JWT token
+    const getUserIdFromToken = () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return null;
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return payload.id || payload.userId;
+        } catch (e) {
+            console.error('Error parsing token:', e);
+            return null;
+        }
+    };
+    const userId = getUserIdFromToken();
 
     // Calculate summary stats
     const totalExpenses = expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
