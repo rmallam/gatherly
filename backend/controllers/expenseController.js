@@ -612,5 +612,7 @@ function calculateBalances(splits) {
         }
     });
 
-    return Array.from(balanceMap.values()).filter(b => b.amount > 0.01);
+    const result = Array.from(balanceMap.values()).filter(b => b.amount > 0.01);
+    console.log('💰 Final balances:', JSON.stringify(result));
+    return result;
 }
