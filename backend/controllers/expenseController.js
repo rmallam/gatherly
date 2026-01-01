@@ -138,7 +138,7 @@ export const getExpenses = async (req, res) => {
                    json_agg(
                        json_build_object(
                            'id', es.id,
-                           'userId', es.user_id,
+                           'user_id', es.user_id,
                            'userName', us.name,
                            'amount', es.amount,
                            'settled', es.settled,
@@ -548,7 +548,7 @@ async function getExpenseWithDetails(expenseId) {
                 json_agg(
                     json_build_object(
                         'id', es.id,
-                        'userId', es.user_id,
+                        'user_id', es.user_id,
                         'userName', us.name,
                         'amount', es.amount,
                         'settled', es.settled,
