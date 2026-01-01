@@ -20,11 +20,13 @@ export async function initializeDatabase() {
         const client = await pool.connect();
         console.log('✓ PostgreSQL connected successfully');
 
-        // Read and execute schema
-        const schemaPath = join(__dirname, 'schema.sql');
-        const schema = await fs.readFile(schemaPath, 'utf-8');
-        await client.query(schema);
-        console.log('✓ Database schema initialized');
+        // Check if tables exist (simple health check)
+        try {
+            await client.query('SELECT 1 FROM users LIMIT 1');
+            console.log('✓ Database tables verified');
+        } catch (err) {
+            console.warn('⚠️  Database tables may not exist. Run migrations manually if needed.');
+        }
 
         client.release();
     } catch (error) {
