@@ -38,8 +38,9 @@ appId: com.guestscanner.app
 # Wait a moment for event to load
 - waitForAnimationToEnd
     
-# Go to Guests tab using aria-label
+# Tap on the second tab (Guests) by index
 - tapOn:
+    index: 1
     label: "Guests"
 - waitForAnimationToEnd
 
