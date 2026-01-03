@@ -8,7 +8,7 @@ import crypto from 'crypto';
 import { generateToken, hashPassword, comparePassword, authMiddleware } from './server/auth.js';
 import { initializeDatabase, query } from './db/connection.js';
 import { validateEmail, validatePassword } from './server/validators.js';
-import { sendVerificationEmail } from './server/email.js';
+import { sendVerificationEmail, sendPasswordResetEmail } from './server/email.js';
 import { initTwilio } from './services/reminderService.js';
 import { startReminderCron } from './jobs/reminderCron.js';
 import { sendAnnouncement, sendThankYouMessages, getCommunications } from './controllers/communicationController.js';
@@ -84,6 +84,8 @@ const authLimiter = rateLimit({
 });
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/signup', authLimiter);
+app.use('/api/auth/forgot-password', authLimiter);
+app.use('/api/auth/reset-password', authLimiter);
 
 // Body parser
 app.use(bodyParser.json({ limit: '10mb' }));
@@ -422,6 +424,160 @@ app.post('/api/auth/resend-verification', async (req, res) => {
         res.json({ message: 'Verification email sent successfully' });
     } catch (error) {
         console.error('Resend verification error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Forgot password - Request password reset
+app.post('/api/auth/forgot-password', async (req, res) => {
+    try {
+        const { email, phone } = req.body;
+
+        // Must provide either email or phone
+        if (!email && !phone) {
+            return res.status(400).json({ error: 'Email or phone number is required' });
+        }
+
+        // Try to find user by email or phone
+        let result;
+        if (email) {
+            result = await query('SELECT * FROM users WHERE email = $1', [email.toLowerCase().trim()]);
+        } else if (phone) {
+            const normalized = normalizePhone(phone);
+            if (!normalized) {
+                return res.status(400).json({ error: 'Invalid phone number' });
+            }
+            result = await query(
+                `SELECT * FROM users WHERE 
+                 phone IS NOT NULL AND 
+                 RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
+                [normalized]
+            );
+        }
+
+        // Don't reveal if user exists or not (security best practice)
+        if (result.rows.length === 0) {
+            return res.json({
+                message: 'If an account exists with this information, a password reset link has been sent'
+            });
+        }
+
+        const user = result.rows[0];
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const tokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+        // Store reset token
+        await query(
+            'UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE id = $3',
+            [resetToken, tokenExpires, user.id]
+        );
+
+        // Send reset email if user has email
+        if (user.email) {
+            try {
+                await sendPasswordResetEmail(user, resetToken);
+            } catch (emailError) {
+                console.error('Failed to send password reset email:', emailError);
+                return res.status(500).json({ error: 'Failed to send password reset email' });
+            }
+        }
+
+        res.json({
+            message: 'If an account exists with this information, a password reset link has been sent',
+            // For phone-only users, return the token (in production, send via SMS)
+            ...(phone && !user.email ? { resetToken } : {})
+        });
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Verify reset token validity
+app.get('/api/auth/verify-reset-token', async (req, res) => {
+    try {
+        const { token } = req.query;
+
+        if (!token) {
+            return res.status(400).json({ error: 'Reset token is required' });
+        }
+
+        const result = await query(
+            'SELECT id, name, email FROM users WHERE reset_token = $1',
+            [token]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(400).json({ error: 'Invalid reset token', valid: false });
+        }
+
+        const user = result.rows[0];
+
+        // Check if token expired
+        const tokenResult = await query(
+            'SELECT reset_token_expires FROM users WHERE id = $1',
+            [user.id]
+        );
+
+        if (new Date() > new Date(tokenResult.rows[0].reset_token_expires)) {
+            return res.status(400).json({ error: 'Reset token has expired', valid: false });
+        }
+
+        res.json({
+            valid: true,
+            email: user.email,
+            name: user.name
+        });
+    } catch (error) {
+        console.error('Verify reset token error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Reset password with token
+app.post('/api/auth/reset-password', async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        if (!token || !newPassword) {
+            return res.status(400).json({ error: 'Reset token and new password are required' });
+        }
+
+        // Validate new password strength
+        const passwordValidation = validatePassword(newPassword);
+        if (!passwordValidation.valid) {
+            return res.status(400).json({ error: passwordValidation.error });
+        }
+
+        // Find user by reset token
+        const result = await query(
+            'SELECT * FROM users WHERE reset_token = $1',
+            [token]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(400).json({ error: 'Invalid reset token' });
+        }
+
+        const user = result.rows[0];
+
+        // Check if token expired
+        if (new Date() > new Date(user.reset_token_expires)) {
+            return res.status(400).json({ error: 'Reset token has expired' });
+        }
+
+        // Hash new password and update
+        const hashedPassword = hashPassword(newPassword);
+        await query(
+            'UPDATE users SET password = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2',
+            [hashedPassword, user.id]
+        );
+
+        res.json({ message: 'Password reset successfully' });
+    } catch (error) {
+        console.error('Reset password error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });

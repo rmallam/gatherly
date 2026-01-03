@@ -12,6 +12,8 @@ import pushNotificationService from './services/PushNotificationService';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import ManagerDashboard from './pages/ManagerDashboard';
 import EventDetailsTabs from './pages/EventDetailsTabs';
 import GuestEventView from './pages/GuestEventView';
@@ -67,6 +69,8 @@ function App() {
                             {/* Public routes */}
                             <Route path="/login" element={<Login />} />
                             <Route path="/signup" element={<Signup />} />
+                            <Route path="/forgot-password" element={<ForgotPassword />} />
+                            <Route path="/reset-password" element={<ResetPassword />} />
                             <Route path="/rsvp/:eventId/:guestId" element={<RSVP />} />
                             <Route path="/invite/:id" element={<PublicInvitation />} />
 

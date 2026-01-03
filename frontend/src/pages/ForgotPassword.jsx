@@ -1,52 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { LogIn, Mail, Lock, AlertCircle, Scan, Fingerprint, Phone } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Mail, Phone, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
 
-const Login = () => {
-    const navigate = useNavigate();
-    const { login, loginWithBiometric, enableBiometric, continueAsGuest, biometricAvailable } = useAuth();
-    const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
+const ForgotPassword = () => {
+    const [method, setMethod] = useState('email'); // 'email' or 'phone'
     const [email, setEmail] = useState('');
     const [countryCode, setCountryCode] = useState('+91');
     const [phone, setPhone] = useState('');
-    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [showBiometricPrompt, setShowBiometricPrompt] = useState(false);
-    const [savedCredentials, setSavedCredentials] = useState(null);
-
-    // Auto-trigger biometric authentication on mount if available
-    useEffect(() => {
-        const attemptBiometricLogin = async () => {
-            if (biometricAvailable) {
-                try {
-                    const { BiometricService } = await import('../services/biometric');
-                    const hasSavedCredentials = await BiometricService.hasCredentials('hosteze-app');
-
-                    if (hasSavedCredentials) {
-                        // Automatically trigger biometric auth
-                        const authenticated = await BiometricService.authenticate();
-
-                        if (authenticated) {
-                            // Retrieve and login with saved credentials
-                            const credentials = await BiometricService.getCredentials('hosteze-app');
-                            if (credentials && credentials.username && credentials.password) {
-                                await login(credentials.username, credentials.password);
-                                navigate('/');
-                            }
-                        }
-                        // If authentication fails or is cancelled, just show the login form
-                    }
-                } catch (err) {
-                    // Silent fail - user can still login with password
-                    console.log('Auto biometric login failed:', err);
-                }
-            }
-        };
-
-        attemptBiometricLogin();
-    }, [biometricAvailable]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -54,27 +17,26 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const isPhone = loginMethod === 'phone';
+            const isPhone = method === 'phone';
             const identifier = isPhone ? `${countryCode}${phone}` : email;
-            await login(identifier, password, isPhone);
 
-            // Check if biometric is already enabled before prompting
-            if (biometricAvailable) {
-                // Check if credentials are already saved
-                const { BiometricService } = await import('../services/biometric');
-                const hasSavedCredentials = await BiometricService.hasCredentials('hosteze-app');
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://gatherly-backend-3vmv.onrender.com'}/api/auth/forgot-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(
+                    isPhone ? { phone: identifier } : { email: identifier }
+                ),
+            });
 
-                if (!hasSavedCredentials) {
-                    // Only show prompt if not already set up
-                    setSavedCredentials({ email: identifier, password });
-                    setShowBiometricPrompt(true);
-                } else {
-                    // Already set up, just navigate
-                    navigate('/');
-                }
-            } else {
-                navigate('/');
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to send reset link');
             }
+
+            setSuccess(true);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -82,59 +44,43 @@ const Login = () => {
         }
     };
 
-    const handleEnableBiometric = async () => {
-        try {
-            await enableBiometric(savedCredentials.email, savedCredentials.password);
-            navigate('/');
-        } catch (err) {
-            console.error('Failed to save biometric:', err);
-            navigate('/');
-        }
-    };
-
-    const handleSkipBiometric = () => {
-        navigate('/');
-    };
-
-    // Biometric enrollment prompt
-    if (showBiometricPrompt) {
+    if (success) {
         return (
             <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
+                {/* Header */}
+                <div style={{ padding: '3rem 0 2rem', borderBottom: '1px solid var(--border)' }}>
+                    <div className="container" style={{ textAlign: 'center' }}>
+                        <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                            🎉 Host<i>Eze</i>
+                        </h1>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                            Event Management Made Easy
+                        </p>
+                    </div>
+                </div>
+
+                {/* Success Message */}
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
                     <div className="card" style={{ maxWidth: '440px', width: '100%' }}>
                         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                            <Fingerprint size={64} style={{ color: 'var(--primary)', margin: '0 auto 1rem' }} />
+                            <CheckCircle size={64} style={{ color: '#10b981', margin: '0 auto 1rem' }} />
                             <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-                                Enable Biometric Login?
+                                Check Your Email
                             </h2>
-                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>
-                                Use your fingerprint or face to login faster next time
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem', lineHeight: '1.6' }}>
+                                If an account exists with the provided information, we've sent you a password reset link.
+                                Please check your email and follow the instructions.
                             </p>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            <button
-                                onClick={handleEnableBiometric}
-                                className="btn btn-primary"
-                                style={{ width: '100%', padding: '0.875rem' }}
-                            >
-                                <Fingerprint size={18} />
-                                Enable Biometric
-                            </button>
-                            <button
-                                onClick={handleSkipBiometric}
-                                className="btn"
-                                style={{
-                                    width: '100%',
-                                    padding: '0.875rem',
-                                    background: 'var(--bg-secondary)',
-                                    border: '1px solid var(--border)',
-                                    color: 'var(--text-primary)'
-                                }}
-                            >
-                                Skip for Now
-                            </button>
-                        </div>
+                        <Link
+                            to="/login"
+                            className="btn btn-primary"
+                            style={{ width: '100%', padding: '0.875rem', fontSize: '1rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                        >
+                            <ArrowLeft size={18} />
+                            Back to Login
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -160,10 +106,10 @@ const Login = () => {
                 <div className="card" style={{ maxWidth: '440px', width: '100%' }}>
                     <div style={{ marginBottom: '2rem' }}>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-                            Welcome Back
+                            Forgot Password?
                         </h2>
                         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>
-                            Sign in to manage your events
+                            No worries! Enter your email or phone number and we'll send you reset instructions.
                         </p>
                     </div>
 
@@ -194,18 +140,18 @@ const Login = () => {
                     }}>
                         <button
                             type="button"
-                            onClick={() => setLoginMethod('email')}
+                            onClick={() => setMethod('email')}
                             style={{
                                 flex: 1,
                                 padding: '0.5rem',
                                 borderRadius: '8px',
                                 border: 'none',
-                                background: loginMethod === 'email' ? 'white' : 'transparent',
-                                color: loginMethod === 'email' ? 'var(--primary)' : 'var(--text-secondary)',
+                                background: method === 'email' ? 'white' : 'transparent',
+                                color: method === 'email' ? 'var(--primary)' : 'var(--text-secondary)',
                                 fontWeight: 600,
                                 fontSize: '0.875rem',
                                 cursor: 'pointer',
-                                boxShadow: loginMethod === 'email' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+                                boxShadow: method === 'email' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
                                 transition: 'all 0.2s'
                             }}
                         >
@@ -214,18 +160,18 @@ const Login = () => {
                         </button>
                         <button
                             type="button"
-                            onClick={() => setLoginMethod('phone')}
+                            onClick={() => setMethod('phone')}
                             style={{
                                 flex: 1,
                                 padding: '0.5rem',
                                 borderRadius: '8px',
                                 border: 'none',
-                                background: loginMethod === 'phone' ? 'white' : 'transparent',
-                                color: loginMethod === 'phone' ? 'var(--primary)' : 'var(--text-secondary)',
+                                background: method === 'phone' ? 'white' : 'transparent',
+                                color: method === 'phone' ? 'var(--primary)' : 'var(--text-secondary)',
                                 fontWeight: 600,
                                 fontSize: '0.875rem',
                                 cursor: 'pointer',
-                                boxShadow: loginMethod === 'phone' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+                                boxShadow: method === 'phone' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
                                 transition: 'all 0.2s'
                             }}
                         >
@@ -235,7 +181,7 @@ const Login = () => {
                     </div>
 
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginBottom: '1.5rem' }}>
-                        {loginMethod === 'email' ? (
+                        {method === 'email' ? (
                             <div>
                                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
                                     Email Address
@@ -290,79 +236,20 @@ const Login = () => {
                             </div>
                         )}
 
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                                Password
-                            </label>
-                            <div style={{ position: 'relative' }}>
-                                <Lock size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="form-input"
-                                    style={{ paddingLeft: '2.75rem' }}
-                                    placeholder="Enter your password"
-                                    required
-                                />
-                            </div>
-                            <div style={{ marginTop: '0.5rem', textAlign: 'right' }}>
-                                <Link
-                                    to="/forgot-password"
-                                    style={{
-                                        color: 'var(--primary)',
-                                        fontSize: '0.875rem',
-                                        fontWeight: 600,
-                                        textDecoration: 'none',
-                                        transition: 'opacity 0.2s'
-                                    }}
-                                    onMouseEnter={(e) => e.target.style.opacity = '0.8'}
-                                    onMouseLeave={(e) => e.target.style.opacity = '1'}
-                                >
-                                    Forgot Password?
-                                </Link>
-                            </div>
-                        </div>
-
                         <button
                             type="submit"
                             className="btn btn-primary"
                             disabled={loading}
                             style={{ width: '100%', padding: '0.875rem', fontSize: '1rem', fontWeight: 600 }}
                         >
-                            {loading ? 'Signing in...' : 'Sign In'}
+                            {loading ? 'Sending...' : 'Send Reset Link'}
                         </button>
                     </form>
 
-                    <div style={{ margin: '1.5rem 0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
-                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500 }}>OR</span>
-                        <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
-                    </div>
-
-                    <button
-                        onClick={() => {
-                            continueAsGuest();
-                            navigate('/');
-                        }}
-                        className="btn"
-                        style={{
-                            width: '100%',
-                            padding: '0.875rem',
-                            fontSize: '1rem',
-                            fontWeight: 600,
-                            background: 'var(--bg-secondary)',
-                            border: '1px solid var(--border)',
-                            color: 'var(--text-primary)'
-                        }}
-                    >
-                        Continue as Guest
-                    </button>
-
-                    <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.9375rem', color: 'var(--text-secondary)' }}>
-                        Don't have an account?{' '}
-                        <Link to="/signup" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>
-                            Create Account
+                    <div style={{ textAlign: 'center', fontSize: '0.9375rem', color: 'var(--text-secondary)' }}>
+                        Remember your password?{' '}
+                        <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>
+                            Back to Login
                         </Link>
                     </div>
                 </div>
@@ -371,4 +258,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default ForgotPassword;
