@@ -53,6 +53,33 @@ function BackButtonHandler() {
     return null;
 }
 
+// Deep link handler component
+function DeepLinkHandler() {
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        // Handle app URL when app is opened from a deep link
+        const handleAppUrlOpen = CapacitorApp.addListener('appUrlOpen', (data) => {
+            console.log('App opened with URL:', data.url);
+
+            // Extract the path and query from the URL
+            // URL format: https://gatherly-backend-3vmv.onrender.com/reset-password?token=abc123
+            const url = new URL(data.url);
+            const path = url.pathname; // e.g., /reset-password
+            const search = url.search; // e.g., ?token=abc123
+
+            // Navigate to the path with query parameters
+            navigate(path + search);
+        });
+
+        return () => {
+            handleAppUrlOpen.remove();
+        };
+    }, [navigate]);
+
+    return null;
+}
+
 function App() {
     // Initialize OneSignal on app start
     useEffect(() => {
@@ -65,6 +92,7 @@ function App() {
                 <AppProvider>
                     <BrowserRouter>
                         <BackButtonHandler />
+                        <DeepLinkHandler />
                         <Routes>
                             {/* Public routes */}
                             <Route path="/login" element={<Login />} />
