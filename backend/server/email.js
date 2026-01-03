@@ -5,6 +5,8 @@ const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key_for_local_
 // From email address
 const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 const APP_URL = process.env.APP_URL || 'https://gatherly-backend-3vmv.onrender.com';
+// Frontend URL for password reset (should point to your deployed frontend or capacitor://localhost for mobile)
+const FRONTEND_URL = process.env.FRONTEND_URL || 'capacitor://localhost';
 
 /**
  * Send email verification
@@ -117,7 +119,7 @@ export async function sendVerificationEmail(user, token) {
  * Send password reset email (for future use)
  */
 export async function sendPasswordResetEmail(user, resetToken) {
-    const resetUrl = `${APP_URL}/reset-password?token=${resetToken}`;
+    const resetUrl = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
 
     try {
         const { data, error } = await resend.emails.send({
