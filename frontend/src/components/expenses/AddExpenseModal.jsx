@@ -28,14 +28,16 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
 
         if (event.event_type === 'shared') {
             // For shared events, all guests are participants (no distinction between host/guest)
-            // Include event owner + all guests
+            // Include event owner + all guests WITH user_id (registered users only)
             const allParticipants = [
                 { id: event.user_id, name: event.user_name || 'Event Owner' },
-                ...(event.guests || []).map(g => ({
-                    id: g.user_id || g.id,
-                    name: g.name
-                }))
-            ].filter(p => p.id); // Only include participants with user IDs
+                ...(event.guests || [])
+                    .filter(g => g.user_id) // Only include guests who are registered users
+                    .map(g => ({
+                        id: g.user_id,
+                        name: g.name
+                    }))
+            ];
 
             console.log('Shared event participants:', allParticipants);
             return allParticipants.filter((p, index, self) =>
@@ -144,7 +146,10 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
             } else {
                 const data = responseText ? JSON.parse(responseText) : {};
                 console.error('Expense creation failed:', data);
-                setError(data.error || 'Failed to create expense');
+                // Show detailed error message
+                const errorMsg = data.error || data.message || 'Failed to create expense';
+                const details = data.missingFields ? ` (Missing: ${data.missingFields.join(', ')})` : '';
+                setError(errorMsg + details);
             }
         } catch (error) {
             console.error('Error creating expense:', error);
