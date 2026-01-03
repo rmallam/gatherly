@@ -4,7 +4,6 @@
     "webDir": "dist",
     "server": {
         "androidScheme": "https",
-        "hostname": "gatherly-backend-3vmv.onrender.com",
         "allowNavigation": [
             "https://gatherly-backend-3vmv.onrender.com"
         ],
