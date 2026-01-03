@@ -28,11 +28,14 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
 
         if (event.event_type === 'shared') {
             // For shared events, all guests are participants (no distinction between host/guest)
-            // Map all guests to participant format
-            const allParticipants = (event.guests || []).map(g => ({
-                id: g.user_id || g.id,
-                name: g.name
-            })).filter(p => p.id); // Only include guests with user IDs
+            // Include event owner + all guests
+            const allParticipants = [
+                { id: event.user_id, name: event.user_name || 'Event Owner' },
+                ...(event.guests || []).map(g => ({
+                    id: g.user_id || g.id,
+                    name: g.name
+                }))
+            ].filter(p => p.id); // Only include participants with user IDs
 
             console.log('Shared event participants:', allParticipants);
             return allParticipants.filter((p, index, self) =>
@@ -51,7 +54,6 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
             );
         }
     }, [event]);
-
 
     // Initialize selected participants and paidBy with current user
     React.useEffect(() => {
