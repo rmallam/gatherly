@@ -496,13 +496,18 @@ app.post('/api/auth/forgot-password', async (req, res) => {
                 const resetUrl = `https://gatherly-backend-3vmv.onrender.com/reset-password?token=${resetToken}`;
                 const smsMessage = `Hi ${user.name}, reset your HostEze password: ${resetUrl} (Link expires in 1 hour)`;
 
-                // Format phone number for SMS
+                // Format phone number for SMS - use the same logic as normalizePhone
                 let phoneNumber = user.phone;
-                phoneNumber = phoneNumber.replace(/[^\d+]/g, '');
-                if (!phoneNumber.startsWith('+')) {
-                    phoneNumber = phoneNumber.startsWith('91') ? '+' + phoneNumber : '+91' + phoneNumber;
-                }
+                // Remove all non-digits
+                phoneNumber = phoneNumber.replace(/\D/g, '');
 
+                // Get last 10 digits (the actual phone number)
+                const last10Digits = phoneNumber.slice(-10);
+
+                // Add +91 country code
+                phoneNumber = '+91' + last10Digits;
+
+                console.log(`Sending password reset SMS to: ${phoneNumber}`);
 
                 const smsResult = await sendSMS(phoneNumber, smsMessage);
                 if (smsResult.success) {
