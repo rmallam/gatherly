@@ -9,7 +9,7 @@ import { generateToken, hashPassword, comparePassword, authMiddleware } from './
 import { initializeDatabase, query } from './db/connection.js';
 import { validateEmail, validatePassword } from './server/validators.js';
 import { sendVerificationEmail, sendPasswordResetEmail } from './server/email.js';
-import { initTwilio } from './services/reminderService.js';
+import { initTwilio, sendSMS } from './services/reminderService.js';
 import { startReminderCron } from './jobs/reminderCron.js';
 import { sendAnnouncement, sendThankYouMessages, getCommunications } from './controllers/communicationController.js';
 import {
@@ -484,10 +484,32 @@ app.post('/api/auth/forgot-password', async (req, res) => {
             }
         }
 
+        // Send SMS if user has phone (either as primary or backup)
+        if (user.phone) {
+            try {
+                const resetUrl = `https://gatherly-backend-3vmv.onrender.com/reset-password?token=${resetToken}`;
+                const smsMessage = `Hi ${user.name}, reset your HostEze password: ${resetUrl} (Link expires in 1 hour)`;
+
+                // Format phone number for SMS
+                let phoneNumber = user.phone;
+                phoneNumber = phoneNumber.replace(/[^\d+]/g, '');
+                if (!phoneNumber.startsWith('+')) {
+                    phoneNumber = phoneNumber.startsWith('91') ? '+' + phoneNumber : '+91' + phoneNumber;
+                }
+
+                const smsResult = await sendSMS(phoneNumber, smsMessage);
+                if (!smsResult.success) {
+                    console.error('Failed to send password reset SMS:', smsResult.error);
+                    // Don't fail the request if SMS fails, email might have worked
+                }
+            } catch (smsError) {
+                console.error('Failed to send password reset SMS:', smsError);
+                // Don't fail the request if SMS fails
+            }
+        }
+
         res.json({
-            message: 'If an account exists with this information, a password reset link has been sent',
-            // For phone-only users, return the token (in production, send via SMS)
-            ...(phone && !user.email ? { resetToken } : {})
+            message: 'If an account exists with this information, a password reset link has been sent'
         });
     } catch (error) {
         console.error('Forgot password error:', error);
