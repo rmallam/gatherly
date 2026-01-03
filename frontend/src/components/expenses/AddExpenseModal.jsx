@@ -18,15 +18,26 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
 
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-    // Get all participants (event owner + guests who are users)
-    const participants = [
-        { id: event.user_id, name: event.user_name || 'Event Owner' },
-        ...(event.guests || [])
-            .filter(g => g.user_id)
-            .map(g => ({ id: g.user_id, name: g.name }))
-    ].filter((p, index, self) =>
-        index === self.findIndex(t => t.id === p.id)
-    );
+    // Get all participants based on event type
+    const participants = React.useMemo(() => {
+        if (event.event_type === 'shared' && event.organizers && event.organizers.length > 0) {
+            // For shared events, use the organizers array
+            // organizers is an array of objects like: [{ id: 'user-id', name: 'User Name' }, ...]
+            return event.organizers.filter((p, index, self) =>
+                index === self.findIndex(t => t.id === p.id)
+            );
+        } else {
+            // For host events, use event owner + guests who are users
+            return [
+                { id: event.user_id, name: event.user_name || 'Event Owner' },
+                ...(event.guests || [])
+                    .filter(g => g.user_id)
+                    .map(g => ({ id: g.user_id, name: g.name }))
+            ].filter((p, index, self) =>
+                index === self.findIndex(t => t.id === p.id)
+            );
+        }
+    }, [event]);
 
     // Initialize selected participants and paidBy with current user
     React.useEffect(() => {
