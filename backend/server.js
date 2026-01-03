@@ -474,13 +474,19 @@ app.post('/api/auth/forgot-password', async (req, res) => {
             [resetToken, tokenExpires, user.id]
         );
 
+        // Track if at least one notification method succeeded
+        let emailSent = false;
+        let smsSent = false;
+
         // Send reset email if user has email
         if (user.email) {
             try {
                 await sendPasswordResetEmail(user, resetToken);
+                emailSent = true;
+                console.log('✓ Password reset email sent to:', user.email);
             } catch (emailError) {
                 console.error('Failed to send password reset email:', emailError);
-                return res.status(500).json({ error: 'Failed to send password reset email' });
+                // Don't fail yet - SMS might still work
             }
         }
 
@@ -498,14 +504,22 @@ app.post('/api/auth/forgot-password', async (req, res) => {
                 }
 
                 const smsResult = await sendSMS(phoneNumber, smsMessage);
-                if (!smsResult.success) {
+                if (smsResult.success) {
+                    smsSent = true;
+                    console.log('✓ Password reset SMS sent to:', phoneNumber);
+                } else {
                     console.error('Failed to send password reset SMS:', smsResult.error);
-                    // Don't fail the request if SMS fails, email might have worked
                 }
             } catch (smsError) {
                 console.error('Failed to send password reset SMS:', smsError);
-                // Don't fail the request if SMS fails
             }
+        }
+
+        // Only fail if BOTH email and SMS failed (and user has at least one contact method)
+        if (!emailSent && !smsSent && (user.email || user.phone)) {
+            return res.status(500).json({
+                error: 'Failed to send password reset notification. Please try again later.'
+            });
         }
 
         res.json({
