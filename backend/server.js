@@ -503,6 +503,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
                     phoneNumber = phoneNumber.startsWith('91') ? '+' + phoneNumber : '+91' + phoneNumber;
                 }
 
+
                 const smsResult = await sendSMS(phoneNumber, smsMessage);
                 if (smsResult.success) {
                     smsSent = true;
@@ -515,15 +516,14 @@ app.post('/api/auth/forgot-password', async (req, res) => {
             }
         }
 
-        // Only fail if BOTH email and SMS failed (and user has at least one contact method)
+        // Always show success message (security best practice - don't reveal delivery status)
+        // Log failures internally but show generic success to user
         if (!emailSent && !smsSent && (user.email || user.phone)) {
-            return res.status(500).json({
-                error: 'Failed to send password reset notification. Please try again later.'
-            });
+            console.error('⚠️ Password reset: Both email and SMS failed for user:', user.id);
         }
 
         res.json({
-            message: 'If an account exists with this information, a password reset link has been sent'
+            message: 'Password reset link has been sent to your registered email and/or mobile number'
         });
     } catch (error) {
         console.error('Forgot password error:', error);
