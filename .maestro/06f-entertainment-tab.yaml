@@ -1,6 +1,6 @@
 appId: com.guestscanner.app
 ---
-# Test: Delete Event
+# Test: Add Activity to Entertainment Tab
 - launchApp:
     clearState: true
 
@@ -41,16 +41,12 @@ appId: com.guestscanner.app
 - assertVisible: "Event Title"
 - tapOn:
     text: "e.g. Annual Conference 2024"
-- inputText: "Event to Delete"
+- inputText: "Test Event - Entertainment"
 - tapOn: "Create Event"
 - waitForAnimationToEnd
 
-# Should see event in list
-- assertVisible: "Event to Delete"
-- waitForAnimationToEnd
-
-# Open the event to access delete button
-- tapOn: "Event to Delete"
+# Open event
+- tapOn: "Test Event - Entertainment"
 - waitForAnimationToEnd
 
 # Wait for event details page to load
@@ -59,38 +55,59 @@ appId: com.guestscanner.app
     timeout: 10000
 - waitForAnimationToEnd
 
-# Tap the delete button (trash icon in header) - use id selector
+# ============================================
+# ENTERTAINMENT TAB
+# ============================================
 - tapOn:
-    id: "delete-event-button"
+    id: "tab-entertainment"
 - waitForAnimationToEnd
 
-# Wait for confirmation modal to appear
+# Wait for entertainment tab to load
 - extendedWaitUntil:
-    visible: "Delete Event?"
+    visible: "Add Activity"
     timeout: 10000
 - waitForAnimationToEnd
 
-# Wait a bit more for modal to fully render
+# Click Add Activity button
+- tapOn: "Add Activity"
 - waitForAnimationToEnd
 
-# Wait for the Delete Event button text to be visible (confirms modal is ready)
-- extendedWaitUntil:
-    visible: "Delete Event"
-    timeout: 10000
-- waitForAnimationToEnd
-
-# Confirm deletion - tap using ID selector (most reliable)
+# Fill activity form - tap on placeholder
 - tapOn:
-    id: "confirm-delete-event-button"
+    text: "e.g., DJ Performance, Games, Dance"
+- inputText: "Test Performance"
 - waitForAnimationToEnd
 
-# Wait for navigation back to dashboard
-- extendedWaitUntil:
-    visible: "My Events"
-    timeout: 10000
+# Fill duration - tap on placeholder
+- tapOn:
+    text: "30"
+- inputText: "60"
 - waitForAnimationToEnd
 
-# Event should be gone from the list
-- assertNotVisible: "Event to Delete"
+- swipe:
+    start: "50%,50%"
+    end: "50%,30%"
+    duration: 300
+- waitForAnimationToEnd
+
+# Fill performer - tap on placeholder
+- tapOn:
+    text: "Name"
+- inputText: "Test Band"
+- waitForAnimationToEnd
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,30%"
+    duration: 300
+- waitForAnimationToEnd
+# Submit
+- tapOn: "Add Activity"
+- waitForAnimationToEnd
+
+# Verify activity was added
+- assertVisible: "Test Performance"
+- waitForAnimationToEnd
 
 # Success!
+

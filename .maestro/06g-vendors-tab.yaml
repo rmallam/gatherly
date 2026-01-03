@@ -1,0 +1,136 @@
+appId: com.guestscanner.app
+---
+# Test: Add Vendor to Vendors Tab
+- launchApp:
+    clearState: true
+
+# Handle notification permission if it appears
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+      - waitForAnimationToEnd
+
+# Login first
+# Enter email
+- tapOn: 
+    text: "your@email.com"
+- inputText: "testuser@test.com"
+- waitForAnimationToEnd
+
+# Enter password
+- tapOn:
+    text: "Enter your password"
+- inputText: "Test@1234"
+- waitForAnimationToEnd
+
+# Submit login
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# Wait for dashboard to load
+- extendedWaitUntil:
+    visible: "My Events"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Create event
+- tapOn: "New Event"
+- waitForAnimationToEnd
+- assertVisible: "Event Title"
+- tapOn:
+    text: "e.g. Annual Conference 2024"
+- inputText: "Test Event - Vendors"
+- tapOn: "Create Event"
+- waitForAnimationToEnd
+
+# Open event
+- tapOn: "Test Event - Vendors"
+- waitForAnimationToEnd
+
+# Wait for event details page to load
+- extendedWaitUntil:
+    visible: "Overview"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# ============================================
+# VENDORS TAB
+# ============================================
+- tapOn:
+    id: "tab-vendors"
+- waitForAnimationToEnd
+
+# Wait for vendors tab to load
+- extendedWaitUntil:
+    visible: "Add Vendor"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Click Add Vendor button
+- tapOn: "Add Vendor"
+- waitForAnimationToEnd
+
+# Fill vendor form - tap on placeholder
+- tapOn:
+    text: "Company or person name"
+- inputText: "Test Vendor"
+- waitForAnimationToEnd
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,30%"
+    duration: 300
+- waitForAnimationToEnd
+# Select category
+
+
+# Fill contact - tap on placeholder
+- tapOn:
+    text: "Name"
+- inputText: "Jane Smith"
+- waitForAnimationToEnd
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,30%"
+    duration: 300
+- waitForAnimationToEnd
+# Fill phone - tap on placeholder
+- tapOn:
+    text: "+1 (555) 000-0000"
+- inputText: "9876543210"
+- waitForAnimationToEnd
+
+# Fill email - tap on placeholder
+- tapOn:
+    text: "email@example.com"
+- inputText: "vendor@test.com"
+- waitForAnimationToEnd
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,30%"
+    duration: 300
+- waitForAnimationToEnd
+
+# Fill cost
+- tapOn:
+    text: "0.00"
+- inputText: "1000.00"
+- waitForAnimationToEnd
+
+- scroll
+- waitForAnimationToEnd
+
+# Submit
+- tapOn: "Add Vendor"
+- waitForAnimationToEnd
+
+# Verify vendor was added
+- assertVisible: "Test Vendor"
+- waitForAnimationToEnd
+
+# Success!
+

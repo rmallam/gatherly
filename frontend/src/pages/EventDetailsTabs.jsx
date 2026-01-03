@@ -154,6 +154,8 @@ const EventDetailsTabs = () => {
 
                 <button
                     onClick={() => setShowDeleteEventConfirm(true)}
+                    id="delete-event-button"
+                    data-testid="delete-event-button"
                     style={{
                         display: 'inline-flex',
                         alignItems: 'center',
@@ -223,6 +225,8 @@ const EventDetailsTabs = () => {
                                 </button>
                                 <button
                                     onClick={handleDeleteEvent}
+                                    id="confirm-delete-event-button"
+                                    data-testid="confirm-delete-event-button"
                                     style={{
                                         padding: '10px 20px',
                                         borderRadius: '8px',

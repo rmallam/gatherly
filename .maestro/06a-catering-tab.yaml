@@ -1,6 +1,6 @@
 appId: com.guestscanner.app
 ---
-# Test: Delete Event
+# Test: Add Item to Catering Tab
 - launchApp:
     clearState: true
 
@@ -41,16 +41,12 @@ appId: com.guestscanner.app
 - assertVisible: "Event Title"
 - tapOn:
     text: "e.g. Annual Conference 2024"
-- inputText: "Event to Delete"
+- inputText: "Test Event - Catering"
 - tapOn: "Create Event"
 - waitForAnimationToEnd
 
-# Should see event in list
-- assertVisible: "Event to Delete"
-- waitForAnimationToEnd
-
-# Open the event to access delete button
-- tapOn: "Event to Delete"
+# Open event
+- tapOn: "Test Event - Catering"
 - waitForAnimationToEnd
 
 # Wait for event details page to load
@@ -59,38 +55,60 @@ appId: com.guestscanner.app
     timeout: 10000
 - waitForAnimationToEnd
 
-# Tap the delete button (trash icon in header) - use id selector
+# ============================================
+# CATERING TAB
+# ============================================
 - tapOn:
-    id: "delete-event-button"
+    id: "tab-catering"
 - waitForAnimationToEnd
 
-# Wait for confirmation modal to appear
+# Wait for catering tab to load
 - extendedWaitUntil:
-    visible: "Delete Event?"
+    visible: "Add Menu Item"
     timeout: 10000
 - waitForAnimationToEnd
 
-# Wait a bit more for modal to fully render
+# Click Add Menu Item button
+- tapOn: "Add Menu Item"
 - waitForAnimationToEnd
 
-# Wait for the Delete Event button text to be visible (confirms modal is ready)
-- extendedWaitUntil:
-    visible: "Delete Event"
-    timeout: 10000
-- waitForAnimationToEnd
-
-# Confirm deletion - tap using ID selector (most reliable)
+# Fill catering form - tap on placeholder
 - tapOn:
-    id: "confirm-delete-event-button"
+    text: "e.g., Caesar Salad"
+- inputText: "Test Appetizer"
 - waitForAnimationToEnd
 
-# Wait for navigation back to dashboard
-- extendedWaitUntil:
-    visible: "My Events"
-    timeout: 10000
+# Scroll down to see quantity field (form might be long)
+- scroll
 - waitForAnimationToEnd
 
-# Event should be gone from the list
-- assertNotVisible: "Event to Delete"
+# Fill quantity
+- tapOn:
+    text: "0"
+- inputText: "50"
+- waitForAnimationToEnd
+
+# Fill servings
+- tapOn:
+    text: "0"
+- inputText: "100"
+- waitForAnimationToEnd
+
+# Fill cost
+- tapOn:
+    text: "0.00"
+- inputText: "250.00"
+- waitForAnimationToEnd
+
+# Submit
+- tapOn: "Add Item"
+- waitForAnimationToEnd
+
+- scroll
+- waitForAnimationToEnd
+# Verify item was added
+- assertVisible: "Test Appetizer"
+- waitForAnimationToEnd
 
 # Success!
+

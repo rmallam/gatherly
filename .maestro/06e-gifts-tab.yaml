@@ -1,6 +1,6 @@
 appId: com.guestscanner.app
 ---
-# Test: Delete Event
+# Test: Add Item to Gifts Tab
 - launchApp:
     clearState: true
 
@@ -41,16 +41,12 @@ appId: com.guestscanner.app
 - assertVisible: "Event Title"
 - tapOn:
     text: "e.g. Annual Conference 2024"
-- inputText: "Event to Delete"
+- inputText: "Test Event - Gifts"
 - tapOn: "Create Event"
 - waitForAnimationToEnd
 
-# Should see event in list
-- assertVisible: "Event to Delete"
-- waitForAnimationToEnd
-
-# Open the event to access delete button
-- tapOn: "Event to Delete"
+# Open event
+- tapOn: "Test Event - Gifts"
 - waitForAnimationToEnd
 
 # Wait for event details page to load
@@ -59,38 +55,69 @@ appId: com.guestscanner.app
     timeout: 10000
 - waitForAnimationToEnd
 
-# Tap the delete button (trash icon in header) - use id selector
+# ============================================
+# GIFTS TAB
+# ============================================
 - tapOn:
-    id: "delete-event-button"
+    id: "tab-gifts"
 - waitForAnimationToEnd
 
-# Wait for confirmation modal to appear
+# Wait for gifts tab to load
 - extendedWaitUntil:
-    visible: "Delete Event?"
+    visible: "Add Gift Item"
     timeout: 10000
 - waitForAnimationToEnd
 
-# Wait a bit more for modal to fully render
+- swipe:
+    start: "50%,80%"
+    end: "50%,20%"
+    duration: 500
 - waitForAnimationToEnd
 
-# Wait for the Delete Event button text to be visible (confirms modal is ready)
-- extendedWaitUntil:
-    visible: "Delete Event"
-    timeout: 10000
+# Scroll again to ensure we're at the bottom
+- swipe:
+    start: "50%,80%"
+    end: "50%,20%"
+    duration: 500
 - waitForAnimationToEnd
 
-# Confirm deletion - tap using ID selector (most reliable)
+# Click Add Gift Item button
+- tapOn: "Add Gift Item"
+- waitForAnimationToEnd
+
+# Fill gift form - tap on placeholder
 - tapOn:
-    id: "confirm-delete-event-button"
+    text: "e.g., Personalized Keychains"
+- inputText: "Test Gift"
 - waitForAnimationToEnd
 
-# Wait for navigation back to dashboard
-- extendedWaitUntil:
-    visible: "My Events"
-    timeout: 10000
+# Fill quantity
+- tapOn:
+    text: "0"
+- inputText: "25"
 - waitForAnimationToEnd
 
-# Event should be gone from the list
-- assertNotVisible: "Event to Delete"
+# Fill cost
+- tapOn:
+    text: "0.00"
+- inputText: "500.00"
+- waitForAnimationToEnd
+
+
+# Scroll down to see quantity field
+- swipe:
+    start: "50%,50%"
+    end: "50%,30%"
+    duration: 300
+- waitForAnimationToEnd
+
+# Submit
+- tapOn: "Add Gift"
+- waitForAnimationToEnd
+
+# Verify gift was added
+- assertVisible: "Test Gift"
+- waitForAnimationToEnd
 
 # Success!
+

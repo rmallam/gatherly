@@ -4,30 +4,146 @@ appId: com.guestscanner.app
 - launchApp:
     clearState: true
 
+# Handle notification permission if it appears
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+      - waitForAnimationToEnd
+
 # Login
 - tapOn:
     text: "your@email.com"
-- inputText: "mallamrakeshkumar@gmail.com"
+- inputText: "testuser@test.com"
+- waitForAnimationToEnd
 - tapOn:
     text: "Enter your password"
-- inputText: "Rakeshkumar@123"
+- inputText: "Test@1234"
+- waitForAnimationToEnd
 - tapOn: "Sign In"
 - waitForAnimationToEnd
 
-# Go to profile
+# Wait for dashboard to load
+- extendedWaitUntil:
+    visible: "My Events"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Navigate to profile by tapping on user's name in header
+# The header has a link with the user's name that goes to profile
+- runFlow:
+    when:
+      visible: "Test User"
+    commands:
+      - tapOn: "Test User"
+      - waitForAnimationToEnd
+
+# Wait for profile page to load
+- extendedWaitUntil:
+    visible: "My Profile"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Scroll down to find Appearance section
+# Scroll until we find the Appearance section
+- scroll
+- waitForAnimationToEnd
+- scroll
+- waitForAnimationToEnd
+- scroll
+- waitForAnimationToEnd
+
+# Wait for Appearance section to be visible
+- extendedWaitUntil:
+    visible: "Appearance"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Should see theme toggle section
+- assertVisible: "Dark Theme"
+- waitForAnimationToEnd
+
+# Verify "Disabled" text is visible (confirms dark mode is currently off)
+- extendedWaitUntil:
+    visible: "Disabled"
+    timeout: 5000
+- waitForAnimationToEnd
+
+# Toggle dark mode on using coordinates
+# The toggle switch is on the right side of the "Dark Theme" row
+# Try multiple coordinate positions to find the toggle
 - tapOn:
-    id: ".*profile.*"
+    point: "90%,55%"
 - waitForAnimationToEnd
 
-# Should see theme toggle
-- assertVisible: "Dark Mode"
+# If still disabled, try slightly different positions
+- runFlow:
+    when:
+      visible: "Disabled"
+    commands:
+      - tapOn:
+          point: "85%,55%"
+      - waitForAnimationToEnd
+      - runFlow:
+          when:
+            visible: "Disabled"
+          commands:
+            - tapOn:
+                point: "92%,55%"
+            - waitForAnimationToEnd
+            - runFlow:
+                when:
+                  visible: "Disabled"
+                commands:
+                  - tapOn:
+                      point: "90%,52%"
+                  - waitForAnimationToEnd
 
-# Toggle dark mode on
-- tapOn: "Dark Mode"
+# Wait for toggle to register
 - waitForAnimationToEnd
 
-# Toggle dark mode off
-- tapOn: "Dark Mode"
+# Verify dark mode is enabled (check for "Enabled" text)
+- extendedWaitUntil:
+    visible: "Enabled"
+    timeout: 5000
+- waitForAnimationToEnd
+
+# Toggle dark mode off using coordinates
+- tapOn:
+    point: "90%,55%"
+- waitForAnimationToEnd
+
+# If still enabled, try slightly different positions
+- runFlow:
+    when:
+      visible: "Enabled"
+    commands:
+      - tapOn:
+          point: "85%,55%"
+      - waitForAnimationToEnd
+      - runFlow:
+          when:
+            visible: "Enabled"
+          commands:
+            - tapOn:
+                point: "92%,55%"
+            - waitForAnimationToEnd
+            - runFlow:
+                when:
+                  visible: "Enabled"
+                commands:
+                  - tapOn:
+                      point: "90%,52%"
+                  - waitForAnimationToEnd
+
+# Wait for toggle to register
+- waitForAnimationToEnd
+
+# Verify dark mode is disabled (check for "Disabled" text)
+- extendedWaitUntil:
+    visible: "Disabled"
+    timeout: 5000
 - waitForAnimationToEnd
 
 # Success!

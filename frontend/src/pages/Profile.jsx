@@ -786,11 +786,19 @@ const Profile = () => {
                             </div>
                         </div>
 
-                        <label className="theme-toggle">
+                        <label 
+                            className="theme-toggle"
+                            id="dark-theme-toggle"
+                            data-testid="dark-theme-toggle"
+                            aria-label="Dark Theme Toggle"
+                        >
                             <input
                                 type="checkbox"
+                                id="dark-theme-checkbox"
+                                data-testid="dark-theme-checkbox"
                                 checked={theme === 'dark'}
                                 onChange={toggleTheme}
+                                aria-label="Toggle Dark Theme"
                             />
                             <span className="slider"></span>
                         </label>

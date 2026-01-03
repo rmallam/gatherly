@@ -1,0 +1,546 @@
+appId: com.guestscanner.app
+---
+# Test: Add Items to All Event Detail Tabs
+- launchApp:
+    clearState: true
+
+# Handle notification permission if it appears
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+      - waitForAnimationToEnd
+
+# Login first
+# Enter email
+- tapOn: 
+    text: "your@email.com"
+- inputText: "testuser@test.com"
+- waitForAnimationToEnd
+
+# Enter password
+- tapOn:
+    text: "Enter your password"
+- inputText: "Test@1234"
+- waitForAnimationToEnd
+
+# Submit login
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# Wait for dashboard to load
+- extendedWaitUntil:
+    visible: "My Events"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Create event
+- tapOn: "New Event"
+- waitForAnimationToEnd
+- assertVisible: "Event Title"
+- tapOn:
+    text: "e.g. Annual Conference 2024"
+- inputText: "Test Event for Tabs"
+- tapOn: "Create Event"
+- waitForAnimationToEnd
+
+# Open event
+- tapOn: "Test Event for Tabs"
+- waitForAnimationToEnd
+
+# Wait for event details page to load
+- extendedWaitUntil:
+    visible: "Overview"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# ============================================
+# 1. CATERING TAB
+# ============================================
+- tapOn:
+    id: "tab-catering"
+- waitForAnimationToEnd
+
+# Wait for catering tab to load
+- extendedWaitUntil:
+    visible: "Add Menu Item"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Click Add Menu Item button
+- tapOn: "Add Menu Item"
+- waitForAnimationToEnd
+
+# Fill catering form - tap on placeholder
+- tapOn:
+    text: "e.g., Caesar Salad"
+- inputText: "Test Appetizer"
+- waitForAnimationToEnd
+
+# Scroll down to see quantity field (form might be long)
+- scroll
+- waitForAnimationToEnd
+
+# Fill quantity
+- tapOn:
+    text: "0"
+- inputText: "50"
+- waitForAnimationToEnd
+
+# Fill servings
+- tapOn:
+    text: "0"
+- inputText: "100"
+- waitForAnimationToEnd
+
+# Fill cost
+- tapOn:
+    text: "0.00"
+- inputText: "250.00"
+- waitForAnimationToEnd
+
+# Submit
+- tapOn: "Add Item"
+- waitForAnimationToEnd
+
+- scroll
+- waitForAnimationToEnd
+
+# Verify item was added
+- assertVisible: "Test Appetizer"
+- waitForAnimationToEnd
+
+# Scroll up to see tab navigation for next tab
+- swipe:
+    start: "50%,20%"
+    end: "50%,80%"
+    duration: 500
+- waitForAnimationToEnd
+
+# ============================================
+# 2. TASKS TAB
+# ============================================
+- tapOn:
+    id: "tab-tasks"
+- waitForAnimationToEnd
+
+# Wait for tasks tab to load
+- extendedWaitUntil:
+    visible: "Add Task"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Click Add Task button
+- tapOn: "Add Task"
+- waitForAnimationToEnd
+
+# Fill task form - tap on placeholder
+- tapOn:
+    text: "e.g., Book photographer"
+- inputText: "Test Task"
+- waitForAnimationToEnd
+
+- scroll
+- waitForAnimationToEnd
+
+# Submit
+- tapOn: "Add Task"
+- waitForAnimationToEnd
+
+- scroll
+- waitForAnimationToEnd
+
+# Verify task was added
+- assertVisible: "Test Task"
+- waitForAnimationToEnd
+
+# Scroll up to see tab navigation for next tab
+- swipe:
+    start: "50%,20%"
+    end: "50%,80%"
+    duration: 500
+- waitForAnimationToEnd
+
+# ============================================
+# 3. VENUE TAB
+# ============================================
+- tapOn:
+    id: "tab-venue"
+- waitForAnimationToEnd
+
+# Wait for venue tab to load
+- extendedWaitUntil:
+    visible: "Add Venue Information"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Click Add Venue Information button
+- tapOn: "Add Venue Information"
+- waitForAnimationToEnd
+
+# Fill venue form - tap on placeholders
+- tapOn:
+    text: "e.g., Grand Ballroom Hotel"
+- inputText: "Test Venue"
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Full venue address"
+- inputText: "123 Test Street, Test City"
+- waitForAnimationToEnd
+
+# Limited scroll down (just enough to see next field) - swipe from 50% to 30% vertically
+- swipe:
+    start: "50%,50%"
+    end: "50%,30%"
+    duration: 300
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Name"
+- inputText: "John Doe"
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "+1 (555) 000-0000"
+- inputText: "1234567890"
+- waitForAnimationToEnd
+
+# Scroll down multiple times to ensure we reach the Save button at the bottom
+- swipe:
+    start: "50%,80%"
+    end: "50%,20%"
+    duration: 500
+- waitForAnimationToEnd
+
+# Scroll again to ensure we're at the bottom
+- swipe:
+    start: "50%,80%"
+    end: "50%,20%"
+    duration: 500
+- waitForAnimationToEnd
+
+# Wait for Save button to be visible
+- extendedWaitUntil:
+    visible: "Save Venue Details"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Save venue
+- tapOn: "Save Venue Details"
+- waitForAnimationToEnd
+
+# Verify venue was saved
+- assertVisible: "Test Venue"
+- waitForAnimationToEnd
+
+# Scroll up to see tab navigation for next tab
+- swipe:
+    start: "50%,20%"
+    end: "50%,80%"
+    duration: 500
+- waitForAnimationToEnd
+
+# ============================================
+# 4. DECORATIONS TAB
+# ============================================
+- tapOn:
+    id: "tab-decorations"
+- waitForAnimationToEnd
+
+# Wait for decorations tab to load
+- extendedWaitUntil:
+    visible: "Add Decoration Item"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Click Add Decoration Item button
+- tapOn: "Add Decoration Item"
+- waitForAnimationToEnd
+
+# Fill decoration form - tap on placeholder
+- tapOn:
+    text: "e.g., Balloons, Flowers"
+- inputText: "Test Decoration"
+- waitForAnimationToEnd
+
+
+# Scroll down to see quantity field
+- swipe:
+    start: "50%,50%"
+    end: "50%,30%"
+    duration: 300
+- waitForAnimationToEnd
+
+# Fill quantity
+- tapOn:
+    text: "0"
+- inputText: "10"
+- waitForAnimationToEnd
+
+# Fill cost
+- tapOn:
+    text: "0.00"
+- inputText: "150.00"
+- waitForAnimationToEnd
+
+# Submit
+- tapOn: "Add Item"
+- waitForAnimationToEnd
+
+- swipe:
+    start: "50%,80%"
+    end: "50%,20%"
+    duration: 500
+- waitForAnimationToEnd
+
+# Scroll again to ensure we're at the bottom
+- swipe:
+    start: "50%,80%"
+    end: "50%,20%"
+    duration: 500
+- waitForAnimationToEnd
+
+# Verify decoration was added
+- assertVisible: "Test Decoration"
+- waitForAnimationToEnd
+
+# Scroll up to see tab navigation for next tab
+- swipe:
+    start: "50%,20%"
+    end: "50%,80%"
+    duration: 500
+- waitForAnimationToEnd
+
+# ============================================
+# 5. GIFTS TAB
+# ============================================
+- tapOn:
+    id: "tab-gifts"
+- waitForAnimationToEnd
+
+# Wait for gifts tab to load
+- extendedWaitUntil:
+    visible: "Add Gift Item"
+    timeout: 10000
+- waitForAnimationToEnd
+
+- swipe:
+    start: "50%,80%"
+    end: "50%,20%"
+    duration: 500
+- waitForAnimationToEnd
+
+# Scroll again to ensure we're at the bottom
+- swipe:
+    start: "50%,80%"
+    end: "50%,20%"
+    duration: 500
+- waitForAnimationToEnd
+
+# Click Add Gift Item button
+- tapOn: "Add Gift Item"
+- waitForAnimationToEnd
+
+# Fill gift form - tap on placeholder
+- tapOn:
+    text: "e.g., Personalized Keychains"
+- inputText: "Test Gift"
+- waitForAnimationToEnd
+
+# Scroll down to see quantity field
+- swipe:
+    start: "50%,50%"
+    end: "50%,30%"
+    duration: 300
+- waitForAnimationToEnd
+
+# Fill quantity
+- tapOn:
+    text: "0"
+- inputText: "25"
+- waitForAnimationToEnd
+
+# Fill cost
+- tapOn:
+    text: "0.00"
+- inputText: "500.00"
+- waitForAnimationToEnd
+
+# Submit
+- tapOn: "Add Gift"
+- waitForAnimationToEnd
+
+# Verify gift was added
+- assertVisible: "Test Gift"
+- waitForAnimationToEnd
+
+# Scroll up to see tab navigation for next tab
+- swipe:
+    start: "50%,20%"
+    end: "50%,80%"
+    duration: 500
+- waitForAnimationToEnd
+
+# ============================================
+# 6. ENTERTAINMENT TAB
+# ============================================
+- tapOn:
+    id: "tab-entertainment"
+- waitForAnimationToEnd
+
+# Wait for entertainment tab to load
+- extendedWaitUntil:
+    visible: "Add Activity"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Click Add Activity button
+- tapOn: "Add Activity"
+- waitForAnimationToEnd
+
+# Fill activity form - tap on placeholder
+- tapOn:
+    text: "e.g., DJ Performance, Games, Dance"
+- inputText: "Test Performance"
+- waitForAnimationToEnd
+
+# Fill duration - tap on placeholder
+- tapOn:
+    text: "30"
+- inputText: "60"
+- waitForAnimationToEnd
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,30%"
+    duration: 300
+- waitForAnimationToEnd
+
+# Fill performer - tap on placeholder
+- tapOn:
+    text: "Name"
+- inputText: "Test Band"
+- waitForAnimationToEnd
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,30%"
+    duration: 300
+- waitForAnimationToEnd
+
+# Submit
+- tapOn: "Add Activity"
+- waitForAnimationToEnd
+
+# Verify activity was added
+- assertVisible: "Test Performance"
+- waitForAnimationToEnd
+
+# Scroll up to see tab navigation for next tab
+- swipe:
+    start: "50%,20%"
+    end: "50%,80%"
+    duration: 500
+- waitForAnimationToEnd
+
+# ============================================
+# 7. VENDORS TAB
+# ============================================
+- tapOn:
+    id: "tab-vendors"
+- waitForAnimationToEnd
+
+# Wait for vendors tab to load
+- extendedWaitUntil:
+    visible: "Add Vendor"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Click Add Vendor button
+- tapOn: "Add Vendor"
+- waitForAnimationToEnd
+
+# Fill vendor form - tap on placeholder
+- tapOn:
+    text: "Company or person name"
+- inputText: "Test Vendor"
+- waitForAnimationToEnd
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,30%"
+    duration: 300
+- waitForAnimationToEnd
+
+# Select category
+
+# Fill contact - tap on placeholder
+- tapOn:
+    text: "Name"
+- inputText: "Jane Smith"
+- waitForAnimationToEnd
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,30%"
+    duration: 300
+- waitForAnimationToEnd
+
+# Fill phone - tap on placeholder
+- tapOn:
+    text: "+1 (555) 000-0000"
+- inputText: "9876543210"
+- waitForAnimationToEnd
+
+# Fill email - tap on placeholder
+- tapOn:
+    text: "email@example.com"
+- inputText: "vendor@test.com"
+- waitForAnimationToEnd
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,30%"
+    duration: 300
+- waitForAnimationToEnd
+
+# Fill cost
+- tapOn:
+    text: "0.00"
+- inputText: "1000.00"
+- waitForAnimationToEnd
+
+- scroll
+- waitForAnimationToEnd
+
+# Submit
+- tapOn: "Add Vendor"
+- waitForAnimationToEnd
+
+# Verify vendor was added
+- assertVisible: "Test Vendor"
+- waitForAnimationToEnd
+
+# Scroll up to see tab navigation
+- swipe:
+    start: "50%,20%"
+    end: "50%,80%"
+    duration: 500
+- waitForAnimationToEnd
+
+# ============================================
+# Success - All tabs tested!
+# ============================================
+# Go back to overview to verify everything
+- tapOn:
+    id: "tab-overview"
+- waitForAnimationToEnd
+
+# Verify we're back on overview
+- assertVisible: "Overview"
+- waitForAnimationToEnd
+
+# Success!
+

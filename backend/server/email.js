@@ -5,8 +5,8 @@ const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key_for_local_
 // From email address
 const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 const APP_URL = process.env.APP_URL || 'https://gatherly-backend-3vmv.onrender.com';
-// Frontend URL for password reset (should point to your deployed frontend or capacitor://localhost for mobile)
-const FRONTEND_URL = process.env.FRONTEND_URL || 'capacitor://localhost';
+// Frontend URL for password reset - uses backend domain for deep linking to mobile app
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://gatherly-backend-3vmv.onrender.com';
 
 /**
  * Send email verification

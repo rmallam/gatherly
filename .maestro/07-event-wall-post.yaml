@@ -1,0 +1,311 @@
+appId: com.guestscanner.app
+---
+# Test: Post to Event Wall
+- launchApp:
+    clearState: true
+
+# Handle notification permission if it appears
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+      - waitForAnimationToEnd
+
+# Login first
+# Enter email
+- tapOn: 
+    text: "your@email.com"
+- inputText: "testuser@test.com"
+- waitForAnimationToEnd
+
+# Enter password
+- tapOn:
+    text: "Enter your password"
+- inputText: "Test@1234"
+- waitForAnimationToEnd
+
+# Submit login
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# Wait for dashboard to load
+- extendedWaitUntil:
+    visible: "My Events"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Create event
+- tapOn: "New Event"
+- waitForAnimationToEnd
+- assertVisible: "Event Title"
+- tapOn:
+    text: "e.g. Annual Conference 2024"
+- inputText: "Test Event - Wall"
+- tapOn: "Create Event"
+- waitForAnimationToEnd
+
+# Open event
+- tapOn: "Test Event - Wall"
+- waitForAnimationToEnd
+
+# Wait for event details page to load
+- extendedWaitUntil:
+    visible: "Overview"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# ============================================
+# EVENT WALL
+# ============================================
+# Click on Event Wall button/link (usually in header)
+- tapOn: "Event Wall"
+- waitForAnimationToEnd
+
+# Wait for event wall to load
+- extendedWaitUntil:
+    visible: "Post"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Click Post button to open new post modal
+- tapOn: "Post"
+- waitForAnimationToEnd
+
+# Wait for modal to appear
+- extendedWaitUntil:
+    visible: "New Post"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# ============================================
+# POST WITH IMAGE
+# ============================================
+# Click Add Photo button
+- tapOn: "Add Photo"
+- waitForAnimationToEnd
+
+# Wait for dialog to appear with options (native action sheet)
+# The dialog shows "from photo" or "take picture" options
+- extendedWaitUntil:
+    visible: "From Photos"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Select "from photo" option from the dialog
+- tapOn: "From Photos"
+- waitForAnimationToEnd
+
+# Handle photo library permission if needed
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+      - waitForAnimationToEnd
+
+# Wait for photo gallery modal to appear with Photos tab
+- extendedWaitUntil:
+    visible: "Photos"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Wait for photos to load - don't dismiss banner yet (keep layout consistent)
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Try scrolling the gallery slightly to ensure photos are in view
+- swipe:
+    start: "50%,60%"
+    end: "50%,55%"
+    duration: 200
+- waitForAnimationToEnd
+
+# Based on screenshot: Modal is lower 2/3, photos start below tabs+banner
+# First photo is in top-left of grid area
+# Try multiple precise coordinates for the first photo
+# Coordinate set 1: Left side, middle of visible grid area
+- tapOn:
+    point: "15%,52%"
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Check if confirmation button appears (Select/Choose/Done)
+- runFlow:
+    when:
+      visible: "Select"
+    commands:
+      - tapOn: "Select"
+      - waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Choose"
+    commands:
+      - tapOn: "Choose"
+      - waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Done"
+    commands:
+      - tapOn: "Done"
+      - waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Use Photo"
+    commands:
+      - tapOn: "Use Photo"
+      - waitForAnimationToEnd
+
+# If still in gallery, try coordinate set 2
+- runFlow:
+    when:
+      visible: "Photos"
+    commands:
+      - tapOn:
+          point: "18%,54%"
+      - waitForAnimationToEnd
+      - waitForAnimationToEnd
+      - runFlow:
+          when:
+            visible: "Select"
+          commands:
+            - tapOn: "Select"
+            - waitForAnimationToEnd
+      - runFlow:
+          when:
+            visible: "Choose"
+          commands:
+            - tapOn: "Choose"
+            - waitForAnimationToEnd
+      - runFlow:
+          when:
+            visible: "Done"
+          commands:
+            - tapOn: "Done"
+            - waitForAnimationToEnd
+
+# If still in gallery, try coordinate set 3 (second photo)
+- runFlow:
+    when:
+      visible: "Photos"
+    commands:
+      - tapOn:
+          point: "32%,52%"
+      - waitForAnimationToEnd
+      - waitForAnimationToEnd
+      - runFlow:
+          when:
+            visible: "Select"
+          commands:
+            - tapOn: "Select"
+            - waitForAnimationToEnd
+      - runFlow:
+          when:
+            visible: "Choose"
+          commands:
+            - tapOn: "Choose"
+            - waitForAnimationToEnd
+      - runFlow:
+          when:
+            visible: "Done"
+          commands:
+            - tapOn: "Done"
+            - waitForAnimationToEnd
+
+# If still in gallery, try coordinate set 4 (center photo)
+- runFlow:
+    when:
+      visible: "Photos"
+    commands:
+      - tapOn:
+          point: "50%,52%"
+      - waitForAnimationToEnd
+      - waitForAnimationToEnd
+      - runFlow:
+          when:
+            visible: "Select"
+          commands:
+            - tapOn: "Select"
+            - waitForAnimationToEnd
+      - runFlow:
+          when:
+            visible: "Choose"
+          commands:
+            - tapOn: "Choose"
+            - waitForAnimationToEnd
+      - runFlow:
+          when:
+            visible: "Done"
+          commands:
+            - tapOn: "Done"
+            - waitForAnimationToEnd
+
+# Wait for the gallery modal to close and return to New Post modal
+# This confirms the photo was selected and gallery closed
+- extendedWaitUntil:
+    visible: "New Post"
+    timeout: 15000
+- waitForAnimationToEnd
+
+# Verify we're back in the New Post modal (gallery should be closed)
+- assertVisible: "New Post"
+- waitForAnimationToEnd
+
+# The image preview should now be visible in the modal (as an image element)
+# We can verify by checking the modal is still open and ready for text input
+
+# Add optional text to the post
+- tapOn:
+    text: "What's on your mind?"
+- inputText: "Check out this awesome photo from the event!"
+- waitForAnimationToEnd
+
+# Submit post with image
+- tapOn: "Post to Wall"
+- waitForAnimationToEnd
+
+# Wait for post to be created and appear in feed
+- extendedWaitUntil:
+    visible: "Check out this awesome photo from the event!"
+    timeout: 15000
+- waitForAnimationToEnd
+
+# Verify post with image is visible in the wall
+- assertVisible: "Check out this awesome photo from the event!"
+- waitForAnimationToEnd
+
+# ============================================
+# POST WITH TEXT ONLY (Second Post)
+# ============================================
+# Click Post button again for second post
+- tapOn: "Post"
+- waitForAnimationToEnd
+
+# Wait for modal to appear
+- extendedWaitUntil:
+    visible: "New Post"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Fill post content - text only
+- tapOn:
+    text: "What's on your mind?"
+- inputText: "This is a text-only test post from Maestro automation!"
+- waitForAnimationToEnd
+
+# Submit post
+- tapOn: "Post to Wall"
+- waitForAnimationToEnd
+
+# Wait for post to be created and appear in feed
+- extendedWaitUntil:
+    visible: "This is a text-only test post from Maestro automation!"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Verify text-only post is visible in the wall
+- assertVisible: "This is a text-only test post from Maestro automation!"
+- waitForAnimationToEnd
+
+# Success!
+

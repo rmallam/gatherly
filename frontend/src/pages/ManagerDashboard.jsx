@@ -248,6 +248,8 @@ const ManagerDashboard = () => {
                                             {!isGuest && (
                                                 <button
                                                     onClick={(e) => handleDelete(e, event.id)}
+                                                    id={`delete-event-from-list-${event.id}`}
+                                                    data-testid={`delete-event-from-list-${event.id}`}
                                                     style={{
                                                         padding: '8px',
                                                         color: '#9ca3af',

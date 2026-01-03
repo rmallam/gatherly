@@ -37,41 +37,70 @@ appId: com.guestscanner.app
 
 # Wait a moment for event to load
 - waitForAnimationToEnd
-    
-# Tap on Guests tab by coordinates (second tab, ~25% from left, near top)
-- tapOn:
-    point: "25%,12%"
+
+# Wait for tabs to be visible - Overview should be the first tab
+- extendedWaitUntil:
+    visible: "Overview"
+    timeout: 10000
 - waitForAnimationToEnd
 
-# Add guest
+# Tap on Guests tab using the id attribute (most reliable)
+# The tab button has id="tab-guests" for accessibility
+- tapOn:
+    id: "tab-guests"
+- waitForAnimationToEnd
+
+# Verify we successfully navigated to Guests tab by checking for Add Guest button
+- extendedWaitUntil:
+    visible: "Add Guest"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Add guest - tap the Add Guest button
 - tapOn: "Add Guest"
 - waitForAnimationToEnd
 
-# Fill guest details
+# Wait for the Add Guest modal to appear
+- assertVisible: "Add Guest"
+- waitForAnimationToEnd
+
+# Fill guest details - tap on the name input field
 - tapOn:
     text: "John Doe"
 - inputText: "Test Guest"
+- waitForAnimationToEnd
+
+# Fill phone number - tap on the phone input field
 - tapOn:
     text: "9876543210"
 - inputText: "1234567890"
+- waitForAnimationToEnd
 
-# Save guest
+# Save guest - tap Add to List button
 - tapOn: "Add to List"
 - waitForAnimationToEnd
 
-# Should see guest in list
+# Wait for guest to appear in list (this confirms the modal closed and guest was added)
 - assertVisible: "Test Guest"
+- waitForAnimationToEnd
 
 # Test duplicate prevention
 - tapOn: "Add Guest"
 - waitForAnimationToEnd
+
+# Wait for modal to appear
+- assertVisible: "Add Guest"
+- waitForAnimationToEnd
+
+# Try to add the same guest again
 - tapOn:
     text: "John Doe"
 - inputText: "Test Guest"
+- waitForAnimationToEnd
 - tapOn: "Add to List"
 - waitForAnimationToEnd
 
 # Should show duplicate alert
-- assertVisible: "already been added"
+- assertVisible: "This guest has already been added!"
 
 # Success!

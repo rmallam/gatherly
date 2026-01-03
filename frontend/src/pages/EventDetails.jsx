@@ -660,6 +660,8 @@ const EventDetails = () => {
                                 </button>
                                 <button
                                     onClick={handleDeleteEvent}
+                                    id="confirm-delete-event-button"
+                                    data-testid="confirm-delete-event-button"
                                     className="btn btn-primary"
                                     style={{ justifyContent: 'center', background: '#ef4444', border: 'none' }}
                                 >

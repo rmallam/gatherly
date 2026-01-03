@@ -1,0 +1,132 @@
+appId: com.guestscanner.app
+---
+# Test: Add Venue Information
+- launchApp:
+    clearState: true
+
+# Handle notification permission if it appears
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+      - waitForAnimationToEnd
+
+# Login first
+# Enter email
+- tapOn: 
+    text: "your@email.com"
+- inputText: "testuser@test.com"
+- waitForAnimationToEnd
+
+# Enter password
+- tapOn:
+    text: "Enter your password"
+- inputText: "Test@1234"
+- waitForAnimationToEnd
+
+# Submit login
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# Wait for dashboard to load
+- extendedWaitUntil:
+    visible: "My Events"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Create event
+- tapOn: "New Event"
+- waitForAnimationToEnd
+- assertVisible: "Event Title"
+- tapOn:
+    text: "e.g. Annual Conference 2024"
+- inputText: "Test Event - Venue"
+- tapOn: "Create Event"
+- waitForAnimationToEnd
+
+# Open event
+- tapOn: "Test Event - Venue"
+- waitForAnimationToEnd
+
+# Wait for event details page to load
+- extendedWaitUntil:
+    visible: "Overview"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# ============================================
+# VENUE TAB
+# ============================================
+- tapOn:
+    id: "tab-venue"
+- waitForAnimationToEnd
+
+# Wait for venue tab to load
+- extendedWaitUntil:
+    visible: "Add Venue Information"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Click Add Venue Information button
+- tapOn: "Add Venue Information"
+- waitForAnimationToEnd
+
+# Fill venue form - tap on placeholders
+- tapOn:
+    text: "e.g., Grand Ballroom Hotel"
+- inputText: "Test Venue"
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Full venue address"
+- inputText: "123 Test Street, Test City"
+- waitForAnimationToEnd
+
+# Limited scroll down (just enough to see next field) - swipe from 50% to 30% vertically
+- swipe:
+    start: "50%,50%"
+    end: "50%,30%"
+    duration: 300
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Name"
+- inputText: "John Doe"
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "+1 (555) 000-0000"
+- inputText: "1234567890"
+- waitForAnimationToEnd
+
+# Scroll down multiple times to ensure we reach the Save button at the bottom
+- swipe:
+    start: "50%,80%"
+    end: "50%,20%"
+    duration: 500
+- waitForAnimationToEnd
+
+# Scroll again to ensure we're at the bottom
+- swipe:
+    start: "50%,80%"
+    end: "50%,20%"
+    duration: 500
+- waitForAnimationToEnd
+
+# Wait for Save button to be visible
+- extendedWaitUntil:
+    visible: "Save Venue Details"
+    timeout: 10000
+- waitForAnimationToEnd
+
+# Save venue
+- tapOn: "Save Venue Details"
+- waitForAnimationToEnd
+
+# Verify venue was saved
+- assertVisible: "Test Venue"
+- waitForAnimationToEnd
+
+# Success!
+
