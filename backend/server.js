@@ -496,16 +496,30 @@ app.post('/api/auth/forgot-password', async (req, res) => {
                 const resetUrl = `https://gatherly-backend-3vmv.onrender.com/reset-password?token=${resetToken}`;
                 const smsMessage = `Hi ${user.name}, reset your HostEze password: ${resetUrl} (Link expires in 1 hour)`;
 
-                // Format phone number for SMS - use the same logic as normalizePhone
+                // Format phone number for SMS - handle international numbers
                 let phoneNumber = user.phone;
-                // Remove all non-digits
-                phoneNumber = phoneNumber.replace(/\D/g, '');
 
-                // Get last 10 digits (the actual phone number)
-                const last10Digits = phoneNumber.slice(-10);
+                // If already has + prefix, use as-is (already has country code)
+                if (phoneNumber.startsWith('+')) {
+                    phoneNumber = phoneNumber.replace(/[^\d+]/g, ''); // Just clean it
+                } else {
+                    // Remove all non-digits
+                    phoneNumber = phoneNumber.replace(/\D/g, '');
 
-                // Add +91 country code
-                phoneNumber = '+91' + last10Digits;
+                    // If it's a 10-digit number, assume Indian and add +91
+                    if (phoneNumber.length === 10) {
+                        phoneNumber = '+91' + phoneNumber;
+                    }
+                    // If it starts with 91 and has 12 digits total, it's likely +91 without the +
+                    else if (phoneNumber.startsWith('91') && phoneNumber.length === 12) {
+                        phoneNumber = '+' + phoneNumber;
+                    }
+                    // For other cases, extract last 10 digits and add +91 (default to India)
+                    else {
+                        const last10Digits = phoneNumber.slice(-10);
+                        phoneNumber = '+91' + last10Digits;
+                    }
+                }
 
                 console.log(`Sending password reset SMS to: ${phoneNumber}`);
 
