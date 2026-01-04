@@ -154,7 +154,7 @@ const OverviewTab = ({ event }) => {
                             <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Total Invited</div>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8125rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8125rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)', whiteSpace: 'nowrap' }}>
                         <button
                             onClick={() => showGuestList('Confirmed Guests', confirmedGuests)}
                             style={{ background: 'none', border: 'none', padding: 0, color: '#10b981', fontWeight: 500, cursor: 'pointer', textDecoration: 'underline' }}
