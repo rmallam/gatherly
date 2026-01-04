@@ -21,50 +21,85 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
 
     // Get all participants based on event type
     const participants = React.useMemo(() => {
+        console.log('=== EXPENSE MODAL PARTICIPANTS DEBUG ===');
         console.log('Event object:', event);
         console.log('Event type:', event.event_type);
+        console.log('Event user_id:', event.user_id);
+        console.log('Event user_name:', event.user_name);
         console.log('Event guests:', event.guests);
+        console.log('Number of guests:', event.guests?.length);
 
         if (event.event_type === 'shared') {
             // For shared events, include ALL guests (registered and unregistered)
-            const allParticipants = [
-                {
-                    id: event.user_id,
-                    name: event.user_name || 'Event Owner',
-                    isRegistered: true
-                },
-                ...(event.guests || []).map(g => ({
+            const eventOwner = {
+                id: event.user_id,
+                name: event.user_name || 'Event Owner',
+                email: null,
+                phone: null,
+                isRegistered: true,
+                isOwner: true
+            };
+
+            const guestParticipants = (event.guests || []).map((g, index) => {
+                console.log(`Guest ${index}:`, g);
+                return {
                     id: g.user_id || g.id, // Use user_id if available, otherwise guest id
                     name: g.name,
                     email: g.email,
                     phone: g.phone,
-                    isRegistered: !!g.user_id // True if they have a user account
-                }))
-            ];
+                    isRegistered: !!g.user_id, // True if they have a user account
+                    isOwner: false
+                };
+            });
 
-            console.log('Shared event participants (all):', allParticipants);
-            return allParticipants.filter((p, index, self) =>
-                index === self.findIndex(t => t.id === p.id)
-            );
+            const allParticipants = [eventOwner, ...guestParticipants];
+
+            console.log('All participants before dedup:', allParticipants);
+
+            // Deduplicate by composite key (id + name) to handle cases where id might be null or duplicate
+            const uniqueParticipants = allParticipants.filter((p, index, self) => {
+                const key = `${p.id}-${p.name}`;
+                return index === self.findIndex(t => `${t.id}-${t.name}` === key);
+            });
+
+            console.log('Unique participants after dedup:', uniqueParticipants);
+            console.log('=== END DEBUG ===');
+
+            return uniqueParticipants;
         } else {
             // For host events, include ALL guests (registered and unregistered)
             console.log('Using event owner + all guests');
-            return [
-                {
-                    id: event.user_id,
-                    name: event.user_name || 'Event Owner',
-                    isRegistered: true
-                },
-                ...(event.guests || []).map(g => ({
-                    id: g.user_id || g.id,
-                    name: g.name,
-                    email: g.email,
-                    phone: g.phone,
-                    isRegistered: !!g.user_id
-                }))
-            ].filter((p, index, self) =>
-                index === self.findIndex(t => t.id === p.id)
-            );
+
+            const eventOwner = {
+                id: event.user_id,
+                name: event.user_name || 'Event Owner',
+                email: null,
+                phone: null,
+                isRegistered: true,
+                isOwner: true
+            };
+
+            const guestParticipants = (event.guests || []).map(g => ({
+                id: g.user_id || g.id,
+                name: g.name,
+                email: g.email,
+                phone: g.phone,
+                isRegistered: !!g.user_id,
+                isOwner: false
+            }));
+
+            const allParticipants = [eventOwner, ...guestParticipants];
+
+            // Deduplicate by composite key
+            const uniqueParticipants = allParticipants.filter((p, index, self) => {
+                const key = `${p.id}-${p.name}`;
+                return index === self.findIndex(t => `${t.id}-${t.name}` === key);
+            });
+
+            console.log('Host event participants:', uniqueParticipants);
+            console.log('=== END DEBUG ===');
+
+            return uniqueParticipants;
         }
     }, [event]);
 
