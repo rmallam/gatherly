@@ -178,7 +178,7 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
             </div>
 
             {/* Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+            <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
                 <div className="card" style={{ padding: '1rem' }}>
                     <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Items</div>
                     <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--primary)' }}>{items.length}</div>
