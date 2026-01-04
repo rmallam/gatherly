@@ -60,9 +60,23 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
                         }}
                     >
                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                                {balance.fromUserName}
-                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                                    {balance.fromUserName}
+                                </span>
+                                {balance.isPending && (
+                                    <span style={{
+                                        fontSize: '0.75rem',
+                                        padding: '0.125rem 0.5rem',
+                                        borderRadius: '12px',
+                                        background: '#fbbf24',
+                                        color: '#78350f',
+                                        fontWeight: 600
+                                    }}>
+                                        📧 Pending
+                                    </span>
+                                )}
+                            </div>
                             <ArrowRight size={18} style={{ color: 'var(--text-tertiary)' }} />
                             <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                                 {balance.toUserName}
@@ -71,15 +85,26 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
                         <span style={{ fontSize: '1.125rem', fontWeight: 700, color: '#ef4444' }}>
                             {balance.currency} {parseFloat(balance.amount).toFixed(2)}
                         </span>
-                        <button
-                            onClick={() => handleSettle(balance)}
-                            className="btn btn-primary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}
-                            disabled={settling === balance}
-                        >
-                            <Check size={16} />
-                            {settling === balance ? 'Settling...' : 'Settle Up'}
-                        </button>
+                        {balance.isPending ? (
+                            <div style={{
+                                fontSize: '0.75rem',
+                                color: 'var(--text-secondary)',
+                                textAlign: 'right',
+                                maxWidth: '120px'
+                            }}>
+                                User must sign up to settle
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => handleSettle(balance)}
+                                className="btn btn-primary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}
+                                disabled={settling === balance}
+                            >
+                                <Check size={16} />
+                                {settling === balance ? 'Settling...' : 'Settle Up'}
+                            </button>
+                        )}
                     </div>
                 ))}
             </div>
