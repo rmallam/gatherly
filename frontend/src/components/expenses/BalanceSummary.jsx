@@ -105,7 +105,7 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
                                         alignItems: 'center',
                                         gap: '0.375rem',
                                         fontSize: '0.75rem',
-                                        padding: '0.5rem 0.75rem',
+                                        padding: balance.isPending ? '0.5rem' : '0.5rem 0.75rem',
                                         whiteSpace: 'nowrap',
                                         background: balance.isPending ? '#fbbf24' : undefined,
                                         borderColor: balance.isPending ? '#fbbf24' : undefined
@@ -113,10 +113,7 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
                                     disabled={settling === balance}
                                 >
                                     {balance.isPending ? (
-                                        <>
-                                            <AlertCircle size={14} />
-                                            Pending
-                                        </>
+                                        <AlertCircle size={16} />
                                     ) : (
                                         <>
                                             <Check size={14} />
