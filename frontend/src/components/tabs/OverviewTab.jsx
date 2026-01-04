@@ -51,7 +51,7 @@ const OverviewTab = ({ event }) => {
                 </div>
 
                 {/* Trip Stats Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
                     {/* Total Participants */}
                     <div className="card" style={{ padding: '1.75rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -142,7 +142,7 @@ const OverviewTab = ({ event }) => {
             </div>
 
             {/* Quick Stats Grid - Only 3 essential cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', gap: '1.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
                 {/* Total Guests */}
                 <div className="card" style={{ padding: '1.75rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
