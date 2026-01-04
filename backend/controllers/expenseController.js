@@ -397,13 +397,22 @@ export const getBalances = async (req, res) => {
             return res.status(403).json({ error: 'Access denied to this event' });
         }
 
-        // Get all unsettled splits with user details
+        // Get all unsettled splits with user details (including pending participants)
         const splitsResult = await query(
-            `SELECT es.user_id, es.amount, ee.paid_by, ee.currency,
-                    u1.name as user_name, u2.name as paid_by_name
+            `SELECT 
+                es.user_id, 
+                es.pending_name,
+                es.pending_email,
+                es.pending_phone,
+                CASE WHEN es.user_id IS NULL THEN true ELSE false END as is_pending,
+                es.amount, 
+                ee.paid_by, 
+                ee.currency,
+                COALESCE(u1.name, es.pending_name) as user_name, 
+                u2.name as paid_by_name
              FROM event_expense_splits es
              JOIN event_expenses ee ON es.expense_id = ee.id
-             JOIN users u1 ON es.user_id = u1.id
+             LEFT JOIN users u1 ON es.user_id = u1.id
              JOIN users u2 ON ee.paid_by = u2.id
              WHERE ee.event_id = $1 AND es.settled = FALSE`,
             [eventId]
@@ -591,8 +600,8 @@ function calculateBalances(splits) {
 
     // Calculate who owes whom
     splits.forEach(split => {
-        // Convert to strings to ensure comparison works
-        const userId = String(split.user_id);
+        // Create unique identifier for participant (user_id or email/phone for pending)
+        const userId = split.user_id || split.pending_email || split.pending_phone || 'unknown';
         const paidBy = String(split.paid_by);
 
         if (userId === paidBy) {
@@ -614,6 +623,9 @@ function calculateBalances(splits) {
                 balanceMap.set(key, {
                     fromUser: split.user_id,
                     fromUserName: split.user_name,
+                    fromUserEmail: split.pending_email,
+                    fromUserPhone: split.pending_phone,
+                    isPending: split.is_pending,
                     toUser: split.paid_by,
                     toUserName: split.paid_by_name,
                     amount: Math.abs(newAmount),
@@ -625,8 +637,11 @@ function calculateBalances(splits) {
         } else {
             const existing = balanceMap.get(key);
             balanceMap.set(key, {
-                fromUser: userId,
+                fromUser: split.user_id,
                 fromUserName: split.user_name,
+                fromUserEmail: split.pending_email,
+                fromUserPhone: split.pending_phone,
+                isPending: split.is_pending,
                 toUser: paidBy,
                 toUserName: split.paid_by_name,
                 amount: (existing?.amount || 0) + parseFloat(split.amount),
