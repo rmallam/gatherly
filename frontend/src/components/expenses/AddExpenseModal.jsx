@@ -23,34 +23,45 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
     const participants = React.useMemo(() => {
         console.log('Event object:', event);
         console.log('Event type:', event.event_type);
-        console.log('Event organizers:', event.organizers);
         console.log('Event guests:', event.guests);
 
         if (event.event_type === 'shared') {
-            // For shared events, all guests are participants (no distinction between host/guest)
-            // Include event owner + all guests WITH user_id (registered users only)
+            // For shared events, include ALL guests (registered and unregistered)
             const allParticipants = [
-                { id: event.user_id, name: event.user_name || 'Event Owner' },
-                ...(event.guests || [])
-                    .filter(g => g.user_id) // Only include guests who are registered users
-                    .map(g => ({
-                        id: g.user_id,
-                        name: g.name
-                    }))
+                {
+                    id: event.user_id,
+                    name: event.user_name || 'Event Owner',
+                    isRegistered: true
+                },
+                ...(event.guests || []).map(g => ({
+                    id: g.user_id || g.id, // Use user_id if available, otherwise guest id
+                    name: g.name,
+                    email: g.email,
+                    phone: g.phone,
+                    isRegistered: !!g.user_id // True if they have a user account
+                }))
             ];
 
-            console.log('Shared event participants:', allParticipants);
+            console.log('Shared event participants (all):', allParticipants);
             return allParticipants.filter((p, index, self) =>
                 index === self.findIndex(t => t.id === p.id)
             );
         } else {
-            // For host events, use event owner + guests who are users
-            console.log('Using event owner + guests');
+            // For host events, include ALL guests (registered and unregistered)
+            console.log('Using event owner + all guests');
             return [
-                { id: event.user_id, name: event.user_name || 'Event Owner' },
-                ...(event.guests || [])
-                    .filter(g => g.user_id)
-                    .map(g => ({ id: g.user_id, name: g.name }))
+                {
+                    id: event.user_id,
+                    name: event.user_name || 'Event Owner',
+                    isRegistered: true
+                },
+                ...(event.guests || []).map(g => ({
+                    id: g.user_id || g.id,
+                    name: g.name,
+                    email: g.email,
+                    phone: g.phone,
+                    isRegistered: !!g.user_id
+                }))
             ].filter((p, index, self) =>
                 index === self.findIndex(t => t.id === p.id)
             );
@@ -94,16 +105,50 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
             let splits = [];
             if (formData.splitType === 'equal') {
                 const splitAmount = amount / selectedParticipants.length;
-                splits = selectedParticipants.map(userId => ({
-                    userId,
-                    amount: splitAmount
-                }));
+                splits = selectedParticipants.map(participantId => {
+                    const participant = participants.find(p => p.id === participantId);
+                    if (!participant) return null;
+
+                    if (participant.isRegistered) {
+                        // Registered user - send userId
+                        return {
+                            userId: participant.id,
+                            amount: splitAmount
+                        };
+                    } else {
+                        // Unregistered participant - send name, email, phone
+                        return {
+                            name: participant.name,
+                            email: participant.email,
+                            phone: participant.phone,
+                            amount: splitAmount
+                        };
+                    }
+                }).filter(Boolean);
             } else {
                 // Custom splits
-                splits = selectedParticipants.map(userId => ({
-                    userId,
-                    amount: parseFloat(customSplits[userId] || 0)
-                }));
+                splits = selectedParticipants.map(participantId => {
+                    const participant = participants.find(p => p.id === participantId);
+                    if (!participant) return null;
+
+                    const splitAmount = parseFloat(customSplits[participantId] || 0);
+
+                    if (participant.isRegistered) {
+                        // Registered user - send userId
+                        return {
+                            userId: participant.id,
+                            amount: splitAmount
+                        };
+                    } else {
+                        // Unregistered participant - send name, email, phone
+                        return {
+                            name: participant.name,
+                            email: participant.email,
+                            phone: participant.phone,
+                            amount: splitAmount
+                        };
+                    }
+                }).filter(Boolean);
 
                 // Validate custom splits sum to total
                 const total = splits.reduce((sum, s) => sum + s.amount, 0);
@@ -390,7 +435,21 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
                                         onChange={() => toggleParticipant(p.id)}
                                         style={{ cursor: 'pointer' }}
                                     />
-                                    <span style={{ flex: 1, color: 'var(--text-primary)' }}>{p.name}</span>
+                                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <span style={{ color: 'var(--text-primary)' }}>{p.name}</span>
+                                        {!p.isRegistered && (
+                                            <span style={{
+                                                fontSize: '0.75rem',
+                                                padding: '0.125rem 0.5rem',
+                                                borderRadius: '12px',
+                                                background: '#fbbf24',
+                                                color: '#78350f',
+                                                fontWeight: 600
+                                            }}>
+                                                📧 Pending
+                                            </span>
+                                        )}
+                                    </div>
                                     {formData.splitType === 'custom' && selectedParticipants.includes(p.id) && (
                                         <input
                                             type="number"

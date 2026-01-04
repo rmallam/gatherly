@@ -84,13 +84,25 @@ export const createExpense = async (req, res) => {
 
             const expense = expenseResult.rows[0];
 
-            // Create splits
+            // Create splits (supports both registered users and pending participants)
             for (const split of splits) {
-                await query(
-                    `INSERT INTO event_expense_splits (expense_id, user_id, amount)
-                     VALUES ($1, $2, $3)`,
-                    [expense.id, split.userId, split.amount]
-                );
+                if (split.userId) {
+                    // Registered user
+                    await query(
+                        `INSERT INTO event_expense_splits (expense_id, user_id, amount)
+                         VALUES ($1, $2, $3)`,
+                        [expense.id, split.userId, split.amount]
+                    );
+                } else if (split.name && (split.email || split.phone)) {
+                    // Pending (unregistered) participant
+                    await query(
+                        `INSERT INTO event_expense_splits (expense_id, pending_name, pending_email, pending_phone, amount)
+                         VALUES ($1, $2, $3, $4, $5)`,
+                        [expense.id, split.name, split.email || null, split.phone || null, split.amount]
+                    );
+                } else {
+                    throw new Error('Invalid split: must have userId OR (name AND (email OR phone))');
+                }
             }
 
             await query('COMMIT');
@@ -139,11 +151,14 @@ export const getExpenses = async (req, res) => {
                        json_build_object(
                            'id', es.id,
                            'user_id', es.user_id,
-                           'userName', us.name,
+                           'userName', COALESCE(us.name, es.pending_name),
+                           'userEmail', COALESCE(us.email, es.pending_email),
+                           'userPhone', es.pending_phone,
+                           'isPending', CASE WHEN es.user_id IS NULL THEN true ELSE false END,
                            'amount', es.amount,
                            'settled', es.settled,
                            'settledAt', es.settled_at
-                       ) ORDER BY us.name
+                       ) ORDER BY COALESCE(us.name, es.pending_name)
                    ) as splits
             FROM event_expenses e
             JOIN users u ON e.paid_by = u.id
@@ -549,11 +564,14 @@ async function getExpenseWithDetails(expenseId) {
                     json_build_object(
                         'id', es.id,
                         'user_id', es.user_id,
-                        'userName', us.name,
+                        'userName', COALESCE(us.name, es.pending_name),
+                        'userEmail', COALESCE(us.email, es.pending_email),
+                        'userPhone', es.pending_phone,
+                        'isPending', CASE WHEN es.user_id IS NULL THEN true ELSE false END,
                         'amount', es.amount,
                         'settled', es.settled,
                         'settledAt', es.settled_at
-                    ) ORDER BY us.name
+                    ) ORDER BY COALESCE(us.name, es.pending_name)
                 ) as splits
          FROM event_expenses e
          JOIN users u ON e.paid_by = u.id
