@@ -204,6 +204,101 @@ const OverviewTab = ({ event }) => {
                 </div>
             </div>
 
+            {/* Venue Information */}
+            {event.venue?.name && (
+                <div className="card" style={{ padding: '1.75rem', marginTop: '2rem' }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <MapPin size={24} style={{ color: 'var(--primary)' }} />
+                        Venue Information
+                    </h3>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
+                        {/* Venue Name & Address */}
+                        <div>
+                            <div style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+                                {event.venue.name}
+                            </div>
+                            {event.venue.address && (
+                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                                    {event.venue.address}
+                                </div>
+                            )}
+                            {event.venue.capacity && (
+                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                                    Capacity: <strong>{event.venue.capacity} guests</strong>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Contact Info */}
+                        {(event.venue.contact || event.venue.phone) && (
+                            <div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 600 }}>
+                                    Contact
+                                </div>
+                                {event.venue.contact && (
+                                    <div style={{ fontSize: '0.875rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
+                                        {event.venue.contact}
+                                    </div>
+                                )}
+                                {event.venue.phone && (
+                                    <div style={{ fontSize: '0.875rem' }}>
+                                        <a href={`tel:${event.venue.phone}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                                            📞 {event.venue.phone}
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Event Time */}
+                        {event.venue.eventTime && (
+                            <div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 600 }}>
+                                    Event Time
+                                </div>
+                                <div style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--primary)' }}>
+                                    {event.venue.eventTime}
+                                </div>
+                                {event.venue.setupTime && (
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                                        Setup: {event.venue.setupTime}
+                                    </div>
+                                )}
+                                {event.venue.teardownTime && (
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                        Teardown: {event.venue.teardownTime}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Amenities */}
+                    {event.venue.amenities && event.venue.amenities.length > 0 && (
+                        <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>
+                                Amenities
+                            </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                {event.venue.amenities.map(amenity => (
+                                    <span key={amenity} style={{
+                                        fontSize: '0.75rem',
+                                        padding: '0.25rem 0.75rem',
+                                        borderRadius: '12px',
+                                        background: 'var(--bg-secondary)',
+                                        color: 'var(--text-primary)',
+                                        fontWeight: 500
+                                    }}>
+                                        {amenity}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Guest List Modal */}
             {showGuestModal && (
                 <div style={{
