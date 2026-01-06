@@ -94,6 +94,12 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files (for email verification page)
 app.use(express.static('public'));
 
+// Serve Digital Asset Links file for Android App Links
+app.get('/.well-known/assetlinks.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.sendFile('public/.well-known/assetlinks.json', { root: '.' });
+});
+
 // Helper function to normalize phone numbers for matching
 // Handles: +919876543210, 919876543210, 9876543210
 function normalizePhone(phone) {

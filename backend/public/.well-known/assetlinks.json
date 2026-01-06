@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.guestscanner.app",
+            "sha256_cert_fingerprints": [
+                "7B:EE:80:64:18:CB:E9:89:44:36:70:3D:87:1F:02:11:CF:92:8A:11:D5:F6:EC:76:45:23:92:EB:E7:C1:9F:62"
+            ]
+        }
+    }
+]
