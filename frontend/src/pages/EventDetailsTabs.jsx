@@ -230,7 +230,6 @@ const EventDetailsTabs = () => {
                         <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
                     )}
                 </div>
-                <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
                 {/* Tab Content */}
                 <div>
