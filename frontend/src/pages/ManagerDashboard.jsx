@@ -9,6 +9,7 @@ const ManagerDashboard = () => {
     const navigate = useNavigate();
     const [isCreating, setIsCreating] = useState(false);
     const [newEvent, setNewEvent] = useState({ title: '', date: '', location: '' });
+    const [filter, setFilter] = useState('all'); // 'all', 'my', 'shared'
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -61,6 +62,63 @@ const ManagerDashboard = () => {
                     Create and manage your events
                 </p>
             </div>
+
+            {/* Filter Chips */}
+            {events.length > 0 && (
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', overflowX: 'auto', paddingBottom: '4px' }}>
+                    <button
+                        onClick={() => setFilter('all')}
+                        style={{
+                            padding: '8px 16px',
+                            borderRadius: '20px',
+                            border: filter === 'all' ? '2px solid var(--primary)' : '1px solid var(--border)',
+                            background: filter === 'all' ? 'var(--primary)' : 'var(--bg-primary)',
+                            color: filter === 'all' ? 'white' : 'var(--text-secondary)',
+                            fontSize: '14px',
+                            fontWeight: filter === 'all' ? 600 : 500,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            whiteSpace: 'nowrap'
+                        }}
+                    >
+                        All Events
+                    </button>
+                    <button
+                        onClick={() => setFilter('my')}
+                        style={{
+                            padding: '8px 16px',
+                            borderRadius: '20px',
+                            border: filter === 'my' ? '2px solid var(--primary)' : '1px solid var(--border)',
+                            background: filter === 'my' ? 'var(--primary)' : 'var(--bg-primary)',
+                            color: filter === 'my' ? 'white' : 'var(--text-secondary)',
+                            fontSize: '14px',
+                            fontWeight: filter === 'my' ? 600 : 500,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            whiteSpace: 'nowrap'
+                        }}
+                    >
+                        My Events
+                    </button>
+                    <button
+                        onClick={() => setFilter('shared')}
+                        style={{
+                            padding: '8px 16px',
+                            borderRadius: '20px',
+                            border: filter === 'shared' ? '2px solid var(--primary)' : '1px solid var(--border)',
+                            background: filter === 'shared' ? 'var(--primary)' : 'var(--bg-primary)',
+                            color: filter === 'shared' ? 'white' : 'var(--text-secondary)',
+                            fontSize: '14px',
+                            fontWeight: filter === 'shared' ? 600 : 500,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            whiteSpace: 'nowrap'
+                        }}
+                    >
+                        Shared Events
+                    </button>
+                </div>
+            )}
 
             {/* Create Event Modal */}
             {isCreating && (
@@ -150,6 +208,12 @@ const ManagerDashboard = () => {
             ) : (
                 <div style={{ display: 'grid', gap: '12px' }}>
                     {events
+                        .filter(event => {
+                            if (filter === 'all') return true;
+                            if (filter === 'my') return event.role !== 'guest';
+                            if (filter === 'shared') return event.event_type === 'shared';
+                            return true;
+                        })
                         .sort((a, b) => {
                             // Sort by date - upcoming events first
                             if (!a.date && !b.date) return 0;
