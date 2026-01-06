@@ -212,7 +212,22 @@ const ManagerDashboard = () => {
                                                 <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, wordBreak: 'break-word', lineHeight: '1.3' }}>
                                                     {event.title}
                                                 </h3>
-                                                {isGuest && (
+                                                {isSharedEvent && (
+                                                    <span style={{
+                                                        padding: '2px 8px',
+                                                        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15))',
+                                                        color: 'var(--primary)',
+                                                        borderRadius: '12px',
+                                                        fontSize: '10px',
+                                                        fontWeight: 700,
+                                                        textTransform: 'uppercase',
+                                                        flexShrink: 0,
+                                                        border: '1px solid var(--primary)'
+                                                    }}>
+                                                        SHARED
+                                                    </span>
+                                                )}
+                                                {isGuest && !isSharedEvent && (
                                                     <span style={{
                                                         padding: '2px 8px',
                                                         background: '#dbeafe',
