@@ -27,27 +27,36 @@ const OverviewTab = ({ event }) => {
 
         return (
             <div>
-                {/* Event Header - Clean Design */}
-                <div className="card" style={{ marginBottom: '2rem', padding: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)', borderLeft: '4px solid var(--primary)' }}>
-                    <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-primary)', lineHeight: '1.2' }}>{event.title}</h1>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Calendar size={16} style={{ color: 'var(--primary)' }} />
-                            {event.date ? new Date(event.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Date TBD'}
-                            {event.end_date && ` - ${new Date(event.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
-                        </span>
-                        {event.location && (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <MapPin size={16} style={{ color: 'var(--primary)' }} />
-                                {event.location}
-                            </span>
-                        )}
+                {/* Event Header - Enhanced Design */}
+                <div className="card" style={{ marginBottom: '2rem', padding: '0', overflow: 'hidden', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', border: 'none' }}>
+                    <div style={{ background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)', padding: '2rem', borderLeft: '4px solid var(--primary)' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 6px -1px rgba(102, 126, 234, 0.3)' }}>
+                                <Calendar size={24} style={{ color: 'white' }} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <h1 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--text-primary)', lineHeight: '1.2' }}>{event.title}</h1>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
+                                        <Clock size={16} style={{ color: 'var(--primary)' }} />
+                                        {event.date ? new Date(event.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Date TBD'}
+                                        {event.end_date && ` - ${new Date(event.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+                                    </span>
+                                    {event.location && (
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
+                                            <MapPin size={16} style={{ color: 'var(--primary)' }} />
+                                            {event.location}
+                                        </span>
+                                    )}
+                                </div>
+                                {event.description && (
+                                    <p style={{ marginTop: '0.75rem', color: 'var(--text-secondary)', lineHeight: '1.6', fontSize: '0.9375rem' }}>
+                                        {event.description}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                    {event.description && (
-                        <p style={{ marginTop: '1rem', color: 'var(--text-secondary)', lineHeight: '1.6', fontSize: '0.9375rem' }}>
-                            {event.description}
-                        </p>
-                    )}
                 </div>
 
                 {/* Trip Stats Grid */}
@@ -119,25 +128,34 @@ const OverviewTab = ({ event }) => {
 
     return (
         <div>
-            {/* Event Header - Clean Design */}
-            <div className="card" style={{ marginBottom: '2rem', padding: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)', borderLeft: '4px solid var(--primary)' }}>
-                <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-primary)', lineHeight: '1.2' }}>{event.title}</h1>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Calendar size={16} style={{ color: 'var(--primary)' }} />
-                        {event.date ? new Date(event.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Date TBD'}
-                    </span>
-                    {event.venue?.name ? (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <MapPin size={16} style={{ color: 'var(--primary)' }} />
-                            {event.venue.name}{event.venue.address && `, ${event.venue.address}`}
-                        </span>
-                    ) : event.location && (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <MapPin size={16} style={{ color: 'var(--primary)' }} />
-                            {event.location}
-                        </span>
-                    )}
+            {/* Event Header - Enhanced Design */}
+            <div className="card" style={{ marginBottom: '2rem', padding: '0', overflow: 'hidden', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', border: 'none' }}>
+                <div style={{ background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)', padding: '2rem', borderLeft: '4px solid var(--primary)' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                        <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 6px -1px rgba(102, 126, 234, 0.3)' }}>
+                            <Calendar size={24} style={{ color: 'white' }} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <h1 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--text-primary)', lineHeight: '1.2' }}>{event.title}</h1>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
+                                    <Clock size={16} style={{ color: 'var(--primary)' }} />
+                                    {event.date ? new Date(event.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Date TBD'}
+                                </span>
+                                {event.venue?.name ? (
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
+                                        <MapPin size={16} style={{ color: 'var(--primary)' }} />
+                                        {event.venue.name}{event.venue.address && `, ${event.venue.address}`}
+                                    </span>
+                                ) : event.location && (
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
+                                        <MapPin size={16} style={{ color: 'var(--primary)' }} />
+                                        {event.location}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
