@@ -143,18 +143,18 @@ const VendorsTab = ({ event, onUpdateVendors }) => {
             )}
 
             {/* Stats */}
-            <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Vendors</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--primary)' }}>{vendors.length}</div>
+            <div style={{ display: "flex", gap: "0.75rem", marginBottom: "2rem" }}>
+                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Vendors</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary)' }}>{vendors.length}</div>
                 </div>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Booked</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--success)' }}>{bookedVendors}</div>
+                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Booked</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--success)' }}>{bookedVendors}</div>
                 </div>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Cost</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--warning)' }}>${totalCost.toFixed(2)}</div>
+                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Cost</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--warning)' }}>${totalCost.toFixed(2)}</div>
                 </div>
             </div>
 
@@ -176,7 +176,7 @@ const VendorsTab = ({ event, onUpdateVendors }) => {
                                 <div key={vendor.id}>
                                     {editingItem?.id === vendor.id ? (
                                         // EDIT FORM
-                                        <div className="card" style={{ padding: '1rem' }}>
+                                        <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
                                             <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Edit Vendor</h4>
                                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
                                                 <div>
@@ -217,11 +217,11 @@ const VendorsTab = ({ event, onUpdateVendors }) => {
                                         </div>
                                     ) : (
                                         // DISPLAY
-                                        <div className="card" style={{ padding: '1rem' }}>
+                                        <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                                                 <div style={{ flex: 1 }}>
                                                     <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{vendor.name}</h4>
-                                                    <div style={{ display: 'grid', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                                                    <div style={{ display: 'grid', gap: '0.5rem', fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
                                                         {vendor.contact && <div>👤 {vendor.contact}</div>}
                                                         {vendor.phone && (
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -242,7 +242,7 @@ const VendorsTab = ({ event, onUpdateVendors }) => {
                                                         )}
                                                     </div>
                                                     {vendor.notes && (
-                                                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontStyle: 'italic', marginTop: '0.5rem' }}>
+                                                        <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', fontStyle: 'italic', marginTop: '0.5rem' }}>
                                                             {vendor.notes}
                                                         </div>
                                                     )}

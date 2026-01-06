@@ -147,22 +147,22 @@ const TasksTab = ({ event, onUpdateTasks }) => {
             )}
 
             {/* Stats Overview */}
-            <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Tasks</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--primary)' }}>{totalTasks}</div>
+            <div style={{ display: "flex", gap: "0.75rem", marginBottom: "2rem" }}>
+                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Tasks</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary)' }}>{totalTasks}</div>
                 </div>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Completed</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--success)' }}>{completedTasks}</div>
+                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Completed</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--success)' }}>{completedTasks}</div>
                 </div>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>In Progress</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--warning)' }}>{inProgressTasks}</div>
+                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>In Progress</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--warning)' }}>{inProgressTasks}</div>
                 </div>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Overdue</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--error)' }}>{overdueTasks.length}</div>
+                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Overdue</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--error)' }}>{overdueTasks.length}</div>
                 </div>
             </div>
 
@@ -204,7 +204,7 @@ const TasksTab = ({ event, onUpdateTasks }) => {
                                 const priorityColor = priorities.find(p => p.id === task.priority)?.color;
 
                                 return (
-                                    <div key={task.id} className="card" style={{ padding: '1rem' }}>
+                                    <div key={task.id} className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                                             <div style={{ flex: 1 }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
@@ -221,7 +221,7 @@ const TasksTab = ({ event, onUpdateTasks }) => {
                                                         {task.priority}
                                                     </span>
                                                 </div>
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.6875rem', color: 'var(--text-secondary)' }}>
                                                     {task.deadline && (
                                                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: isOverdue ? 'var(--error)' : 'inherit' }}>
                                                             <Calendar size={14} />

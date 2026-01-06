@@ -178,18 +178,18 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
             </div>
 
             {/* Stats */}
-            <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Items</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--primary)' }}>{items.length}</div>
+            <div style={{ display: "flex", gap: "0.75rem", marginBottom: "2rem" }}>
+                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Items</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary)' }}>{items.length}</div>
                 </div>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Cost</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--warning)' }}>${totalCost.toFixed(2)}</div>
+                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Cost</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--warning)' }}>${totalCost.toFixed(2)}</div>
                 </div>
-                <div className="card" style={{ padding: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Received</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--success)' }}>
+                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Received</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--success)' }}>
                         {items.filter(i => i.status === 'received').length}
                     </div>
                 </div>
@@ -213,7 +213,7 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
                                 <div key={item.id}>
                                     {editingItem?.id === item.id ? (
                                         // EDIT FORM
-                                        <div className="card" style={{ padding: '1rem' }}>
+                                        <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
                                             <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Edit Decoration</h4>
                                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
                                                 <div>
@@ -270,11 +270,11 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
                                         </div>
                                     ) : (
                                         // DISPLAY
-                                        <div className="card" style={{ padding: '1rem' }}>
+                                        <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                                                 <div style={{ flex: 1 }}>
                                                     <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{item.item}</h4>
-                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.6875rem', color: 'var(--text-secondary)' }}>
                                                         <span>Qty: {item.quantity}</span>
                                                         <span style={{ fontWeight: 600, color: 'var(--warning)' }}>${item.cost.toFixed(2)}</span>
                                                     </div>

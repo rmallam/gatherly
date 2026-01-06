@@ -51,32 +51,32 @@ const OverviewTab = ({ event }) => {
                 </div>
 
                 {/* Trip Stats Grid */}
-                <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem' }}>
                     {/* Total Participants */}
-                    <div className="card" style={{ padding: '1.75rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: 'var(--radius-lg)', background: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Users size={28} style={{ color: 'var(--primary)' }} />
+                    <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: 'var(--radius-lg)', background: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Users size={20} style={{ color: 'var(--primary)' }} />
                             </div>
-                            <div>
-                                <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>{totalParticipants}</div>
-                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Participants</div>
+                            <div style={{ minWidth: 0 }}>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>{totalParticipants}</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Participants</div>
                             </div>
                         </div>
                     </div>
 
                     {/* Days Until Trip */}
                     {daysUntil !== null && (
-                        <div className="card" style={{ padding: '1.75rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: 'var(--radius-lg)', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Clock size={28} style={{ color: '#10b981' }} />
+                        <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: 'var(--radius-lg)', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    <Clock size={20} style={{ color: '#10b981' }} />
                                 </div>
-                                <div>
-                                    <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                <div style={{ minWidth: 0 }}>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                                         {daysUntil > 0 ? daysUntil : daysUntil === 0 ? 'Today!' : 'Past'}
                                     </div>
-                                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
                                         {daysUntil > 0 ? 'Days Away' : daysUntil === 0 ? 'Happening Now' : 'Days Ago'}
                                     </div>
                                 </div>
@@ -85,14 +85,14 @@ const OverviewTab = ({ event }) => {
                     )}
 
                     {/* Trip Duration */}
-                    <div className="card" style={{ padding: '1.75rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: 'var(--radius-lg)', background: 'rgba(245, 158, 11, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Calendar size={28} style={{ color: '#f59e0b' }} />
+                    <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: 'var(--radius-lg)', background: 'rgba(245, 158, 11, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Calendar size={20} style={{ color: '#f59e0b' }} />
                             </div>
-                            <div>
-                                <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>{tripDuration}</div>
-                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Day{tripDuration !== 1 ? 's' : ''}</div>
+                            <div style={{ minWidth: 0 }}>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>{tripDuration}</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Day{tripDuration !== 1 ? 's' : ''}</div>
                             </div>
                         </div>
                     </div>
@@ -142,69 +142,69 @@ const OverviewTab = ({ event }) => {
             </div>
 
             {/* Quick Stats Grid - Only 3 essential cards */}
-            <div style={{ display: 'flex', gap: '1.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
                 {/* Total Guests */}
-                <div className="card" style={{ padding: '1.75rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                        <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: 'var(--radius-lg)', background: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Users size={28} style={{ color: 'var(--primary)' }} />
+                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                        <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: 'var(--radius-lg)', background: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <Users size={20} style={{ color: 'var(--primary)' }} />
                         </div>
-                        <div>
-                            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>{totalGuests}</div>
-                            <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Total Invited</div>
+                        <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>{totalGuests}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Total Invited</div>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8125rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)', whiteSpace: 'nowrap' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.6875rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border)', whiteSpace: 'nowrap', overflow: 'hidden' }}>
                         <button
                             onClick={() => showGuestList('Confirmed Guests', confirmedGuests)}
-                            style={{ background: 'none', border: 'none', padding: 0, color: '#10b981', fontWeight: 500, cursor: 'pointer', textDecoration: 'underline' }}
+                            style={{ background: 'none', border: 'none', padding: 0, color: '#10b981', fontWeight: 500, cursor: 'pointer', textDecoration: 'underline', fontSize: '0.6875rem' }}
                         >
-                            ✓ {confirmedGuests.length} confirmed
+                            ✓ {confirmedGuests.length}
                         </button>
                         <button
                             onClick={() => showGuestList('Declined Guests', event.guests?.filter(g => g.rsvp === false) || [])}
-                            style={{ background: 'none', border: 'none', padding: 0, color: '#ef4444', fontWeight: 500, cursor: 'pointer', textDecoration: 'underline' }}
+                            style={{ background: 'none', border: 'none', padding: 0, color: '#ef4444', fontWeight: 500, cursor: 'pointer', textDecoration: 'underline', fontSize: '0.6875rem' }}
                         >
-                            ✗ {declinedRSVP} declined
+                            ✗ {declinedRSVP}
                         </button>
-                        <span style={{ color: '#94a3b8', fontWeight: 500 }}>⏳ {pendingRSVP} pending</span>
+                        <span style={{ color: '#94a3b8', fontWeight: 500 }}>⏳ {pendingRSVP}</span>
                     </div>
                 </div>
 
                 {/* Check-ins */}
-                <div className="card" style={{ padding: '1.75rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                        <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: 'var(--radius-lg)', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <CheckCircle size={28} style={{ color: '#10b981' }} />
+                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                        <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: 'var(--radius-lg)', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <CheckCircle size={20} style={{ color: '#10b981' }} />
                         </div>
-                        <div>
+                        <div style={{ minWidth: 0 }}>
                             <button
                                 onClick={() => showGuestList('Checked-In Guests', checkedInGuests)}
                                 style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                             >
-                                <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)', textDecoration: 'underline' }}>{checkedInGuests.length}</div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', textDecoration: 'underline' }}>{checkedInGuests.length}</div>
                             </button>
-                            <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Checked In</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Checked In</div>
                         </div>
                     </div>
-                    <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
-                        <span style={{ fontWeight: 600, color: '#10b981' }}>{attendanceRate}%</span> attendance rate
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', paddingTop: '0.5rem', borderTop: '1px solid var(--border)' }}>
+                        <span style={{ fontWeight: 600, color: '#10b981' }}>{attendanceRate}%</span> rate
                     </div>
                 </div>
 
                 {/* RSVPs */}
-                <div className="card" style={{ padding: '1.75rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                        <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: 'var(--radius-lg)', background: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Mail size={28} style={{ color: 'var(--primary)' }} />
+                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                        <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: 'var(--radius-lg)', background: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <Mail size={20} style={{ color: 'var(--primary)' }} />
                         </div>
-                        <div>
-                            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>{confirmedGuests.length + declinedRSVP}</div>
-                            <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 500 }}>RSVPs</div>
+                        <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>{confirmedGuests.length + declinedRSVP}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>RSVPs</div>
                         </div>
                     </div>
-                    <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
-                        <span style={{ fontWeight: 600, color: 'var(--primary)' }}>{responseRate}%</span> response rate
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', paddingTop: '0.5rem', borderTop: '1px solid var(--border)' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--primary)' }}>{responseRate}%</span> rate
                     </div>
                 </div>
             </div>
@@ -222,7 +222,7 @@ const OverviewTab = ({ event }) => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     zIndex: 1000,
-                    padding: '1rem'
+                    padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)'
                 }}>
                     <div className="card" style={{
                         maxWidth: '500px',
@@ -241,7 +241,7 @@ const OverviewTab = ({ event }) => {
                         </div>
 
                         {/* Guest List */}
-                        <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
+                        <div style={{ flex: 1, overflowY: 'auto', padding: '0.75rem' }}>
                             {modalGuests.length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
                                     No guests found
@@ -249,7 +249,7 @@ const OverviewTab = ({ event }) => {
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                     {modalGuests.map(guest => (
-                                        <div key={guest.id} className="card" style={{ padding: '1rem', background: 'var(--bg-secondary)' }}>
+                                        <div key={guest.id} className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)', background: 'var(--bg-secondary)' }}>
                                             <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
                                                 {guest.name}
                                             </div>

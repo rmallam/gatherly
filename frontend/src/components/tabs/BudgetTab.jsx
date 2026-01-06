@@ -379,28 +379,28 @@ const BudgetTab = ({ event }) => {
 
             {/* Stats Cards - Show after budget overview */}
             {budget && (
-                <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
-                    <div className="card" style={{ padding: '1rem' }}>
-                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Budget</div>
-                        <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--primary)' }}>
+                <div style={{ display: "flex", gap: "0.75rem", marginBottom: "2rem" }}>
+                    <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                        <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Budget</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary)' }}>
                             ${formatCurrency(totalBudgetAmount)}
                         </div>
                     </div>
-                    <div className="card" style={{ padding: '1rem' }}>
-                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Expenses</div>
-                        <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--warning)' }}>
+                    <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                        <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Expenses</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--warning)' }}>
                             ${formatCurrency(totalExpenses)}
                         </div>
                     </div>
-                    <div className="card" style={{ padding: '1rem' }}>
-                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Remaining</div>
-                        <div style={{ fontSize: '1.75rem', fontWeight: 700, color: isOverBudget ? 'var(--error)' : 'var(--success)' }}>
+                    <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                        <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Remaining</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: isOverBudget ? 'var(--error)' : 'var(--success)' }}>
                             ${formatCurrency(remaining)}
                         </div>
                     </div>
-                    <div className="card" style={{ padding: '1rem' }}>
-                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Expenses</div>
-                        <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                        <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Expenses</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                             {expenses.length}
                         </div>
                     </div>
@@ -570,7 +570,7 @@ const BudgetTab = ({ event }) => {
                 ) : (
                     <div style={{ display: 'grid', gap: '0.75rem' }}>
                         {expenses.map((expense) => (
-                            <div key={expense.id} className="card" style={{ padding: '1rem', background: 'var(--bg-secondary)' }}>
+                            <div key={expense.id} className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)', background: 'var(--bg-secondary)' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
@@ -588,7 +588,7 @@ const BudgetTab = ({ event }) => {
                                             )}
                                         </div>
                                         {expense.description && (
-                                            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                                            <p style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
                                                 {expense.description}
                                             </p>
                                         )}

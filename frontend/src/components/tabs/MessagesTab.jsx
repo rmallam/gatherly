@@ -288,7 +288,7 @@ const MessagesTab = ({ event }) => {
                     </div>
 
                     <div style={{ padding: '0.75rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', marginBottom: '1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.6875rem', color: 'var(--text-secondary)' }}>
                             <Users size={16} />
                             <span>Will send to <strong style={{ color: 'var(--primary)' }}>{getRecipientCount()}</strong> guests</span>
                         </div>
@@ -316,11 +316,11 @@ const MessagesTab = ({ event }) => {
                         Send Thank You Messages
                     </h3>
 
-                    <div style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', marginBottom: '1rem' }}>
-                        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                    <div style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', marginBottom: '1rem' }}>
+                        <p style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
                             Send personalized thank you messages to all guests who attended your event.
                         </p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.6875rem', color: 'var(--text-secondary)' }}>
                             <Users size={16} />
                             <span>Will send to <strong style={{ color: 'var(--primary)' }}>{event.guests?.filter(g => g.attended === true).length || 0}</strong> attended guests</span>
                         </div>
@@ -364,7 +364,7 @@ const MessagesTab = ({ event }) => {
                                 <div
                                     key={comm.id}
                                     style={{
-                                        padding: '1rem',
+                                        padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)',
                                         background: 'var(--bg-secondary)',
                                         borderRadius: 'var(--radius-md)',
                                         borderLeft: `4px solid ${comm.type === 'announcement' ? 'var(--primary)' : '#10b981'}`
@@ -382,7 +382,7 @@ const MessagesTab = ({ event }) => {
                                         </span>
                                     </div>
                                     {comm.type === 'announcement' && (
-                                        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                                        <p style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
                                             {comm.message}
                                         </p>
                                     )}

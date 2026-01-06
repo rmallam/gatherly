@@ -130,19 +130,19 @@ const RemindersSettings = ({ event }) => {
         <div>
             {/* Stats Cards */}
             <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem' }}>
-                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0 }}>
+                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
                     <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Reminders</div>
                     <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary)' }}>
                         {reminders.length}
                     </div>
                 </div>
-                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0 }}>
+                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
                     <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Sent</div>
                     <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--success)' }}>
                         {sentCount}
                     </div>
                 </div>
-                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0 }}>
+                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
                     <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Pending</div>
                     <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--warning)' }}>
                         {pendingCount}
