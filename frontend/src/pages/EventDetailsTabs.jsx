@@ -134,7 +134,7 @@ const EventDetailsTabs = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between'
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 1 auto', minWidth: '0', maxWidth: '60%' }}>
                     <button
                         onClick={() => navigate('/manager')}
                         style={{
@@ -145,24 +145,27 @@ const EventDetailsTabs = () => {
                             color: 'var(--text-primary)',
                             display: 'flex',
                             alignItems: 'center',
-                            borderRadius: '8px'
+                            borderRadius: '8px',
+                            flexShrink: 0
                         }}
                     >
                         <ArrowLeft size={20} />
                     </button>
                     <h1 style={{
-                        fontSize: '18px',
+                        fontSize: '16px',
                         fontWeight: 700,
                         color: 'var(--text-primary)',
                         margin: 0,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
+                        whiteSpace: 'nowrap',
+                        flex: '1 1 auto',
+                        minWidth: '0'
                     }}>
                         {event.name}
                     </h1>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                     <Link
                         to={`/event/${id}/wall`}
                         style={{
