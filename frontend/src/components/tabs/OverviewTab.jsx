@@ -27,24 +27,24 @@ const OverviewTab = ({ event }) => {
 
         return (
             <div>
-                {/* Event Header */}
-                <div className="card" style={{ marginBottom: '2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', padding: '2rem' }}>
-                    <h1 style={{ fontSize: '2.25rem', fontWeight: 900, marginBottom: '1rem', color: 'white', lineHeight: '1.2', letterSpacing: '-0.02em', textShadow: '0 2px 12px rgba(0,0,0,0.15)' }}>{event.title}</h1>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', fontSize: '0.9375rem', opacity: 0.95 }}>
+                {/* Event Header - Clean Design */}
+                <div className="card" style={{ marginBottom: '2rem', padding: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)', borderLeft: '4px solid var(--primary)' }}>
+                    <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-primary)', lineHeight: '1.2' }}>{event.title}</h1>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Calendar size={16} />
+                            <Calendar size={16} style={{ color: 'var(--primary)' }} />
                             {event.date ? new Date(event.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Date TBD'}
                             {event.end_date && ` - ${new Date(event.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
                         </span>
                         {event.location && (
                             <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <MapPin size={16} />
+                                <MapPin size={16} style={{ color: 'var(--primary)' }} />
                                 {event.location}
                             </span>
                         )}
                     </div>
                     {event.description && (
-                        <p style={{ marginTop: '1rem', opacity: 0.9, lineHeight: '1.6' }}>
+                        <p style={{ marginTop: '1rem', color: 'var(--text-secondary)', lineHeight: '1.6', fontSize: '0.9375rem' }}>
                             {event.description}
                         </p>
                     )}
@@ -119,22 +119,22 @@ const OverviewTab = ({ event }) => {
 
     return (
         <div>
-            {/* Event Header */}
-            <div className="card" style={{ marginBottom: '2rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', padding: '2rem' }}>
-                <h1 style={{ fontSize: '2.25rem', fontWeight: 900, marginBottom: '1rem', color: 'white', lineHeight: '1.2', letterSpacing: '-0.02em', textShadow: '0 2px 12px rgba(0,0,0,0.15)' }}>{event.title}</h1>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', fontSize: '0.9375rem', opacity: 0.95 }}>
+            {/* Event Header - Clean Design */}
+            <div className="card" style={{ marginBottom: '2rem', padding: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)', borderLeft: '4px solid var(--primary)' }}>
+                <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-primary)', lineHeight: '1.2' }}>{event.title}</h1>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Calendar size={16} />
+                        <Calendar size={16} style={{ color: 'var(--primary)' }} />
                         {event.date ? new Date(event.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Date TBD'}
                     </span>
                     {event.venue?.name ? (
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <MapPin size={16} />
+                            <MapPin size={16} style={{ color: 'var(--primary)' }} />
                             {event.venue.name}{event.venue.address && `, ${event.venue.address}`}
                         </span>
                     ) : event.location && (
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <MapPin size={16} />
+                            <MapPin size={16} style={{ color: 'var(--primary)' }} />
                             {event.location}
                         </span>
                     )}
