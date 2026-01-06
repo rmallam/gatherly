@@ -162,7 +162,7 @@ const EventDetailsTabs = () => {
                         flex: '1 1 auto',
                         minWidth: '0'
                     }}>
-                        {event.name || 'Unnamed Event'}
+                        {event.title}
                     </h1>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
