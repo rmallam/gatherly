@@ -81,7 +81,7 @@ const ManagerDashboard = () => {
                             whiteSpace: 'nowrap'
                         }}
                     >
-                        All Events
+                        All
                     </button>
                     <button
                         onClick={() => setFilter('my')}
@@ -115,7 +115,7 @@ const ManagerDashboard = () => {
                             whiteSpace: 'nowrap'
                         }}
                     >
-                        Shared Events
+                        Shared
                     </button>
                     <button
                         onClick={() => setFilter('guest')}
@@ -132,7 +132,7 @@ const ManagerDashboard = () => {
                             whiteSpace: 'nowrap'
                         }}
                     >
-                        Guest Events
+                        Guest
                     </button>
                 </div>
             )}
