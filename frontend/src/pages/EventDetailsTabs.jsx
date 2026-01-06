@@ -154,7 +154,7 @@ const EventDetailsTabs = () => {
                     <h1 style={{
                         fontSize: '16px',
                         fontWeight: 700,
-                        color: 'var(--text-primary)',
+                        color: '#000000',
                         margin: 0,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -162,7 +162,7 @@ const EventDetailsTabs = () => {
                         flex: '1 1 auto',
                         minWidth: '0'
                     }}>
-                        {event.name}
+                        {event.name || 'Unnamed Event'}
                     </h1>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
