@@ -117,6 +117,23 @@ const ManagerDashboard = () => {
                     >
                         Shared Events
                     </button>
+                    <button
+                        onClick={() => setFilter('guest')}
+                        style={{
+                            padding: '8px 16px',
+                            borderRadius: '20px',
+                            border: filter === 'guest' ? '2px solid var(--primary)' : '1px solid var(--border)',
+                            background: filter === 'guest' ? 'var(--primary)' : 'var(--bg-primary)',
+                            color: filter === 'guest' ? 'white' : 'var(--text-secondary)',
+                            fontSize: '14px',
+                            fontWeight: filter === 'guest' ? 600 : 500,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            whiteSpace: 'nowrap'
+                        }}
+                    >
+                        Guest Events
+                    </button>
                 </div>
             )}
 
@@ -212,6 +229,7 @@ const ManagerDashboard = () => {
                             if (filter === 'all') return true;
                             if (filter === 'my') return event.role !== 'guest';
                             if (filter === 'shared') return event.event_type === 'shared';
+                            if (filter === 'guest') return event.role === 'guest' && event.event_type !== 'shared';
                             return true;
                         })
                         .sort((a, b) => {
