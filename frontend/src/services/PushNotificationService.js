@@ -1,6 +1,4 @@
 import OneSignal from 'onesignal-cordova-plugin';
-import { Capacitor } from '@capacitor/core';
-import { PushNotifications } from '@capacitor/push-notifications';
 import API_URL from '../config/api';
 
 const ONESIGNAL_APP_ID = 'a2ee0c7f-460f-4d5e-a36f-635a0492d6b5';
