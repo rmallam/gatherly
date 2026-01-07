@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
+import API_URL from '../config/api';
 
 const ForgotPassword = () => {
     const [method, setMethod] = useState('email'); // 'email' or 'phone'
@@ -20,7 +21,7 @@ const ForgotPassword = () => {
             const isPhone = method === 'phone';
             const identifier = isPhone ? `${countryCode}${phone}` : email;
 
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://gatherly-backend-3vmv.onrender.com'}/api/auth/forgot-password`, {
+            const response = await fetch(`${API_URL}/auth/forgot-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Lock, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import API_URL from '../config/api';
 
 const ResetPassword = () => {
     const navigate = useNavigate();
@@ -29,7 +30,7 @@ const ResetPassword = () => {
 
             try {
                 const response = await fetch(
-                    `${import.meta.env.VITE_API_URL || 'https://gatherly-backend-3vmv.onrender.com'}/api/auth/verify-reset-token?token=${token}`
+                    `${API_URL}/auth/verify-reset-token?token=${token}`
                 );
                 const data = await response.json();
 
@@ -87,7 +88,7 @@ const ResetPassword = () => {
 
         try {
             const response = await fetch(
-                `${import.meta.env.VITE_API_URL || 'https://gatherly-backend-3vmv.onrender.com'}/api/auth/reset-password`,
+                `${API_URL}/auth/reset-password`,
                 {
                     method: 'POST',
                     headers: {
