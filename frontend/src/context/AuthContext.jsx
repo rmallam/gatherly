@@ -82,9 +82,11 @@ export const AuthProvider = ({ children }) => {
             ? { phone: emailOrPhone, password }
             : { email: emailOrPhone, password };
 
-        console.log('🔐 Login attempt:', { url: `${API_URL}/auth/login`, isPhone });
+        const loginUrl = `${API_URL}/auth/login`;
+        console.log('🔐 Login attempt to URL:', loginUrl);
+        console.log('🔐 API_URL value:', API_URL);
 
-        const response = await fetchWithRetry(`${API_URL}/auth/login`, {
+        const response = await fetchWithRetry(loginUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
