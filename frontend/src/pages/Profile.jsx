@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, User, Mail, Phone, FileText, Lock, Save, Eye, EyeOff, Moon, Sun, X, Check } from 'lucide-react';
+import { ArrowLeft, Camera, User, Mail, Phone, FileText, Lock, Save, Eye, EyeOff, Moon, Sun, X, Check, LogOut, Shield, Bell } from 'lucide-react';
 import { Camera as CapCamera } from '@capacitor/camera';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { Camera, LogOut, User, Shield, Bell, Moon, Sun } from 'lucide-react';
 import API_URL from '../config/api';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/cropImage';
