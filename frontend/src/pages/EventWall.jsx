@@ -29,7 +29,7 @@ const EventWall = () => {
             const token = localStorage.getItem('token');
 
             // Fetch event details
-            const eventRes = await fetch(`${API_URL}/api/wall/${eventId}/details`, {
+            const eventRes = await fetch(`${API_URL}/wall/${eventId}/details`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (eventRes.ok) {
@@ -38,7 +38,7 @@ const EventWall = () => {
             }
 
             // Auto-join event wall first
-            const joinRes = await fetch(`${API_URL}/api/wall/${eventId}/join`, {
+            const joinRes = await fetch(`${API_URL}/wall/${eventId}/join`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -50,7 +50,7 @@ const EventWall = () => {
             }
 
             // Load posts
-            const postsRes = await fetch(`${API_URL}/api/wall/${eventId}/posts`, {
+            const postsRes = await fetch(`${API_URL}/wall/${eventId}/posts`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -64,7 +64,7 @@ const EventWall = () => {
             setPosts(postsData.posts || []);
 
             // Load participants
-            const participantsRes = await fetch(`${API_URL}/api/wall/${eventId}/participants`, {
+            const participantsRes = await fetch(`${API_URL}/wall/${eventId}/participants`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -134,7 +134,7 @@ const EventWall = () => {
                 return;
             }
 
-            const res = await fetch(`${API_URL}/api/wall/${eventId}/posts`, {
+            const res = await fetch(`${API_URL}/wall/${eventId}/posts`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -198,13 +198,13 @@ const EventWall = () => {
 
             if (isLiked) {
                 // Unlike
-                await fetch(`${API_URL}/api/wall/${eventId}/posts/${postId}/like/${currentParticipantId}`, {
+                await fetch(`${API_URL}/wall/${eventId}/posts/${postId}/like/${currentParticipantId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
             } else {
                 // Like
-                await fetch(`${API_URL}/api/wall/${eventId}/posts/${postId}/like`, {
+                await fetch(`${API_URL}/wall/${eventId}/posts/${postId}/like`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -230,7 +230,7 @@ const EventWall = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`${API_URL}/api/wall/${eventId}/posts/${postId}`, {
+            const res = await fetch(`${API_URL}/wall/${eventId}/posts/${postId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
