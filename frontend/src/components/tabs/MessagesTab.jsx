@@ -20,7 +20,7 @@ const MessagesTab = ({ event }) => {
 
     const fetchCommunications = async () => {
         try {
-            const response = await fetch(`${API_URL}/api/events/${event.id}/communications`, {
+            const response = await fetch(`${API_URL}/events/${event.id}/communications`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
@@ -65,7 +65,7 @@ const MessagesTab = ({ event }) => {
 
         setSending(true);
         try {
-            const response = await fetch(`${API_URL}/api/events/${event.id}/communications/announcement`, {
+            const response = await fetch(`${API_URL}/events/${event.id}/communications/announcement`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -104,7 +104,7 @@ const MessagesTab = ({ event }) => {
 
         setSending(true);
         try {
-            const response = await fetch(`${API_URL}/api/events/${event.id}/communications/thank-you`, {
+            const response = await fetch(`${API_URL}/events/${event.id}/communications/thank-you`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

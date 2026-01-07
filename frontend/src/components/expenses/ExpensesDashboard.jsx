@@ -16,7 +16,7 @@ const ExpensesDashboard = ({ eventId, event }) => {
     const fetchExpenses = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/api/events/${eventId}/expenses`, {
+            const response = await fetch(`${API_URL}/events/${eventId}/expenses`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -32,7 +32,7 @@ const ExpensesDashboard = ({ eventId, event }) => {
     const fetchBalances = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/api/events/${eventId}/balances`, {
+            const response = await fetch(`${API_URL}/events/${eventId}/balances`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 

@@ -23,7 +23,7 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/api/events/${eventId}/settlements`, {
+            const response = await fetch(`${API_URL}/events/${eventId}/settlements`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

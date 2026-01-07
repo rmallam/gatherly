@@ -9,7 +9,7 @@ const ScheduleItemCard = ({ item, eventId, onUpdate, onDelete }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/api/events/${eventId}/schedule/${item.id}`, {
+            const response = await fetch(`${API_URL}/events/${eventId}/schedule/${item.id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

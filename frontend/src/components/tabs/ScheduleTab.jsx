@@ -38,7 +38,7 @@ const ScheduleTab = ({ event }) => {
         try {
             setLoading(true);
             const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/api/events/${event.id}/schedule`, {
+            const response = await fetch(`${API_URL}/events/${event.id}/schedule`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 

@@ -9,7 +9,7 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, userId }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/api/events/${eventId}/expenses/${expenseId}`, {
+            const response = await fetch(`${API_URL}/events/${eventId}/expenses/${expenseId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

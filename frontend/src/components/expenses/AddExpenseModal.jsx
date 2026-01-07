@@ -204,7 +204,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
             console.log('Sending expense creation request:', payload);
             console.log('Splits:', splits);
 
-            const response = await fetch(`${API_URL}/api/events/${eventId}/expenses`, {
+            const response = await fetch(`${API_URL}/events/${eventId}/expenses`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

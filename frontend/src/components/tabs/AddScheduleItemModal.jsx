@@ -39,7 +39,7 @@ const AddScheduleItemModal = ({ event, selectedDate, onClose, onItemAdded }) => 
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/api/events/${event.id}/schedule`, {
+            const response = await fetch(`${API_URL}/events/${event.id}/schedule`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
