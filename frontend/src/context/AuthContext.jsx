@@ -82,18 +82,40 @@ export const AuthProvider = ({ children }) => {
             ? { phone: emailOrPhone, password }
             : { email: emailOrPhone, password };
 
+        console.log('🔐 Login attempt:', { url: `${API_URL}/auth/login`, isPhone });
+
         const response = await fetchWithRetry(`${API_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         }, 3, 30000);
 
+        console.log('📡 Login response status:', response.status);
+
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Login failed');
+            let errorMessage = 'Login failed';
+            try {
+                const error = await response.json();
+                errorMessage = error.error || errorMessage;
+            } catch (e) {
+                // Response is not JSON, try to get text
+                const text = await response.text();
+                console.error('❌ Non-JSON error response:', text.substring(0, 200));
+                errorMessage = `Server error (${response.status})`;
+            }
+            throw new Error(errorMessage);
         }
 
-        const data = await response.json();
+        let data;
+        try {
+            data = await response.json();
+            console.log('✅ Login successful');
+        } catch (e) {
+            const text = await response.text();
+            console.error('❌ Failed to parse success response:', text.substring(0, 200));
+            throw new Error('Invalid server response');
+        }
+
         localStorage.setItem('token', data.token);
         setToken(data.token);
         setUser(data.user);
