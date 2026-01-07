@@ -557,6 +557,85 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 });
 
 // Verify reset token validity
+// Redirect /reset-password to app deep link
+app.get('/reset-password', (req, res) => {
+    const { token } = req.query;
+
+    if (!token) {
+        return res.status(400).send('Missing reset token');
+    }
+
+    // Redirect to custom URL scheme that opens the app
+    const appDeepLink = `hosteze://reset-password?token=${token}`;
+
+    // HTML page that redirects to app, with fallback
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Reset Password - HostEze</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 100vh;
+                    margin: 0;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    text-align: center;
+                    padding: 20px;
+                }
+                .container {
+                    max-width: 400px;
+                }
+                h1 { font-size: 24px; margin-bottom: 16px; }
+                p { font-size: 16px; line-height: 1.6; margin-bottom: 24px; opacity: 0.9; }
+                .spinner {
+                    border: 3px solid rgba(255,255,255,0.3);
+                    border-top: 3px solid white;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    animation: spin 1s linear infinite;
+                    margin: 0 auto 20px;
+                }
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                a {
+                    color: white;
+                    text-decoration: underline;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="spinner"></div>
+                <h1>Opening HostEze App...</h1>
+                <p>If the app doesn't open automatically, <a href="${appDeepLink}">click here</a>.</p>
+                <p style="font-size: 14px; margin-top: 40px;">
+                    Don't have the app? <a href="https://play.google.com/store">Download from Play Store</a>
+                </p>
+            </div>
+            <script>
+                // Attempt to open the app
+                window.location.href = '${appDeepLink}';
+                
+                // Fallback: if app doesn't open in 2 seconds, show instructions
+                setTimeout(() => {
+                    document.querySelector('h1').textContent = 'Tap the link above to open HostEze';
+                }, 2000);
+            </script>
+        </body>
+        </html>
+    `);
+});
+
+// Verify reset token
 app.get('/api/auth/verify-reset-token', async (req, res) => {
     try {
         const { token } = req.query;

@@ -62,14 +62,29 @@ function DeepLinkHandler() {
         const handleAppUrlOpen = CapacitorApp.addListener('appUrlOpen', (data) => {
             console.log('App opened with URL:', data.url);
 
-            // Extract the path and query from the URL
-            // URL format: https://gatherly-backend-3vmv.onrender.com/reset-password?token=abc123
-            const url = new URL(data.url);
-            const path = url.pathname; // e.g., /reset-password
-            const search = url.search; // e.g., ?token=abc123
+            try {
+                // Handle both https:// and hosteze:// schemes
+                let path, search;
 
-            // Navigate to the path with query parameters
-            navigate(path + search);
+                if (data.url.startsWith('hosteze://')) {
+                    // Custom scheme: hosteze://reset-password?token=abc123
+                    const urlWithoutScheme = data.url.replace('hosteze://', '');
+                    const [pathPart, queryPart] = urlWithoutScheme.split('?');
+                    path = '/' + pathPart;
+                    search = queryPart ? '?' + queryPart : '';
+                } else {
+                    // HTTPS scheme: https://gatherly-backend-3vmv.onrender.com/reset-password?token=abc123
+                    const url = new URL(data.url);
+                    path = url.pathname;
+                    search = url.search;
+                }
+
+                console.log('Navigating to:', path + search);
+                // Navigate to the path with query parameters
+                navigate(path + search);
+            } catch (error) {
+                console.error('Error parsing deep link:', error);
+            }
         });
 
         return () => {
