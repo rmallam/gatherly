@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import API_URL from '../../config/api';
 import { X } from 'lucide-react';
 
 const AddScheduleItemModal = ({ event, selectedDate, onClose, onItemAdded }) => {
@@ -15,7 +16,6 @@ const AddScheduleItemModal = ({ event, selectedDate, onClose, onItemAdded }) => 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
     const categories = [
         { value: 'meals', label: '🍽️ Meals', emoji: '🍽️' },

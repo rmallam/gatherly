@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import API_URL from '../../config/api';
 import { Plus, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import ExpenseList from './ExpenseList';
 import AddExpenseModal from './AddExpenseModal';
@@ -11,7 +12,6 @@ const ExpensesDashboard = ({ eventId, event }) => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [activeTab, setActiveTab] = useState('expenses'); // expenses, balances
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
     const fetchExpenses = async () => {
         try {

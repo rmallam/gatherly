@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import API_URL from '../../config/api';
 import { Send, MessageSquare, Heart, History, Loader, Users, CheckCircle, XCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -11,9 +12,6 @@ const MessagesTab = ({ event }) => {
     const [sending, setSending] = useState(false);
     const [communications, setCommunications] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    const API_URL = 'https://gatherly-backend-3vmv.onrender.com';
-
 
     // Fetch communication history
     useEffect(() => {

@@ -1,8 +1,8 @@
 import React from 'react';
+import API_URL from '../../config/api';
 import { Trash2, DollarSign } from 'lucide-react';
 
 const ExpenseList = ({ expenses, eventId, onExpenseDeleted, userId }) => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
     const handleDelete = async (expenseId) => {
         if (!confirm('Are you sure you want to delete this expense?')) return;

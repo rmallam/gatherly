@@ -1,8 +1,8 @@
 import React from 'react';
+import API_URL from '../../config/api';
 import { Trash2, MapPin, DollarSign, Users, Clock } from 'lucide-react';
 
 const ScheduleItemCard = ({ item, eventId, onUpdate, onDelete }) => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
     const handleDelete = async () => {
         if (!confirm('Are you sure you want to delete this activity?')) return;

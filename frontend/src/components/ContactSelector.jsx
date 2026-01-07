@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { X, Search, Users, Check, AlertCircle, FolderOpen } from 'lucide-react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://gatherly-backend-3vmv.onrender.com/api';
+import API_URL from '../config/api';
 
 const ContactSelector = ({ isOpen, onClose, onSelectContacts, event }) => {
     const { contacts } = useApp();

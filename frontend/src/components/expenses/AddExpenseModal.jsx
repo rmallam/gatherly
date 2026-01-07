@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import API_URL from '../../config/api';
 import { X, DollarSign, Receipt, Calendar } from 'lucide-react';
 
 const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
@@ -16,7 +17,6 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 
     // Get all participants based on event type

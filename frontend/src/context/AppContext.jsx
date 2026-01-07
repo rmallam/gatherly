@@ -2,11 +2,11 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from './AuthContext';
 import { fetchWithRetry } from '../utils/fetchWithRetry';
+import API_URL from '../config/api';
 
 const AppContext = createContext();
 
 // Temporarily hardcoded for testing - always use production backend
-const API_URL = 'https://gatherly-backend-3vmv.onrender.com/api';
 
 export const AppProvider = ({ children }) => {
     const { user } = useAuth();

@@ -2,10 +2,10 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { BiometricService } from '../services/biometric';
 import { fetchWithRetry } from '../utils/fetchWithRetry';
 import pushNotificationService from '../services/PushNotificationService';
+import { generateToken, hashPassword, comparePassword } from '../server/auth.js';
+import API_URL from '../config/api';
 
 const AuthContext = createContext();
-
-const API_URL = 'https://gatherly-backend-3vmv.onrender.com/api';
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);

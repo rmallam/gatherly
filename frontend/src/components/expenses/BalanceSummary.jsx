@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
+import API_URL from '../../config/api';
 import { ArrowRight, Check, AlertCircle } from 'lucide-react';
 
 const BalanceSummary = ({ balances, eventId, onSettled }) => {
     const [settling, setSettling] = useState(null);
     const [showPendingDialog, setShowPendingDialog] = useState(false);
     const [pendingBalance, setPendingBalance] = useState(null);
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
     const handleSettle = async (balance) => {
         // Check if user is pending

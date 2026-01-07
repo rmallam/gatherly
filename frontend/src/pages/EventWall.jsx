@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MessageSquare, Heart, Send, ArrowLeft, Plus, Users, Image as ImageIcon, X, Trash2 } from 'lucide-react';
+import API_URL from '../config/api';
 import { Camera } from '@capacitor/camera';
 import Header from '../components/Header';
 import confetti from 'canvas-confetti';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 const EventWall = () => {
     const { eventId } = useParams();

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import API_URL from '../../config/api';
 import { Plus, Calendar as CalendarIcon } from 'lucide-react';
 import ScheduleItemCard from './ScheduleItemCard';
 import AddScheduleItemModal from './AddScheduleItemModal';
@@ -10,7 +11,6 @@ const ScheduleTab = ({ event }) => {
     const [loading, setLoading] = useState(true);
     const [dates, setDates] = useState([]);
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
     // Generate date range from event start to end (or +7 days if no end date)
     useEffect(() => {
