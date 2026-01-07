@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ArrowLeft, Users, Calendar, UserCheck, Search, Trash2, Shield, AlertCircle } from 'lucide-react';
+import API_URL from '../config/api';
 
 const AdminDashboard = () => {
     const { user } = useAuth();
@@ -34,7 +35,7 @@ const AdminDashboard = () => {
     const fetchStats = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/stats`, {
+            const response = await fetch(`${API_URL}/admin/stats`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -54,7 +55,7 @@ const AdminDashboard = () => {
             setLoading(true);
             const token = localStorage.getItem('token');
             console.log('🔍 Admin Dashboard: Fetching users...', { page, searchTerm });
-            const url = `${import.meta.env.VITE_API_URL}/api/admin/users?page=${page}&limit=20&search=${searchTerm}`;
+            const url = `${API_URL}/admin/users?page=${page}&limit=20&search=${searchTerm}`;
             console.log('🔍 Admin Dashboard: URL:', url);
 
             const response = await fetch(url, {
@@ -84,7 +85,7 @@ const AdminDashboard = () => {
     const handleDeleteUser = async (userId) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/users/${userId}`, {
+            const response = await fetch(`${API_URL}/admin/users/${userId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
