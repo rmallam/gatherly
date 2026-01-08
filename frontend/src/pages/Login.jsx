@@ -13,6 +13,7 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [biometricLoading, setBiometricLoading] = useState(false);
     const [showBiometricPrompt, setShowBiometricPrompt] = useState(false);
     const [savedCredentials, setSavedCredentials] = useState(null);
 
@@ -25,6 +26,9 @@ const Login = () => {
                     const hasSavedCredentials = await BiometricService.hasCredentials('hosteze-app');
 
                     if (hasSavedCredentials) {
+                        // Show loading state
+                        setBiometricLoading(true);
+
                         // Automatically trigger biometric auth
                         const authenticated = await BiometricService.authenticate();
 
@@ -37,10 +41,12 @@ const Login = () => {
                             }
                         }
                         // If authentication fails or is cancelled, just show the login form
+                        setBiometricLoading(false);
                     }
                 } catch (err) {
                     // Silent fail - user can still login with password
                     console.log('Auto biometric login failed:', err);
+                    setBiometricLoading(false);
                 }
             }
         };
@@ -143,6 +149,52 @@ const Login = () => {
 
     return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
+            {/* Biometric Loading Overlay */}
+            {biometricLoading && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 9999,
+                    background: 'rgba(0, 0, 0, 0.85)',
+                    backdropFilter: 'blur(8px)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '1.5rem'
+                }}>
+                    <div style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        animation: 'pulse 2s ease-in-out infinite',
+                        boxShadow: '0 0 40px rgba(139, 92, 246, 0.5)'
+                    }}>
+                        <Fingerprint size={40} style={{ color: 'white' }} />
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                        <div style={{
+                            fontSize: '1.25rem',
+                            fontWeight: 600,
+                            color: 'white',
+                            marginBottom: '0.5rem'
+                        }}>
+                            Authenticating...
+                        </div>
+                        <div style={{
+                            fontSize: '0.875rem',
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }}>
+                            Please verify your identity
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Header */}
             <div style={{ padding: '3rem 0 2rem', borderBottom: '1px solid var(--border)' }}>
                 <div className="container" style={{ textAlign: 'center' }}>
