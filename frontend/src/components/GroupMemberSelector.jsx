@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { X, Search, UserPlus, UserMinus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import API_URL from '../config/api';
