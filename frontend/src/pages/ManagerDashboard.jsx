@@ -8,13 +8,15 @@ const ManagerDashboard = () => {
     const { events, createEvent, deleteEvent } = useApp();
     const navigate = useNavigate();
     const [isCreating, setIsCreating] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [newEvent, setNewEvent] = useState({ title: '', date: '', location: '' });
     const [filter, setFilter] = useState('all'); // 'all', 'my', 'shared'
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!newEvent.title) return;
+        if (!newEvent.title || isSubmitting) return;
 
+        setIsSubmitting(true);
         try {
             const createdEvent = await createEvent(newEvent);
 
@@ -36,6 +38,8 @@ const ManagerDashboard = () => {
         } catch (error) {
             console.error('Failed to create event:', error);
             alert('Failed to create event. Please try again.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -201,11 +205,17 @@ const ManagerDashboard = () => {
                                     type="button"
                                     onClick={() => setIsCreating(false)}
                                     className="btn btn-secondary"
+                                    disabled={isSubmitting}
                                 >
                                     Cancel
                                 </button>
-                                <button type="submit" className="btn btn-primary">
-                                    Create Event
+                                <button
+                                    type="submit"
+                                    className={`btn btn-primary ${isSubmitting ? 'btn-loading' : ''}`}
+                                    disabled={isSubmitting}
+                                    style={{ minWidth: '140px' }}
+                                >
+                                    {isSubmitting ? 'Creating...' : 'Create Event'}
                                 </button>
                             </div>
                         </form>
