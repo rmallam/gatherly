@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { Users, Plus, Edit2, Trash2, X, UserPlus } from 'lucide-react';
 import GroupMemberSelector from './GroupMemberSelector';
 import API_URL from '../config/api';
