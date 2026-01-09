@@ -175,24 +175,6 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const continueAsGuest = () => {
-        // Generate unique guest ID
-        const guestNumber = Math.floor(10000 + Math.random() * 90000);
-        const guestId = `guest-${guestNumber}`;
-        const guestUser = {
-            id: guestId,
-            name: `Guest ${guestNumber}`,
-            email: `${guestId}@guest.local`,
-            isGuest: true
-        };
-
-        // Create a simple token for guest (not JWT, just identifier)
-        const guestToken = `guest_${guestId}`;
-        localStorage.setItem('token', guestToken);
-        localStorage.setItem('guestUser', JSON.stringify(guestUser));
-        setToken(guestToken);
-        setUser(guestUser);
-    };
 
     const logout = () => {
         // Unregister device for push notifications
@@ -237,7 +219,6 @@ export const AuthProvider = ({ children }) => {
             loginWithBiometric,
             enableBiometric,
             disableBiometric,
-            continueAsGuest,
             logout,
             refreshUser,
             isAuthenticated: !!user

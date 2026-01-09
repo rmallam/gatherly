@@ -5,7 +5,7 @@ import { LogIn, Mail, Lock, AlertCircle, Scan, Fingerprint, Phone } from 'lucide
 
 const Login = () => {
     const navigate = useNavigate();
-    const { login, loginWithBiometric, enableBiometric, continueAsGuest, biometricAvailable } = useAuth();
+    const { login, loginWithBiometric, enableBiometric, biometricAvailable } = useAuth();
     const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
     const [email, setEmail] = useState('');
     const [countryCode, setCountryCode] = useState('+91');
@@ -385,31 +385,6 @@ const Login = () => {
                             {loading ? 'Signing in...' : 'Sign In'}
                         </button>
                     </form>
-
-                    <div style={{ margin: '1.5rem 0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
-                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500 }}>OR</span>
-                        <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
-                    </div>
-
-                    <button
-                        onClick={() => {
-                            continueAsGuest();
-                            navigate('/');
-                        }}
-                        className="btn"
-                        style={{
-                            width: '100%',
-                            padding: '0.875rem',
-                            fontSize: '1rem',
-                            fontWeight: 600,
-                            background: 'var(--bg-secondary)',
-                            border: '1px solid var(--border)',
-                            color: 'var(--text-primary)'
-                        }}
-                    >
-                        Continue as Guest
-                    </button>
 
                     <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.9375rem', color: 'var(--text-secondary)' }}>
                         Don't have an account?{' '}
