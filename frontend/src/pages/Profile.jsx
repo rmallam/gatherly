@@ -805,6 +805,51 @@ const Profile = () => {
                 </div>
             </div>
 
+            {/* Logout Section - Buried at bottom for retention */}
+            <div style={{
+                background: 'var(--bg-primary)',
+                borderRadius: '12px',
+                padding: '24px',
+                marginBottom: '80px',
+                border: '1px solid var(--border)'
+            }}>
+                <button
+                    onClick={() => {
+                        if (confirm('Are you sure you want to logout?')) {
+                            logout();
+                            navigate('/login');
+                        }
+                    }}
+                    style={{
+                        width: '100%',
+                        padding: '14px',
+                        background: '#fee2e2',
+                        border: '1px solid #fecaca',
+                        borderRadius: '8px',
+                        color: '#dc2626',
+                        fontWeight: '600',
+                        fontSize: '15px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#fecaca';
+                        e.currentTarget.style.borderColor = '#fca5a5';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = '#fee2e2';
+                        e.currentTarget.style.borderColor = '#fecaca';
+                    }}
+                >
+                    <LogOut size={18} />
+                    Logout
+                </button>
+            </div>
+
             {/* Crop Modal */}
             {showCropModal && (
                 <div style={{
