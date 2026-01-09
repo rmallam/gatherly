@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import API_URL from '../../config/api';
-import { Plus, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import ExpenseList from './ExpenseList';
 import AddExpenseModal from './AddExpenseModal';
 import BalanceSummary from './BalanceSummary';
@@ -10,8 +10,7 @@ const ExpensesDashboard = ({ eventId, event }) => {
     const [balances, setBalances] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
-    const [activeTab, setActiveTab] = useState('expenses'); // expenses, balances
-
+    const [activeTab, setActiveTab] = useState('expenses');
 
     const fetchExpenses = async () => {
         try {
@@ -54,7 +53,6 @@ const ExpensesDashboard = ({ eventId, event }) => {
         loadData();
     }, [eventId]);
 
-    // Get userId from JWT token
     const getUserIdFromToken = () => {
         try {
             const token = localStorage.getItem('token');
@@ -68,29 +66,20 @@ const ExpensesDashboard = ({ eventId, event }) => {
     };
     const userId = getUserIdFromToken();
 
-    // Calculate summary stats
-    const totalExpenses = expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
-    const yourExpenses = expenses
-        .filter(exp => exp.paid_by === userId || exp.paid_by_id === userId)
-        .reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
-
-    const iOwe = balances
-        .filter(b => (b.fromUser === userId || b.from_user === userId) && parseFloat(b.amount) > 0)
-        .reduce((sum, b) => sum + parseFloat(b.amount), 0);
-
-    const owedToMe = balances
-        .filter(b => (b.toUser === userId || b.to_user === userId) && parseFloat(b.amount) > 0)
-        .reduce((sum, b) => sum + parseFloat(b.amount), 0);
-
     if (loading) {
         return (
             <div style={{
-                minHeight: '100vh',
-                background: 'linear-gradient(135deg, rgba(20,20,30,0.95), rgba(40,40,60,0.9))',
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(135deg, rgba(10,10,15,0.98), rgba(20,20,30,0.95))',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'white'
+                color: 'white',
+                zIndex: 10
             }}>
                 Loading...
             </div>
@@ -99,32 +88,37 @@ const ExpensesDashboard = ({ eventId, event }) => {
 
     return (
         <div style={{
-            minHeight: '100vh',
-            background: 'linear-gradient(135deg, rgba(20,20,30,0.95), rgba(40,40,60,0.9)), url("data:image/svg+xml,%3Csvg width=\'400\' height=\'400\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' /%3E%3C/filter%3E%3Crect width=\'400\' height=\'400\' filter=\'url(%23noise)\' opacity=\'0.05\'/%3E%3C/svg%3E")',
-            backgroundSize: 'cover',
-            padding: '1rem',
-            position: 'relative'
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'linear-gradient(135deg, rgba(10,10,15,0.98), rgba(20,20,30,0.95))',
+            zIndex: 10,
+            overflowY: 'auto',
+            padding: '1rem'
         }}>
-            {/* Main Glassmorphism Container */}
+            {/* Single Glassmorphism Container */}
             <div style={{
                 width: '100%',
-                maxWidth: '700px',
+                maxWidth: '100%',
                 margin: '0 auto',
                 background: 'rgba(255, 255, 255, 0.08)',
                 backdropFilter: 'blur(30px) saturate(180%)',
                 WebkitBackdropFilter: 'blur(30px) saturate(180%)',
-                borderRadius: '24px',
+                borderRadius: '20px',
                 border: '1px solid rgba(255, 255, 255, 0.15)',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                padding: '1.5rem',
-                color: 'white'
+                padding: '1.25rem',
+                color: 'white',
+                minHeight: 'calc(100vh - 2rem)'
             }}>
-                {/* Header with Title and Add Button */}
+                {/* Header */}
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    marginBottom: '1.5rem'
+                    marginBottom: '1.25rem'
                 }}>
                     <h2 style={{
                         fontSize: '1.5rem',
@@ -167,11 +161,11 @@ const ExpensesDashboard = ({ eventId, event }) => {
                     </button>
                 </div>
 
-                {/* Tab Navigation */}
+                {/* Tabs */}
                 <div style={{
                     display: 'flex',
                     gap: '0.5rem',
-                    marginBottom: '1.5rem',
+                    marginBottom: '1.25rem',
                     background: 'rgba(255, 255, 255, 0.08)',
                     padding: '0.25rem',
                     borderRadius: '12px',
@@ -215,16 +209,8 @@ const ExpensesDashboard = ({ eventId, event }) => {
                     </button>
                 </div>
 
-                {/* Content Area - Clean and Spacious */}
+                {/* Content */}
                 <div style={{
-                    minHeight: '400px',
-                    maxHeight: '600px',
-                    overflowY: 'auto',
-                    overflowX: 'hidden',
-                    wordBreak: 'normal',
-                    wordWrap: 'normal',
-                    whiteSpace: 'normal',
-                    // Override CSS variables for white text theme
                     '--text-primary': 'rgba(255, 255, 255, 0.95)',
                     '--text-secondary': 'rgba(255, 255, 255, 0.7)',
                     '--text-tertiary': 'rgba(255, 255, 255, 0.5)',
@@ -257,7 +243,6 @@ const ExpensesDashboard = ({ eventId, event }) => {
                 </div>
             </div>
 
-            {/* Add Expense Modal */}
             {showAddModal && (
                 <AddExpenseModal
                     eventId={eventId}
