@@ -47,84 +47,102 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
         }
     };
 
-    if (balances.length === 0) return null;
+    if (balances.length === 0) {
+        return (
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                No balances to settle
+            </div>
+        );
+    }
 
     return (
         <>
-            <div className="card" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1rem' }}>
-                    Balances to Settle
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {balances.map((balance, index) => (
-                        <div
-                            key={index}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                gap: '0.75rem',
-                                padding: '0.75rem',
-                                borderRadius: '8px',
-                                background: 'var(--bg-secondary)',
-                                border: '1px solid var(--border)'
-                            }}
-                        >
-                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
-                                <span style={{
-                                    fontWeight: 500,
-                                    color: 'var(--text-primary)',
-                                    fontSize: '0.875rem',
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis'
-                                }}>
-                                    {balance.fromUserName}
-                                </span>
-                                <ArrowRight size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-                                <span style={{
-                                    fontWeight: 500,
-                                    color: 'var(--text-primary)',
-                                    fontSize: '0.875rem',
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis'
-                                }}>
-                                    {balance.toUserName}
-                                </span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
-                                <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#ef4444', whiteSpace: 'nowrap' }}>
-                                    {balance.currency} {parseFloat(balance.amount).toFixed(2)}
-                                </span>
-                                <button
-                                    onClick={() => handleSettle(balance)}
-                                    className="btn btn-primary"
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.375rem',
-                                        fontSize: '0.75rem',
-                                        padding: balance.isPending ? '0.5rem' : '0.5rem 0.75rem',
-                                        whiteSpace: 'nowrap',
-                                        background: balance.isPending ? '#fbbf24' : undefined,
-                                        borderColor: balance.isPending ? '#fbbf24' : undefined
-                                    }}
-                                    disabled={settling === balance}
-                                >
-                                    {balance.isPending ? (
-                                        <AlertCircle size={16} />
-                                    ) : (
-                                        <>
-                                            <Check size={14} />
-                                            {settling === balance ? 'Settling...' : 'Settle'}
-                                        </>
-                                    )}
-                                </button>
-                            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {balances.map((balance, index) => (
+                    <div
+                        key={index}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '1rem',
+                            padding: '1rem',
+                            borderRadius: '12px',
+                            background: 'rgba(255, 255, 255, 0.08)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'}
+                    >
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+                            <span style={{
+                                fontWeight: 600,
+                                color: 'var(--text-primary)',
+                                fontSize: '0.9375rem',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                            }}>
+                                {balance.fromUserName}
+                            </span>
+                            <ArrowRight size={16} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+                            <span style={{
+                                fontWeight: 600,
+                                color: 'var(--text-primary)',
+                                fontSize: '0.9375rem',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                            }}>
+                                {balance.toUserName}
+                            </span>
                         </div>
-                    ))}
-                </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+                            <span style={{ fontSize: '1rem', fontWeight: 700, color: '#ef4444', whiteSpace: 'nowrap' }}>
+                                {balance.currency} {parseFloat(balance.amount).toFixed(2)}
+                            </span>
+                            <button
+                                onClick={() => handleSettle(balance)}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.375rem',
+                                    fontSize: '0.8125rem',
+                                    padding: balance.isPending ? '0.5rem' : '0.5rem 0.875rem',
+                                    whiteSpace: 'nowrap',
+                                    background: balance.isPending ? '#fbbf24' : 'rgba(16, 185, 129, 0.3)',
+                                    border: balance.isPending ? '1px solid #fbbf24' : '1px solid rgba(16, 185, 129, 0.5)',
+                                    borderRadius: '8px',
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                                disabled={settling === balance}
+                                onMouseEnter={(e) => {
+                                    if (!balance.isPending) {
+                                        e.currentTarget.style.background = 'rgba(16, 185, 129, 0.4)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!balance.isPending) {
+                                        e.currentTarget.style.background = 'rgba(16, 185, 129, 0.3)';
+                                    }
+                                }}
+                            >
+                                {balance.isPending ? (
+                                    <AlertCircle size={16} />
+                                ) : (
+                                    <>
+                                        <Check size={14} />
+                                        {settling === balance ? 'Settling...' : 'Settle'}
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                ))}
             </div>
 
             {/* Pending User Dialog */}
