@@ -4,12 +4,14 @@ import { Plus } from 'lucide-react';
 import ExpenseList from './ExpenseList';
 import AddExpenseModal from './AddExpenseModal';
 import BalanceSummary from './BalanceSummary';
+import ExpenseDetail from './ExpenseDetail';
 
 const ExpensesDashboard = ({ eventId, event }) => {
     const [expenses, setExpenses] = useState([]);
     const [balances, setBalances] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [selectedExpense, setSelectedExpense] = useState(null);
     const [activeTab, setActiveTab] = useState('expenses');
 
     const fetchExpenses = async () => {
@@ -112,29 +114,26 @@ const ExpensesDashboard = ({ eventId, event }) => {
                 </button>
             </div>
 
-            {/* Tabs */}
+            {/* Tabs - Simplified Styling */}
             <div style={{
                 display: 'flex',
-                gap: '0.5rem',
-                marginBottom: '1.5rem',
-                background: 'var(--bg-secondary)',
-                padding: '0.25rem',
-                borderRadius: '12px',
-                border: '1px solid var(--border)'
+                gap: '16px',
+                marginBottom: '24px',
+                borderBottom: '1px solid var(--border)',
+                paddingBottom: '0'
             }}>
                 <button
                     onClick={() => setActiveTab('expenses')}
                     style={{
-                        flex: 1,
-                        padding: '0.75rem',
-                        borderRadius: '10px',
+                        padding: '0 0 12px 0',
                         border: 'none',
-                        background: activeTab === 'expenses' ? 'var(--primary)' : 'transparent',
-                        color: activeTab === 'expenses' ? 'white' : 'var(--text-primary)',
-                        fontWeight: 600,
-                        fontSize: '0.9375rem',
+                        background: 'none',
+                        color: activeTab === 'expenses' ? 'var(--primary)' : 'var(--text-secondary)',
+                        fontWeight: activeTab === 'expenses' ? 700 : 500,
+                        fontSize: '16px',
                         cursor: 'pointer',
-                        transition: 'all 0.3s'
+                        borderBottom: activeTab === 'expenses' ? '2px solid var(--primary)' : '2px solid transparent',
+                        transition: 'all 0.2s'
                     }}
                 >
                     Expenses
@@ -142,16 +141,15 @@ const ExpensesDashboard = ({ eventId, event }) => {
                 <button
                     onClick={() => setActiveTab('balances')}
                     style={{
-                        flex: 1,
-                        padding: '0.75rem',
-                        borderRadius: '10px',
+                        padding: '0 0 12px 0',
                         border: 'none',
-                        background: activeTab === 'balances' ? 'var(--primary)' : 'transparent',
-                        color: activeTab === 'balances' ? 'white' : 'var(--text-primary)',
-                        fontWeight: 600,
-                        fontSize: '0.9375rem',
+                        background: 'none',
+                        color: activeTab === 'balances' ? 'var(--primary)' : 'var(--text-secondary)',
+                        fontWeight: activeTab === 'balances' ? 700 : 500,
+                        fontSize: '16px',
                         cursor: 'pointer',
-                        transition: 'all 0.3s'
+                        borderBottom: activeTab === 'balances' ? '2px solid var(--primary)' : '2px solid transparent',
+                        transition: 'all 0.2s'
                     }}
                 >
                     Balances
@@ -168,6 +166,7 @@ const ExpensesDashboard = ({ eventId, event }) => {
                             fetchExpenses();
                             fetchBalances();
                         }}
+                        onExpenseClick={(expense) => setSelectedExpense(expense)}
                         userId={userId}
                     />
                 ) : (
@@ -191,6 +190,21 @@ const ExpensesDashboard = ({ eventId, event }) => {
                         fetchExpenses();
                         fetchBalances();
                         setShowAddModal(false);
+                    }}
+                />
+            )}
+
+            {/* Expense Detail Modal */}
+            {selectedExpense && (
+                <ExpenseDetail
+                    expense={selectedExpense}
+                    eventId={eventId}
+                    currentUserId={userId}
+                    onClose={() => setSelectedExpense(null)}
+                    onDelete={() => {
+                        fetchExpenses();
+                        fetchBalances();
+                        setSelectedExpense(null);
                     }}
                 />
             )}

@@ -65,15 +65,13 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            gap: '1rem',
-                            padding: '1rem',
-                            borderRadius: '12px',
-                            background: 'rgba(255, 255, 255, 0.08)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                            transition: 'all 0.2s'
+                            gap: '12px',
+                            padding: '16px 0',
+                            transition: 'all 0.2s',
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.05)' // Subtle divider for balances feels right as they are unrelated items usually
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                     >
                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
                             <span style={{

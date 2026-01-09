@@ -2,7 +2,7 @@ import React from 'react';
 import API_URL from '../../config/api';
 import { Trash2, DollarSign } from 'lucide-react';
 
-const ExpenseList = ({ expenses, eventId, onExpenseDeleted, userId }) => {
+const ExpenseList = ({ expenses, eventId, onExpenseDeleted, onExpenseClick, userId }) => {
 
     const handleDelete = async (expenseId) => {
         if (!confirm('Are you sure you want to delete this expense?')) return;
@@ -72,21 +72,21 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, userId }) => {
         }
     };
 
-    const getCategoryIcon = (category) => {
-        const icons = {
-            food: '🍽️',
-            transport: '🚗',
-            accommodation: '🏨',
-            activities: '🎯',
-            entertainment: '🎬',
-            other: '📝'
+    const getCategoryGradient = (category) => {
+        const gradients = {
+            food: 'linear-gradient(135deg, #10b981, #059669)',
+            transport: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+            accommodation: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+            activities: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            entertainment: 'linear-gradient(135deg, #ec4899, #db2777)',
+            other: 'linear-gradient(135deg, #6b7280, #4b5563)'
         };
-        return icons[category] || '📝';
+        return gradients[category] || gradients.other;
     };
 
     if (expenses.length === 0) {
         return (
-            <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
+            <div style={{ padding: '3rem', textAlign: 'center' }}>
                 <DollarSign size={48} style={{ margin: '0 auto 1rem', color: 'var(--text-tertiary)' }} />
                 <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                     No expenses yet
@@ -106,21 +106,21 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, userId }) => {
     return (
         <div>
             {sortedMonths.map(month => (
-                <div key={month} style={{ marginBottom: '2rem' }}>
-                    {/* Month Header */}
-                    <h3 style={{
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
+                <div key={month} style={{ marginBottom: '1rem' }}>
+                    {/* Month Header - Simple text like Splitwise */}
+                    <div style={{
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
                         color: 'var(--text-secondary)',
-                        marginBottom: '1rem',
+                        marginBottom: '0.5rem',
                         textTransform: 'uppercase',
-                        letterSpacing: '0.05em'
+                        paddingLeft: '0.5rem'
                     }}>
                         {month}
-                    </h3>
+                    </div>
 
                     {/* Expense Items */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
                         {groupedExpenses[month]
                             .sort((a, b) => new Date(b.expense_date) - new Date(a.expense_date))
                             .map(expense => {
@@ -130,55 +130,59 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, userId }) => {
                                 return (
                                     <div
                                         key={expense.id}
+                                        onClick={() => onExpenseClick && onExpenseClick(expense)}
                                         style={{
                                             display: 'flex',
                                             alignItems: 'center',
-                                            gap: '1rem',
-                                            padding: '1rem',
-                                            background: 'var(--bg-secondary)',
-                                            borderRadius: 'var(--radius)',
-                                            transition: 'background 0.2s'
+                                            padding: '12px 0', // Vertical spacing
+                                            cursor: 'pointer',
+                                            transition: 'background 0.2s',
+                                            borderRadius: '8px'
                                         }}
-                                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-                                        onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                                     >
-                                        {/* Date */}
+                                        {/* Date Column - Splitwise Style */}
                                         <div style={{
-                                            minWidth: '3rem',
+                                            minWidth: '40px',
                                             textAlign: 'center',
-                                            color: 'var(--text-tertiary)',
-                                            fontSize: '0.75rem'
+                                            color: 'var(--text-secondary)',
+                                            marginRight: '12px',
+                                            paddingLeft: '8px'
                                         }}>
-                                            <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                                            <div style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 600, lineHeight: 1, marginBottom: '2px' }}>
                                                 {date.toLocaleDateString('en-US', { month: 'short' })}
                                             </div>
-                                            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                            <div style={{ fontSize: '18px', fontWeight: 400, color: 'var(--text-secondary)', lineHeight: 1 }}>
                                                 {date.getDate()}
                                             </div>
                                         </div>
 
                                         {/* Icon */}
                                         <div style={{
-                                            width: '2.5rem',
-                                            height: '2.5rem',
-                                            borderRadius: 'var(--radius)',
-                                            background: 'var(--bg-primary)',
+                                            width: '48px',
+                                            height: '48px',
+                                            borderRadius: '12px',
+                                            background: 'var(--bg-secondary)', // Fallback
+                                            backgroundImage: getCategoryIcon(expense.category) === '📝' ? 'none' : 'none', // Placeholder logic, strictly using icons for now but kept layout
+                                            border: '1px solid var(--border)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            fontSize: '1.25rem',
-                                            flexShrink: 0
+                                            fontSize: '24px',
+                                            flexShrink: 0,
+                                            marginRight: '16px'
                                         }}>
                                             {getCategoryIcon(expense.category)}
                                         </div>
 
-                                        {/* Content */}
-                                        <div style={{ flex: 1, minWidth: '0', overflow: 'hidden' }}>
+                                        {/* Middle Details */}
+                                        <div style={{ flex: 1, minWidth: '0', overflow: 'hidden', marginRight: '8px' }}>
                                             <div style={{
-                                                fontSize: '0.9375rem',
+                                                fontSize: '16px',
                                                 fontWeight: 600,
                                                 color: 'var(--text-primary)',
-                                                marginBottom: '0.25rem',
+                                                marginBottom: '2px',
                                                 overflow: 'hidden',
                                                 textOverflow: 'ellipsis',
                                                 whiteSpace: 'nowrap'
@@ -186,74 +190,51 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, userId }) => {
                                                 {expense.description}
                                             </div>
                                             <div style={{
-                                                fontSize: '0.8125rem',
+                                                fontSize: '12px',
                                                 color: 'var(--text-secondary)',
                                                 whiteSpace: 'nowrap',
                                                 overflow: 'hidden',
                                                 textOverflow: 'ellipsis'
                                             }}>
-                                                {expense.paid_by_name} paid {expense.currency} {parseFloat(expense.amount).toFixed(2)}
+                                                {expense.paid_by === userId || expense.paid_by_id === userId
+                                                    ? `You paid ${expense.currency} ${parseFloat(expense.amount).toFixed(2)}`
+                                                    : `${expense.paid_by_name?.split(' ')[0]} paid ${expense.currency} ${parseFloat(expense.amount).toFixed(2)}`
+                                                }
                                             </div>
                                         </div>
 
-                                        {/* Amount & Status */}
+                                        {/* Right Status */}
                                         <div style={{
                                             textAlign: 'right',
-                                            minWidth: '5rem'
+                                            minWidth: '80px'
                                         }}>
                                             {status.type !== 'not_involved' ? (
-                                                <>
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                                                     <div style={{
-                                                        fontSize: '0.9375rem',
+                                                        fontSize: '10px',
+                                                        color: status.color,
                                                         fontWeight: 600,
-                                                        color: status.color,
-                                                        marginBottom: '0.125rem'
-                                                    }}>
-                                                        {expense.currency} {status.amount.toFixed(2)}
-                                                    </div>
-                                                    <div style={{
-                                                        fontSize: '0.75rem',
-                                                        color: status.color,
-                                                        fontWeight: 500
+                                                        textTransform: 'lowercase'
                                                     }}>
                                                         {status.text}
                                                     </div>
-                                                </>
+                                                    <div style={{
+                                                        fontSize: '14px',
+                                                        fontWeight: 700,
+                                                        color: status.color
+                                                    }}>
+                                                        {expense.currency}{status.amount.toFixed(2)}
+                                                    </div>
+                                                </div>
                                             ) : (
                                                 <div style={{
-                                                    fontSize: '0.75rem',
-                                                    color: status.color,
-                                                    fontWeight: 500
+                                                    fontSize: '12px',
+                                                    color: 'var(--text-tertiary)'
                                                 }}>
-                                                    {status.text}
+                                                    not involved
                                                 </div>
                                             )}
                                         </div>
-
-                                        {/* Delete Button */}
-                                        <button
-                                            onClick={() => handleDelete(expense.id)}
-                                            style={{
-                                                background: 'none',
-                                                border: 'none',
-                                                cursor: 'pointer',
-                                                color: 'var(--text-tertiary)',
-                                                padding: '0.5rem',
-                                                borderRadius: 'var(--radius)',
-                                                transition: 'all 0.2s',
-                                                flexShrink: 0
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-                                                e.currentTarget.style.color = '#ef4444';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.background = 'none';
-                                                e.currentTarget.style.color = 'var(--text-tertiary)';
-                                            }}
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
                                     </div>
                                 );
                             })}
