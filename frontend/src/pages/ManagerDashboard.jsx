@@ -11,7 +11,7 @@ const ManagerDashboard = () => {
     const [isCreating, setIsCreating] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [newEvent, setNewEvent] = useState({ title: '', date: '', location: '' });
-    const [filter, setFilter] = useState('all'); // 'all', 'my', 'shared'
+    const [filter, setFilter] = useState('upcoming'); // 'upcoming', 'past'
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -71,76 +71,42 @@ const ManagerDashboard = () => {
                 </p>
             </div>
 
-            {/* Filter Chips */}
+            {/* Filter Tabs - Upcoming/Past */}
             {events.length > 0 && (
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', overflowX: 'auto', paddingBottom: '4px' }}>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', background: 'var(--bg-secondary)', padding: '4px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                     <button
-                        onClick={() => setFilter('all')}
+                        onClick={() => setFilter('upcoming')}
                         style={{
-                            padding: '8px 16px',
-                            borderRadius: '20px',
-                            border: filter === 'all' ? '2px solid var(--primary)' : '1px solid var(--border)',
-                            background: filter === 'all' ? 'var(--primary)' : 'var(--bg-primary)',
-                            color: filter === 'all' ? 'white' : 'var(--text-secondary)',
+                            flex: 1,
+                            padding: '10px 16px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: filter === 'upcoming' ? 'var(--primary)' : 'transparent',
+                            color: filter === 'upcoming' ? 'white' : 'var(--text-secondary)',
                             fontSize: '14px',
-                            fontWeight: filter === 'all' ? 600 : 500,
+                            fontWeight: 600,
                             cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            whiteSpace: 'nowrap'
+                            transition: 'all 0.2s'
                         }}
                     >
-                        All
+                        Upcoming
                     </button>
                     <button
-                        onClick={() => setFilter('my')}
+                        onClick={() => setFilter('past')}
                         style={{
-                            padding: '8px 16px',
-                            borderRadius: '20px',
-                            border: filter === 'my' ? '2px solid var(--primary)' : '1px solid var(--border)',
-                            background: filter === 'my' ? 'var(--primary)' : 'var(--bg-primary)',
-                            color: filter === 'my' ? 'white' : 'var(--text-secondary)',
+                            flex: 1,
+                            padding: '10px 16px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: filter === 'past' ? 'var(--primary)' : 'transparent',
+                            color: filter === 'past' ? 'white' : 'var(--text-secondary)',
                             fontSize: '14px',
-                            fontWeight: filter === 'my' ? 600 : 500,
+                            fontWeight: 600,
                             cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            whiteSpace: 'nowrap'
+                            transition: 'all 0.2s'
                         }}
                     >
-                        My Events
-                    </button>
-                    <button
-                        onClick={() => setFilter('shared')}
-                        style={{
-                            padding: '8px 16px',
-                            borderRadius: '20px',
-                            border: filter === 'shared' ? '2px solid var(--primary)' : '1px solid var(--border)',
-                            background: filter === 'shared' ? 'var(--primary)' : 'var(--bg-primary)',
-                            color: filter === 'shared' ? 'white' : 'var(--text-secondary)',
-                            fontSize: '14px',
-                            fontWeight: filter === 'shared' ? 600 : 500,
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            whiteSpace: 'nowrap'
-                        }}
-                    >
-                        Shared
-                    </button>
-                    <button
-                        onClick={() => setFilter('guest')}
-                        style={{
-                            padding: '8px 16px',
-                            borderRadius: '20px',
-                            border: filter === 'guest' ? '2px solid var(--primary)' : '1px solid var(--border)',
-                            background: filter === 'guest' ? 'var(--primary)' : 'var(--bg-primary)',
-                            color: filter === 'guest' ? 'white' : 'var(--text-secondary)',
-                            fontSize: '14px',
-                            fontWeight: filter === 'guest' ? 600 : 500,
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            whiteSpace: 'nowrap'
-                        }}
-                    >
-                        Guest
+                        Past
                     </button>
                 </div>
             )}
@@ -240,10 +206,22 @@ const ManagerDashboard = () => {
                 <div style={{ display: 'grid', gap: '12px' }}>
                     {events
                         .filter(event => {
-                            if (filter === 'all') return true;
-                            if (filter === 'my') return event.role !== 'guest';
-                            if (filter === 'shared') return event.event_type === 'shared';
-                            if (filter === 'guest') return event.role === 'guest' && event.event_type !== 'shared';
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0); // Reset to start of day
+
+                            if (!event.date) {
+                                // Events without dates show in upcoming
+                                return filter === 'upcoming';
+                            }
+
+                            const eventDate = new Date(event.date);
+                            eventDate.setHours(0, 0, 0, 0);
+
+                            if (filter === 'upcoming') {
+                                return eventDate >= today;
+                            } else if (filter === 'past') {
+                                return eventDate < today;
+                            }
                             return true;
                         })
                         .sort((a, b) => {
