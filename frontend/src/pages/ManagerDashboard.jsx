@@ -289,7 +289,7 @@ const ManagerDashboard = () => {
                                 return (
                                     <Link to={linkPath} key={event.id} style={{ textDecoration: 'none' }}>
                                         <div style={{
-                                            padding: '16px 0',
+                                            padding: '20px 0',
                                             display: 'flex',
                                             alignItems: 'center',
                                             gap: '16px',
@@ -304,14 +304,14 @@ const ManagerDashboard = () => {
                                             }}>
                                             {/* Icon Badge - Splitwise style */}
                                             <div style={{
-                                                width: '56px',
-                                                height: '56px',
+                                                width: '64px',
+                                                height: '64px',
                                                 background: isGuest
                                                     ? 'linear-gradient(135deg, #60a5fa, #3b82f6)'
                                                     : isSharedEvent
                                                         ? 'linear-gradient(135deg, #f59e0b, #d97706)'
                                                         : 'linear-gradient(135deg, #ec4899, #db2777)',
-                                                borderRadius: '12px',
+                                                borderRadius: '14px',
                                                 display: 'flex',
                                                 flexDirection: 'column',
                                                 alignItems: 'center',
@@ -319,10 +319,10 @@ const ManagerDashboard = () => {
                                                 flexShrink: 0,
                                                 color: 'white'
                                             }}>
-                                                <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', opacity: 0.9 }}>
+                                                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', opacity: 0.9 }}>
                                                     {event.date ? new Date(event.date).toLocaleString('default', { month: 'short' }) : 'TBD'}
                                                 </span>
-                                                <span style={{ fontSize: '20px', fontWeight: 700, lineHeight: 1 }}>
+                                                <span style={{ fontSize: '22px', fontWeight: 700, lineHeight: 1 }}>
                                                     {event.date ? new Date(event.date).getDate() : '?'}
                                                 </span>
                                             </div>
