@@ -67,15 +67,15 @@ const ManagerDashboard = () => {
                     </p>
                 </div>
 
-                {/* Summary Banner */}
+                {/* Summary Banner - Splitwise style */}
                 {events.length > 0 && (
                     <div style={{
-                        background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                        background: '#1cc29f',
                         borderRadius: '12px',
                         padding: '16px 20px',
                         marginBottom: '20px',
                         color: 'white',
-                        boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+                        boxShadow: '0 2px 8px rgba(28, 194, 159, 0.3)'
                     }}>
                         <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '4px' }}>Overview</div>
                         <div style={{ fontSize: '1.25rem', fontWeight: 700 }}>
@@ -433,34 +433,34 @@ const ManagerDashboard = () => {
                 )}
             </div>
 
-            {/* Floating Action Button - Truly outside container */}
+            {/* Floating Action Button - Splitwise style */}
             <button
                 onClick={() => setIsCreating(true)}
                 style={{
                     position: 'fixed',
-                    bottom: '100px', // Higher to avoid bottom navigation overlap
+                    bottom: '100px',
                     right: '24px',
                     width: '56px',
                     height: '56px',
                     borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                    background: '#1cc29f',
                     border: 'none',
                     color: 'white',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 16px rgba(99, 102, 241, 0.4)',
+                    boxShadow: '0 4px 12px rgba(28, 194, 159, 0.4)',
                     zIndex: 1000,
                     transition: 'all 0.3s ease'
                 }}
                 onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'scale(1.1)';
-                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(99, 102, 241, 0.5)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(28, 194, 159, 0.5)';
                 }}
                 onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(99, 102, 241, 0.4)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(28, 194, 159, 0.4)';
                 }}
                 aria-label="Create New Event"
             >
