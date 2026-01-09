@@ -266,6 +266,10 @@ const ExpensesDashboard = ({ eventId, event }) => {
                     minHeight: '300px',
                     maxHeight: '500px',
                     overflowY: 'auto',
+                    overflowX: 'hidden',
+                    wordBreak: 'normal',
+                    wordWrap: 'normal',
+                    whiteSpace: 'normal',
                     // Override CSS variables for white text theme
                     '--text-primary': 'rgba(255, 255, 255, 0.95)',
                     '--text-secondary': 'rgba(255, 255, 255, 0.7)',
