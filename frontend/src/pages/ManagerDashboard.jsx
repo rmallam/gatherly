@@ -142,6 +142,7 @@ const ManagerDashboard = () => {
                 <button
                     onClick={() => setIsCreating(true)}
                     style={{
+                        display: 'none', // Hidden - using the one outside container instead
                         position: 'fixed',
                         bottom: '24px',
                         right: '24px',
