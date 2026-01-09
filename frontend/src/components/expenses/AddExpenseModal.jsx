@@ -225,7 +225,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
                 onClose();
             } else {
                 const data = responseText ? JSON.parse(responseText) : {};
-                console.error('Expense creation failed:', data);
+                console.error('Expense creation failed:', JSON.stringify(data));
                 // Show detailed error message
                 const errorMsg = data.error || data.message || 'Failed to create expense';
                 const details = data.missingFields ? ` (Missing: ${data.missingFields.join(', ')})` : '';

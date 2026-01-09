@@ -20,7 +20,7 @@ ALTER TABLE event_expense_splits
 ALTER TABLE event_expense_splits
   ADD CONSTRAINT check_participant_info CHECK (
     user_id IS NOT NULL OR 
-    (pending_name IS NOT NULL AND (pending_email IS NOT NULL OR pending_phone IS NOT NULL))
+    pending_name IS NOT NULL
   );
 
 -- Create indexes for efficient auto-linking

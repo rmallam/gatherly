@@ -93,7 +93,7 @@ export const createExpense = async (req, res) => {
                          VALUES ($1, $2, $3)`,
                         [expense.id, split.userId, split.amount]
                     );
-                } else if (split.name && (split.email || split.phone)) {
+                } else if (split.name) {
                     // Pending (unregistered) participant
                     await query(
                         `INSERT INTO event_expense_splits (expense_id, pending_name, pending_email, pending_phone, amount)
@@ -101,7 +101,7 @@ export const createExpense = async (req, res) => {
                         [expense.id, split.name, split.email || null, split.phone || null, split.amount]
                     );
                 } else {
-                    throw new Error('Invalid split: must have userId OR (name AND (email OR phone))');
+                    throw new Error('Invalid split: must have userId OR name');
                 }
             }
 
@@ -116,7 +116,7 @@ export const createExpense = async (req, res) => {
         }
     } catch (error) {
         console.error('Error creating expense:', error);
-        res.status(500).json({ error: 'Failed to create expense' });
+        res.status(500).json({ error: 'Failed to create expense', details: error.message });
     }
 };
 
