@@ -302,11 +302,8 @@ const ManagerDashboard = () => {
                                 return (
                                     <Link to={linkPath} key={event.id} style={{ textDecoration: 'none' }}>
                                         <div style={{
-                                            background: 'var(--bg-primary)',
-                                            borderRadius: '12px',
-                                            padding: '16px',
-                                            border: '1px solid var(--border)',
-                                            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                                            padding: '16px 0',
+                                            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             gap: '16px',
@@ -314,18 +311,20 @@ const ManagerDashboard = () => {
                                             cursor: 'pointer'
                                         }}
                                             onMouseEnter={(e) => {
-                                                e.currentTarget.style.transform = 'translateY(-2px)';
-                                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
                                             }}
                                             onMouseLeave={(e) => {
-                                                e.currentTarget.style.transform = 'translateY(0)';
-                                                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+                                                e.currentTarget.style.background = 'transparent';
                                             }}>
-                                            {/* Date Badge */}
+                                            {/* Icon Badge - Splitwise style */}
                                             <div style={{
                                                 width: '56px',
                                                 height: '56px',
-                                                background: isGuest ? 'linear-gradient(135deg, #60a5fa, #3b82f6)' : 'linear-gradient(135deg, #6366f1, #a855f7)',
+                                                background: isGuest
+                                                    ? 'linear-gradient(135deg, #60a5fa, #3b82f6)'
+                                                    : isSharedEvent
+                                                        ? 'linear-gradient(135deg, #f59e0b, #d97706)'
+                                                        : 'linear-gradient(135deg, #ec4899, #db2777)',
                                                 borderRadius: '12px',
                                                 display: 'flex',
                                                 flexDirection: 'column',
@@ -351,14 +350,14 @@ const ManagerDashboard = () => {
                                                     {isSharedEvent && (
                                                         <span style={{
                                                             padding: '2px 8px',
-                                                            background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15))',
-                                                            color: 'var(--primary)',
+                                                            background: 'rgba(245, 158, 11, 0.15)',
+                                                            color: '#f59e0b',
                                                             borderRadius: '12px',
                                                             fontSize: '10px',
                                                             fontWeight: 700,
                                                             textTransform: 'uppercase',
                                                             flexShrink: 0,
-                                                            border: '1px solid var(--primary)'
+                                                            border: '1px solid #f59e0b'
                                                         }}>
                                                             SHARED
                                                         </span>
@@ -366,30 +365,29 @@ const ManagerDashboard = () => {
                                                     {isGuest && !isSharedEvent && (
                                                         <span style={{
                                                             padding: '2px 8px',
-                                                            background: '#dbeafe',
-                                                            color: '#1e40af',
+                                                            background: 'rgba(96, 165, 250, 0.15)',
+                                                            color: '#60a5fa',
                                                             borderRadius: '12px',
                                                             fontSize: '10px',
                                                             fontWeight: 700,
                                                             textTransform: 'uppercase',
-                                                            flexShrink: 0
+                                                            flexShrink: 0,
+                                                            border: '1px solid #60a5fa'
                                                         }}>
                                                             GUEST
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                                <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
                                                     {event.location && (
-                                                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                            <MapPin size={12} />
+                                                        <div style={{ marginBottom: '2px' }}>
                                                             {event.location}
-                                                        </span>
+                                                        </div>
                                                     )}
                                                     {!isGuest && (
-                                                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                            <Users size={12} />
-                                                            {event.guests?.length || 0}
-                                                        </span>
+                                                        <div>
+                                                            {event.guests?.length || 0} {event.guests?.length === 1 ? 'guest' : 'guests'}
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
