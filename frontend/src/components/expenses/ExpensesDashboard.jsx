@@ -200,6 +200,7 @@ const ExpensesDashboard = ({ eventId, event }) => {
                     expense={selectedExpense}
                     eventId={eventId}
                     currentUserId={userId}
+                    participants={event?.participants || []}
                     onClose={() => setSelectedExpense(null)}
                     onDelete={() => {
                         fetchExpenses();

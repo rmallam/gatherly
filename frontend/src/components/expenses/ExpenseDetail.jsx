@@ -2,7 +2,7 @@ import React from 'react';
 import { X, Trash2, Calendar, User, FileText } from 'lucide-react';
 import API_URL from '../../config/api';
 
-const ExpenseDetail = ({ expense, eventId, onClose, onDelete, currentUserId }) => {
+const ExpenseDetail = ({ expense, eventId, onClose, onDelete, currentUserId, participants = [] }) => {
     if (!expense) return null;
 
     const handleDelete = async () => {
@@ -31,6 +31,22 @@ const ExpenseDetail = ({ expense, eventId, onClose, onDelete, currentUserId }) =
             month: 'long',
             day: 'numeric'
         });
+    };
+
+    const getUserName = (userId) => {
+        if (!userId) return 'Unknown User';
+        if (String(userId) === String(currentUserId)) return 'You';
+
+        // Try to find in participants
+        const participant = participants.find(p => String(p.id) === String(userId) || String(p.user_id) === String(userId));
+        if (participant) return participant.name || participant.username || participant.email?.split('@')[0] || 'Unknown';
+
+        // Fallback checks
+        if (String(userId) === String(expense.paid_by) || String(userId) === String(expense.paid_by_id)) {
+            return expense.paid_by_name || 'Payer';
+        }
+
+        return 'Participant';
     };
 
     // Helper to find user name from split or other data if needed
@@ -134,14 +150,11 @@ const ExpenseDetail = ({ expense, eventId, onClose, onDelete, currentUserId }) =
                                 width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-secondary)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontWeight: 600
                             }}>
-                                {/* We might not have names in splits, need to check data structure or pass users map */}
-                                {/* For MVP, if we don't have name, usage placeholder or User ID logic found in ExpenseList */}
-                                <User size={20} />
+                                {getUserName(split.user_id).charAt(0)}
                             </div>
                             <div style={{ flex: 1 }}>
                                 <div style={{ fontSize: '16px', fontWeight: 500, color: 'var(--text-primary)' }}>
-                                    {/* Ideally we map user_id to name. For now let's hope it's populated or handle gracefully */}
-                                    {String(split.user_id) === String(expense.paid_by) ? 'Payer' : 'Participant'} owes <span style={{ fontWeight: 700, color: '#f59e0b' }}>{expense.currency}{parseFloat(split.amount).toFixed(2)}</span>
+                                    {getUserName(split.user_id)} owes <span style={{ fontWeight: 700, color: '#f59e0b' }}>{expense.currency}{parseFloat(split.amount).toFixed(2)}</span>
                                 </div>
                             </div>
                         </div>
