@@ -173,7 +173,7 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, userId }) => {
                                         </div>
 
                                         {/* Content */}
-                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ flex: 1, minWidth: '0', overflow: 'hidden' }}>
                                             <div style={{
                                                 fontSize: '0.9375rem',
                                                 fontWeight: 600,
@@ -187,7 +187,10 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, userId }) => {
                                             </div>
                                             <div style={{
                                                 fontSize: '0.8125rem',
-                                                color: 'var(--text-secondary)'
+                                                color: 'var(--text-secondary)',
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis'
                                             }}>
                                                 {expense.paid_by_name} paid {expense.currency} {parseFloat(expense.amount).toFixed(2)}
                                             </div>
