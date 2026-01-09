@@ -290,7 +290,6 @@ const ManagerDashboard = () => {
                                     <Link to={linkPath} key={event.id} style={{ textDecoration: 'none' }}>
                                         <div style={{
                                             padding: '16px 0',
-                                            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             gap: '16px',
