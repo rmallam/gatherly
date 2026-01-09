@@ -67,18 +67,13 @@ const ManagerDashboard = () => {
                     </p>
                 </div>
 
-                {/* Summary Banner - Splitwise style */}
+                {/* Summary Banner - Splitwise style (no background) */}
                 {events.length > 0 && (
                     <div style={{
-                        background: '#1cc29f',
-                        borderRadius: '12px',
-                        padding: '16px 20px',
-                        marginBottom: '20px',
-                        color: 'white',
-                        boxShadow: '0 2px 8px rgba(28, 194, 159, 0.3)'
+                        padding: '16px 0',
+                        marginBottom: '8px'
                     }}>
-                        <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '4px' }}>Overview</div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 700 }}>
+                        <div style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                             {events.filter(e => {
                                 const today = new Date();
                                 today.setHours(0, 0, 0, 0);
