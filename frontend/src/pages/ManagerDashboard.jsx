@@ -438,7 +438,7 @@ const ManagerDashboard = () => {
                 onClick={() => setIsCreating(true)}
                 style={{
                     position: 'fixed',
-                    bottom: '24px',
+                    bottom: '80px', // Higher to avoid bottom navigation
                     right: '24px',
                     width: '56px',
                     height: '56px',
