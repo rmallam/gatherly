@@ -72,6 +72,18 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, onExpenseClick, user
         }
     };
 
+    const getCategoryIcon = (category) => {
+        const icons = {
+            food: '🍽️',
+            transport: '🚗',
+            accommodation: '🏨',
+            activities: '🎯',
+            entertainment: '🎬',
+            other: '📝'
+        };
+        return icons[category] || '📝';
+    };
+
     const getCategoryGradient = (category) => {
         const gradients = {
             food: 'linear-gradient(135deg, #10b981, #059669)',
@@ -164,7 +176,7 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, onExpenseClick, user
                                             height: '48px',
                                             borderRadius: '12px',
                                             background: 'var(--bg-secondary)', // Fallback
-                                            backgroundImage: getCategoryIcon(expense.category) === '📝' ? 'none' : 'none', // Placeholder logic, strictly using icons for now but kept layout
+                                            backgroundImage: 'none', // Removed complex mixed usage
                                             border: '1px solid var(--border)',
                                             display: 'flex',
                                             alignItems: 'center',
