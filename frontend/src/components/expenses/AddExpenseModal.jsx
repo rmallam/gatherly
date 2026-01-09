@@ -56,10 +56,9 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
 
             console.log('All participants before dedup:', allParticipants);
 
-            // Deduplicate by composite key (id + name) to handle cases where id might be null or duplicate
+            // Deduplicate by ID to prevent duplicate keys in splits
             const uniqueParticipants = allParticipants.filter((p, index, self) => {
-                const key = `${p.id}-${p.name}`;
-                return index === self.findIndex(t => `${t.id}-${t.name}` === key);
+                return index === self.findIndex(t => t.id === p.id);
             });
 
             console.log('Unique participants after dedup:', uniqueParticipants);
@@ -90,10 +89,9 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
 
             const allParticipants = [eventOwner, ...guestParticipants];
 
-            // Deduplicate by composite key
+            // Deduplicate by ID
             const uniqueParticipants = allParticipants.filter((p, index, self) => {
-                const key = `${p.id}-${p.name}`;
-                return index === self.findIndex(t => `${t.id}-${t.name}` === key);
+                return index === self.findIndex(t => t.id === p.id);
             });
 
             console.log('Host event participants:', uniqueParticipants);

@@ -154,7 +154,7 @@ const ExpenseDetail = ({ expense, eventId, onClose, onDelete, currentUserId, par
                             </div>
                             <div style={{ flex: 1 }}>
                                 <div style={{ fontSize: '16px', fontWeight: 500, color: 'var(--text-primary)' }}>
-                                    {getUserName(split.user_id)} owes <span style={{ fontWeight: 700, color: '#f59e0b' }}>{expense.currency}{parseFloat(split.amount).toFixed(2)}</span>
+                                    {getUserName(split.user_id)} {getUserName(split.user_id) === 'You' ? 'owe' : 'owes'} <span style={{ fontWeight: 700, color: '#f59e0b' }}>{expense.currency}{parseFloat(split.amount).toFixed(2)}</span>
                                 </div>
                             </div>
                         </div>

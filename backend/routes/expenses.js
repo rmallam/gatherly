@@ -26,4 +26,8 @@ router.get('/events/:eventId/expenses/:expenseId', getExpense);
 router.put('/events/:eventId/expenses/:expenseId', updateExpense);
 router.delete('/events/:eventId/expenses/:expenseId', deleteExpense);
 
+// Balances and settlements
+router.get('/events/:eventId/balances', getBalances);
+router.post('/events/:eventId/settlements', recordSettlement);
+
 export default router;

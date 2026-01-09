@@ -200,7 +200,24 @@ const ExpensesDashboard = ({ eventId, event }) => {
                     expense={selectedExpense}
                     eventId={eventId}
                     currentUserId={userId}
-                    participants={event?.participants || []}
+                    participants={(() => {
+                        // Construct participants list (Owner + Guests)
+                        const owner = {
+                            id: event.user_id,
+                            name: event.user_name || 'Event Owner',
+                            isOwner: true
+                        };
+                        const guests = (event.guests || []).map(g => ({
+                            id: g.user_id || g.id, // Handle both linked user_id and guest id
+                            name: g.name,
+                            email: g.email,
+                            phone: g.phone
+                        }));
+                        // Deduplicate in case owner is also in guests list (shouldn't happen but good safety)
+                        // But actually guests usually don't include owner unless explicitly added.
+                        // We'll just combine them.
+                        return [owner, ...guests];
+                    })()}
                     onClose={() => setSelectedExpense(null)}
                     onDelete={() => {
                         fetchExpenses();
