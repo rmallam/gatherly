@@ -432,7 +432,7 @@ const ManagerDashboard = () => {
                 )}
             </div>
 
-            {/* Floating Action Button - Outside container for proper fixed positioning */}
+            {/* Floating Action Button - Truly outside container */}
             <button
                 onClick={() => setIsCreating(true)}
                 style={{
