@@ -1,39 +1,39 @@
-name: Security - OWASP ZAP Scan
+# name: Security - OWASP ZAP Scan
 
-# Workflow disabled - uncomment to re-enable
-# on:
-#   push:
-#     branches: [ main ]
-#   schedule:
-#     # Run every Sunday at midnight UTC
-#     - cron: '0 0 * * 0'
-#   workflow_dispatch: # Allow manual trigger
+# # Workflow disabled - uncomment to re-enable
+# # on:
+# #   push:
+# #     branches: [ main ]
+# #   schedule:
+# #     # Run every Sunday at midnight UTC
+# #     - cron: '0 0 * * 0'
+# #   workflow_dispatch: # Allow manual trigger
 
-jobs:
-  zap-scan:
-    name: OWASP ZAP Baseline Scan
-    runs-on: ubuntu-latest
+# jobs:
+#   zap-scan:
+#     name: OWASP ZAP Baseline Scan
+#     runs-on: ubuntu-latest
     
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
       
-      - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
-        with:
-          target: 'https://gatherly-backend-3vmv.onrender.com'
-          rules_file_name: '.zap/rules.tsv'
-          cmd_options: '-a'
-          allow_issue_writing: false
-          fail_action: false
-          artifact_name: '' # Disable built-in artifact upload (using custom upload instead)
+#       - name: ZAP Baseline Scan
+#         uses: zaproxy/action-baseline@v0.12.0
+#         with:
+#           target: 'https://gatherly-backend-3vmv.onrender.com'
+#           rules_file_name: '.zap/rules.tsv'
+#           cmd_options: '-a'
+#           allow_issue_writing: false
+#           fail_action: false
+#           artifact_name: '' # Disable built-in artifact upload (using custom upload instead)
       
-      - name: Upload ZAP scan results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: zap-scan-results
-          path: |
-            report_html.html
-            report_md.md
-            report_json.json
+#       - name: Upload ZAP scan results
+#         uses: actions/upload-artifact@v4
+#         if: always()
+#         with:
+#           name: zap-scan-results
+#           path: |
+#             report_html.html
+#             report_md.md
+#             report_json.json
