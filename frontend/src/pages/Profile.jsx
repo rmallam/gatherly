@@ -11,7 +11,7 @@ import { getCroppedImg } from '../utils/cropImage';
 const Profile = () => {
     const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
-    const { refreshUser } = useAuth();
+    const { refreshUser, logout } = useAuth();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [profile, setProfile] = useState({
