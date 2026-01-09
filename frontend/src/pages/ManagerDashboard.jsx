@@ -427,7 +427,7 @@ const ManagerDashboard = () => {
                                         </div>
                                     </Link>
                                 );
-                            }))}
+                            })}
                     </div>
                 )}
             </div>
