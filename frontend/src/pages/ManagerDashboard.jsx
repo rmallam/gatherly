@@ -59,17 +59,43 @@ const ManagerDashboard = () => {
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                         My Events
                     </h1>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <ThemeToggle />
-                        <button onClick={() => setIsCreating(true)} className="btn btn-primary" style={{ fontSize: '14px', padding: '8px 16px' }}>
-                            <Plus size={16} /> New Event
-                        </button>
-                    </div>
+                    <ThemeToggle />
                 </div>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>
                     Create and manage your events
                 </p>
             </div>
+
+            {/* Summary Banner */}
+            {events.length > 0 && (
+                <div style={{
+                    background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                    borderRadius: '12px',
+                    padding: '16px 20px',
+                    marginBottom: '20px',
+                    color: 'white',
+                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+                }}>
+                    <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '4px' }}>Overview</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 700 }}>
+                        {events.filter(e => {
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            if (!e.date) return filter === 'upcoming';
+                            const eventDate = new Date(e.date);
+                            eventDate.setHours(0, 0, 0, 0);
+                            return filter === 'upcoming' ? eventDate >= today : eventDate < today;
+                        }).length} {filter === 'upcoming' ? 'upcoming' : 'past'} {events.filter(e => {
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            if (!e.date) return filter === 'upcoming';
+                            const eventDate = new Date(e.date);
+                            eventDate.setHours(0, 0, 0, 0);
+                            return filter === 'upcoming' ? eventDate >= today : eventDate < today;
+                        }).length === 1 ? 'event' : 'events'}
+                    </div>
+                </div>
+            )}
 
             {/* Filter Tabs - Upcoming/Past */}
             {events.length > 0 && (
@@ -110,6 +136,40 @@ const ManagerDashboard = () => {
                     </button>
                 </div>
             )}
+
+            {/* Floating Action Button */}
+            <button
+                onClick={() => setIsCreating(true)}
+                style={{
+                    position: 'fixed',
+                    bottom: '24px',
+                    right: '24px',
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                    border: 'none',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 16px rgba(99, 102, 241, 0.4)',
+                    zIndex: 1000,
+                    transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.1)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(99, 102, 241, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(99, 102, 241, 0.4)';
+                }}
+                aria-label="Create New Event"
+            >
+                <Plus size={24} strokeWidth={2.5} />
+            </button>
 
             {/* Create Event Modal */}
             {isCreating && (
