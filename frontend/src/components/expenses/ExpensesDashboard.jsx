@@ -265,7 +265,16 @@ const ExpensesDashboard = ({ eventId, event }) => {
                     padding: '1.25rem',
                     minHeight: '300px',
                     maxHeight: '500px',
-                    overflowY: 'auto'
+                    overflowY: 'auto',
+                    // Override CSS variables for white text theme
+                    '--text-primary': 'rgba(255, 255, 255, 0.95)',
+                    '--text-secondary': 'rgba(255, 255, 255, 0.7)',
+                    '--text-tertiary': 'rgba(255, 255, 255, 0.5)',
+                    '--bg-primary': 'rgba(255, 255, 255, 0.05)',
+                    '--bg-secondary': 'rgba(255, 255, 255, 0.08)',
+                    '--bg-tertiary': 'rgba(255, 255, 255, 0.12)',
+                    '--border': 'rgba(255, 255, 255, 0.1)',
+                    '--radius': '12px'
                 }}>
                     {activeTab === 'expenses' ? (
                         <ExpenseList
