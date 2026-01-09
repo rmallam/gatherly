@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Plus, Trash2, Calendar, ChevronRight, MapPin, Users } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import ThemeToggle from '../components/ThemeToggle';
 
 const ManagerDashboard = () => {
     const { events, createEvent, deleteEvent } = useApp();
@@ -58,9 +59,12 @@ const ManagerDashboard = () => {
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                         My Events
                     </h1>
-                    <button onClick={() => setIsCreating(true)} className="btn btn-primary" style={{ fontSize: '14px', padding: '8px 16px' }}>
-                        <Plus size={16} /> New Event
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <ThemeToggle />
+                        <button onClick={() => setIsCreating(true)} className="btn btn-primary" style={{ fontSize: '14px', padding: '8px 16px' }}>
+                            <Plus size={16} /> New Event
+                        </button>
+                    </div>
                 </div>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>
                     Create and manage your events

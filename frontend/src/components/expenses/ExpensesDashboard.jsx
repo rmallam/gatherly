@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import API_URL from '../../config/api';
-import { Plus, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import ExpenseList from './ExpenseList';
 import AddExpenseModal from './AddExpenseModal';
 import BalanceSummary from './BalanceSummary';
@@ -10,8 +10,7 @@ const ExpensesDashboard = ({ eventId, event }) => {
     const [balances, setBalances] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
-    const [activeTab, setActiveTab] = useState('expenses'); // expenses, balances
-
+    const [activeTab, setActiveTab] = useState('expenses');
 
     const fetchExpenses = async () => {
         try {
@@ -54,7 +53,6 @@ const ExpensesDashboard = ({ eventId, event }) => {
         loadData();
     }, [eventId]);
 
-    // Get userId from JWT token
     const getUserIdFromToken = () => {
         try {
             const token = localStorage.getItem('token');
@@ -68,72 +66,75 @@ const ExpensesDashboard = ({ eventId, event }) => {
     };
     const userId = getUserIdFromToken();
 
-    // Calculate summary stats
-    const totalExpenses = expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
-    const yourExpenses = expenses
-        .filter(exp => exp.paid_by === userId || exp.paid_by_id === userId)
-        .reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
-
-    const iOwe = balances
-        .filter(b => (b.fromUser === userId || b.from_user === userId) && parseFloat(b.amount) > 0)
-        .reduce((sum, b) => sum + parseFloat(b.amount), 0);
-
-    const owedToMe = balances
-        .filter(b => (b.toUser === userId || b.to_user === userId) && parseFloat(b.amount) > 0)
-        .reduce((sum, b) => sum + parseFloat(b.amount), 0);
-
     if (loading) {
         return (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                Loading expenses...
+            <div style={{
+                padding: '2rem',
+                textAlign: 'center',
+                color: 'var(--text-secondary)'
+            }}>
+                Loading...
             </div>
         );
     }
 
     return (
-        <div>
-            {/* Summary Banner */}
+        <div style={{ padding: '1rem' }}>
+            {/* Header */}
             <div style={{
-                padding: '1.5rem',
-                background: 'var(--bg-secondary)',
-                borderRadius: 'var(--radius-lg)',
-                marginBottom: '1.5rem'
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '1.25rem'
             }}>
-                {owedToMe > iOwe ? (
-                    <div style={{ fontSize: '1.125rem', fontWeight: 600, color: '#10b981' }}>
-                        You are owed ${(owedToMe - iOwe).toFixed(2)}
-                    </div>
-                ) : iOwe > owedToMe ? (
-                    <div style={{ fontSize: '1.125rem', fontWeight: 600, color: '#ef4444' }}>
-                        You owe ${(iOwe - owedToMe).toFixed(2)}
-                    </div>
-                ) : (
-                    <div style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                        You are all settled up
-                    </div>
-                )}
+                <h2 style={{
+                    fontSize: '1.5rem',
+                    fontWeight: 700,
+                    margin: 0,
+                    color: 'var(--text-primary)'
+                }}>
+                    Expenses
+                </h2>
+
+                <button
+                    onClick={() => setShowAddModal(true)}
+                    className="btn btn-primary"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.75rem 1.25rem',
+                        fontSize: '0.9375rem'
+                    }}
+                >
+                    <Plus size={18} />
+                    Add Expense
+                </button>
             </div>
 
-            {/* Tab Navigation */}
+            {/* Tabs */}
             <div style={{
                 display: 'flex',
                 gap: '0.5rem',
                 marginBottom: '1.5rem',
-                borderBottom: '1px solid var(--border)',
-                paddingBottom: '0.5rem'
+                background: 'var(--bg-secondary)',
+                padding: '0.25rem',
+                borderRadius: '12px',
+                border: '1px solid var(--border)'
             }}>
                 <button
                     onClick={() => setActiveTab('expenses')}
                     style={{
-                        padding: '0.75rem 1.5rem',
-                        borderRadius: 'var(--radius)',
+                        flex: 1,
+                        padding: '0.75rem',
+                        borderRadius: '10px',
                         border: 'none',
                         background: activeTab === 'expenses' ? 'var(--primary)' : 'transparent',
-                        color: activeTab === 'expenses' ? 'white' : 'var(--text-secondary)',
+                        color: activeTab === 'expenses' ? 'white' : 'var(--text-primary)',
                         fontWeight: 600,
-                        fontSize: '0.875rem',
+                        fontSize: '0.9375rem',
                         cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.3s'
                     }}
                 >
                     Expenses
@@ -141,62 +142,46 @@ const ExpensesDashboard = ({ eventId, event }) => {
                 <button
                     onClick={() => setActiveTab('balances')}
                     style={{
-                        padding: '0.75rem 1.5rem',
-                        borderRadius: 'var(--radius)',
+                        flex: 1,
+                        padding: '0.75rem',
+                        borderRadius: '10px',
                         border: 'none',
                         background: activeTab === 'balances' ? 'var(--primary)' : 'transparent',
-                        color: activeTab === 'balances' ? 'white' : 'var(--text-secondary)',
+                        color: activeTab === 'balances' ? 'white' : 'var(--text-primary)',
                         fontWeight: 600,
-                        fontSize: '0.875rem',
+                        fontSize: '0.9375rem',
                         cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.3s'
                     }}
                 >
                     Balances
                 </button>
             </div>
 
-            {/* Add Expense Button */}
-            <button
-                onClick={() => setShowAddModal(true)}
-                className="btn btn-primary"
-                style={{
-                    marginBottom: '1.5rem',
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.5rem',
-                    padding: '1rem'
-                }}
-            >
-                <Plus size={20} />
-                Add Expense
-            </button>
-
             {/* Content */}
-            {activeTab === 'expenses' ? (
-                <ExpenseList
-                    expenses={expenses}
-                    eventId={eventId}
-                    onExpenseDeleted={() => {
-                        fetchExpenses();
-                        fetchBalances();
-                    }}
-                    userId={userId}
-                />
-            ) : (
-                <BalanceSummary
-                    balances={balances}
-                    eventId={eventId}
-                    onSettled={() => {
-                        fetchBalances();
-                        fetchExpenses();
-                    }}
-                />
-            )}
+            <div>
+                {activeTab === 'expenses' ? (
+                    <ExpenseList
+                        expenses={expenses}
+                        eventId={eventId}
+                        onExpenseDeleted={() => {
+                            fetchExpenses();
+                            fetchBalances();
+                        }}
+                        userId={userId}
+                    />
+                ) : (
+                    <BalanceSummary
+                        balances={balances}
+                        eventId={eventId}
+                        onSettled={() => {
+                            fetchBalances();
+                            fetchExpenses();
+                        }}
+                    />
+                )}
+            </div>
 
-            {/* Add Expense Modal */}
             {showAddModal && (
                 <AddExpenseModal
                     eventId={eventId}

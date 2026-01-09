@@ -10,8 +10,8 @@ export const ThemeProvider = ({ children }) => {
     });
 
     useEffect(() => {
-        // Apply theme to document root
-        document.documentElement.setAttribute('data-theme', theme);
+        // Apply theme class to document root
+        document.documentElement.className = `theme-${theme}`;
         // Save to localStorage
         localStorage.setItem('theme', theme);
     }, [theme]);
@@ -20,8 +20,15 @@ export const ThemeProvider = ({ children }) => {
         setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
     };
 
+    const value = {
+        theme,
+        toggleTheme,
+        isDark: theme === 'dark',
+        isLight: theme === 'light'
+    };
+
     return (
-        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+        <ThemeContext.Provider value={value}>
             {children}
         </ThemeContext.Provider>
     );

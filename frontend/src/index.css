@@ -36,33 +36,79 @@
   --radius-xl: 1rem;
 }
 
-/* Dark Theme */
-[data-theme="dark"] {
+/* Light Theme (Default) */
+.theme-light {
   /* Backgrounds */
-  --bg-primary: #1a1b26;
-  --bg-secondary: #16161e;
-  --bg-tertiary: #24283b;
-  --bg-deep: #0a0b1e;
-  --bg-card: #1f2142;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
 
   /* Text */
-  --text-primary: #c0caf5;
-  --text-secondary: #9aa5ce;
-  --text-tertiary: #565f89;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
 
   /* Borders & Shadows */
-  --border: #2a2e45;
-  --border-light: #24283b;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+  --border: #e5e7eb;
+  --border-light: #f3f4f6;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 
-  /* Accent colors - brighter for dark mode */
+  /* Accent Colors */
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --success: #10b981;
+  --error: #ef4444;
+  --warning: #f59e0b;
+}
+
+/* Dark Glassmorphism Theme */
+.theme-dark {
+  /* Backgrounds - Dark with glassmorphism */
+  --bg-primary: linear-gradient(135deg, rgba(10, 10, 15, 0.98), rgba(20, 20, 30, 0.95));
+  --bg-secondary: rgba(255, 255, 255, 0.08);
+  --bg-tertiary: rgba(255, 255, 255, 0.12);
+  --bg-deep: #0a0b1e;
+  --bg-card: rgba(255, 255, 255, 0.08);
+
+  /* Text - White for dark backgrounds */
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-tertiary: rgba(255, 255, 255, 0.5);
+
+  /* Borders & Shadows - Glassmorphism */
+  --border: rgba(255, 255, 255, 0.15);
+  --border-light: rgba(255, 255, 255, 0.1);
+  --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.5);
+
+  /* Accent colors - Vibrant for dark mode */
   --primary: #7aa2f7;
   --primary-dark: #6a92e7;
   --success: #9ece6a;
   --error: #f7768e;
   --warning: #e0af68;
+
+  /* Glassmorphism specific */
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Apply dark background to body in dark mode */
+.theme-dark body {
+  background: linear-gradient(135deg, rgba(10, 10, 15, 0.98), rgba(20, 20, 30, 0.95));
+}
+
+/* Glassmorphism card effect in dark mode */
+.theme-dark .card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
 /* Smooth theme transition */
