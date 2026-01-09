@@ -54,17 +54,9 @@ const ManagerDashboard = () => {
     return (
         <>
             <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '16px', paddingBottom: '100px' }}>
-                {/* Header */}
-                <div style={{ marginBottom: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                            My Events
-                        </h1>
-                        <ThemeToggle />
-                    </div>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>
-                        Create and manage your events
-                    </p>
+                {/* Theme toggle in top-right corner */}
+                <div style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 999 }}>
+                    <ThemeToggle />
                 </div>
 
                 {/* Summary Banner - Splitwise style (no background) */}
