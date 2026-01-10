@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
-import { AlertCircle, Camera, X, ArrowLeft, HelpCircle, Image, Flashlight } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
+import { ArrowLeft, Flashlight, XCircle, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
+import RateAppService from '../services/RateAppService';
 
 const QRScanner = ({ onScan, onError, onClose, hideHeader = false }) => {
     const [error, setError] = useState('');
@@ -71,6 +73,8 @@ const QRScanner = ({ onScan, onError, onClose, hideHeader = false }) => {
                             try {
                                 const data = JSON.parse(decodedText);
                                 onScanRef.current(data);
+                                // Trigger growth loop rating check
+                                RateAppService.checkAndPrompt('scan');
                             } catch (e) {
                                 console.warn("Non-JSON QR Code", e);
                             }

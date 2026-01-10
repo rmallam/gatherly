@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import { Plus, Trash2, Calendar, ChevronRight, MapPin, Users, Sparkles, CheckCircle, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import ThemeToggle from '../components/ThemeToggle';
+import RateAppService from '../services/RateAppService';
 import './ManagerDashboard.css';
 
 const ManagerDashboard = () => {
@@ -35,6 +36,8 @@ const ManagerDashboard = () => {
 
             // Navigate to the newly created event
             if (createdEvent && createdEvent.id) {
+                // Trigger growth loop rating check
+                RateAppService.checkAndPrompt('create_event');
                 navigate(`/event/${createdEvent.id}`);
             }
         } catch (error) {
