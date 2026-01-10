@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Trash2, Check, ArrowLeft } from 'lucide-react';
+import { Bell, Trash2, Check, ArrowLeft, MessageSquare, UserPlus, Info } from 'lucide-react';
 import pushNotificationService from '../services/PushNotificationService';
 import './NotificationList.css';
 
@@ -30,9 +30,14 @@ const NotificationList = () => {
 
     // Handle notification click
     const handleNotificationClick = async (notification) => {
-        // Mark as read
+        // Mark as read if not already
         if (!notification.read) {
             await pushNotificationService.markAsRead(notification.id, token);
+            // Optimistically update UI
+            setNotifications(prev => prev.map(n =>
+                n.id === notification.id ? { ...n, read: true } : n
+            ));
+            // Background refresh to be safe
             fetchNotifications();
         }
 
@@ -55,6 +60,8 @@ const NotificationList = () => {
         e.stopPropagation();
 
         if (window.confirm('Delete this notification?')) {
+            // Optimistic deletion
+            setNotifications(prev => prev.filter(n => n.id !== notificationId));
             await pushNotificationService.deleteNotification(notificationId, token);
             fetchNotifications();
         }
@@ -62,6 +69,8 @@ const NotificationList = () => {
 
     // Mark all as read
     const handleMarkAllRead = async () => {
+        // Optimistic update
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
         await pushNotificationService.markAllAsRead(token);
         fetchNotifications();
     };
@@ -73,14 +82,13 @@ const NotificationList = () => {
         const seconds = Math.floor((now - date) / 1000);
 
         if (seconds < 60) return 'Just now';
-        if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
-        if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
-        if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
+        if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+        if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+        if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
 
         return date.toLocaleDateString('en-US', {
             month: 'short',
-            day: 'numeric',
-            year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+            day: 'numeric'
         });
     };
 
@@ -88,11 +96,11 @@ const NotificationList = () => {
     const getNotificationIcon = (type) => {
         switch (type) {
             case 'guest_added':
-                return '🎉';
+                return <UserPlus size={24} />;
             case 'event_wall_post':
-                return '💬';
+                return <MessageSquare size={24} />;
             default:
-                return '🔔';
+                return <Info size={24} />;
         }
     };
 
@@ -100,50 +108,57 @@ const NotificationList = () => {
 
     return (
         <div className="notification-list-page">
+            {/* Header */}
             <div className="notification-list-header">
-                <button onClick={() => navigate(-1)} className="back-btn">
-                    <ArrowLeft size={24} />
-                </button>
-                <h1>Notifications</h1>
-                <div className="notification-list-actions">
+                <div className="header-top-row">
+                    <div className="header-left">
+                        <button onClick={() => navigate(-1)} className="back-btn">
+                            <ArrowLeft size={24} />
+                        </button>
+                        <h1>Notifications</h1>
+                    </div>
                     {unreadCount > 0 && (
                         <button onClick={handleMarkAllRead} className="mark-read-btn">
-                            <Check size={18} />
+                            <Check size={16} />
                             Mark all read
                         </button>
                     )}
                 </div>
             </div>
 
+            {/* Filter */}
             <div className="notification-filter">
                 <button
-                    className={filter === 'all' ? 'active' : ''}
+                    className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
                     onClick={() => setFilter('all')}
                 >
-                    All ({notifications.length})
+                    All
                 </button>
                 <button
-                    className={filter === 'unread' ? 'active' : ''}
+                    className={`filter-btn ${filter === 'unread' ? 'active' : ''}`}
                     onClick={() => setFilter('unread')}
                 >
-                    Unread ({unreadCount})
+                    Unread {unreadCount > 0 && `(${unreadCount})`}
                 </button>
             </div>
 
+            {/* Content */}
             <div className="notification-list-content">
                 {loading ? (
-                    <div className="notification-list-loading">
+                    <div className="loading-container">
                         <div className="spinner"></div>
-                        <p>Loading notifications...</p>
+                        <p>Loading updates...</p>
                     </div>
                 ) : notifications.length === 0 ? (
-                    <div className="notification-list-empty">
-                        <Bell size={64} opacity={0.2} />
+                    <div className="empty-state">
+                        <div className="empty-icon">
+                            <Bell size={32} strokeWidth={1.5} />
+                        </div>
                         <h3>No notifications</h3>
                         <p>
                             {filter === 'unread'
-                                ? 'You\'re all caught up!'
-                                : 'You haven\'t received any notifications yet.'}
+                                ? "You're all caught up! No unread notifications."
+                                : "You haven't received any notifications yet."}
                         </p>
                     </div>
                 ) : (
@@ -151,29 +166,30 @@ const NotificationList = () => {
                         {notifications.map((notification) => (
                             <div
                                 key={notification.id}
-                                className={`notification-list-item ${!notification.read ? 'unread' : ''}`}
+                                className={`notification-card ${!notification.read ? 'unread' : ''}`}
                                 onClick={() => handleNotificationClick(notification)}
                             >
-                                <div className="notification-list-icon">
+                                <div className={`notification-icon-box type-${notification.type}`}>
                                     {getNotificationIcon(notification.type)}
                                 </div>
-                                <div className="notification-list-content-inner">
-                                    <div className="notification-list-title">{notification.title}</div>
-                                    <div className="notification-list-body">{notification.body}</div>
-                                    <div className="notification-list-time">{formatTime(notification.created_at)}</div>
+
+                                <div className="notification-content">
+                                    <div className="notification-title">{notification.title}</div>
+                                    <div className="notification-body">{notification.body}</div>
+
+                                    <div className="notification-meta">
+                                        <span className="notification-time">{formatTime(notification.created_at)}</span>
+                                        {!notification.read && <div className="unread-dot"></div>}
+                                    </div>
                                 </div>
-                                <div className="notification-list-actions-inner">
-                                    {!notification.read && (
-                                        <div className="notification-list-unread-dot"></div>
-                                    )}
-                                    <button
-                                        onClick={(e) => handleDelete(e, notification.id)}
-                                        className="delete-notification-btn"
-                                        aria-label="Delete notification"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
-                                </div>
+
+                                <button
+                                    onClick={(e) => handleDelete(e, notification.id)}
+                                    className="delete-btn"
+                                    title="Delete notification"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
                             </div>
                         ))}
                     </div>

@@ -286,7 +286,7 @@ const EventDetails = () => {
 
             {/* Guest Cards */}
             {filteredGuests.length === 0 ? (
-                <div className="card" style={{ padding: '3rem 2rem', textAlign: 'center', backgroundColor: 'var(--bg-secondary)' }}>
+                <div style={{ padding: '3rem 2rem', textAlign: 'center', backgroundColor: 'var(--bg-secondary)', borderRadius: '16px' }}>
                     <Users size={48} style={{ color: 'var(--text-tertiary)', margin: '0 auto 1rem' }} />
                     <p style={{ color: 'var(--text-secondary)' }}>
                         {search ? 'No guests found matching your search.' : 'No guests added yet.'}
@@ -302,9 +302,18 @@ const EventDetails = () => {
                     )}
                 </div>
             ) : (
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
                     {filteredGuests.map(guest => (
-                        <div key={guest.id} className="card" style={{ padding: '1.25rem' }}>
+                        <div
+                            key={guest.id}
+                            style={{
+                                padding: '1rem 0.5rem',
+                                transition: 'all 0.2s',
+                                borderRadius: '8px'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
                                 {/* Guest Info */}
                                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -410,7 +419,7 @@ const EventDetails = () => {
                             </div>
 
                             {showQR === guest.id && (
-                                <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.75)' }} onClick={() => setShowQR(null)}>
+                                <div style={{ position: 'fixed', inset: 0, zIndex: 1050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(4px)' }} onClick={() => setShowQR(null)}>
                                     <div onClick={e => e.stopPropagation()} style={{ position: 'relative' }}>
                                         {/* Close Button */}
                                         <button
@@ -422,28 +431,16 @@ const EventDetails = () => {
                                                 width: '40px',
                                                 height: '40px',
                                                 borderRadius: '50%',
-                                                background: 'white',
-                                                border: 'none',
-                                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                                background: '#ef4444',
+                                                border: '2px solid #1f2937',
+                                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
                                                 cursor: 'pointer',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                fontSize: '20px',
-                                                color: '#64748b',
-                                                fontWeight: 'bold',
+                                                color: 'white',
                                                 zIndex: 10,
                                                 transition: 'all 0.2s'
-                                            }}
-                                            onMouseEnter={e => {
-                                                e.currentTarget.style.background = '#ef4444';
-                                                e.currentTarget.style.color = 'white';
-                                                e.currentTarget.style.transform = 'scale(1.1)';
-                                            }}
-                                            onMouseLeave={e => {
-                                                e.currentTarget.style.background = 'white';
-                                                e.currentTarget.style.color = '#64748b';
-                                                e.currentTarget.style.transform = 'scale(1)';
                                             }}
                                         >
                                             <X size={24} />
@@ -471,18 +468,26 @@ const EventDetails = () => {
 
             {/* Add Guest Modal */}
             {showAddGuestModal && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.75)' }} onClick={() => setShowAddGuestModal(false)}>
-                    <div className="card" style={{ maxWidth: '500px', width: '100%', padding: '2rem' }} onClick={e => e.stopPropagation()}>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 1050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(4px)' }} onClick={() => setShowAddGuestModal(false)}>
+                    <div style={{
+                        maxWidth: '500px',
+                        width: '100%',
+                        padding: '2rem',
+                        background: '#1f2937', // Solid dark background
+                        borderRadius: '16px',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>Add Guest</h3>
-                            <button onClick={() => setShowAddGuestModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f9fafb' }}>Add Guest</h3>
+                            <button onClick={() => setShowAddGuestModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}>
                                 <X size={24} />
                             </button>
                         </div>
 
                         <form onSubmit={handleAddGuest} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
                             <div>
-                                <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Name *</label>
+                                <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#9ca3af' }}>Name *</label>
                                 <input
                                     type="text"
                                     className="input"
@@ -490,16 +495,17 @@ const EventDetails = () => {
                                     onChange={e => setNewGuest({ ...newGuest, name: e.target.value })}
                                     placeholder="John Doe"
                                     required
+                                    style={{ background: '#374151', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#f9fafb' }}
                                 />
                             </div>
                             <div>
-                                <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Phone (optional)</label>
+                                <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#9ca3af' }}>Phone (optional)</label>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <select
                                         value={guestCountryCode}
                                         onChange={e => setGuestCountryCode(e.target.value)}
                                         className="input"
-                                        style={{ width: '120px' }}
+                                        style={{ width: '120px', background: '#374151', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#f9fafb' }}
                                     >
                                         <option value="+91">🇮🇳 +91</option>
                                         <option value="+1">🇺🇸 +1</option>
@@ -514,18 +520,19 @@ const EventDetails = () => {
                                         onChange={e => setNewGuest({ ...newGuest, phone: e.target.value.replace(/\D/g, '') })}
                                         placeholder="9876543210"
                                         maxLength={10}
-                                        style={{ flex: 1 }}
+                                        style={{ flex: 1, background: '#374151', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#f9fafb' }}
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Email (optional)</label>
+                                <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#9ca3af' }}>Email (optional)</label>
                                 <input
                                     type="email"
                                     className="input"
                                     value={newGuest.email}
                                     onChange={e => setNewGuest({ ...newGuest, email: e.target.value })}
                                     placeholder="john@example.com"
+                                    style={{ background: '#374151', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#f9fafb' }}
                                 />
                             </div>
 
@@ -535,7 +542,7 @@ const EventDetails = () => {
                                     type="button"
                                     onClick={(e) => handleAddGuest(e, false)}
                                     className="btn btn-secondary"
-                                    style={{ justifyContent: 'center' }}
+                                    style={{ justifyContent: 'center', background: 'transparent', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#e5e7eb' }}
                                     disabled={addingGuest}
                                 >
                                     <UserPlus size={16} /> {addingGuest ? 'Adding...' : 'Add to List'}
@@ -552,14 +559,14 @@ const EventDetails = () => {
                             </div>
                         </form>
 
-                        <div style={{ paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
-                            <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '1rem' }}>Quick Import</h4>
+                        <div style={{ paddingTop: '1.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                            <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#9ca3af', marginBottom: '1rem' }}>Quick Import</h4>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 <button
                                     type="button"
                                     onClick={() => { setShowAddGuestModal(false); setShowContactSelector(true); }}
                                     className="btn btn-secondary"
-                                    style={{ width: '100%', justifyContent: 'center' }}
+                                    style={{ width: '100%', justifyContent: 'center', background: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#e5e7eb', border: 'none' }}
                                 >
                                     <Users size={16} /> Add from Contacts
                                 </button>
@@ -567,7 +574,7 @@ const EventDetails = () => {
                                     type="button"
                                     onClick={() => { setShowAddGuestModal(false); setShowBulkImport(true); }}
                                     className="btn btn-secondary"
-                                    style={{ width: '100%', justifyContent: 'center' }}
+                                    style={{ width: '100%', justifyContent: 'center', background: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#e5e7eb', border: 'none' }}
                                 >
                                     <Upload size={16} /> Import from CSV
                                 </button>
@@ -575,7 +582,7 @@ const EventDetails = () => {
                                     type="button"
                                     onClick={() => { setShowAddGuestModal(false); setShowContactPicker(true); }}
                                     className="btn btn-secondary"
-                                    style={{ width: '100%', justifyContent: 'center' }}
+                                    style={{ width: '100%', justifyContent: 'center', background: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#e5e7eb', border: 'none' }}
                                 >
                                     <Smartphone size={16} /> Import from Phone
                                 </button>
@@ -613,18 +620,26 @@ const EventDetails = () => {
 
             {/* Delete Confirmation Modal */}
             {deleteConfirmGuest && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.75)' }} onClick={() => setDeleteConfirmGuest(null)}>
-                    <div className="card" style={{ maxWidth: '400px', width: '100%', padding: '2rem' }} onClick={e => e.stopPropagation()}>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 1050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(4px)' }} onClick={() => setDeleteConfirmGuest(null)}>
+                    <div style={{
+                        maxWidth: '400px',
+                        width: '100%',
+                        padding: '2rem',
+                        background: '#1f2937', // Solid dark background
+                        borderRadius: '16px',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>Delete Guest?</h3>
-                            <p style={{ color: 'var(--text-secondary)' }}>
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f9fafb' }}>Delete Guest?</h3>
+                            <p style={{ color: '#d1d5db' }}>
                                 Are you sure you want to delete <strong>{deleteConfirmGuest.name}</strong>? This action cannot be undone.
                             </p>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
                                 <button
                                     onClick={() => setDeleteConfirmGuest(null)}
                                     className="btn btn-secondary"
-                                    style={{ justifyContent: 'center' }}
+                                    style={{ justifyContent: 'center', background: 'transparent', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#e5e7eb' }}
                                 >
                                     Cancel
                                 </button>
@@ -643,18 +658,26 @@ const EventDetails = () => {
 
             {/* Delete Event Confirmation Modal */}
             {showDeleteEventConfirm && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.75)' }} onClick={() => setShowDeleteEventConfirm(false)}>
-                    <div className="card" style={{ maxWidth: '400px', width: '100%', padding: '2rem' }} onClick={e => e.stopPropagation()}>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 1050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(4px)' }} onClick={() => setShowDeleteEventConfirm(false)}>
+                    <div style={{
+                        maxWidth: '400px',
+                        width: '100%',
+                        padding: '2rem',
+                        background: '#1f2937', // Solid dark background
+                        borderRadius: '16px',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>Delete Event?</h3>
-                            <p style={{ color: 'var(--text-secondary)' }}>
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f9fafb' }}>Delete Event?</h3>
+                            <p style={{ color: '#d1d5db' }}>
                                 Are you sure you want to delete <strong>{event.title}</strong>? This will permanently delete the event and all {totalGuests} guest{totalGuests !== 1 ? 's' : ''}. This action cannot be undone.
                             </p>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
                                 <button
                                     onClick={() => setShowDeleteEventConfirm(false)}
                                     className="btn btn-secondary"
-                                    style={{ justifyContent: 'center' }}
+                                    style={{ justifyContent: 'center', background: 'transparent', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#e5e7eb' }}
                                 >
                                     Cancel
                                 </button>
@@ -675,5 +698,4 @@ const EventDetails = () => {
         </div>
     );
 };
-
 export default EventDetails;

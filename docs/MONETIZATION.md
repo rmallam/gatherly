@@ -1,4 +1,4 @@
-# Gatherly - Monetization Strategy
+# hosteze - Monetization Strategy
 
 Complete guide to monetizing your event management app.
 
@@ -35,7 +35,7 @@ The recommended approach combines a free tier with paid premium features and pay
 - ❌ No automated reminders
 - ❌ No CSV export
 - ❌ No budget analytics
-- ❌ Shows "Powered by Gatherly" branding
+- ❌ Shows "Powered by hosteze" branding
 
 ---
 
@@ -69,7 +69,7 @@ The recommended approach combines a free tier with paid premium features and pay
 - ✅ **500 SMS per month included**
 - ✅ **Team collaboration** (up to 3 co-hosts)
 - ✅ **Priority support** (24-hour response)
-- ✅ **Custom branding** (remove all Gatherly branding)
+- ✅ **Custom branding** (remove all hosteze branding)
 - ✅ **Advanced analytics**
 - ✅ **API access** (future)
 - ✅ **White-label option** (future)

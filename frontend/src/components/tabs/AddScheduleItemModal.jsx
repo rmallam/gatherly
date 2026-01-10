@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import API_URL from '../../config/api';
-import { X } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, DollarSign, Type } from 'lucide-react';
+import '../../pages/EventTabs.css';
 
 const AddScheduleItemModal = ({ event, selectedDate, onClose, onItemAdded }) => {
     const [formData, setFormData] = useState({
@@ -72,64 +73,21 @@ const AddScheduleItemModal = ({ event, selectedDate, onClose, onItemAdded }) => 
     };
 
     return (
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem'
-        }}>
-            <div className="card" style={{
-                maxWidth: '500px',
-                width: '100%',
-                maxHeight: '90vh',
-                display: 'flex',
-                flexDirection: 'column',
-                padding: 0,
-                overflow: 'hidden'
-            }}>
-                {/* Header */}
-                <div style={{
-                    padding: '1.5rem',
-                    borderBottom: '1px solid var(--border)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                }}>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                        Add Activity
-                    </h2>
-                    <button
-                        onClick={onClose}
-                        className="btn btn-secondary"
-                        style={{ padding: '0.5rem' }}
-                    >
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-card" onClick={e => e.stopPropagation()}>
+                <div className="section-header">
+                    <h3 className="section-title">Add Activity</h3>
+                    <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
                         <X size={20} />
                     </button>
                 </div>
 
-                {/* Form */}
-                <form onSubmit={handleSubmit} style={{
-                    flex: 1,
-                    overflowY: 'auto',
-                    padding: '1.5rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '1.25rem'
-                }}>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     {error && (
                         <div style={{
-                            padding: '0.75rem',
-                            background: 'rgba(239, 68, 68, 0.1)',
-                            color: '#ef4444',
-                            borderRadius: 'var(--radius)',
-                            fontSize: '0.875rem'
+                            padding: 12, borderRadius: 8,
+                            background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444',
+                            fontSize: 13
                         }}>
                             {error}
                         </div>
@@ -137,66 +95,72 @@ const AddScheduleItemModal = ({ event, selectedDate, onClose, onItemAdded }) => 
 
                     {/* Date */}
                     <div>
-                        <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                            Date *
-                        </label>
-                        <input
-                            type="date"
-                            className="input"
-                            value={formData.date}
-                            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                            required
-                        />
+                        <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Date *</label>
+                        <div style={{ position: 'relative' }}>
+                            <Calendar size={16} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--text-tertiary)' }} />
+                            <input
+                                type="date"
+                                className="modern-input"
+                                value={formData.date}
+                                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                required
+                                style={{ paddingLeft: 36 }}
+                            />
+                        </div>
                     </div>
 
                     {/* Time Range */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                         <div>
-                            <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                                Start Time
-                            </label>
-                            <input
-                                type="time"
-                                className="input"
-                                value={formData.startTime}
-                                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                            />
+                            <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Start Time</label>
+                            <div style={{ position: 'relative' }}>
+                                <Clock size={16} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--text-tertiary)' }} />
+                                <input
+                                    type="time"
+                                    className="modern-input"
+                                    value={formData.startTime}
+                                    onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                                    style={{ paddingLeft: 36 }}
+                                />
+                            </div>
                         </div>
                         <div>
-                            <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                                End Time
-                            </label>
-                            <input
-                                type="time"
-                                className="input"
-                                value={formData.endTime}
-                                onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                            />
+                            <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>End Time</label>
+                            <div style={{ position: 'relative' }}>
+                                <Clock size={16} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--text-tertiary)' }} />
+                                <input
+                                    type="time"
+                                    className="modern-input"
+                                    value={formData.endTime}
+                                    onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                                    style={{ paddingLeft: 36 }}
+                                />
+                            </div>
                         </div>
                     </div>
 
                     {/* Title */}
                     <div>
-                        <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                            Title *
-                        </label>
-                        <input
-                            type="text"
-                            className="input"
-                            value={formData.title}
-                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            placeholder="e.g., Temple Tour, Breakfast, Check-in"
-                            required
-                        />
+                        <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Title *</label>
+                        <div style={{ position: 'relative' }}>
+                            <Type size={16} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--text-tertiary)' }} />
+                            <input
+                                type="text"
+                                className="modern-input"
+                                value={formData.title}
+                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                placeholder="e.g., Temple Tour, Breakfast"
+                                required
+                                style={{ paddingLeft: 36 }}
+                            />
+                        </div>
                     </div>
 
                     {/* Category */}
                     <div>
-                        <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                            Category
-                        </label>
+                        <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Category</label>
                         <select
-                            className="input"
+                            className="modern-input"
                             value={formData.category}
                             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                         >
@@ -210,55 +174,56 @@ const AddScheduleItemModal = ({ event, selectedDate, onClose, onItemAdded }) => 
 
                     {/* Description */}
                     <div>
-                        <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                            Description
-                        </label>
+                        <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Description</label>
                         <textarea
-                            className="input"
+                            className="modern-input"
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             placeholder="Add details about this activity..."
                             rows={3}
-                            style={{ resize: 'vertical' }}
+                            style={{ minHeight: 80, resize: 'vertical' }}
                         />
                     </div>
 
                     {/* Location */}
                     <div>
-                        <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                            Location
-                        </label>
-                        <input
-                            type="text"
-                            className="input"
-                            value={formData.location}
-                            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                            placeholder="e.g., Tanah Lot Temple, Hotel Restaurant"
-                        />
+                        <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Location</label>
+                        <div style={{ position: 'relative' }}>
+                            <MapPin size={16} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--text-tertiary)' }} />
+                            <input
+                                type="text"
+                                className="modern-input"
+                                value={formData.location}
+                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                placeholder="e.g., Tanah Lot Temple"
+                                style={{ paddingLeft: 36 }}
+                            />
+                        </div>
                     </div>
 
                     {/* Estimated Cost */}
                     <div>
-                        <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                            Estimated Cost (per person)
-                        </label>
-                        <input
-                            type="number"
-                            className="input"
-                            value={formData.estimatedCost}
-                            onChange={(e) => setFormData({ ...formData, estimatedCost: e.target.value })}
-                            placeholder="0.00"
-                            step="0.01"
-                            min="0"
-                        />
+                        <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Estimated Cost ($)</label>
+                        <div style={{ position: 'relative' }}>
+                            <DollarSign size={16} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--text-tertiary)' }} />
+                            <input
+                                type="number"
+                                className="modern-input"
+                                value={formData.estimatedCost}
+                                onChange={(e) => setFormData({ ...formData, estimatedCost: e.target.value })}
+                                placeholder="0.00"
+                                step="0.01"
+                                min="0"
+                                style={{ paddingLeft: 36 }}
+                            />
+                        </div>
                     </div>
 
-                    {/* Submit Button */}
                     <button
                         type="submit"
-                        className="btn btn-primary"
+                        className="btn-primary"
                         disabled={loading}
-                        style={{ marginTop: '0.5rem' }}
+                        style={{ marginTop: 8, justifyContent: 'center' }}
                     >
                         {loading ? 'Adding...' : 'Add Activity'}
                     </button>

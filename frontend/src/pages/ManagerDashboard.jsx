@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { Plus, Trash2, Calendar, ChevronRight, MapPin, Users } from 'lucide-react';
+import { Plus, Trash2, Calendar, ChevronRight, MapPin, Users, Sparkles, CheckCircle, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import ThemeToggle from '../components/ThemeToggle';
+import './ManagerDashboard.css';
 
 const ManagerDashboard = () => {
     const { events, createEvent, deleteEvent } = useApp();
@@ -54,8 +55,8 @@ const ManagerDashboard = () => {
     return (
         <>
             <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '16px', paddingBottom: '100px' }}>
-                {/* Theme toggle in top-right corner */}
-                <div style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 999 }}>
+                {/* Theme toggle aligned to the right */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
                     <ThemeToggle />
                 </div>
 
@@ -139,7 +140,6 @@ const ManagerDashboard = () => {
                         background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
                         border: 'none',
                         color: 'white',
-                        display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         cursor: 'pointer',
@@ -162,29 +162,40 @@ const ManagerDashboard = () => {
 
                 {/* Create Event Modal */}
                 {isCreating && (
-                    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-                        onClick={() => setIsCreating(false)}>
-                        <div className="card" style={{ maxWidth: '32rem', width: '100%', padding: '2rem' }} onClick={e => e.stopPropagation()}>
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
-                                Create New Event
-                            </h2>
+                    <div className="dashboard-modal-overlay" onClick={() => setIsCreating(false)}>
+                        <div className="dashboard-modal-card" onClick={e => e.stopPropagation()}>
+                            <h2 className="dashboard-modal-title">Create New Event</h2>
                             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                                 {/* Event Type Selector */}
-                                <div>
-                                    <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Event Type</label>
-                                    <select
-                                        className="input"
-                                        value={newEvent.eventType || 'host'}
-                                        onChange={(e) => setNewEvent({ ...newEvent, eventType: e.target.value })}
+                                <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600 }}>What kind of event is this?</label>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    {/* Host Event Option */}
+                                    <div
+                                        onClick={() => setNewEvent({ ...newEvent, eventType: 'host' })}
+                                        className={`event-type-card ${newEvent.eventType !== 'shared' ? 'selected' : ''}`}
                                     >
-                                        <option value="host">🎉 Host Event (Birthday, Wedding, Party)</option>
-                                        <option value="shared">🌍 Shared Event (Trip, Outing, Group Activity)</option>
-                                    </select>
-                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.5rem' }}>
-                                        {newEvent.eventType === 'shared'
-                                            ? 'Everyone can add expenses and manage the event together'
-                                            : 'You host, others are guests with limited permissions'}
-                                    </p>
+                                        <div style={{ fontSize: '1.5rem' }}>🎉</div>
+                                        <div>
+                                            <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Host an Event</div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                                                Parties, Weddings.<br />You control the details.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Split Expense Option */}
+                                    <div
+                                        onClick={() => setNewEvent({ ...newEvent, eventType: 'shared' })}
+                                        className={`event-type-card ${newEvent.eventType === 'shared' ? 'selected-shared' : ''}`}
+                                    >
+                                        <div style={{ fontSize: '1.5rem' }}>💶</div>
+                                        <div>
+                                            <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Split Expense</div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                                                Trips, Outings.<br />Shared budget & costs.
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div>
@@ -193,7 +204,7 @@ const ManagerDashboard = () => {
                                         type="text"
                                         value={newEvent.title}
                                         onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                                        className="input"
+                                        className="form-input"
                                         placeholder="e.g. Annual Conference 2024"
                                         autoFocus
                                     />
@@ -205,7 +216,7 @@ const ManagerDashboard = () => {
                                             type="date"
                                             value={newEvent.date}
                                             onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                                            className="input"
+                                            className="form-input"
                                         />
                                     </div>
                                     <div>
@@ -214,7 +225,7 @@ const ManagerDashboard = () => {
                                             type="text"
                                             value={newEvent.location}
                                             onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-                                            className="input"
+                                            className="form-input"
                                             placeholder="Grand Hall"
                                         />
                                     </div>
@@ -230,7 +241,7 @@ const ManagerDashboard = () => {
                                     </button>
                                     <button
                                         type="submit"
-                                        className={`btn btn-primary ${isSubmitting ? 'btn-loading' : ''}`}
+                                        className="btn btn-primary"
                                         disabled={isSubmitting}
                                         style={{ minWidth: '140px' }}
                                     >
@@ -244,12 +255,28 @@ const ManagerDashboard = () => {
 
                 {/* Events List */}
                 {events.length === 0 ? (
-                    <div className="card" style={{ padding: '4rem 2rem', textAlign: 'center', backgroundColor: 'var(--bg-secondary)' }}>
-                        <div style={{ width: '4rem', height: '4rem', margin: '0 auto 1.5rem', borderRadius: '50%', backgroundColor: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
-                            <Calendar size={32} />
+                    <div className="onboarding-empty-state">
+                        <div className="onboarding-icon-circle">
+                            <Sparkles size={40} />
                         </div>
-                        <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>No events yet</h3>
-                        <p style={{ color: 'var(--text-secondary)' }}>Click "New Event" to create your first event</p>
+                        <h2 className="onboarding-title">Welcome to Gatherly 🎉</h2>
+                        <p className="onboarding-description">
+                            Your all-in-one companion for perfect events. <br />
+                            Manage guests, track budgets, and split expenses seamlessly.
+                        </p>
+
+                        <div className="onboarding-features">
+                            <div className="feature-pill"><Users size={16} /> Guest List</div>
+                            <div className="feature-pill"><Calendar size={16} /> Scheduler</div>
+                            <div className="feature-pill"><CheckCircle size={16} /> RSVPs</div>
+                        </div>
+
+                        <button
+                            onClick={() => setIsCreating(true)}
+                            className="onboarding-btn-large"
+                        >
+                            <Plus size={24} /> Create Your First Event <ArrowRight size={20} />
+                        </button>
                     </div>
                 ) : (
                     <div style={{ display: 'grid', gap: '12px' }}>

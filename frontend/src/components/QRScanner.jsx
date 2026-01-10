@@ -3,7 +3,7 @@ import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { AlertCircle, Camera, X, ArrowLeft, HelpCircle, Image, Flashlight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const QRScanner = ({ onScan, onError, onClose }) => {
+const QRScanner = ({ onScan, onError, onClose, hideHeader = false }) => {
     const [error, setError] = useState('');
     const [hasPermission, setHasPermission] = useState(null);
     const [torchOn, setTorchOn] = useState(false);
@@ -128,34 +128,36 @@ const QRScanner = ({ onScan, onError, onClose }) => {
             <div id="reader" style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}></div>
 
             {/* Header Overlay */}
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 50, background: 'linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.4), transparent)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}>
-                    {/* Back Button */}
-                    <button
-                        onClick={() => {
-                            if (onClose) {
-                                onClose(); // Use callback if provided
-                            } else {
-                                navigate(-1); // Fallback to navigate
-                            }
-                        }}
-                        style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}
-                    >
-                        <ArrowLeft size={20} />
-                    </button>
+            {!hideHeader && (
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 50, background: 'linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.4), transparent)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}>
+                        {/* Back Button */}
+                        <button
+                            onClick={() => {
+                                if (onClose) {
+                                    onClose(); // Use callback if provided
+                                } else {
+                                    navigate(-1); // Fallback to navigate
+                                }
+                            }}
+                            style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}
+                        >
+                            <ArrowLeft size={20} />
+                        </button>
 
-                    {/* Title */}
-                    <div style={{ flex: 1, margin: '0 16px' }}>
-                        <h1 style={{ color: 'white', fontSize: '18px', fontWeight: 600, margin: 0 }}>Scan Guest Pass</h1>
-                        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px', marginTop: '2px' }}>Quick & Secure Check-in</p>
+                        {/* Title */}
+                        <div style={{ flex: 1, margin: '0 16px' }}>
+                            <h1 style={{ color: 'white', fontSize: '18px', fontWeight: 600, margin: 0 }}>Scan Guest Pass</h1>
+                            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px', marginTop: '2px' }}>Quick & Secure Check-in</p>
+                        </div>
+
+                        {/* Help Button */}
+                        <button style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}>
+                            <HelpCircle size={20} />
+                        </button>
                     </div>
-
-                    {/* Help Button */}
-                    <button style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}>
-                        <HelpCircle size={20} />
-                    </button>
                 </div>
-            </div>
+            )}
 
             {/* Scanning Frame Overlay - Clean dark vignette only */}
             {hasPermission && !error && (

@@ -85,7 +85,7 @@ const TasksTab = ({ event, onUpdateTasks }) => {
 
             {/* Add Form */}
             {showAddForm && (
-                <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
+                <div style={{ marginBottom: '1.5rem', padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '16px' }}>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>New Task</h3>
                     <div style={{ display: 'grid', gap: '1rem', marginBottom: '1rem' }}>
                         <div>
@@ -147,34 +147,34 @@ const TasksTab = ({ event, onUpdateTasks }) => {
             )}
 
             {/* Stats Overview */}
-            <div style={{ display: "flex", gap: "0.75rem", marginBottom: "2rem" }}>
-                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Tasks</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary)' }}>{totalTasks}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem", marginBottom: "2rem" }}>
+                <div style={{ padding: '1rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Tasks</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)' }}>{totalTasks}</div>
                 </div>
-                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Completed</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--success)' }}>{completedTasks}</div>
+                <div style={{ padding: '1rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Completed</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--success)' }}>{completedTasks}</div>
                 </div>
-                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>In Progress</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--warning)' }}>{inProgressTasks}</div>
+                <div style={{ padding: '1rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>In Progress</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--warning)' }}>{inProgressTasks}</div>
                 </div>
-                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Overdue</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--error)' }}>{overdueTasks.length}</div>
+                <div style={{ padding: '1rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Overdue</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--error)' }}>{overdueTasks.length}</div>
                 </div>
             </div>
 
             {/* Progress Bar */}
-            <div className="card" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
+            <div style={{ padding: '0 1rem', marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                     <span style={{ fontSize: '0.9375rem', fontWeight: 500 }}>Overall Progress</span>
                     <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--primary)' }}>
                         {completionPercentage.toFixed(0)}%
                     </span>
                 </div>
-                <div style={{ height: '12px', background: 'var(--bg-secondary)', borderRadius: '999px', overflow: 'hidden' }}>
+                <div style={{ height: '12px', background: 'rgba(0,0,0,0.05)', borderRadius: '999px', overflow: 'hidden' }}>
                     <div style={{
                         height: '100%',
                         width: `${completionPercentage}%`,
@@ -193,76 +193,100 @@ const TasksTab = ({ event, onUpdateTasks }) => {
 
                 return (
                     <div key={category.id} style={{ marginBottom: '2rem' }}>
-                        <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}>
                             <span>{category.emoji}</span>
                             {category.label}
-                            <span className="badge badge-primary">{categoryTasks.length}</span>
+                            <span style={{ fontSize: '0.75rem', background: 'var(--bg-secondary)', padding: '0.25rem 0.75rem', borderRadius: '12px', color: 'var(--text-secondary)' }}>{categoryTasks.length}</span>
                         </h3>
-                        <div style={{ display: 'grid', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
                             {categoryTasks.map(task => {
                                 const isOverdue = task.deadline && new Date(task.deadline) < new Date() && task.status !== 'completed';
                                 const priorityColor = priorities.find(p => p.id === task.priority)?.color;
 
                                 return (
-                                    <div key={task.id} className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                                    <div
+                                        key={task.id}
+                                        style={{
+                                            padding: '1rem 0.5rem',
+                                            transition: 'all 0.2s',
+                                            borderRadius: '8px'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
                                             <div style={{ flex: 1 }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                                                    <h4 style={{ fontSize: '1rem', fontWeight: 600 }}>{task.title}</h4>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
+                                                    <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{task.title}</h4>
                                                     <span style={{
-                                                        padding: '0.25rem 0.5rem',
-                                                        background: priorityColor,
-                                                        color: 'white',
-                                                        borderRadius: 'var(--radius-sm)',
-                                                        fontSize: '0.75rem',
+                                                        padding: '0.125rem 0.5rem',
+                                                        background: `${priorityColor}15`,
+                                                        color: priorityColor,
+                                                        borderRadius: '12px',
+                                                        fontSize: '0.6875rem',
                                                         fontWeight: 600,
-                                                        textTransform: 'uppercase'
+                                                        textTransform: 'uppercase',
+                                                        border: `1px solid ${priorityColor}30`
                                                     }}>
                                                         {task.priority}
                                                     </span>
                                                 </div>
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.6875rem', color: 'var(--text-secondary)' }}>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                                                     {task.deadline && (
                                                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: isOverdue ? 'var(--error)' : 'inherit' }}>
-                                                            <Calendar size={14} />
+                                                            <Calendar size={12} />
                                                             {new Date(task.deadline).toLocaleDateString()}
                                                             {isOverdue && ' (Overdue)'}
                                                         </span>
                                                     )}
                                                 </div>
                                             </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                                 <select
                                                     value={task.status}
                                                     onChange={(e) => handleUpdateStatus(task.id, e.target.value)}
                                                     style={{
                                                         padding: '0.375rem 0.75rem',
-                                                        borderRadius: 'var(--radius-md)',
-                                                        border: '1px solid var(--border)',
-                                                        fontSize: '0.875rem',
-                                                        fontWeight: 500,
+                                                        borderRadius: '20px',
+                                                        border: 'none',
+                                                        background: 'var(--bg-secondary)',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: 600,
                                                         color: statuses.find(s => s.id === task.status)?.color,
-                                                        cursor: 'pointer'
+                                                        cursor: 'pointer',
+                                                        appearance: 'none',
+                                                        outline: 'none',
+                                                        textAlign: 'center'
                                                     }}
                                                 >
                                                     {statuses.map(status => (
                                                         <option key={status.id} value={status.id}>{status.label}</option>
                                                     ))}
                                                 </select>
-                                                <button
-                                                    onClick={() => handleDeleteTask(task.id)}
-                                                    style={{
-                                                        padding: '0.5rem',
-                                                        border: 'none',
-                                                        background: 'transparent',
-                                                        color: 'var(--error)',
-                                                        cursor: 'pointer',
-                                                        borderRadius: 'var(--radius-md)'
-                                                    }}
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
+
+                                                <div className="flex gap-2 opacity-0 hover:opacity-100 transition-opacity" style={{ opacity: 0.8 }}>
+                                                    <button
+                                                        onClick={() => handleDeleteTask(task.id)}
+                                                        className="action-btn"
+                                                        style={{
+                                                            padding: '0.5rem',
+                                                            border: 'none',
+                                                            background: 'transparent',
+                                                            color: 'var(--text-secondary)',
+                                                            cursor: 'pointer',
+                                                            borderRadius: '8px',
+                                                            transition: 'all 0.2s'
+                                                        }}
+                                                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#ef4444'; }}
+                                                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
                                             </div>
+                                            <style jsx>{`
+                                                div:hover > div > div.flex { opacity: 1 !important; }
+                                            `}</style>
                                         </div>
                                     </div>
                                 );
@@ -274,9 +298,17 @@ const TasksTab = ({ event, onUpdateTasks }) => {
 
             {/* Empty State */}
             {tasks.length === 0 && !showAddForm && (
-                <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
-                    <CheckSquare size={48} style={{ color: 'var(--text-tertiary)', margin: '0 auto 1rem' }} />
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>No Tasks Yet</h3>
+                <div style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+                    <div style={{
+                        width: '64px', height: '64px', borderRadius: '50%', background: 'var(--bg-secondary)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem',
+                        color: 'var(--text-tertiary)'
+                    }}>
+                        <CheckSquare size={32} />
+                    </div>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+                        No Tasks Yet
+                    </h3>
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
                         Start organizing your event with a task checklist
                     </p>

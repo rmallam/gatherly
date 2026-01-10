@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import API_URL from '../../config/api';
-import { ArrowRight, Check, AlertCircle } from 'lucide-react';
+import { ArrowRight, Check, AlertCircle, Loader, X } from 'lucide-react';
 
 const BalanceSummary = ({ balances, eventId, onSettled }) => {
     const [settling, setSettling] = useState(null);
+    const [showSettlementConfirm, setShowSettlementConfirm] = useState(null); // balance object to confirm
     const [showPendingDialog, setShowPendingDialog] = useState(false);
     const [pendingBalance, setPendingBalance] = useState(null);
 
-    const handleSettle = async (balance) => {
+    const checkSettle = (balance) => {
         // Check if user is pending
         if (balance.isPending) {
             setPendingBalance(balance);
@@ -15,11 +16,15 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
             return;
         }
 
-        if (!confirm(`Settle ${balance.currency} ${parseFloat(balance.amount).toFixed(2)} from ${balance.fromUserName} to ${balance.toUserName}?`)) {
-            return;
-        }
+        setShowSettlementConfirm(balance);
+    };
 
+    const confirmSettle = async () => {
+        if (!showSettlementConfirm) return;
+
+        const balance = showSettlementConfirm;
         setSettling(balance);
+        setShowSettlementConfirm(null);
 
         try {
             const token = localStorage.getItem('token');
@@ -68,7 +73,7 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
                             gap: '12px',
                             padding: '16px 0',
                             transition: 'all 0.2s',
-                            borderBottom: '1px solid rgba(255, 255, 255, 0.05)' // Subtle divider for balances feels right as they are unrelated items usually
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
                         }}
                         onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'}
                         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
@@ -101,41 +106,40 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
                                 {balance.currency} {parseFloat(balance.amount).toFixed(2)}
                             </span>
                             <button
-                                onClick={() => handleSettle(balance)}
+                                onClick={() => checkSettle(balance)}
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '0.375rem',
-                                    fontSize: '0.8125rem',
-                                    padding: balance.isPending ? '0.5rem' : '0.5rem 0.875rem',
-                                    whiteSpace: 'nowrap',
-                                    background: balance.isPending ? '#fbbf24' : 'rgba(16, 185, 129, 0.3)',
-                                    border: balance.isPending ? '1px solid #fbbf24' : '1px solid rgba(16, 185, 129, 0.5)',
-                                    borderRadius: '8px',
-                                    color: 'white',
-                                    fontWeight: 600,
+                                    justifyContent: 'center',
+                                    width: '32px',
+                                    height: '32px',
+                                    padding: '0',
+                                    background: balance.isPending ? 'rgba(251, 191, 36, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                                    border: balance.isPending ? '1px solid #fbbf24' : '1px solid #10b981',
+                                    borderRadius: '50%',
+                                    color: balance.isPending ? '#fbbf24' : '#10b981',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s'
                                 }}
                                 disabled={settling === balance}
                                 onMouseEnter={(e) => {
-                                    if (!balance.isPending) {
-                                        e.currentTarget.style.background = 'rgba(16, 185, 129, 0.4)';
-                                    }
+                                    e.currentTarget.style.background = balance.isPending ? 'rgba(251, 191, 36, 0.2)' : 'rgba(16, 185, 129, 0.2)';
+                                    e.currentTarget.style.transform = 'scale(1.1)';
                                 }}
                                 onMouseLeave={(e) => {
-                                    if (!balance.isPending) {
-                                        e.currentTarget.style.background = 'rgba(16, 185, 129, 0.3)';
-                                    }
+                                    e.currentTarget.style.background = balance.isPending ? 'rgba(251, 191, 36, 0.1)' : 'rgba(16, 185, 129, 0.1)';
+                                    e.currentTarget.style.transform = 'scale(1)';
                                 }}
+                                title={balance.isPending ? "User Pending" : "Settle"}
                             >
                                 {balance.isPending ? (
                                     <AlertCircle size={16} />
                                 ) : (
-                                    <>
-                                        <Check size={14} />
-                                        {settling === balance ? 'Settling...' : 'Settle'}
-                                    </>
+                                    settling === balance ? (
+                                        <Loader size={16} className="animate-spin" />
+                                    ) : (
+                                        <Check size={18} />
+                                    )
                                 )}
                             </button>
                         </div>
@@ -143,7 +147,7 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
                 ))}
             </div>
 
-            {/* Pending User Dialog */}
+            {/* Pending User Dialog - Fixed Visibility */}
             {showPendingDialog && pendingBalance && (
                 <div
                     style={{
@@ -152,7 +156,8 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        background: 'rgba(0, 0, 0, 0.5)',
+                        background: 'rgba(0, 0, 0, 0.8)', // Darker overlay
+                        backdropFilter: 'blur(4px)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -162,24 +167,27 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
                     onClick={() => setShowPendingDialog(false)}
                 >
                     <div
-                        className="card"
                         style={{
                             maxWidth: '400px',
                             width: '100%',
-                            padding: '1.5rem'
+                            padding: '1.5rem',
+                            background: '#1f2937', // Solid dark background to prevent bleed-through
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            borderRadius: '16px',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
                             <AlertCircle size={24} style={{ color: '#fbbf24' }} />
-                            <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+                            <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#f9fafb', margin: 0 }}>
                                 User Not Registered
                             </h3>
                         </div>
-                        <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', lineHeight: '1.5' }}>
+                        <p style={{ color: '#d1d5db', marginBottom: '1rem', lineHeight: '1.5' }}>
                             <strong>{pendingBalance.fromUserName}</strong> hasn't signed up yet. They need to download the app and create an account to settle this balance.
                         </p>
-                        <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+                        <p style={{ color: '#9ca3af', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
                             Amount owed: <strong style={{ color: '#ef4444' }}>{pendingBalance.currency} {parseFloat(pendingBalance.amount).toFixed(2)}</strong>
                         </p>
                         <button
@@ -189,6 +197,63 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
                         >
                             Got it
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Settle Confirmation Dialog - Custom Glassmorphic Modal */}
+            {showSettlementConfirm && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'rgba(0, 0, 0, 0.8)',
+                        backdropFilter: 'blur(4px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000,
+                        padding: '1rem'
+                    }}
+                    onClick={() => setShowSettlementConfirm(null)}
+                >
+                    <div
+                        style={{
+                            maxWidth: '400px',
+                            width: '100%',
+                            padding: '1.5rem',
+                            background: '#1f2937', // Solid dark background
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            borderRadius: '16px',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#f9fafb', marginBottom: '1rem' }}>
+                            Confirm Settlement
+                        </h3>
+                        <p style={{ color: '#d1d5db', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+                            Mark <strong>{showSettlementConfirm.currency} {parseFloat(showSettlementConfirm.amount).toFixed(2)}</strong> from <strong>{showSettlementConfirm.fromUserName}</strong> to <strong>{showSettlementConfirm.toUserName}</strong> as paid?
+                        </p>
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button
+                                onClick={() => setShowSettlementConfirm(null)}
+                                className="btn btn-secondary"
+                                style={{ flex: 1, justifyContent: 'center' }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmSettle}
+                                className="btn btn-primary"
+                                style={{ flex: 1, justifyContent: 'center', background: 'var(--success)', border: 'none' }}
+                            >
+                                <Check size={16} /> Confirm
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

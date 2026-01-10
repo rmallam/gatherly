@@ -145,9 +145,15 @@ const GroupManager = () => {
 
             {/* Groups Grid */}
             {groups.length === 0 ? (
-                <div className="card" style={{ padding: '3rem 2rem', textAlign: 'center', backgroundColor: 'var(--bg-secondary)' }}>
-                    <Users size={48} style={{ color: 'var(--text-tertiary)', margin: '0 auto 1rem' }} />
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                <div style={{ padding: '3rem 2rem', textAlign: 'center' }}>
+                    <div style={{
+                        width: '64px', height: '64px', borderRadius: '50%', background: 'var(--bg-secondary)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem',
+                        color: 'var(--text-tertiary)'
+                    }}>
+                        <Users size={32} />
+                    </div>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
                         No groups created yet.
                     </p>
                     <button
@@ -162,23 +168,41 @@ const GroupManager = () => {
                     {groups.map(group => (
                         <div
                             key={group.id}
-                            className="card"
                             style={{
                                 padding: '1.5rem',
-                                borderLeft: `4px solid ${group.color}`,
+                                background: 'var(--bg-secondary)',
+                                borderRadius: '16px',
                                 cursor: 'pointer',
-                                transition: 'transform 0.2s',
+                                transition: 'all 0.2s',
+                                position: 'relative',
+                                overflow: 'hidden'
                             }}
-                            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.filter = 'brightness(0.95)';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.filter = 'none';
+                            }}
                             onClick={() => setSelectedGroup(group)}
                         >
-                            <div style={{ marginBottom: '1rem' }}>
+                            {/* Color Indicator Strip */}
+                            <div style={{
+                                position: 'absolute',
+                                left: 0,
+                                top: 0,
+                                bottom: 0,
+                                width: '6px',
+                                background: group.color
+                            }} />
+
+                            <div style={{ paddingLeft: '1rem', marginBottom: '1rem' }}>
                                 <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                                     {group.name}
                                 </h3>
                                 {group.description && (
-                                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', lineClamp: 2, WebkitLineClamp: 2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                                         {group.description}
                                     </p>
                                 )}
@@ -187,22 +211,52 @@ const GroupManager = () => {
                                     <span>{group.member_count || 0} member{group.member_count !== 1 ? 's' : ''}</span>
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }} onClick={e => e.stopPropagation()}>
+                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', paddingLeft: '1rem' }} onClick={e => e.stopPropagation()}>
                                 <button
                                     onClick={() => handleEdit(group)}
-                                    className="btn btn-secondary"
-                                    style={{ padding: '0.5rem', flex: 1, justifyContent: 'center' }}
+                                    className="action-btn"
+                                    style={{
+                                        padding: '0.5rem',
+                                        flex: 1,
+                                        justifyContent: 'center',
+                                        background: 'rgba(255,255,255,0.5)',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        color: 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.background = 'white';
+                                        e.currentTarget.style.color = 'var(--primary)';
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.background = 'rgba(255,255,255,0.5)';
+                                        e.currentTarget.style.color = 'var(--text-secondary)';
+                                    }}
                                     title="Edit group"
                                 >
-                                    <Edit2 size={14} />
+                                    <Edit2 size={16} />
                                 </button>
                                 <button
                                     onClick={() => setDeleteConfirm(group)}
-                                    className="btn btn-secondary"
-                                    style={{ padding: '0.5rem', flex: 1, justifyContent: 'center', background: '#ef4444', color: 'white', border: 'none' }}
+                                    className="action-btn"
+                                    style={{
+                                        padding: '0.5rem',
+                                        flex: 1,
+                                        justifyContent: 'center',
+                                        background: 'rgba(239, 68, 68, 0.1)',
+                                        color: '#ef4444',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = 'white'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#ef4444'; }}
                                     title="Delete group"
                                 >
-                                    <Trash2 size={14} />
+                                    <Trash2 size={16} />
                                 </button>
                             </div>
                         </div>
@@ -211,129 +265,135 @@ const GroupManager = () => {
             )}
 
             {/* Add/Edit Modal */}
-            {showAddModal && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.75)' }} onClick={closeModal}>
-                    <div className="card" style={{ maxWidth: '500px', width: '100%', padding: '2rem' }} onClick={e => e.stopPropagation()}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                                {editingGroup ? 'Edit Group' : 'Create Group'}
-                            </h3>
-                            <button onClick={closeModal} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div>
-                                <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Group Name *</label>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    placeholder="Family, Friends, Coworkers..."
-                                    required
-                                />
+            {
+                showAddModal && (
+                    <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.75)' }} onClick={closeModal}>
+                        <div className="card" style={{ maxWidth: '500px', width: '100%', padding: '2rem' }} onClick={e => e.stopPropagation()}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                    {editingGroup ? 'Edit Group' : 'Create Group'}
+                                </h3>
+                                <button onClick={closeModal} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+                                    <X size={24} />
+                                </button>
                             </div>
 
-                            <div>
-                                <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Description</label>
-                                <textarea
-                                    className="form-input"
-                                    value={formData.description}
-                                    onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                    placeholder="Optional description..."
-                                    rows={2}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 500 }}>Color</label>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem' }}>
-                                    {colorOptions.map(color => (
-                                        <button
-                                            key={color.value}
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, color: color.value })}
-                                            style={{
-                                                padding: '0.75rem',
-                                                border: formData.color === color.value ? '2px solid var(--primary)' : '2px solid transparent',
-                                                borderRadius: '8px',
-                                                background: color.value,
-                                                color: 'white',
-                                                cursor: 'pointer',
-                                                fontSize: '0.75rem',
-                                                fontWeight: 500,
-                                                transition: 'all 0.2s'
-                                            }}
-                                        >
-                                            {color.label}
-                                        </button>
-                                    ))}
+                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div>
+                                    <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Group Name *</label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        value={formData.name}
+                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                        placeholder="Family, Friends, Coworkers..."
+                                        required
+                                    />
                                 </div>
-                            </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
+                                <div>
+                                    <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Description</label>
+                                    <textarea
+                                        className="form-input"
+                                        value={formData.description}
+                                        onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                        placeholder="Optional description..."
+                                        rows={2}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 500 }}>Color</label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem' }}>
+                                        {colorOptions.map(color => (
+                                            <button
+                                                key={color.value}
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, color: color.value })}
+                                                style={{
+                                                    padding: '0.75rem',
+                                                    border: formData.color === color.value ? '2px solid var(--primary)' : '2px solid transparent',
+                                                    borderRadius: '8px',
+                                                    background: color.value,
+                                                    color: 'white',
+                                                    cursor: 'pointer',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 500,
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                {color.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
+                                    <button
+                                        type="button"
+                                        onClick={closeModal}
+                                        className="btn btn-secondary"
+                                        style={{ justifyContent: 'center' }}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="btn btn-primary"
+                                        style={{ justifyContent: 'center' }}
+                                    >
+                                        {editingGroup ? 'Update' : 'Create'} Group
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Delete Confirmation */}
+            {
+                deleteConfirm && (
+                    <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.75)' }} onClick={() => setDeleteConfirm(null)}>
+                        <div className="card" style={{ maxWidth: '400px', width: '100%', padding: '2rem' }} onClick={e => e.stopPropagation()}>
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem' }}>Delete Group?</h3>
+                            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                                Are you sure you want to delete <strong>{deleteConfirm.name}</strong>? Contacts will remain in your library.
+                            </p>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                                 <button
-                                    type="button"
-                                    onClick={closeModal}
+                                    onClick={() => setDeleteConfirm(null)}
                                     className="btn btn-secondary"
                                     style={{ justifyContent: 'center' }}
                                 >
                                     Cancel
                                 </button>
                                 <button
-                                    type="submit"
+                                    onClick={() => handleDelete(deleteConfirm.id)}
                                     className="btn btn-primary"
-                                    style={{ justifyContent: 'center' }}
+                                    style={{ justifyContent: 'center', background: '#ef4444', border: 'none' }}
                                 >
-                                    {editingGroup ? 'Update' : 'Create'} Group
+                                    <Trash2 size={16} /> Delete
                                 </button>
                             </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Delete Confirmation */}
-            {deleteConfirm && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.75)' }} onClick={() => setDeleteConfirm(null)}>
-                    <div className="card" style={{ maxWidth: '400px', width: '100%', padding: '2rem' }} onClick={e => e.stopPropagation()}>
-                        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem' }}>Delete Group?</h3>
-                        <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                            Are you sure you want to delete <strong>{deleteConfirm.name}</strong>? Contacts will remain in your library.
-                        </p>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                            <button
-                                onClick={() => setDeleteConfirm(null)}
-                                className="btn btn-secondary"
-                                style={{ justifyContent: 'center' }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={() => handleDelete(deleteConfirm.id)}
-                                className="btn btn-primary"
-                                style={{ justifyContent: 'center', background: '#ef4444', border: 'none' }}
-                            >
-                                <Trash2 size={16} /> Delete
-                            </button>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Member Selector Modal */}
-            {selectedGroup && (
-                <GroupMemberSelector
-                    group={selectedGroup}
-                    onClose={() => {
-                        setSelectedGroup(null);
-                        fetchGroups();
-                    }}
-                />
-            )}
-        </div>
+            {
+                selectedGroup && (
+                    <GroupMemberSelector
+                        group={selectedGroup}
+                        onClose={() => {
+                            setSelectedGroup(null);
+                            fetchGroups();
+                        }}
+                    />
+                )
+            }
+        </div >
     );
 };
 

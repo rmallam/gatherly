@@ -1,0 +1,375 @@
+/* Scanner.css */
+
+.scanner-page {
+    position: relative;
+    min-height: 100vh;
+    background: #000;
+    color: white;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Full Screen Camera Background handled by QRScanner component mostly, 
+   but ensuring container is correct */
+.scanner-container {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header Overlay */
+.scanner-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 51;
+    padding: max(env(safe-area-inset-top), 20px) 20px 20px;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.scanner-title-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.scanner-title-badge h1 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: white;
+}
+
+.close-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* Result Overlay - The main card */
+.scanner-result-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: flex-end;
+    /* Slide up from bottom on mobile */
+    justify-content: center;
+    padding: 20px;
+    padding-bottom: max(env(safe-area-inset-bottom), 20px);
+}
+
+@media (min-width: 768px) {
+    .scanner-result-overlay {
+        align-items: center;
+    }
+}
+
+.result-card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--bg-primary);
+    /* Use theme background */
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    border: 1px solid var(--border);
+}
+
+/* Make sure card looks good in dark mode (which Scanner usually implies, 
+   but let's respect theme vars if possible, strictly overriding for scanner context 
+   where we might want specific dark look) */
+:root {
+    --scanner-card-bg: #1e1e24;
+    --scanner-text: #ffffff;
+    --scanner-subtext: #a1a1aa;
+}
+
+.result-card {
+    background: var(--scanner-card-bg);
+    color: var(--scanner-text);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Status Header inside card */
+.result-header {
+    padding: 32px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Success/Error/Warning logic */
+.result-card.valid .result-header {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
+    border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.result-card.invalid .result-header {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.05));
+    border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.result-card.checked-in .result-header {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.05));
+    border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.status-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    /* Centered */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
+}
+
+.result-card.valid .status-icon-wrapper {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.1);
+}
+
+.result-card.invalid .status-icon-wrapper {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.1);
+}
+
+.result-card.checked-in .status-icon-wrapper {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0.1);
+}
+
+.result-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 8px;
+}
+
+.result-subtitle {
+    font-size: 16px;
+    color: var(--scanner-subtext);
+    margin: 0;
+}
+
+/* Info Body */
+.result-body {
+    padding: 24px;
+}
+
+.guest-info {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.guest-name {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.event-name {
+    font-size: 14px;
+    color: var(--scanner-subtext);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* Party Size Control for Valid State */
+.party-control {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.party-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--scanner-subtext);
+    font-weight: 600;
+}
+
+.party-stepper {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.stepper-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.stepper-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.party-value {
+    font-size: 32px;
+    font-weight: 700;
+    min-width: 40px;
+    text-align: center;
+}
+
+/* Actions */
+.result-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.btn-scan-action {
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.btn-scan-action:active {
+    transform: scale(0.98);
+}
+
+.btn-cancel {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.btn-confirm {
+    background: var(--primary);
+    /* Uses global primary which is purple/indigo usually */
+    background: #6366f1;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-confirm.success {
+    background: #10b981;
+}
+
+.btn-full {
+    grid-column: span 2;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Unauthorized Page */
+.unauthorized-page {
+    min-height: 100vh;
+    background: var(--bg-deep);
+    /* Use deep background from global if avail, or fallback */
+    background: #0a0b1e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.unauthorized-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 40px 24px;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+.lock-icon-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+}
+
+.unauthorized-card h1 {
+    color: white;
+    font-size: 24px;
+    margin-bottom: 12px;
+}
+
+.unauthorized-card p {
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.6;
+    margin-bottom: 32px;
+}
+
+.btn-home {
+    width: 100%;
+    padding: 14px;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}

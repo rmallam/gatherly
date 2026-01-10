@@ -214,7 +214,16 @@ const MyContacts = () => {
                     ) : (
                         <div style={{ display: 'grid', gap: '0.75rem' }}>
                             {filteredContacts.map(contact => (
-                                <div key={contact.id} className="card" style={{ padding: '1.25rem' }}>
+                                <div
+                                    key={contact.id}
+                                    style={{
+                                        padding: '16px 8px',
+                                        transition: 'all 0.2s',
+                                        borderRadius: '12px'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                >
                                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
@@ -254,18 +263,22 @@ const MyContacts = () => {
                                             <button
                                                 onClick={() => handleEdit(contact)}
                                                 className="btn btn-secondary"
-                                                style={{ padding: '0.5rem', minWidth: 'auto' }}
+                                                style={{ padding: '0.5rem', minWidth: 'auto', background: 'transparent', border: 'none', color: 'var(--text-secondary)' }}
                                                 title="Edit contact"
+                                                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
                                             >
-                                                <Edit2 size={16} />
+                                                <Edit2 size={18} />
                                             </button>
                                             <button
                                                 onClick={() => setDeleteConfirm(contact)}
                                                 className="btn btn-secondary"
-                                                style={{ padding: '0.5rem', minWidth: 'auto', background: '#ef4444', color: 'white', border: 'none' }}
+                                                style={{ padding: '0.5rem', minWidth: 'auto', background: 'transparent', color: '#ef4444', border: 'none' }}
                                                 title="Delete contact"
+                                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                                             >
-                                                <Trash2 size={16} />
+                                                <Trash2 size={18} />
                                             </button>
                                         </div>
                                     </div>

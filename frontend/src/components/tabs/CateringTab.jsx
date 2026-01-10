@@ -146,27 +146,25 @@ const CateringTab = ({ event, onUpdateCatering }) => {
                 </div>
             )}
 
-            {/* Header Stats - Glassmorphism */}
-            <div style={{ display: "flex", gap: "0.75rem", marginBottom: "2rem" }}>
-                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Menu Items</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary)' }}>{menuItems.length}</div>
+            {/* Header Stats - Flat Design */}
+            <div style={{ display: "grid", gridTemplateColumns: 'repeat(4, 1fr)', gap: "1rem", marginBottom: "2rem" }}>
+                <div style={{ padding: '0.5rem 0' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Menu Items</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>{menuItems.length}</div>
                 </div>
-                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Servings</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--success)' }}>{totalServings}</div>
+                <div style={{ padding: '0.5rem 0' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Servings</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--success)' }}>{totalServings}</div>
                 </div>
-                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Confirmed Guests</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>{confirmedGuests}</div>
+                <div style={{ padding: '0.5rem 0' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Confirmed</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>{confirmedGuests}</div>
                 </div>
-                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Cost</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--warning)' }}>${totalCost.toFixed(2)}</div>
+                <div style={{ padding: '0.5rem 0' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Cost</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--warning)' }}>${totalCost.toFixed(2)}</div>
                 </div>
             </div>
-
-
 
             {/* Menu Items by Category */}
             {categories.map(category => {
@@ -175,21 +173,39 @@ const CateringTab = ({ event, onUpdateCatering }) => {
 
                 return (
                     <div key={category.id} style={{ marginBottom: '2rem' }}>
-                        <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}>
                             <span>{category.emoji}</span>
                             {category.label}
-                            <span className="badge badge-primary">{categoryItems.length}</span>
+                            <span style={{
+                                fontSize: '0.75rem',
+                                padding: '2px 8px',
+                                borderRadius: '12px',
+                                background: 'var(--bg-secondary)',
+                                color: 'var(--text-secondary)'
+                            }}>{categoryItems.length}</span>
                         </h3>
-                        <div style={{ display: 'grid', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
                             {categoryItems.map(item => (
-                                <div key={item.id}>
+                                <div key={item.id}
+                                    style={{
+                                        padding: '12px 0',
+                                        transition: 'all 0.2s',
+                                        borderRadius: '8px',
+                                        paddingLeft: '8px',
+                                        paddingRight: '8px',
+                                        marginLeft: '-8px',
+                                        marginRight: '-8px'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                >
                                     {editingItem?.id === item.id ? (
                                         // EDIT FORM
-                                        <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                                            <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Edit Menu Item</h4>
-                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                        <div style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: '12px' }}>
+                                            <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Edit Menu Item</h4>
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                                                 <div>
-                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Item Name</label>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem', color: 'var(--text-secondary)' }}>Item Name</label>
                                                     <input
                                                         type="text"
                                                         className="form-input"
@@ -199,7 +215,7 @@ const CateringTab = ({ event, onUpdateCatering }) => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Category</label>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem', color: 'var(--text-secondary)' }}>Category</label>
                                                     <select
                                                         className="form-input"
                                                         value={editingItem.category}
@@ -210,7 +226,7 @@ const CateringTab = ({ event, onUpdateCatering }) => {
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Quantity</label>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem', color: 'var(--text-secondary)' }}>Quantity</label>
                                                     <input
                                                         type="number"
                                                         className="form-input"
@@ -220,7 +236,7 @@ const CateringTab = ({ event, onUpdateCatering }) => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Servings</label>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem', color: 'var(--text-secondary)' }}>Servings</label>
                                                     <input
                                                         type="number"
                                                         className="form-input"
@@ -230,7 +246,7 @@ const CateringTab = ({ event, onUpdateCatering }) => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Cost ($)</label>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem', color: 'var(--text-secondary)' }}>Cost ($)</label>
                                                     <input
                                                         type="number"
                                                         step="0.01"
@@ -241,7 +257,7 @@ const CateringTab = ({ event, onUpdateCatering }) => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Vendor</label>
+                                                    <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem', color: 'var(--text-secondary)' }}>Vendor</label>
                                                     <input
                                                         type="text"
                                                         className="form-input"
@@ -251,7 +267,7 @@ const CateringTab = ({ event, onUpdateCatering }) => {
                                                     />
                                                 </div>
                                             </div>
-                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <div style={{ display: 'flex', gap: '0.75rem' }}>
                                                 <button onClick={handleUpdateItem} className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>
                                                     <Check size={14} /> Save
                                                 </button>
@@ -261,60 +277,80 @@ const CateringTab = ({ event, onUpdateCatering }) => {
                                             </div>
                                         </div>
                                     ) : (
-                                        // DISPLAY - Glassmorphism
-                                        <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-                                                <div style={{ flex: 1 }}>
-                                                    <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{item.name}</h4>
-                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.6875rem', color: 'var(--text-secondary)' }}>
-                                                        <span>Qty: {item.quantity}</span>
-                                                        <span>Servings: {item.servings}</span>
-                                                        <span style={{ fontWeight: 600, color: 'var(--warning)' }}>${item.cost.toFixed(2)}</span>
-                                                        {item.vendor && <span>Vendor: {item.vendor}</span>}
-                                                    </div>
+                                        // DISPLAY - Flat Design
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem', color: 'var(--text-primary)' }}>{item.name}</h4>
+                                                <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                                    <span>{item.quantity} items</span>
+                                                    <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--text-tertiary)' }}></span>
+                                                    <span>{item.servings} servings</span>
+                                                    {item.vendor && (
+                                                        <>
+                                                            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--text-tertiary)' }}></span>
+                                                            <span>{item.vendor}</span>
+                                                        </>
+                                                    )}
                                                 </div>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexShrink: 0 }}>
+                                                <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '1rem' }}>
+                                                    ${item.cost.toFixed(2)}
+                                                </div>
+
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                     <select
                                                         value={item.status}
                                                         onChange={(e) => handleUpdateStatus(item.id, e.target.value)}
                                                         style={{
-                                                            padding: '0.375rem 0.75rem',
-                                                            borderRadius: 'var(--radius-md)',
-                                                            border: '1px solid var(--border)',
-                                                            fontSize: '0.875rem',
-                                                            fontWeight: 500,
+                                                            padding: '0.25rem 0.5rem',
+                                                            borderRadius: '8px',
+                                                            border: 'none',
+                                                            background: 'transparent',
+                                                            fontSize: '0.75rem',
+                                                            fontWeight: 600,
                                                             color: statusOptions.find(s => s.id === item.status)?.color,
-                                                            cursor: 'pointer'
+                                                            cursor: 'pointer',
+                                                            textAlign: 'right',
+                                                            appearance: 'none', // Remove default arrow for cleaner look if desired, or keep it
+                                                            paddingRight: '0'
                                                         }}
                                                     >
                                                         {statusOptions.map(status => (
                                                             <option key={status.id} value={status.id}>{status.label}</option>
                                                         ))}
                                                     </select>
+
                                                     <button
                                                         onClick={() => handleEditItem(item)}
+                                                        className="action-btn"
                                                         style={{
                                                             padding: '0.5rem',
                                                             border: 'none',
                                                             background: 'transparent',
-                                                            color: 'var(--primary)',
+                                                            color: 'var(--text-tertiary)',
                                                             cursor: 'pointer',
-                                                            borderRadius: 'var(--radius-md)'
+                                                            transition: 'color 0.2s'
                                                         }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--primary)'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
                                                         title="Edit item"
                                                     >
                                                         <Edit2 size={16} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteItem(item.id)}
+                                                        className="action-btn"
                                                         style={{
                                                             padding: '0.5rem',
                                                             border: 'none',
                                                             background: 'transparent',
-                                                            color: 'var(--error)',
+                                                            color: 'var(--text-tertiary)',
                                                             cursor: 'pointer',
-                                                            borderRadius: 'var(--radius-md)'
+                                                            transition: 'color 0.2s'
                                                         }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--error)'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
@@ -331,11 +367,17 @@ const CateringTab = ({ event, onUpdateCatering }) => {
 
             {/* Empty State */}
             {menuItems.length === 0 && !showAddForm && (
-                <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
-                    <UtensilsCrossed size={48} style={{ color: 'var(--text-tertiary)', margin: '0 auto 1rem' }} />
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>No Menu Items Yet</h3>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                        Start planning your menu by adding items
+                <div style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+                    <div style={{
+                        width: '64px', height: '64px', borderRadius: '50%', background: 'var(--bg-secondary)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem',
+                        color: 'var(--text-tertiary)'
+                    }}>
+                        <UtensilsCrossed size={32} />
+                    </div>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>No Menu Items Yet</h3>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', maxWidth: '300px', margin: '0 auto 1.5rem' }}>
+                        Start planning your event menu by adding appetizers, main courses, and more.
                     </p>
                     <button onClick={() => setShowAddForm(true)} className="btn btn-primary">
                         <Plus size={16} /> Add First Item

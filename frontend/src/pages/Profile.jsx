@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, User, Mail, Phone, FileText, Lock, Save, Eye, EyeOff, Moon, Sun, X, Check, LogOut, Shield, Bell } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 import { Camera as CapCamera } from '@capacitor/camera';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -11,15 +12,27 @@ import { getCroppedImg } from '../utils/cropImage';
 const Profile = () => {
     const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
-    const { refreshUser, logout } = useAuth();
-    const [loading, setLoading] = useState(true);
+    const { refreshUser, logout, user } = useAuth();
+    const { events } = useApp(); // Get events for stats
+
+    // UI State
+    const [isEditing, setIsEditing] = useState(false);
+    const [activeTab, setActiveTab] = useState('details'); // 'details' | 'security' | 'settings'
+
+    // Initialize loading to false if we already have user data
+    const [loading, setLoading] = useState(!user);
     const [saving, setSaving] = useState(false);
+
+    // Stats Calculation
+    const hostedCount = events.filter(e => e.role === 'host' || !e.role).length;
+    const attendedCount = events.filter(e => e.role === 'guest').length;
+
     const [profile, setProfile] = useState({
-        name: '',
-        email: '',
-        phone: '',
-        bio: '',
-        profilePictureUrl: null
+        name: user?.name || '',
+        email: user?.email || '',
+        phone: user?.phone || '',
+        bio: user?.bio || '',
+        profilePictureUrl: user?.profilePictureUrl || null
     });
     const [passwords, setPasswords] = useState({
         currentPassword: '',
@@ -44,12 +57,32 @@ const Profile = () => {
     const [showCropModal, setShowCropModal] = useState(false);
     const [showEnlargedImage, setShowEnlargedImage] = useState(false);
 
+    // Initial phone parsing
+    useEffect(() => {
+        if (user?.phone) {
+            if (user.phone.startsWith('+')) {
+                const match = user.phone.match(/^(\+\d{1,3})(\d+)$/);
+                if (match) {
+                    setCountryCode(match[1]);
+                    setPhoneDigits(match[2]);
+                } else {
+                    setPhoneDigits(user.phone.replace(/\D/g, '').slice(-10));
+                }
+            } else {
+                setPhoneDigits(user.phone.replace(/\D/g, '').slice(-10));
+            }
+        }
+    }, []);
+
     useEffect(() => {
         loadProfile();
     }, []);
 
     const loadProfile = async () => {
         try {
+            // Only show loader if we don't have user data yet
+            if (!user) setLoading(true);
+
             const token = localStorage.getItem('token');
             console.log('Loading profile with token:', token ? 'present' : 'missing');
 
@@ -91,12 +124,13 @@ const Profile = () => {
             } else {
                 const errorText = await res.text();
                 console.error('Profile load failed:', res.status, errorText);
-                setError('Failed to load profile');
+                // Only show error if we don't have data
+                if (!user) setError('Failed to load profile');
             }
-            setLoading(false);
         } catch (error) {
             console.error('Error loading profile:', error);
-            setError('Failed to load profile');
+            if (!user) setError('Failed to load profile');
+        } finally {
             setLoading(false);
         }
     };
@@ -158,6 +192,8 @@ const Profile = () => {
 
             if (res.ok) {
                 setSuccess('Profile updated successfully!');
+                refreshUser();
+                setIsEditing(false); // Switch back to view mode
                 setTimeout(() => setSuccess(''), 3000);
                 // Refresh user data to update header avatar
                 if (refreshUser) {
@@ -256,18 +292,21 @@ const Profile = () => {
         <div style={{
             minHeight: '100vh',
             background: 'var(--bg-secondary)',
-            paddingTop: 'max(20px, env(safe-area-inset-top))',
             paddingBottom: 'max(20px, env(safe-area-inset-bottom))'
         }}>
-            {/* Header */}
+            {/* Top Navigation Bar */}
             <div style={{
-                background: 'var(--bg-primary)',
-                padding: '16px',
+                position: 'sticky',
+                top: 0,
+                zIndex: 100,
+                background: theme === 'dark' ? 'rgba(10, 10, 15, 0.8)' : 'rgba(255, 255, 255, 0.8)', // Theme-aware glass effect
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
                 borderBottom: '1px solid var(--border)',
+                padding: 'max(env(safe-area-inset-top), 16px) 16px 16px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '16px',
-                marginBottom: '20px'
+                justifyContent: 'space-between'
             }}>
                 <button
                     onClick={() => navigate(-1)}
@@ -275,97 +314,77 @@ const Profile = () => {
                         width: '40px',
                         height: '40px',
                         borderRadius: '50%',
-                        background: 'var(--bg-tertiary)',
-                        border: '1px solid var(--border)',
+                        background: 'transparent',
+                        border: 'none',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         cursor: 'pointer',
-                        color: 'var(--text-secondary)'
+                        color: 'var(--text-primary)'
                     }}
                 >
-                    <ArrowLeft size={20} />
+                    <ArrowLeft size={24} />
                 </button>
-                <h1 style={{
-                    fontSize: '20px',
-                    fontWeight: '600',
-                    color: 'var(--text-primary)',
-                    margin: 0
-                }}>
-                    My Profile
-                </h1>
+                <div style={{ fontWeight: 600, fontSize: '17px', color: 'var(--text-primary)' }}>Profile</div>
+                <button
+                    onClick={() => setIsEditing(!isEditing)}
+                    style={{
+                        background: 'none',
+                        border: 'none',
+                        color: isEditing ? '#6366f1' : 'var(--text-primary)',
+                        fontWeight: '600',
+                        fontSize: '15px',
+                        cursor: 'pointer',
+                        padding: '8px'
+                    }}
+                >
+                    {isEditing ? 'Done' : 'Edit'}
+                </button>
             </div>
 
-            <div style={{ padding: '0 16px', maxWidth: '600px', margin: '0 auto' }}>
-                {/* Success/Error Messages - Fixed at top */}
-                {success && (
-                    <div style={{
-                        position: 'fixed',
-                        top: 'max(70px, calc(env(safe-area-inset-top) + 70px))',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        width: 'calc(100% - 32px)',
-                        maxWidth: '568px',
-                        background: 'linear-gradient(135deg, #10b981, #059669)',
-                        border: '2px solid #047857',
-                        borderRadius: '12px',
-                        padding: '16px 20px',
-                        color: '#fff',
-                        fontSize: '15px',
-                        fontWeight: '600',
-                        boxShadow: '0 10px 25px rgba(16, 185, 129, 0.3)',
-                        zIndex: 1000,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        animation: 'slideDown 0.3s ease'
-                    }}>
-                        ✓ {success}
-                    </div>
-                )}
-
-                {error && (
-                    <div style={{
-                        position: 'fixed',
-                        top: 'max(70px, calc(env(safe-area-inset-top) + 70px))',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        width: 'calc(100% - 32px)',
-                        maxWidth: '568px',
-                        background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                        border: '2px solid #b91c1c',
-                        borderRadius: '12px',
-                        padding: '16px 20px',
-                        color: '#fff',
-                        fontSize: '15px',
-                        fontWeight: '600',
-                        boxShadow: '0 10px 25px rgba(239, 68, 68, 0.3)',
-                        zIndex: 1000,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        animation: 'slideDown 0.3s ease'
-                    }}>
-                        ⚠ {error}
-                    </div>
-                )}
-
-                {/* Profile Picture */}
+            {/* Success/Error Messages */}
+            {(success || error) && (
                 <div style={{
-                    background: 'var(--bg-primary)',
+                    position: 'fixed',
+                    top: '100px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 200,
+                    width: '90%',
+                    maxWidth: '400px',
+                    background: success ? '#10b981' : '#ef4444',
+                    color: 'white',
+                    padding: '12px 16px',
                     borderRadius: '12px',
-                    padding: '24px',
-                    marginBottom: '20px',
-                    border: '1px solid var(--border)'
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    fontWeight: 500,
+                    animation: 'slideDown 0.3s ease'
                 }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                    {success ? <Check size={18} /> : <Shield size={18} />}
+                    {success || error}
+                </div>
+            )}
+
+            {/* Profile Header & Stats */}
+            <div style={{ padding: '0 16px', marginBottom: '24px' }}>
+                <div style={{
+                    marginTop: '20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '16px'
+                }}>
+                    {/* Avatar */}
+                    <div style={{ position: 'relative' }}>
                         <div
                             onClick={() => profile.profilePictureUrl && setShowEnlargedImage(true)}
                             style={{
-                                width: '120px',
-                                height: '120px',
+                                width: '100px',
+                                height: '100px',
                                 borderRadius: '50%',
                                 background: profile.profilePictureUrl
                                     ? `url(${profile.profilePictureUrl})`
@@ -376,443 +395,335 @@ const Profile = () => {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 color: '#fff',
-                                fontSize: '48px',
-                                fontWeight: '900',
-                                border: '4px solid #f3f4f6',
+                                fontSize: '36px',
+                                fontWeight: '700',
+                                border: '4px solid var(--bg-primary)',
+                                boxShadow: '0 8px 20px -6px rgba(0,0,0,0.15)',
                                 cursor: profile.profilePictureUrl ? 'pointer' : 'default',
-                                transition: 'transform 0.2s, box-shadow 0.2s'
-                            }}
-                            onMouseEnter={(e) => {
-                                if (profile.profilePictureUrl) {
-                                    e.currentTarget.style.transform = 'scale(1.05)';
-                                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'scale(1)';
-                                e.currentTarget.style.boxShadow = 'none';
                             }}
                         >
                             {!profile.profilePictureUrl && (profile.name?.charAt(0).toUpperCase() || 'U')}
                         </div>
-
-                        <button
-                            onClick={pickImage}
-                            style={{
-                                padding: '10px 20px',
-                                borderRadius: '8px',
-                                background: '#6366f1',
-                                border: 'none',
-                                color: '#fff',
-                                fontWeight: '600',
-                                fontSize: '14px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px'
-                            }}
-                        >
-                            <Camera size={18} />
-                            Change Photo
-                        </button>
-                    </div>
-                </div>
-
-                {/* Profile Information */}
-                <div style={{
-                    background: 'var(--bg-primary)',
-                    borderRadius: '12px',
-                    padding: '24px',
-                    marginBottom: '20px',
-                    border: '1px solid var(--border)'
-                }}>
-                    <h2 style={{
-                        fontSize: '18px',
-                        fontWeight: '600',
-                        color: 'var(--text-primary)',
-                        marginTop: 0,
-                        marginBottom: '20px'
-                    }}>
-                        Personal Information
-                    </h2>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {/* Name */}
-                        <div>
-                            <label style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                color: 'var(--text-secondary)',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                marginBottom: '8px'
-                            }}>
-                                <User size={16} />
-                                Name
-                            </label>
-                            <input
-                                type="text"
-                                value={profile.name}
-                                onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                                className="input"
-                            />
-                        </div>
-
-                        {/* Email (Read-only) */}
-                        <div>
-                            <label style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                color: 'var(--text-secondary)',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                marginBottom: '8px'
-                            }}>
-                                <Mail size={16} />
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                value={profile.email}
-                                disabled
-                                className="input"
-                            />
-                        </div>
-
-                        {/* Phone */}
-                        <div>
-                            <label style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                color: 'var(--text-secondary)',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                marginBottom: '8px'
-                            }}>
-                                <Phone size={16} />
-                                Phone
-                            </label>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                                <select
-                                    value={countryCode}
-                                    onChange={(e) => setCountryCode(e.target.value)}
-                                    className="input"
-                                    style={{ width: '120px' }}
-                                >
-                                    <option value="+91">🇮🇳 +91</option>
-                                    <option value="+1">🇺🇸 +1</option>
-                                    <option value="+44">🇬🇧 +44</option>
-                                    <option value="+61">🇦🇺 +61</option>
-                                    <option value="+971">🇦🇪 +971</option>
-                                </select>
-                                <input
-                                    type="tel"
-                                    value={phoneDigits}
-                                    onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, ''))}
-                                    placeholder="9876543210"
-                                    maxLength={10}
-                                    className="input"
-                                    style={{ flex: 1 }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Bio */}
-                        <div>
-                            <label style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                color: 'var(--text-secondary)',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                marginBottom: '8px'
-                            }}>
-                                <FileText size={16} />
-                                Bio
-                            </label>
-                            <textarea
-                                value={profile.bio}
-                                onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                                placeholder="Tell us about yourself..."
-                                maxLength={500}
-                                className="input"
-                                style={{ minHeight: '100px', resize: 'vertical' }}
-                            />
-                            <div style={{
-                                textAlign: 'right',
-                                fontSize: '12px',
-                                color: 'var(--text-tertiary)',
-                                marginTop: '4px'
-                            }}>
-                                {profile.bio?.length || 0}/500
-                            </div>
-                        </div>
+                        {isEditing && (
+                            <button
+                                onClick={pickImage}
+                                style={{
+                                    position: 'absolute',
+                                    bottom: '0',
+                                    right: '0',
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    background: '#6366f1',
+                                    border: '2px solid var(--bg-primary)',
+                                    color: 'white',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.4)'
+                                }}
+                            >
+                                <Camera size={16} />
+                            </button>
+                        )}
                     </div>
 
-                    <button
-                        onClick={handleSaveProfile}
-                        disabled={saving}
-                        style={{
-                            width: '100%',
-                            marginTop: '20px',
-                            padding: '12px',
-                            borderRadius: '8px',
-                            background: saving ? '#9ca3af' : '#6366f1',
-                            border: 'none',
-                            color: '#fff',
-                            fontWeight: '600',
-                            fontSize: '15px',
-                            cursor: saving ? 'not-allowed' : 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px'
-                        }}
-                    >
-                        <Save size={18} />
-                        {saving ? 'Saving...' : 'Save Changes'}
-                    </button>
-                </div>
+                    {/* Name & Bio */}
+                    <div style={{ textAlign: 'center' }}>
+                        <h2 style={{
+                            fontSize: '24px',
+                            fontWeight: '700',
+                            color: 'var(--text-primary)',
+                            margin: '0 0 4px 0'
+                        }}>
+                            {profile.name || 'User Name'}
+                        </h2>
+                        <p style={{
+                            fontSize: '14px',
+                            color: 'var(--text-tertiary)',
+                            margin: 0,
+                            maxWidth: '300px',
+                            lineHeight: '1.4'
+                        }}>
+                            {profile.bio || 'No bio added yet'}
+                        </p>
+                    </div>
 
-                {/* Change Password */}
-                <div style={{
-                    background: 'var(--bg-primary)',
-                    borderRadius: '12px',
-                    padding: '24px',
-                    marginBottom: '20px',
-                    border: '1px solid var(--border)'
-                }}>
-                    <h2 style={{
-                        fontSize: '18px',
-                        fontWeight: '600',
-                        color: 'var(--text-primary)',
-                        marginTop: 0,
-                        marginBottom: '20px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                    }}>
-                        <Lock size={20} />
-                        Change Password
-                    </h2>
-
-                    <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {/* Current Password */}
-                        <div>
-                            <label style={{
-                                color: 'var(--text-secondary)',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                marginBottom: '8px',
-                                display: 'block'
-                            }}>
-                                Current Password
-                            </label>
-                            <div style={{ position: 'relative' }}>
-                                <input
-                                    type={showPassword.current ? 'text' : 'password'}
-                                    value={passwords.currentPassword}
-                                    onChange={(e) => setPasswords({ ...passwords, currentPassword: e.target.value })}
-                                    className="input"
-                                    style={{ paddingRight: '40px' }}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword({ ...showPassword, current: !showPassword.current })}
-                                    style={{
-                                        position: 'absolute',
-                                        right: '12px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        background: 'none',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        color: 'var(--text-secondary)',
-                                        padding: 0
-                                    }}
-                                >
-                                    {showPassword.current ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* New Password */}
-                        <div>
-                            <label style={{
-                                color: 'var(--text-secondary)',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                marginBottom: '8px',
-                                display: 'block'
-                            }}>
-                                New Password
-                            </label>
-                            <div style={{ position: 'relative' }}>
-                                <input
-                                    type={showPassword.new ? 'text' : 'password'}
-                                    value={passwords.newPassword}
-                                    onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
-                                    className="input"
-                                    style={{ paddingRight: '40px' }}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword({ ...showPassword, new: !showPassword.new })}
-                                    style={{
-                                        position: 'absolute',
-                                        right: '12px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        background: 'none',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        color: 'var(--text-secondary)',
-                                        padding: 0
-                                    }}
-                                >
-                                    {showPassword.new ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Confirm Password */}
-                        <div>
-                            <label style={{
-                                color: 'var(--text-secondary)',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                marginBottom: '8px',
-                                display: 'block'
-                            }}>
-                                Confirm New Password
-                            </label>
-                            <div style={{ position: 'relative' }}>
-                                <input
-                                    type={showPassword.confirm ? 'text' : 'password'}
-                                    value={passwords.confirmPassword}
-                                    onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
-                                    className="input"
-                                    style={{ paddingRight: '40px' }}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword({ ...showPassword, confirm: !showPassword.confirm })}
-                                    style={{
-                                        position: 'absolute',
-                                        right: '12px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        background: 'none',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        color: 'var(--text-secondary)',
-                                        padding: 0
-                                    }}
-                                >
-                                    {showPassword.confirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
-                            </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={saving || !passwords.currentPassword || !passwords.newPassword || !passwords.confirmPassword}
-                            style={{
-                                width: '100%',
-                                marginTop: '4px',
-                                padding: '12px',
-                                borderRadius: '8px',
-                                background: (saving || !passwords.currentPassword || !passwords.newPassword || !passwords.confirmPassword) ? '#9ca3af' : '#6366f1',
-                                border: 'none',
-                                color: '#fff',
-                                fontWeight: '600',
-                                fontSize: '15px',
-                                cursor: (saving || !passwords.currentPassword || !passwords.newPassword || !passwords.confirmPassword) ? 'not-allowed' : 'pointer'
-                            }}
-                        >
-                            {saving ? 'Changing...' : 'Change Password'}
-                        </button>
-                    </form>
-                </div>
-
-                {/* Theme Settings */}
-                <div style={{
-                    background: 'var(--bg-primary)',
-                    borderRadius: '12px',
-                    padding: '24px',
-                    marginBottom: '80px',
-                    border: '1px solid var(--border)'
-                }}>
-                    <h2 style={{
-                        fontSize: '18px',
-                        fontWeight: '600',
-                        color: 'var(--text-primary)',
-                        marginTop: 0,
-                        marginBottom: '20px'
-                    }}>
-                        Appearance
-                    </h2>
-
+                    {/* Stats Row */}
                     <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between'
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '12px',
+                        width: '100%',
+                        maxWidth: '400px'
                     }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                            background: 'var(--bg-primary)',
+                            padding: '16px',
+                            borderRadius: '16px',
+                            textAlign: 'center',
+                            boxShadow: '0 2px 8px -2px rgba(0,0,0,0.05)'
+                        }}>
                             <div style={{
-                                width: '40px',
-                                height: '40px',
-                                borderRadius: '50%',
-                                background: 'var(--bg-secondary)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: 'var(--primary)'
+                                fontSize: '24px',
+                                fontWeight: '700',
+                                color: '#6366f1',
+                                marginBottom: '4px'
                             }}>
-                                {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
+                                {hostedCount}
                             </div>
-                            <div>
-                                <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px', color: 'var(--text-primary)' }}>
-                                    Dark Theme
-                                </h3>
-                                <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: 0 }}>
-                                    {theme === 'dark' ? 'Enabled' : 'Disabled'}
-                                </p>
+                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                                Events Hosted
                             </div>
                         </div>
-
-                        <label
-                            className="theme-toggle"
-                            id="dark-theme-toggle"
-                            data-testid="dark-theme-toggle"
-                            aria-label="Dark Theme Toggle"
-                        >
-                            <input
-                                type="checkbox"
-                                id="dark-theme-checkbox"
-                                data-testid="dark-theme-checkbox"
-                                checked={theme === 'dark'}
-                                onChange={toggleTheme}
-                                aria-label="Toggle Dark Theme"
-                            />
-                            <span className="slider"></span>
-                        </label>
+                        <div style={{
+                            background: 'var(--bg-primary)',
+                            padding: '16px',
+                            borderRadius: '16px',
+                            textAlign: 'center',
+                            boxShadow: '0 2px 8px -2px rgba(0,0,0,0.05)'
+                        }}>
+                            <div style={{
+                                fontSize: '24px',
+                                fontWeight: '700',
+                                color: '#10b981',
+                                marginBottom: '4px'
+                            }}>
+                                {attendedCount}
+                            </div>
+                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                                Events Attended
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Logout Section - Buried at bottom for retention */}
-            <div style={{
-                background: 'var(--bg-primary)',
-                borderRadius: '12px',
-                padding: '24px',
-                marginBottom: '80px',
-                border: '1px solid var(--border)'
-            }}>
+            {/* Content Tabs/Sections */}
+            <div style={{ padding: '0 16px', maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+                {/* Personal Info Card */}
+                <div style={{
+                    background: 'var(--bg-primary)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                    boxShadow: '0 2px 8px -2px rgba(0,0,0,0.05)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+                        <User size={18} className="text-secondary" />
+                        <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>Personal Info</h3>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        {/* Name Field */}
+                        <div>
+                            <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontWeight: 500, marginBottom: '6px', display: 'block' }}>FULL NAME</label>
+                            {isEditing ? (
+                                <input
+                                    type="text"
+                                    value={profile.name}
+                                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                                    className="input"
+                                    style={{ background: 'var(--bg-secondary)', border: 'none', padding: '12px', borderRadius: '12px' }}
+                                />
+                            ) : (
+                                <div style={{ fontSize: '15px', color: 'var(--text-primary)', fontWeight: 500 }}>{profile.name}</div>
+                            )}
+                        </div>
+
+                        {/* Email Field - Always Read Only */}
+                        <div>
+                            <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontWeight: 500, marginBottom: '6px', display: 'block' }}>EMAIL</label>
+                            <div style={{ fontSize: '15px', color: 'var(--text-primary)', fontWeight: 500, opacity: 0.8 }}>{profile.email}</div>
+                        </div>
+
+                        {/* Phone Field */}
+                        <div>
+                            <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontWeight: 500, marginBottom: '6px', display: 'block' }}>PHONE</label>
+                            {isEditing ? (
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <select
+                                        value={countryCode}
+                                        onChange={(e) => setCountryCode(e.target.value)}
+                                        className="input"
+                                        style={{ width: '80px', background: 'var(--bg-secondary)', border: 'none', borderRadius: '12px' }}
+                                    >
+                                        <option value="+91">+91</option>
+                                        <option value="+1">+1</option>
+                                        <option value="+44">+44</option>
+                                        {/* Add more as needed */}
+                                    </select>
+                                    <input
+                                        type="tel"
+                                        value={phoneDigits}
+                                        onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, ''))}
+                                        className="input"
+                                        style={{ flex: 1, background: 'var(--bg-secondary)', border: 'none', padding: '12px', borderRadius: '12px' }}
+                                    />
+                                </div>
+                            ) : (
+                                <div style={{ fontSize: '15px', color: 'var(--text-primary)', fontWeight: 500 }}>
+                                    {profile.phone || 'Not set'}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Bio Field */}
+                        <div>
+                            <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontWeight: 500, marginBottom: '6px', display: 'block' }}>BIO</label>
+                            {isEditing ? (
+                                <textarea
+                                    value={profile.bio}
+                                    onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                                    className="input"
+                                    rows={3}
+                                    style={{ width: '100%', background: 'var(--bg-secondary)', border: 'none', padding: '12px', borderRadius: '12px', resize: 'none' }}
+                                />
+                            ) : (
+                                <div style={{ fontSize: '15px', color: 'var(--text-primary)', lineHeight: '1.5' }}>
+                                    {profile.bio || 'No bio'}
+                                </div>
+                            )}
+                        </div>
+
+                        {isEditing && (
+                            <button
+                                onClick={handleSaveProfile}
+                                disabled={saving}
+                                style={{
+                                    width: '100%',
+                                    padding: '14px',
+                                    borderRadius: '14px',
+                                    background: '#6366f1',
+                                    border: 'none',
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    fontSize: '15px',
+                                    marginTop: '8px',
+                                    opacity: saving ? 0.7 : 1
+                                }}
+                            >
+                                {saving ? 'Saving...' : 'Save Info'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Theme Toggle Card */}
+                <div style={{
+                    background: 'var(--bg-primary)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                    boxShadow: '0 2px 8px -2px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '12px',
+                            background: 'var(--bg-secondary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: theme === 'dark' ? '#fbbf24' : '#f59e0b'
+                        }}>
+                            {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
+                        </div>
+                        <div>
+                            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Dark Mode</div>
+                            <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{theme === 'dark' ? 'On' : 'Off'}</div>
+                        </div>
+                    </div>
+                    <label className="theme-toggle">
+                        <input type="checkbox" checked={theme === 'dark'} onChange={toggleTheme} />
+                        <span className="slider"></span>
+                    </label>
+                </div>
+
+                {/* Simple Actions List (Change Password, etc) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+                    {/* Collapsible Password Section could go here, for now just a button to expand */}
+                    <button
+                        onClick={() => setActiveTab(activeTab === 'security' ? 'details' : 'security')}
+                        style={{
+                            background: 'var(--bg-primary)',
+                            padding: '20px',
+                            borderRadius: '20px',
+                            border: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            color: 'var(--text-primary)',
+                            fontSize: '15px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 8px -2px rgba(0,0,0,0.05)'
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <Lock size={20} className="text-secondary" />
+                            Security & Password
+                        </div>
+                        <div style={{ transform: activeTab === 'security' ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>›</div>
+                    </button>
+
+                    {/* Change Password Form (Visible when toggled) */}
+                    {activeTab === 'security' && (
+                        <div style={{
+                            background: 'var(--bg-primary)',
+                            borderRadius: '20px',
+                            padding: '20px',
+                            marginTop: '-8px',
+                            animation: 'slideDown 0.3s ease'
+                        }}>
+                            <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <div>
+                                    <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '8px', display: 'block' }}>CURRENT PASSWORD</label>
+                                    <input
+                                        type="password"
+                                        value={passwords.currentPassword}
+                                        onChange={e => setPasswords({ ...passwords, currentPassword: e.target.value })}
+                                        className="input"
+                                        style={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: '12px', padding: '12px', width: '100%' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '8px', display: 'block' }}>NEW PASSWORD</label>
+                                    <input
+                                        type="password"
+                                        value={passwords.newPassword}
+                                        onChange={e => setPasswords({ ...passwords, newPassword: e.target.value })}
+                                        className="input"
+                                        style={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: '12px', padding: '12px', width: '100%' }}
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={saving}
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px',
+                                        borderRadius: '12px',
+                                        background: '#374151',
+                                        border: 'none',
+                                        color: 'white',
+                                        fontWeight: 600,
+                                        marginTop: '8px'
+                                    }}
+                                >
+                                    Update Password
+                                </button>
+                            </form>
+                        </div>
+                    )}
+                </div>
+
+                {/* Logout Button */}
                 <button
                     onClick={() => {
                         if (confirm('Are you sure you want to logout?')) {
@@ -821,32 +732,22 @@ const Profile = () => {
                         }
                     }}
                     style={{
-                        width: '100%',
-                        padding: '14px',
+                        padding: '16px',
                         background: '#fee2e2',
-                        border: '1px solid #fecaca',
-                        borderRadius: '8px',
                         color: '#dc2626',
-                        fontWeight: '600',
-                        fontSize: '15px',
-                        cursor: 'pointer',
+                        border: 'none',
+                        borderRadius: '16px',
+                        fontWeight: 600,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '8px',
-                        transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#fecaca';
-                        e.currentTarget.style.borderColor = '#fca5a5';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.background = '#fee2e2';
-                        e.currentTarget.style.borderColor = '#fecaca';
+                        fontSize: '15px',
+                        marginTop: '20px'
                     }}
                 >
                     <LogOut size={18} />
-                    Logout
+                    Sign Out
                 </button>
             </div>
 

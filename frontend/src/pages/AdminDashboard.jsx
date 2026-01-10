@@ -148,7 +148,7 @@ const AdminDashboard = () => {
                 {/* Stats Cards */}
                 {stats && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-                        <div className="card" style={{ padding: '1.5rem' }}>
+                        <div style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '12px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                 <div style={{
                                     width: '48px',
@@ -175,7 +175,7 @@ const AdminDashboard = () => {
                             </div>
                         </div>
 
-                        <div className="card" style={{ padding: '1.5rem' }}>
+                        <div style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '12px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                 <div style={{
                                     width: '48px',
@@ -202,7 +202,7 @@ const AdminDashboard = () => {
                             </div>
                         </div>
 
-                        <div className="card" style={{ padding: '1.5rem' }}>
+                        <div style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '12px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                 <div style={{
                                     width: '48px',
@@ -232,7 +232,7 @@ const AdminDashboard = () => {
                 )}
 
                 {/* Users Table */}
-                <div className="card" style={{ padding: '1.5rem' }}>
+                <div style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '16px' }}>
                     <div style={{ marginBottom: '1.5rem' }}>
                         <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem' }}>
                             User Management
@@ -380,7 +380,7 @@ const AdminDashboard = () => {
                     zIndex: 1000,
                     padding: '1rem'
                 }}>
-                    <div className="card" style={{ maxWidth: '400px', width: '100%', padding: '2rem' }}>
+                    <div style={{ maxWidth: '400px', width: '100%', padding: '2rem', background: 'var(--bg-card)', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
                             <AlertCircle size={24} color="#ef4444" />
                             <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>

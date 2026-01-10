@@ -236,7 +236,7 @@ const EventDetailsTabs = () => {
 
                 {/* Tab Content */}
                 <div>
-                    {activeTab === 'overview' && <OverviewTab event={event} />}
+                    {activeTab === 'overview' && <OverviewTab event={event} onTabChange={setActiveTab} />}
                     {activeTab === 'schedule' && <ScheduleTab event={event} />}
                     {activeTab === 'guests' && <EventDetails />}
                     {activeTab === 'expenses' && <ExpensesDashboard eventId={id} event={event} />}

@@ -150,11 +150,19 @@ const ExpenseDetail = ({ expense, eventId, onClose, onDelete, currentUserId, par
                                 width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-secondary)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontWeight: 600
                             }}>
-                                {getUserName(split.user_id).charAt(0)}
+                                {(split.userName || getUserName(split.user_id)).charAt(0)}
                             </div>
                             <div style={{ flex: 1 }}>
                                 <div style={{ fontSize: '16px', fontWeight: 500, color: 'var(--text-primary)' }}>
-                                    {getUserName(split.user_id)} {getUserName(split.user_id) === 'You' ? 'owe' : 'owes'} <span style={{ fontWeight: 700, color: '#f59e0b' }}>{expense.currency}{parseFloat(split.amount).toFixed(2)}</span>
+                                    {String(split.user_id) === String(expense.paid_by) ? (
+                                        <span style={{ color: 'var(--text-secondary)' }}>
+                                            {split.userName || getUserName(split.user_id)}'s share <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{expense.currency}{parseFloat(split.amount).toFixed(2)}</span>
+                                        </span>
+                                    ) : (
+                                        <>
+                                            {split.userName || getUserName(split.user_id)} {String(split.user_id) === String(currentUserId) ? 'owe' : 'owes'} <span style={{ fontWeight: 700, color: '#f59e0b' }}>{expense.currency}{parseFloat(split.amount).toFixed(2)}</span>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>

@@ -58,7 +58,7 @@ const VenueTab = ({ event, onUpdateVenue }) => {
 
     if (!hasVenue && !isEditing) {
         return (
-            <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
+            <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--bg-secondary)', borderRadius: '16px' }}>
                 <Building2 size={48} style={{ color: 'var(--text-tertiary)', margin: '0 auto 1rem' }} />
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>No Venue Yet</h3>
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
@@ -86,7 +86,7 @@ const VenueTab = ({ event, onUpdateVenue }) => {
                     {/* View Mode Content */}
                     <div style={{ display: 'grid', gap: '1.5rem' }}>
                         {/* Booking Status Card */}
-                        <div className="card" style={{ padding: '1.5rem', background: `linear-gradient(135deg, ${bookingStatuses.find(s => s.id === venue.bookingStatus)?.color || 'var(--primary)'} 0%, var(--primary-dark) 100%)`, color: 'white' }}>
+                        <div style={{ padding: '1.5rem', borderRadius: '16px', background: `linear-gradient(135deg, ${bookingStatuses.find(s => s.id === venue.bookingStatus)?.color || 'var(--primary)'} 0%, var(--primary-dark) 100%)`, color: 'white' }}>
                             <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '0.5rem' }}>Booking Status</div>
                             <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>
                                 {bookingStatuses.find(s => s.id === venue.bookingStatus)?.label}
@@ -94,7 +94,7 @@ const VenueTab = ({ event, onUpdateVenue }) => {
                         </div>
 
                         {/* Contact & Location */}
-                        <div className="card" style={{ padding: '1.5rem' }}>
+                        <div style={{ padding: '0 0.5rem' }}>
                             <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <MapPin size={20} style={{ color: 'var(--primary)' }} />
                                 Location & Contact
@@ -129,7 +129,7 @@ const VenueTab = ({ event, onUpdateVenue }) => {
 
                         {/* Schedule */}
                         {(venue.setupTime || venue.eventTime || venue.teardownTime) && (
-                            <div className="card" style={{ padding: '1.5rem' }}>
+                            <div style={{ padding: '0 0.5rem' }}>
                                 <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>Schedule</h3>
                                 <div style={{ display: 'grid', gap: '1rem' }}>
                                     {venue.setupTime && (
@@ -156,7 +156,7 @@ const VenueTab = ({ event, onUpdateVenue }) => {
 
                         {/* Costs */}
                         {(venue.deposit || venue.totalCost) && (
-                            <div className="card" style={{ padding: '1.5rem' }}>
+                            <div style={{ padding: '0 0.5rem' }}>
                                 <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>Costs</h3>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                                     {venue.deposit && (
@@ -177,7 +177,7 @@ const VenueTab = ({ event, onUpdateVenue }) => {
 
                         {/* Amenities */}
                         {venue.amenities && venue.amenities.length > 0 && (
-                            <div className="card" style={{ padding: '1.5rem' }}>
+                            <div style={{ padding: '0 0.5rem' }}>
                                 <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>Amenities</h3>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                                     {venue.amenities.map(amenity => (
@@ -189,7 +189,7 @@ const VenueTab = ({ event, onUpdateVenue }) => {
 
                         {/* Notes */}
                         {venue.notes && (
-                            <div className="card" style={{ padding: '1.5rem' }}>
+                            <div style={{ padding: '0 0.5rem' }}>
                                 <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>Notes</h3>
                                 <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{venue.notes}</p>
                             </div>
@@ -198,7 +198,7 @@ const VenueTab = ({ event, onUpdateVenue }) => {
                 </div>
             ) : (
                 /* Edit Mode */
-                <div className="card" style={{ padding: '1.5rem' }}>
+                <div style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '16px' }}>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1.5rem' }}>
                         {hasVenue ? 'Edit Venue Details' : 'Add Venue Information'}
                     </h3>
@@ -337,7 +337,7 @@ const VenueTab = ({ event, onUpdateVenue }) => {
                             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.75rem' }}>Amenities</label>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
                                 {availableAmenities.map(amenity => (
-                                    <label key={amenity} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.5rem', borderRadius: 'var(--radius-md)', background: (venue.amenities || []).includes(amenity) ? 'var(--bg-secondary)' : 'transparent' }}>
+                                    <label key={amenity} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.5rem', borderRadius: 'var(--radius-md)', background: (venue.amenities || []).includes(amenity) ? 'var(--bg-tertiary)' : 'transparent' }}>
                                         <input
                                             type="checkbox"
                                             checked={(venue.amenities || []).includes(amenity)}

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import API_URL from '../../config/api';
-import { Plus, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon, Clock, MapPin } from 'lucide-react';
 import ScheduleItemCard from './ScheduleItemCard';
 import AddScheduleItemModal from './AddScheduleItemModal';
+import '../../pages/EventTabs.css';
 
 const ScheduleTab = ({ event }) => {
     const [scheduleItems, setScheduleItems] = useState([]);
@@ -10,7 +11,6 @@ const ScheduleTab = ({ event }) => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [loading, setLoading] = useState(true);
     const [dates, setDates] = useState([]);
-
 
     // Generate date range from event start to end (or +7 days if no end date)
     useEffect(() => {
@@ -63,7 +63,6 @@ const ScheduleTab = ({ event }) => {
         const itemDate = new Date(item.date);
         return itemDate.toDateString() === selectedDate.toDateString();
     }).sort((a, b) => {
-        // Sort by start_time, nulls last
         if (!a.start_time && !b.start_time) return 0;
         if (!a.start_time) return 1;
         if (!b.start_time) return -1;
@@ -80,98 +79,44 @@ const ScheduleTab = ({ event }) => {
     };
 
     if (loading) {
-        return (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                Loading schedule...
-            </div>
-        );
+        return <div className="tab-empty-state">Loading schedule...</div>;
     }
 
     return (
-        <div>
-            {/* Date Selector */}
-            <div style={{
-                marginBottom: '2rem',
-                overflowX: 'auto',
-                WebkitOverflowScrolling: 'touch'
-            }}>
-                <div style={{
-                    display: 'flex',
-                    gap: '0.75rem',
-                    paddingBottom: '0.5rem',
-                    minWidth: 'min-content'
-                }}>
-                    {dates.map((date, index) => (
+        <div className="event-tab-page">
+            {/* Date Selector (Pill Scroll) */}
+            <div className="date-picker-scroll">
+                {dates.map((date, index) => {
+                    const isSelected = selectedDate?.toDateString() === date.toDateString();
+                    return (
                         <button
                             key={index}
                             onClick={() => setSelectedDate(date)}
-                            style={{
-                                padding: '1rem 1.5rem',
-                                borderRadius: 'var(--radius-lg)',
-                                border: selectedDate?.toDateString() === date.toDateString()
-                                    ? '2px solid var(--primary)'
-                                    : '1px solid var(--border)',
-                                background: selectedDate?.toDateString() === date.toDateString()
-                                    ? 'var(--primary)'
-                                    : 'var(--bg-primary)',
-                                color: selectedDate?.toDateString() === date.toDateString()
-                                    ? 'white'
-                                    : 'var(--text-primary)',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                fontWeight: 600,
-                                fontSize: '0.875rem',
-                                whiteSpace: 'nowrap',
-                                position: 'relative'
-                            }}
+                            className={`date-pill ${isSelected ? 'active' : ''}`}
                         >
+                            {isToday(date) && <span style={{ marginRight: 6 }}>●</span>}
                             {formatDate(date)}
-                            {isToday(date) && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '0.25rem',
-                                    right: '0.25rem',
-                                    width: '6px',
-                                    height: '6px',
-                                    borderRadius: '50%',
-                                    background: selectedDate?.toDateString() === date.toDateString()
-                                        ? 'white'
-                                        : 'var(--primary)'
-                                }}></div>
-                            )}
                         </button>
-                    ))}
-                </div>
+                    );
+                })}
             </div>
 
-            {/* Add Activity Button */}
-            <button
-                onClick={() => setShowAddModal(true)}
-                className="btn btn-primary"
-                style={{
-                    marginBottom: '1.5rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                }}
-            >
-                <Plus size={20} />
-                Add Activity
-            </button>
-
-            {/* Schedule Items */}
+            {/* Empty State */}
             {selectedDateItems.length === 0 ? (
-                <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
-                    <CalendarIcon size={48} style={{ margin: '0 auto 1rem', color: 'var(--text-tertiary)' }} />
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-                        No activities planned
-                    </h3>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                        Add activities to plan your day
-                    </p>
+                <div className="tab-empty-state">
+                    <div style={{
+                        width: 64, height: 64, borderRadius: '50%', background: 'var(--bg-secondary)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px',
+                        color: 'var(--text-tertiary)'
+                    }}>
+                        <CalendarIcon size={32} />
+                    </div>
+                    <h3 className="section-title" style={{ textAlign: 'center', marginBottom: 8 }}>Nothing planned yet</h3>
+                    <p style={{ color: 'var(--text-secondary)' }}>Add activities for this day.</p>
                 </div>
             ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="tab-list">
+                    {/* Schedule List */}
                     {selectedDateItems.map(item => (
                         <ScheduleItemCard
                             key={item.id}
@@ -181,8 +126,17 @@ const ScheduleTab = ({ event }) => {
                             onDelete={fetchScheduleItems}
                         />
                     ))}
+                    <div style={{ height: 80 }} /> {/* Spacer for FAB */}
                 </div>
             )}
+
+            {/* FAB */}
+            <button
+                className="btn-floating-action"
+                onClick={() => setShowAddModal(true)}
+            >
+                <Plus size={24} />
+            </button>
 
             {/* Add Schedule Item Modal */}
             {showAddModal && (

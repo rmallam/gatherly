@@ -81,7 +81,7 @@ const EntertainmentTab = ({ event, onUpdateEntertainment }) => {
 
             {/* Add Form */}
             {showAddActivity && (
-                <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
+                <div style={{ marginBottom: '1.5rem', padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '16px' }}>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>New Activity</h3>
                     <div style={{ display: 'grid', gap: '1rem', marginBottom: '1rem' }}>
                         <div>
@@ -115,14 +115,14 @@ const EntertainmentTab = ({ event, onUpdateEntertainment }) => {
             )}
 
             {/* Stats */}
-            <div style={{ display: "flex", gap: "0.75rem", marginBottom: "2rem" }}>
-                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Activities</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary)' }}>{activities.length}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "2rem" }}>
+                <div style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Activities</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)' }}>{activities.length}</div>
                 </div>
-                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Scheduled</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--success)' }}>
+                <div style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Scheduled</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--success)' }}>
                         {activities.filter(a => a.time).length}
                     </div>
                 </div>
@@ -131,32 +131,33 @@ const EntertainmentTab = ({ event, onUpdateEntertainment }) => {
 
             {/* Timeline */}
             {sortedActivities.length > 0 && (
-                <div className="card" style={{ padding: '1.5rem' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '16px' }}>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}>
                         <Clock size={20} style={{ color: 'var(--primary)' }} />
                         Event Timeline
                     </h3>
-                    <div style={{ display: 'grid', gap: '1rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
                         {sortedActivities.map((activity, index) => (
-                            <div key={activity.id} style={{ position: 'relative', paddingLeft: '2.5rem' }}>
+                            <div key={activity.id} style={{ position: 'relative', paddingLeft: '2.5rem', paddingBottom: index < sortedActivities.length - 1 ? '1.5rem' : '0' }}>
                                 {/* Timeline dot */}
                                 <div style={{
                                     position: 'absolute',
                                     left: '0',
-                                    top: '0.5rem',
+                                    top: '0.25rem',
                                     width: '12px',
                                     height: '12px',
                                     borderRadius: '50%',
                                     background: 'var(--primary)',
-                                    border: '3px solid var(--bg-primary)'
+                                    border: '3px solid var(--bg-primary)',
+                                    zIndex: 2
                                 }}></div>
                                 {/* Timeline line */}
                                 {index < sortedActivities.length - 1 && (
                                     <div style={{
                                         position: 'absolute',
                                         left: '5px',
-                                        top: '1.5rem',
-                                        bottom: '-1rem',
+                                        top: '0.75rem',
+                                        bottom: '-0.25rem',
                                         width: '2px',
                                         background: 'var(--border)'
                                     }}></div>
@@ -164,7 +165,7 @@ const EntertainmentTab = ({ event, onUpdateEntertainment }) => {
                                 {/* Content */}
                                 {editingItem?.id === activity.id ? (
                                     // EDIT FORM
-                                    <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                                    <div style={{ padding: '1rem', background: 'var(--bg-card)', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                                         <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Edit Activity</h4>
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
                                             <div>
@@ -195,19 +196,23 @@ const EntertainmentTab = ({ event, onUpdateEntertainment }) => {
                                     </div>
                                 ) : (
                                     // DISPLAY
-                                    <div style={{
-                                        background: 'var(--bg-secondary)',
-                                        padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)',
-                                        borderRadius: 'var(--radius-md)',
-                                        border: '1px solid var(--border)'
-                                    }}>
+                                    <div
+                                        style={{
+                                            padding: '0.5rem 1rem',
+                                            borderRadius: '8px',
+                                            transition: 'all 0.2s',
+                                            cursor: 'pointer'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                    >
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                                             <div style={{ flex: 1 }}>
-                                                <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{activity.name}</h4>
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.6875rem', color: 'var(--text-secondary)' }}>
+                                                <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem', color: 'var(--text-primary)' }}>{activity.name}</h4>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                                                     {activity.time && (
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                                            <Clock size={14} />
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: 600, color: 'var(--primary)' }}>
+                                                            <Clock size={12} />
                                                             {activity.time}
                                                         </div>
                                                     )}
@@ -215,19 +220,23 @@ const EntertainmentTab = ({ event, onUpdateEntertainment }) => {
                                                     {activity.performer && <span>🎤 {activity.performer}</span>}
                                                 </div>
                                                 {activity.notes && (
-                                                    <div style={{ marginTop: '0.5rem', fontSize: '0.6875rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                                                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
                                                         {activity.notes}
                                                     </div>
                                                 )}
                                             </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                <button onClick={() => handleEditItem(activity)} style={{ padding: '0.5rem', border: 'none', background: 'transparent', color: 'var(--primary)', cursor: 'pointer', borderRadius: 'var(--radius-md)' }} title="Edit activity">
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.7 }} className="actions">
+                                                <button onClick={() => handleEditItem(activity)} style={{ padding: '0.5rem', border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', borderRadius: 'var(--radius-md)' }} title="Edit activity">
                                                     <Edit2 size={16} />
                                                 </button>
-                                                <button onClick={() => handleDeleteActivity(activity.id)} style={{ padding: '0.5rem', border: 'none', background: 'transparent', color: 'var(--error)', cursor: 'pointer', borderRadius: 'var(--radius-md)' }}>
+                                                <button onClick={() => handleDeleteActivity(activity.id)} style={{ padding: '0.5rem', border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', borderRadius: 'var(--radius-md)' }}>
                                                     <Trash2 size={16} />
                                                 </button>
                                             </div>
+                                            <style jsx>{`
+                                                .actions { opacity: 0; transition: opacity 0.2s; }
+                                                div:hover > div > .actions { opacity: 1; }
+                                            `}</style>
                                         </div>
                                     </div>
                                 )}
@@ -239,9 +248,17 @@ const EntertainmentTab = ({ event, onUpdateEntertainment }) => {
 
             {/* Empty State */}
             {activities.length === 0 && !showAddActivity && (
-                <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
-                    <Music size={48} style={{ color: 'var(--text-tertiary)', margin: '0 auto 1rem' }} />
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>No Activities Yet</h3>
+                <div style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+                    <div style={{
+                        width: '64px', height: '64px', borderRadius: '50%', background: 'var(--bg-secondary)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem',
+                        color: 'var(--text-tertiary)'
+                    }}>
+                        <Music size={32} />
+                    </div>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+                        No Activities Yet
+                    </h3>
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
                         Plan your entertainment schedule and activities
                     </p>

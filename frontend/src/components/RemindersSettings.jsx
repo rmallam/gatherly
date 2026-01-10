@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Bell, Plus, Trash2, Check, X, Calendar } from 'lucide-react';
+import { Bell, Plus, Trash2, Check, X, Calendar, Clock, MessageSquare, User } from 'lucide-react';
+import '../pages/EventTabs.css';
 
 const REMINDER_TYPES = [
     { value: 'rsvp_followup', label: 'RSVP Follow-up' },
@@ -66,7 +67,8 @@ const RemindersSettings = ({ event }) => {
         }
     };
 
-    const handleCreateReminder = async () => {
+    const handleCreateReminder = async (e) => {
+        e.preventDefault();
         try {
             const token = localStorage.getItem('token');
 
@@ -116,85 +118,135 @@ const RemindersSettings = ({ event }) => {
     };
 
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleString();
+        return new Date(dateString).toLocaleString('en-US', {
+            month: 'short', day: 'numeric',
+            hour: 'numeric', minute: '2-digit'
+        });
     };
 
     if (loading) {
-        return <div style={{ textAlign: 'center', padding: '2rem' }}>Loading reminders...</div>;
+        return <div className="tab-empty-state">Loading reminders...</div>;
     }
 
     const sentCount = reminders.filter(r => r.sent).length;
     const pendingCount = reminders.filter(r => !r.sent).length;
 
     return (
-        <div>
+        <div className="event-tab-page">
             {/* Stats Cards */}
-            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem' }}>
-                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Reminders</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary)' }}>
-                        {reminders.length}
-                    </div>
+            <div className="tab-stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                <div className="stats-card">
+                    <div className="label">Total</div>
+                    <div className="value">{reminders.length}</div>
                 </div>
-                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Sent</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--success)' }}>
-                        {sentCount}
-                    </div>
+                <div className="stats-card">
+                    <div className="label">Sent</div>
+                    <div className="value" style={{ color: 'var(--success)' }}>{sentCount}</div>
                 </div>
-                <div className="card" style={{ padding: '0.75rem', flex: 1, minWidth: 0, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Pending</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--warning)' }}>
-                        {pendingCount}
-                    </div>
+                <div className="stats-card">
+                    <div className="label">Pending</div>
+                    <div className="value" style={{ color: 'var(--warning)' }}>{pendingCount}</div>
                 </div>
             </div>
 
             {/* Auto-Schedule Section */}
-            <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <div>
-                        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>Smart Reminders</h3>
-                        <p style={{ fontSize: '0.875rem', opacity: 0.9 }}>Automatically schedule reminders for your event</p>
+            <div className="hero-card" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+                <div className="hero-content">
+                    <div className="hero-icon">
+                        <Bell size={24} color="white" />
                     </div>
-                    <Bell size={32} style={{ opacity: 0.9 }} />
-                </div>
-
-                <button
-                    onClick={handleAutoSchedule}
-                    className="btn btn-primary"
-                    style={{ width: '100%', background: 'white', color: 'var(--primary)', marginBottom: '1rem' }}
-                >
-                    <Calendar size={18} /> Auto-Schedule Reminders
-                </button>
-
-                <div style={{ fontSize: '0.75rem', opacity: 0.8, display: 'grid', gap: '0.25rem' }}>
-                    <p>• RSVP Follow-up: 7 days before event</p>
-                    <p>• Day Before: 24 hours before event</p>
-                    <p>• Event Starting: 2 hours before event</p>
+                    <div className="hero-text">
+                        <h3>Smart Reminders</h3>
+                        <p style={{ color: 'rgba(255,255,255,0.9)' }}>
+                            Automatically schedule reminders for your event (RSVP check, Day before, etc.)
+                        </p>
+                    </div>
+                    <button
+                        onClick={handleAutoSchedule}
+                        className="btn-primary"
+                        style={{ background: 'white', color: '#764ba2', border: 'none' }}
+                    >
+                        <Calendar size={18} /> Auto-Schedule
+                    </button>
                 </div>
             </div>
 
             {/* Scheduled Reminders */}
-            <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h4 style={{ fontSize: '1.125rem', fontWeight: 700 }}>Scheduled Reminders ({reminders.length})</h4>
-                    <button onClick={() => setShowForm(!showForm)} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
-                        <Plus size={16} /> Add Custom
+            <div className="section-header">
+                <h3 className="section-title">Scheduled Reminders</h3>
+                <span className="category-pill">{reminders.length}</span>
+            </div>
+
+            {reminders.length === 0 ? (
+                <div className="tab-empty-state">
+                    <Bell size={48} style={{ opacity: 0.3, marginBottom: 16 }} />
+                    <h4>No Reminders Scheduled</h4>
+                    <p>Set up smart reminders to notify guests about your event</p>
+                    <button onClick={() => setShowForm(true)} className="btn-primary" style={{ marginTop: 16 }}>
+                        <Plus size={18} /> Add Reminder
                     </button>
                 </div>
+            ) : (
+                <div className="tab-list">
+                    {reminders.map((reminder) => (
+                        <div key={reminder.id} className="tab-list-item">
+                            <div className="icon-box" style={{ background: reminder.sent ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)' }}>
+                                <Bell size={20} color={reminder.sent ? '#10b981' : '#f59e0b'} />
+                            </div>
+                            <div className="info">
+                                <h4>{reminder.reminder_type.replace('_', ' ')}</h4>
+                                <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
+                                    {reminder.message}
+                                </p>
+                                <div className="meta-row">
+                                    <span className="meta-item">
+                                        <Clock size={12} /> {formatDate(reminder.send_at)}
+                                    </span>
+                                    <span className="meta-item">
+                                        <User size={12} /> {reminder.recipient_type}
+                                    </span>
+                                    {reminder.sent ? (
+                                        <span className="meta-item" style={{ color: 'var(--success)', fontWeight: 600 }}>Sent</span>
+                                    ) : (
+                                        <span className="meta-item" style={{ color: 'var(--warning)', fontWeight: 600 }}>Pending</span>
+                                    )}
+                                </div>
+                            </div>
+                            {!reminder.sent && (
+                                <div className="item-actions">
+                                    <button onClick={() => handleDeleteReminder(reminder.id)} className="action-btn delete-btn">
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
 
-                {/* Create Form */}
-                {showForm && (
-                    <div style={{ marginBottom: '1.5rem', padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--primary)' }}>
-                        <h5 style={{ fontWeight: 700, marginBottom: '1rem' }}>Create Custom Reminder</h5>
-                        <div style={{ display: 'grid', gap: '1rem' }}>
+            {/* Floating Action Button */}
+            <button className="btn-floating-action" onClick={() => setShowForm(true)}>
+                <Plus size={24} />
+            </button>
+
+            {/* Create Modal */}
+            {showForm && (
+                <div className="modal-overlay" onClick={() => setShowForm(false)}>
+                    <div className="modal-card" onClick={e => e.stopPropagation()}>
+                        <div className="section-header">
+                            <h3 className="section-title">Create Custom Reminder</h3>
+                            <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateReminder} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' }}>Type</label>
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Type</label>
                                 <select
                                     value={form.reminder_type}
                                     onChange={(e) => setForm({ ...form, reminder_type: e.target.value })}
-                                    className="form-input"
+                                    className="modern-input"
                                 >
                                     {REMINDER_TYPES.map(type => (
                                         <option key={type.value} value={type.value}>{type.label}</option>
@@ -203,11 +255,11 @@ const RemindersSettings = ({ event }) => {
                             </div>
 
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' }}>Recipients</label>
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Recipients</label>
                                 <select
                                     value={form.recipient_type}
                                     onChange={(e) => setForm({ ...form, recipient_type: e.target.value })}
-                                    className="form-input"
+                                    className="modern-input"
                                 >
                                     <option value="guests">All Guests</option>
                                     <option value="host">Event Host (Me)</option>
@@ -215,92 +267,34 @@ const RemindersSettings = ({ event }) => {
                             </div>
 
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' }}>Send Date & Time</label>
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Send Date & Time</label>
                                 <input
                                     type="datetime-local"
                                     value={form.send_at}
                                     onChange={(e) => setForm({ ...form, send_at: e.target.value })}
-                                    className="form-input"
+                                    className="modern-input"
                                 />
                             </div>
 
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' }}>Message</label>
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Message</label>
                                 <textarea
                                     value={form.message}
                                     onChange={(e) => setForm({ ...form, message: e.target.value })}
                                     placeholder="Enter reminder message..."
-                                    className="form-input"
+                                    className="modern-input"
                                     rows="3"
+                                    style={{ minHeight: 80, resize: 'vertical' }}
                                 />
                             </div>
 
-                            <div style={{ display: 'flex', gap: '0.75rem' }}>
-                                <button onClick={handleCreateReminder} className="btn btn-primary" style={{ flex: 1 }}>
-                                    <Check size={16} /> Create
-                                </button>
-                                <button onClick={() => setShowForm(false)} className="btn btn-secondary">
-                                    <X size={16} />
-                                </button>
-                            </div>
-                        </div>
+                            <button type="submit" className="btn-primary" style={{ marginTop: 8, justifyContent: 'center' }}>
+                                <Check size={18} /> Create Reminder
+                            </button>
+                        </form>
                     </div>
-                )}
-
-                {/* Reminders List */}
-                {reminders.length === 0 ? (
-                    <div style={{ padding: '3rem', textAlign: 'center' }}>
-                        <Bell size={48} style={{ color: 'var(--text-tertiary)', margin: '0 auto 1rem' }} />
-                        <h4 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.5rem' }}>No Reminders Scheduled</h4>
-                        <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                            Set up smart reminders to notify guests about your event
-                        </p>
-                        <button onClick={handleAutoSchedule} className="btn btn-primary">
-                            <Calendar size={18} /> Auto-Schedule Now
-                        </button>
-                    </div>
-                ) : (
-                    <div style={{ display: 'grid', gap: '0.75rem' }}>
-                        {reminders.map((reminder) => (
-                            <div key={reminder.id} className="card" style={{ padding: '1rem', background: reminder.sent ? 'var(--bg-secondary)' : 'white' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                            <Bell size={16} style={{ color: 'var(--primary)' }} />
-                                            <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>
-                                                {reminder.reminder_type.replace('_', ' ')}
-                                            </span>
-                                            {reminder.sent && (
-                                                <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', background: 'var(--success)', color: 'white', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
-                                                    Sent
-                                                </span>
-                                            )}
-                                            {!reminder.sent && (
-                                                <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', background: 'var(--warning)', color: 'white', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
-                                                    Pending
-                                                </span>
-                                            )}
-                                        </div>
-                                        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                                            {reminder.message}
-                                        </p>
-                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                                            {formatDate(reminder.send_at)} • {reminder.recipient_type}
-                                        </p>
-                                    </div>
-                                    {!reminder.sent && (
-                                        <button
-                                            onClick={() => handleDeleteReminder(reminder.id)}
-                                            style={{ padding: '0.5rem', border: 'none', background: 'transparent', color: 'var(--error)', cursor: 'pointer', borderRadius: 'var(--radius-md)' }}
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        ))}</div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 };
