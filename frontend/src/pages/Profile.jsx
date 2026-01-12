@@ -356,7 +356,7 @@ const Profile = () => {
                     ) : (
                         <button
                             className="action-btn btn-primary-gradient"
-                            onClick={() => navigate('/paywall')}
+                            onClick={() => navigate('/pro')}
                         >
                             Upgrade to Pro
                         </button>
@@ -385,7 +385,7 @@ const Profile = () => {
                         onClick={() => setShowComparisonModal(true)}
                         className="compare-plans-link"
                     >
-                        Compare plan features
+                        <Star size={16} /> Compare plan benefits
                     </button>
                 </div>
 
@@ -397,67 +397,72 @@ const Profile = () => {
                 {/* Info Card */}
                 <div className="info-card">
                     <div className="card-title">
-                        <User size={18} className="text-secondary" />
+                        <User size={20} style={{ color: '#6366f1' }} />
                         Personal Information
                     </div>
 
-                    <div className="field-group">
-                        <label className="field-label">Full Name</label>
-                        {isEditing ? (
-                            <input
-                                className="modern-input"
-                                value={profile.name}
-                                onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                            />
-                        ) : (
-                            <div className="field-value">{profile.name}</div>
-                        )}
-                    </div>
-
-                    <div className="field-group">
-                        <label className="field-label">Email Address</label>
-                        <div className="field-value" style={{ opacity: 0.8 }}>{profile.email}</div>
-                    </div>
-
-                    <div className="field-group">
-                        <label className="field-label">Phone Number</label>
-                        {isEditing ? (
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                                <select
-                                    className="modern-input"
-                                    style={{ width: '80px' }}
-                                    value={countryCode}
-                                    onChange={(e) => setCountryCode(e.target.value)}
-                                >
-                                    <option value="+91">+91</option>
-                                    <option value="+1">+1</option>
-                                    <option value="+44">+44</option>
-                                </select>
+                    <div className="fields-grid">
+                        <div className="field-group">
+                            <label className="field-label">Full Name</label>
+                            {isEditing ? (
                                 <input
                                     className="modern-input"
-                                    type="tel"
-                                    value={phoneDigits}
-                                    onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, ''))}
+                                    value={profile.name}
+                                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                                    placeholder="Your Name"
                                 />
-                            </div>
-                        ) : (
-                            <div className="field-value">{profile.phone || 'Not set'}</div>
-                        )}
-                    </div>
+                            ) : (
+                                <div className="field-value">{profile.name}</div>
+                            )}
+                        </div>
 
-                    <div className="field-group">
-                        <label className="field-label">Bio</label>
-                        {isEditing ? (
-                            <textarea
-                                className="modern-input"
-                                rows={3}
-                                value={profile.bio}
-                                onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                                style={{ resize: 'none' }}
-                            />
-                        ) : (
-                            <div className="field-value" style={{ lineHeight: '1.5' }}>{profile.bio || 'No bio'}</div>
-                        )}
+                        <div className="field-group">
+                            <label className="field-label">Email Address</label>
+                            <div className="field-value" style={{ opacity: 0.7 }}>{profile.email}</div>
+                        </div>
+
+                        <div className="field-group">
+                            <label className="field-label">Phone Number</label>
+                            {isEditing ? (
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <select
+                                        className="modern-input"
+                                        style={{ width: '60px' }}
+                                        value={countryCode}
+                                        onChange={(e) => setCountryCode(e.target.value)}
+                                    >
+                                        <option value="+91">+91</option>
+                                        <option value="+1">+1</option>
+                                        <option value="+44">+44</option>
+                                    </select>
+                                    <input
+                                        className="modern-input"
+                                        type="tel"
+                                        value={phoneDigits}
+                                        onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, ''))}
+                                        placeholder="Mobile Number"
+                                    />
+                                </div>
+                            ) : (
+                                <div className="field-value">{profile.phone || 'Not set'}</div>
+                            )}
+                        </div>
+
+                        <div className="field-group">
+                            <label className="field-label">Bio</label>
+                            {isEditing ? (
+                                <textarea
+                                    className="modern-input"
+                                    rows={2}
+                                    value={profile.bio}
+                                    onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                                    placeholder="Tell us about yourself..."
+                                    style={{ resize: 'none', lineHeight: '1.4' }}
+                                />
+                            ) : (
+                                <div className="field-value" style={{ lineHeight: '1.5', fontSize: '15px' }}>{profile.bio || 'No bio'}</div>
+                            )}
+                        </div>
                     </div>
 
                     {isEditing && (
@@ -472,13 +477,14 @@ const Profile = () => {
                 </div>
 
                 {/* Security Section (Collapsible) */}
+                {/* Security Section (Collapsible) */}
                 <div className="expandable-card">
                     <button
                         className="card-header-btn"
                         onClick={() => setActiveTab(activeTab === 'security' ? 'details' : 'security')}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <Lock size={18} className="text-secondary" />
+                            <Lock size={20} style={{ color: '#6366f1' }} />
                             Security & Password
                         </div>
                         <ChevronRight size={20} style={{ transform: activeTab === 'security' ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
@@ -486,40 +492,44 @@ const Profile = () => {
 
                     {activeTab === 'security' && (
                         <div className="card-content">
-                            <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                <div className="field-group">
-                                    <label className="field-label">CURRENT PASSWORD</label>
-                                    <input
-                                        type="password"
-                                        value={passwords.currentPassword}
-                                        onChange={e => setPasswords({ ...passwords, currentPassword: e.target.value })}
-                                        className="input"
-                                        style={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: '12px', padding: '12px', width: '100%' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '8px', display: 'block' }}>NEW PASSWORD</label>
-                                    <input
-                                        type="password"
-                                        value={passwords.newPassword}
-                                        onChange={e => setPasswords({ ...passwords, newPassword: e.target.value })}
-                                        className="input"
-                                        style={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: '12px', padding: '12px', width: '100%' }}
-                                    />
+                            <form onSubmit={handleChangePassword}>
+                                <div className="fields-grid">
+                                    <div className="field-group">
+                                        <label className="field-label">CURRENT PASSWORD</label>
+                                        <input
+                                            type="password"
+                                            value={passwords.currentPassword}
+                                            onChange={e => setPasswords({ ...passwords, currentPassword: e.target.value })}
+                                            className="modern-input"
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+                                    <div className="field-group">
+                                        <label className="field-label">NEW PASSWORD</label>
+                                        <input
+                                            type="password"
+                                            value={passwords.newPassword}
+                                            onChange={e => setPasswords({ ...passwords, newPassword: e.target.value })}
+                                            className="modern-input"
+                                            placeholder="Enter new password"
+                                        />
+                                    </div>
+                                    <div className="field-group">
+                                        <label className="field-label">CONFIRM PASSWORD</label>
+                                        <input
+                                            type="password"
+                                            value={passwords.confirmPassword}
+                                            onChange={e => setPasswords({ ...passwords, confirmPassword: e.target.value })}
+                                            className="modern-input"
+                                            placeholder="Confirm new password"
+                                        />
+                                    </div>
                                 </div>
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    style={{
-                                        width: '100%',
-                                        padding: '12px',
-                                        borderRadius: '12px',
-                                        background: '#374151',
-                                        border: 'none',
-                                        color: 'white',
-                                        fontWeight: 600,
-                                        marginTop: '8px'
-                                    }}
+                                    className="save-info-btn"
+                                    style={{ background: '#374151', marginTop: '20px' }}
                                 >
                                     Update Password
                                 </button>
@@ -530,25 +540,12 @@ const Profile = () => {
 
                 {/* Logout Button */}
                 <button
+                    className="logout-btn"
                     onClick={() => {
                         if (confirm('Are you sure you want to logout?')) {
                             logout();
                             navigate('/login');
                         }
-                    }}
-                    style={{
-                        padding: '16px',
-                        background: '#fee2e2',
-                        color: '#dc2626',
-                        border: 'none',
-                        borderRadius: '16px',
-                        fontWeight: 600,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        fontSize: '15px',
-                        marginTop: '20px'
                     }}
                 >
                     <LogOut size={18} />

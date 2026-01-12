@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, MapPin, ArrowLeft, MessageCircle, CheckCircle, XCircle, QrCode } from 'lucide-react';
+import { Calendar, MapPin, ArrowLeft, MessageCircle, CheckCircle, XCircle, QrCode, AlignLeft } from 'lucide-react';
 import QRGenerator from '../components/QRGenerator';
+import './GuestEventView.css';
 
 const GuestEventView = () => {
     const { id } = useParams();
@@ -44,11 +45,13 @@ const GuestEventView = () => {
 
     if (!event) {
         return (
-            <div style={{ padding: '2rem', textAlign: 'center' }}>
-                <h2>Event not found</h2>
-                <Link to="/" className="btn btn-primary" style={{ marginTop: '1rem' }}>
-                    Back to Events
-                </Link>
+            <div className="guest-view-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ textAlign: 'center' }}>
+                    <h2>Event not found</h2>
+                    <Link to="/" style={{ color: '#818cf8', textDecoration: 'none', marginTop: '1rem', display: 'block' }}>
+                        Back to Events
+                    </Link>
+                </div>
             </div>
         );
     }
@@ -58,71 +61,42 @@ const GuestEventView = () => {
     const hasRSVPd = rsvpStatus !== null && rsvpStatus !== undefined;
 
     return (
-        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '1.5rem' }}>
+        <div className="guest-view-container">
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+            <div className="guest-header">
                 <button
                     onClick={() => navigate('/')}
-                    style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        background: 'var(--bg-secondary)',
-                        border: '1px solid var(--border)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        color: 'var(--text-secondary)'
-                    }}
+                    className="back-btn"
                 >
                     <ArrowLeft size={20} />
                 </button>
-                <div style={{ flex: 1 }}>
-                    <div style={{
-                        display: 'inline-block',
-                        padding: '4px 12px',
-                        background: 'rgba(99,102,241,0.1)',
-                        color: 'var(--primary)',
-                        borderRadius: '12px',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        marginBottom: '8px'
-                    }}>
-                        YOU'RE INVITED
-                    </div>
-                    <h1 style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', margin: 0 }}>
-                        {event.title}
-                    </h1>
+                <div className="invite-badge-container">
+                    <div className="invite-badge">You're Invited</div>
+                    <h1 className="event-title-hero">{event.title}</h1>
                 </div>
             </div>
 
-            {/* Event Details Card */}
-            <div className="card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1.5rem' }}>
-                    Event Details
-                </h2>
+            {/* Event Wall Button - Moved to Top */}
+            <Link to={`/event/${id}/wall`} className="event-wall-btn">
+                <MessageCircle size={20} fill="white" />
+                Open Event Wall
+            </Link>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {/* Event Details Card */}
+            <div className="glass-card">
+                <div className="card-label">
+                    Event Details
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     {event.date && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <div style={{
-                                width: '48px',
-                                height: '48px',
-                                borderRadius: '12px',
-                                background: 'linear-gradient(135deg, #6366f1, #a855f7)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0
-                            }}>
+                        <div className="detail-row">
+                            <div className="icon-box date">
                                 <Calendar size={24} color="white" />
                             </div>
-                            <div>
-                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '2px' }}>
-                                    DATE & TIME
-                                </div>
-                                <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                            <div className="detail-content">
+                                <div className="detail-label">DATE & TIME</div>
+                                <div className="detail-value">
                                     {new Date(event.date).toLocaleDateString('en-US', {
                                         weekday: 'long',
                                         year: 'numeric',
@@ -135,154 +109,92 @@ const GuestEventView = () => {
                     )}
 
                     {event.location && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <div style={{
-                                width: '48px',
-                                height: '48px',
-                                borderRadius: '12px',
-                                background: 'linear-gradient(135deg, #10b981, #14b8a6)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0
-                            }}>
+                        <div className="detail-row">
+                            <div className="icon-box location">
                                 <MapPin size={24} color="white" />
                             </div>
-                            <div>
-                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '2px' }}>
-                                    LOCATION
-                                </div>
-                                <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                                    {event.location}
-                                </div>
+                            <div className="detail-content">
+                                <div className="detail-label">LOCATION</div>
+                                <div className="detail-value">{event.location}</div>
                             </div>
                         </div>
                     )}
 
                     {event.description && (
-                        <div>
-                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '8px' }}>
-                                DESCRIPTION
+                        <div className="detail-row">
+                            <div className="icon-box desc" style={{ background: 'rgba(255,255,255,0.05)', color: '#94a3b8' }}>
+                                <AlignLeft size={24} />
                             </div>
-                            <p style={{ fontSize: '15px', color: 'var(--text-primary)', lineHeight: '1.6', margin: 0 }}>
-                                {event.description}
-                            </p>
+                            <div className="detail-content">
+                                <div className="detail-label">DESCRIPTION</div>
+                                <p className="detail-desc">{event.description}</p>
+                            </div>
                         </div>
                     )}
                 </div>
             </div>
 
             {/* RSVP Status Card */}
-            <div className="card" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div>
-                        <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                            Your RSVP
-                        </h3>
-                        {hasRSVPd ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                {rsvpStatus ? (
-                                    <>
-                                        <CheckCircle size={18} color="#10b981" />
-                                        <span style={{ color: '#10b981', fontWeight: 600, fontSize: '14px' }}>
-                                            Attending
-                                        </span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <XCircle size={18} color="#ef4444" />
-                                        <span style={{ color: '#ef4444', fontWeight: 600, fontSize: '14px' }}>
-                                            Not Attending
-                                        </span>
-                                    </>
-                                )}
-                            </div>
-                        ) : (
-                            <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-                                Please respond to your invitation
-                            </span>
-                        )}
-                    </div>
+            <div className="glass-card">
+                <div className="rsvp-header">
+                    <div className="card-label" style={{ marginBottom: 0 }}>Your RSVP</div>
+                    {hasRSVPd && (
+                        <div className={`status-bubble ${rsvpStatus ? 'status-attending' : 'status-not-attending'}`}>
+                            {rsvpStatus ? <CheckCircle size={16} /> : <XCircle size={16} />}
+                            {rsvpStatus ? 'Attending' : 'Not Attending'}
+                        </div>
+                    )}
                 </div>
 
-                {/* RSVP Buttons - Only show if current user ismatched to a guest */}
-                {currentGuest && (
-                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
-                        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
-                            {hasRSVPd ? 'Want to change your response?' : 'Will you be attending?'}
+                {/* RSVP Buttons */}
+                {currentGuest ? (
+                    <div className="rsvp-actions">
+                        <p className="rsvp-prompt">
+                            {hasRSVPd ? 'Want to change your response?' : 'Will you be attending this event?'}
                         </p>
-                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <div className="rsvp-buttons-grid">
                             <button
                                 onClick={async () => {
                                     setIsRSVPing(true);
-                                    try {
-                                        await rsvpGuest(event.id, currentGuest.id, false);
-                                    } catch (err) {
-                                        console.error('RSVP error:', err);
-                                        alert('Failed to update RSVP. Please try again.');
-                                    } finally {
-                                        setIsRSVPing(false);
-                                    }
+                                    try { await rsvpGuest(event.id, currentGuest.id, false); }
+                                    catch (err) { alert('Failed to update RSVP'); }
+                                    finally { setIsRSVPing(false); }
                                 }}
                                 disabled={isRSVPing}
-                                className="btn"
-                                style={{
-                                    flex: 1,
-                                    padding: '0.75rem',
-                                    background: rsvpStatus === false ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'var(--bg-secondary)',
-                                    color: rsvpStatus === false ? 'white' : 'var(--text-primary)',
-                                    border: rsvpStatus === false ? 'none' : '1px solid var(--border)',
-                                    fontWeight: 600,
-                                    fontSize: '14px'
-                                }}
+                                className={`rsvp-btn btn-reject ${!rsvpStatus && hasRSVPd ? 'active' : ''}`}
                             >
-                                {rsvpStatus === false ? '✓ Not Attending' : "Can't Make It"}
+                                Can't Make It
                             </button>
                             <button
                                 onClick={async () => {
                                     setIsRSVPing(true);
-                                    try {
-                                        await rsvpGuest(event.id, currentGuest.id, true);
-                                    } catch (err) {
-                                        console.error('RSVP error:', err);
-                                        alert('Failed to update RSVP. Please try again.');
-                                    } finally {
-                                        setIsRSVPing(false);
-                                    }
+                                    try { await rsvpGuest(event.id, currentGuest.id, true); }
+                                    catch (err) { alert('Failed to update RSVP'); }
+                                    finally { setIsRSVPing(false); }
                                 }}
                                 disabled={isRSVPing}
-                                className="btn btn-primary"
-                                style={{
-                                    flex: 1,
-                                    padding: '0.75rem',
-                                    background: rsvpStatus === true ? 'linear-gradient(135deg, #10b981, #059669)' : '',
-                                    fontWeight: 600,
-                                    fontSize: '14px'
-                                }}
+                                className={`rsvp-btn btn-accept ${rsvpStatus ? 'active' : ''}`}
                             >
-                                {rsvpStatus === true ? '✓ Attending' : "I'll Be There!"}
+                                I'll Be There
                             </button>
                         </div>
+                    </div>
+                ) : (
+                    <div style={{ marginTop: '16px', color: '#94a3b8', fontSize: '14px', textAlign: 'center' }}>
+                        Please log in as the invited guest to RSVP.
                     </div>
                 )}
             </div>
 
-            {/* Guest QR Code for Check-in - Only show if guest is found in list */}
+            {/* QR Code Card - Only show if guest is found */}
             {currentGuest && (
-                <div className="card" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                            <QrCode size={20} color="var(--primary)" />
-                            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                                Your Check-in QR Code
-                            </h3>
-                        </div>
-                        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: 0 }}>
-                            Show this QR code at the event entrance for quick check-in
-                        </p>
+                <div className="glass-card">
+                    <div className="card-label">
+                        <QrCode size={16} />
+                        Your Check-in Code
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <div className="qr-container">
                         <QRGenerator
                             payload={{
                                 eventId: event.id,
@@ -296,41 +208,13 @@ const GuestEventView = () => {
                             phoneNumber={currentGuest.phone}
                         />
                     </div>
+                    <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '13px', marginTop: '16px' }}>
+                        Show this at the entrance
+                    </p>
                 </div>
             )}
 
-            {/* Event Wall Button */}
-            <Link
-                to={`/event/${id}/wall`}
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '12px',
-                    padding: '16px',
-                    borderRadius: '16px',
-                    background: 'linear-gradient(135deg, #6366f1, #a855f7)',
-                    border: 'none',
-                    color: '#ffffff',
-                    fontWeight: 900,
-                    fontSize: '16px',
-                    textDecoration: 'none',
-                    boxShadow: '0 8px 20px rgba(99,102,241,0.3)',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 12px 24px rgba(99,102,241,0.4)';
-                }}
-                onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 8px 20px rgba(99,102,241,0.3)';
-                }}
-            >
-                <MessageCircle size={22} strokeWidth={2.5} />
-                Open Event Wall
-            </Link>
+
         </div>
     );
 };

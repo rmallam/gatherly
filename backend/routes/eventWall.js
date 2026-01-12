@@ -59,69 +59,106 @@ router.post('/:eventId/join', authMiddleware, async (req, res) => {
             console.log('User is guest, guestId:', guestCheck.rows[0].id);
             guestId = guestCheck.rows[0].id;
         } else {
-            console.log('Not a guest, checking if organizer...');
-            // Check if user is the event organizer
-            const eventCheck = await query(
-                'SELECT * FROM events WHERE id = $1 AND user_id = $2',
-                [eventId, userId]
+            console.log('Not linked by user_id, checking email/phone match...');
+
+            // Fetch user details to match against guests
+            const userDetails = await query(
+                'SELECT email, phone FROM users WHERE id = $1',
+                [userId]
             );
 
-            console.log('Event organizer check:', eventCheck.rows.length, 'rows');
-            if (eventCheck.rows.length > 0) {
-                console.log('User IS the organizer!');
-            } else {
-                console.log('❌ User is NOT the organizer. Event user_id:', eventCheck.rows[0]?.user_id, 'vs User ID:', userId);
+            if (userDetails.rows.length > 0) {
+                const { email, phone } = userDetails.rows[0];
+
+                // Try to find guest by email or phone
+                let matchQuery = 'SELECT * FROM guests WHERE event_id = $1 AND (email = $2';
+                const matchParams = [eventId, email];
+
+                if (phone) {
+                    matchQuery += ' OR phone = $3';
+                    matchParams.push(phone);
+                }
+                matchQuery += ')';
+
+                const guestMatch = await query(matchQuery, matchParams);
+
+                if (guestMatch.rows.length > 0) {
+                    console.log('Found matching guest record by email/phone. Linking user_id...');
+                    guestId = guestMatch.rows[0].id;
+
+                    // Link the user_id to this guest record
+                    await query(
+                        'UPDATE guests SET user_id = $1 WHERE id = $2',
+                        [userId, guestId]
+                    );
+                }
             }
 
-            if (eventCheck.rows.length > 0) {
-                // User is organizer - fetch their details and create a guest record for them
-                const userDetails = await query(
-                    'SELECT name, email, phone FROM users WHERE id = $1',
-                    [userId]
+            if (!guestId) {
+                console.log('Not a guest, checking if organizer...');
+
+                // Check if user is the event organizer
+                const eventCheck = await query(
+                    'SELECT * FROM events WHERE id = $1 AND user_id = $2',
+                    [eventId, userId]
                 );
 
-                if (userDetails.rows.length === 0) {
-                    return res.status(404).json({ error: 'User not found' });
+                console.log('Event organizer check:', eventCheck.rows.length, 'rows');
+                if (eventCheck.rows.length > 0) {
+                    console.log('User IS the organizer!');
+                } else {
+                    console.log('❌ User is NOT the organizer. Event user_id:', eventCheck.rows[0]?.user_id, 'vs User ID:', userId);
                 }
 
-                const user = userDetails.rows[0];
-                const newGuest = await query(
-                    `INSERT INTO guests (id, event_id, user_id, name, email, phone) 
+                if (eventCheck.rows.length > 0) {
+                    // User is organizer - fetch their details and create a guest record for them
+                    const userDetails = await query(
+                        'SELECT name, email, phone FROM users WHERE id = $1',
+                        [userId]
+                    );
+
+                    if (userDetails.rows.length === 0) {
+                        return res.status(404).json({ error: 'User not found' });
+                    }
+
+                    const user = userDetails.rows[0];
+                    const newGuest = await query(
+                        `INSERT INTO guests (id, event_id, user_id, name, email, phone) 
                      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5) RETURNING id`,
-                    [eventId, userId, user.name, user.email, user.phone]
-                );
-                guestId = newGuest.rows[0].id;
-            } else {
-                return res.status(404).json({ error: 'Event not found or access denied' });
+                        [eventId, userId, user.name, user.email, user.phone]
+                    );
+                    guestId = newGuest.rows[0].id;
+                } else {
+                    return res.status(404).json({ error: 'Event not found or access denied' });
+                }
             }
-        }
 
-        // Check if already joined as participant
-        const existingParticipant = await query(
-            'SELECT * FROM event_participants WHERE event_id = $1 AND guest_id = $2',
-            [eventId, guestId]
-        );
+            // Check if already joined as participant
+            const existingParticipant = await query(
+                'SELECT * FROM event_participants WHERE event_id = $1 AND guest_id = $2',
+                [eventId, guestId]
+            );
 
-        if (existingParticipant.rows.length > 0) {
-            return res.json({ participant: existingParticipant.rows[0] });
-        }
+            if (existingParticipant.rows.length > 0) {
+                return res.json({ participant: existingParticipant.rows[0] });
+            }
 
-        // Join the event wall
-        const result = await query(
-            `INSERT INTO event_participants 
+            // Join the event wall
+            const result = await query(
+                `INSERT INTO event_participants 
             (event_id, guest_id, profile_photo_url, bio, fun_fact, relationship_to_host)
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING *`,
-            [eventId, guestId, profilePhoto, bio, funFact, relationshipToHost]
-        );
+                [eventId, guestId, profilePhoto, bio, funFact, relationshipToHost]
+            );
 
-        console.log('✅ Join successful, participant:', result.rows[0]);
-        res.json({ participant: result.rows[0] });
-    } catch (error) {
-        console.error('❌ Error joining event:', error);
-        res.status(500).json({ error: 'Failed to join event', details: error.message });
-    }
-});
+            console.log('✅ Join successful, participant:', result.rows[0]);
+            res.json({ participant: result.rows[0] });
+        } catch (error) {
+            console.error('❌ Error joining event:', error);
+            res.status(500).json({ error: 'Failed to join event', details: error.message });
+        }
+    });
 
 // Get event participants
 router.get('/:eventId/participants', authMiddleware, async (req, res) => {

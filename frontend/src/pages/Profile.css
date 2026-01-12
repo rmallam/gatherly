@@ -242,86 +242,170 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Info Cards */
+/* Info Cards Enhanced */
 .info-card {
-    background: var(--bg-primary);
+    background: rgba(30, 41, 59, 0.4);
+    /* More transparent */
+    backdrop-filter: blur(10px);
     border-radius: 24px;
     padding: 24px;
     margin-bottom: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-    border: 1px solid var(--border);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .card-title {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 20px;
+    color: #fff;
+    margin-bottom: 24px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.fields-grid {
+    display: grid;
+    gap: 20px;
 }
 
 .field-group {
-    margin-bottom: 20px;
+    position: relative;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px 16px;
+    border-radius: 16px;
+    transition: background 0.2s;
 }
 
-.field-group:last-child {
-    margin-bottom: 0;
+.field-group:hover {
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .field-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-tertiary);
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
     display: block;
 }
 
 .field-value {
     font-size: 16px;
     font-weight: 500;
-    color: var(--text-primary);
+    color: #f8fafc;
 }
 
 .modern-input {
-    background: var(--bg-secondary);
-    border: 1px solid transparent;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 14px;
     width: 100%;
-    color: var(--text-primary);
+    color: #fff;
     font-size: 16px;
-    transition: all 0.2s;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .modern-input:focus {
-    background: var(--bg-primary);
+    background: rgba(0, 0, 0, 0.4);
     border-color: var(--accent-color);
     outline: none;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.logout-btn {
+    width: 100%;
+    padding: 16px;
+    background: rgba(220, 38, 38, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    border-radius: 20px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 15px;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.logout-btn:active {
+    background: rgba(220, 38, 38, 0.2);
+    transform: scale(0.98);
+}
+
+/* Compare Plans Banner */
+.compare-plans-link-container {
+    display: flex;
+    justify-content: center;
+    margin: 24px 0;
+}
+
+.compare-plans-link {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    color: #818cf8;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.compare-plans-link:hover {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+}
+
+.save-info-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 14px;
+    background: #6366f1;
+    color: white;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    transition: transform 0.2s;
+}
+
+.save-info-btn:active {
+    transform: scale(0.98);
 }
 
 .expandable-card {
-    background: var(--bg-primary);
-    border-radius: 20px;
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
     overflow: hidden;
-    border: 1px solid var(--border);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     transition: all 0.3s ease;
 }
 
 .card-header-btn {
     width: 100%;
-    padding: 20px;
+    padding: 24px;
     background: transparent;
     border: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
     cursor: pointer;
 }
 

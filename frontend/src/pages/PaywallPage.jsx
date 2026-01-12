@@ -166,9 +166,9 @@ const PaywallPage = () => {
             <button
                 className="paywall-cta"
                 onClick={user?.subscription_tier === 'pro' ? () => PurchaseService.manageSubscriptions() : handlePurchase}
-                disabled={(!user?.subscription_tier === 'pro' && (processing || !selectedPackage))}
+                disabled={user?.subscription_tier !== 'pro' && (processing || !selectedPackage)}
                 style={{
-                    opacity: (!user?.subscription_tier === 'pro' && !selectedPackage) ? 0.5 : 1,
+                    opacity: (user?.subscription_tier !== 'pro' && !selectedPackage) ? 0.5 : 1,
                     background: user?.subscription_tier === 'pro' ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
                     fontWeight: 700,
                     marginBottom: user?.subscription_tier === 'pro' ? '12px' : '0'

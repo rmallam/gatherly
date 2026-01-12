@@ -2,10 +2,10 @@ import { Purchases, LOG_LEVEL } from '@revenuecat/purchases-capacitor';
 import { Capacitor } from '@capacitor/core';
 
 // RevenueCat Public API Keys
-// REPLACE THESE WITH YOUR ACTUAL KEYS FROM REVENUECAT DASHBOARD
+// In production, these should be set in .env.production
 const API_KEYS = {
-    ios: 'test_hCYotXJVQWhqPsGwddNQDlSiUGm',
-    android: 'test_hCYotXJVQWhqPsGwddNQDlSiUGm'
+    ios: import.meta.env.VITE_REVENUECAT_IOS_KEY || 'test_hCYotXJVQWhqPsGwddNQDlSiUGm',
+    android: import.meta.env.VITE_REVENUECAT_ANDROID_KEY || 'test_hCYotXJVQWhqPsGwddNQDlSiUGm'
 };
 
 class PurchaseService {
