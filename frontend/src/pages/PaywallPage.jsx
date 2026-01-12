@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { Check, X, Star, Shield, Zap, Users } from 'lucide-react';
 import PurchaseService from '../services/PurchaseService';
 import SubscriptionComparisonModal from '../components/SubscriptionComparisonModal';
