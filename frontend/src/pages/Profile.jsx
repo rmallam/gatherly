@@ -529,10 +529,23 @@ const Profile = () => {
                                 {user?.subscription_tier === 'pro' && <Star size={18} fill="#f59e0b" stroke="#f59e0b" />}
                             </div>
                         </div>
+
+                        {/* Credits Display */}
+                        <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>SMS Credits</span>
+                                <span style={{ color: '#fff', fontWeight: 700 }}>
+                                    {user?.sms_credits || 0}
+                                </span>
+                            </div>
+                        </div>
+
                         {user?.subscription_tier === 'pro' ? (
                             <button
                                 onClick={() => navigate('/pro')}
                                 style={{
+                                    margin: '16px',
+                                    marginTop: 0,
                                     background: 'rgba(255, 255, 255, 0.1)',
                                     color: 'white',
                                     border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -543,7 +556,7 @@ const Profile = () => {
                                     cursor: 'pointer'
                                 }}
                             >
-                                Manage
+                                Manage / Buy Credits
                             </button>
                         ) : (
                             <button

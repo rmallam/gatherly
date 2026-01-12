@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import API_URL from '../../config/api';
-import { Send, MessageSquare, Heart, History, Loader, Users, CheckCircle, XCircle } from 'lucide-react';
+import { Share2, MessageSquare, Send, Clock, CheckCircle, XCircle, Heart, History, Loader, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { API_URL } from '../../config';
 import '../../pages/EventTabs.css';
 
 const MessagesTab = ({ event }) => {
-    const { token, user } = useAuth();
+    const { user, refreshUser, token } = useAuth();
     const [activeTab, setActiveTab] = useState('announcement');
     const [message, setMessage] = useState('');
     const [recipientFilter, setRecipientFilter] = useState('all');
@@ -269,18 +269,50 @@ const MessagesTab = ({ event }) => {
                         </div>
                     </div>
 
-                    <button
-                        onClick={handleSendAnnouncement}
-                        disabled={sending || !message.trim()}
-                        className="btn-primary"
-                        style={{ width: '100%', justifyContent: 'center' }}
-                    >
-                        {sending ? (
-                            <><Loader size={18} className="animate-spin" /> Sending...</>
-                        ) : (
-                            <><Send size={18} /> Send Announcement</>
+                    <div className="form-group" style={{ marginTop: '20px' }}>
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            background: 'rgba(99, 102, 241, 0.1)',
+                            padding: '12px',
+                            borderRadius: '8px',
+                            marginBottom: '16px'
+                        }}>
+                            <span style={{ color: '#fff', fontSize: '0.9rem' }}>
+                                Cost: <strong>{getRecipientCount()} credits</strong>
+                            </span>
+                            <span style={{
+                                color: (user?.sms_credits || 0) < getRecipientCount() ? '#ef4444' : '#10b981',
+                                fontWeight: 700,
+                                fontSize: '0.9rem'
+                            }}>
+                                Balance: {user?.sms_credits || 0}
+                            </span>
+                        </div>
+
+                        <button
+                            className="btn-primary"
+                            onClick={handleSendAnnouncement}
+                            disabled={sending || !message.trim() || (user?.sms_credits || 0) < getRecipientCount()}
+                            style={{
+                                width: '100%',
+                                opacity: ((user?.sms_credits || 0) < getRecipientCount()) ? 0.5 : 1,
+                                justifyContent: 'center'
+                            }}
+                        >
+                            {sending ? (
+                                <><Loader size={18} className="animate-spin" /> Sending...</>
+                            ) : ((user?.sms_credits || 0) < getRecipientCount() ? 'Insufficient Credits' : <><Send size={18} /> Send Announcement</>)}
+                        </button>
+                        {(user?.sms_credits || 0) < getRecipientCount() && (
+                            <div style={{ textAlign: 'center', marginTop: '12px' }}>
+                                <a href="/pro" style={{ color: '#8b5cf6', fontSize: '14px', textDecoration: 'none' }}>
+                                    Buy more credits &rarr;
+                                </a>
+                            </div>
                         )}
-                    </button>
+                    </div>
                 </div>
             )}
 
