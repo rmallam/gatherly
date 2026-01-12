@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { BiometricService } from '../services/biometric';
 import { fetchWithRetry } from '../utils/fetchWithRetry';
 import pushNotificationService from '../services/PushNotificationService';
+import PurchaseService from '../services/PurchaseService';
 import API_URL from '../config/api';
 
 const AuthContext = createContext();
@@ -40,6 +41,13 @@ export const AuthProvider = ({ children }) => {
                         const data = await response.json();
                         setUser(data.user);
                         setToken(storedToken);
+
+                        // Initialize RevenueCat
+                        try {
+                            PurchaseService.initialize(data.user.id);
+                        } catch (e) {
+                            console.error('Failed to init purchases:', e);
+                        }
                     } else {
                         // Token is invalid, clear it
                         localStorage.removeItem('token');
@@ -121,6 +129,13 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('token', data.token);
         setToken(data.token);
         setUser(data.user);
+
+        // Initialize RevenueCat
+        try {
+            PurchaseService.initialize(data.user.id);
+        } catch (e) {
+            console.error('Failed to init purchases:', e);
+        }
 
         // Register device for push notifications
         try {

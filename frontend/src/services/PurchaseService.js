@@ -1,10 +1,11 @@
 import { Purchases, LOG_LEVEL } from '@revenuecat/purchases-capacitor';
+import { Capacitor } from '@capacitor/core';
 
 // RevenueCat Public API Keys
 // REPLACE THESE WITH YOUR ACTUAL KEYS FROM REVENUECAT DASHBOARD
 const API_KEYS = {
-    ios: 'appl_REPLACE_WITH_YOUR_IOS_KEY',
-    android: 'goog_REPLACE_WITH_YOUR_ANDROID_KEY'
+    ios: 'test_hCYotXJVQWhqPsGwddNQDlSiUGm',
+    android: 'test_hCYotXJVQWhqPsGwddNQDlSiUGm'
 };
 
 class PurchaseService {
@@ -15,7 +16,12 @@ class PurchaseService {
     }
 
     async initialize(userId) {
-        if (this.isInitialized) return;
+        if (this.isInitialized) {
+            console.log('💰 RevenueCat already initialized');
+            return;
+        }
+
+        console.log('💰 Initializing RevenueCat for user:', userId);
 
         try {
             // Pick the key based on platform (this is simplified logic, in Capacitor, Purchases handles it if configured)
@@ -27,16 +33,17 @@ class PurchaseService {
             // Debug logs
             await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
 
-            // Configure
-            // In a real app, you might want to detect Platform using @capacitor/core
-            // For now, we'll placeholder this. 
-            // IMPORTANT: User must set their keys.
-            if (window.Capacitor && window.Capacitor.isNative) {
-                if (window.Capacitor.getPlatform() === 'ios') apiKey = API_KEYS.ios;
-                else if (window.Capacitor.getPlatform() === 'android') apiKey = API_KEYS.android;
+            const isNative = Capacitor.isNativePlatform();
+            console.log('💰 Platform Check. isNativePlatform():', isNative, 'Platform:', Capacitor.getPlatform());
 
+            if (isNative) {
+                if (Capacitor.getPlatform() === 'ios') apiKey = API_KEYS.ios;
+                else if (Capacitor.getPlatform() === 'android') apiKey = API_KEYS.android;
+
+                console.log('💰 Configuring Purchases with API Key:', apiKey);
                 await Purchases.configure({ apiKey, appUserID: userId });
                 this.isInitialized = true;
+                console.log('💰 RevenueCat Configured Successfully');
 
                 // Load initial info
                 await this.updateCustomerInfo();
@@ -44,7 +51,7 @@ class PurchaseService {
                 console.warn('RevenueCat: Not running on native device. Purchases will be simulated.');
             }
         } catch (error) {
-            console.error('RevenueCat Init Error:', error);
+            console.error('💰 RevenueCat Init Error:', error);
         }
     }
 
@@ -52,6 +59,7 @@ class PurchaseService {
         try {
             const info = await Purchases.getCustomerInfo();
             this.customerInfo = info;
+            console.log('💰 Customer Info Refreshed:', info);
             return info;
         } catch (error) {
             console.error('Error fetching customer info:', error);
@@ -61,11 +69,16 @@ class PurchaseService {
 
     async getOfferings() {
         try {
+            console.log('💰 getOfferings called. Initialized:', this.isInitialized);
             if (!this.isInitialized) return null;
 
             const offerings = await Purchases.getOfferings();
+            console.log('💰 Offerings fetched:', offerings);
+
             if (offerings.current !== null) {
                 this.currentOffering = offerings.current;
+            } else {
+                console.warn('💰 Offerings.current is null! Check RC Dashboard "Current" offering.');
             }
             return this.currentOffering;
         } catch (error) {

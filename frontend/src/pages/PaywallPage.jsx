@@ -24,6 +24,8 @@ const PaywallPage = () => {
         loadOfferings();
     }, []);
 
+    const { refreshUser } = useAuth(); // Assuming useAuth provides this
+
     const handlePurchase = async () => {
         if (!selectedPackage) {
             alert('Please select a plan first.');
@@ -36,13 +38,19 @@ const PaywallPage = () => {
             if (offerings && selectedPackage.product?.identifier) {
                 // Real Purchase
                 await PurchaseService.purchasePackage(selectedPackage);
+
+                // Wait a moment for webhook to process (if fast) or just refresh to be checking
+                // Ideally, we should poll or just update local entitlement check
+                // For now, try to refresh user from backend
+                await new Promise(r => setTimeout(r, 2000)); // Give webhook a slight chance
+                await refreshUser();
             } else {
                 // Simulation for dev/mock
                 await new Promise(r => setTimeout(r, 1000));
                 console.log('Simulating purchase for:', selectedPackage.identifier);
                 alert('Simulation: Purchase Successful! (This is a mock implementation)');
             }
-            navigate('/manager');
+            navigate('/', { replace: true });
         } catch (error) {
             if (error.message !== 'User cancelled') {
                 alert('Purchase failed: ' + error.message);
@@ -135,7 +143,7 @@ const PaywallPage = () => {
                     displayPackages.map((pkg, index) => (
                         <div
                             key={index}
-                            className={`package-card ${selectedPackage === pkg ? 'selected' : ''}`}
+                            className={`package-card ${selectedPackage?.identifier === pkg.identifier ? 'selected' : ''}`}
                             onClick={() => setSelectedPackage(pkg)}
                         >
                             <div className="package-info">
