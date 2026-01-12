@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
 import { UtensilsCrossed, Plus, X, Edit2, Check, Trash2 } from 'lucide-react';
+import '../../pages/EventTabs.css';
 
 const CateringTab = ({ event, onUpdateCatering }) => {
     const [menuItems, setMenuItems] = useState(event.catering?.items || []);
     const [showAddForm, setShowAddForm] = useState(false);
+
+    // DEBUG: Verify Build Version
+    React.useEffect(() => {
+        console.log('Build Version: 2026-01-11 11:10 - Catering Borders Added');
+    }, []);
+
     const [editingItem, setEditingItem] = useState(null);
     const [newItem, setNewItem] = useState({
         name: '',
@@ -146,23 +153,23 @@ const CateringTab = ({ event, onUpdateCatering }) => {
                 </div>
             )}
 
-            {/* Header Stats - Flat Design */}
-            <div style={{ display: "grid", gridTemplateColumns: 'repeat(4, 1fr)', gap: "1rem", marginBottom: "2rem" }}>
-                <div style={{ padding: '0.5rem 0' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Menu Items</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>{menuItems.length}</div>
+            {/* Header Stats - Cards */}
+            <div className="tab-stats-grid">
+                <div className="stats-card">
+                    <div className="label">MENU ITEMS</div>
+                    <div className="value">{menuItems.length}</div>
                 </div>
-                <div style={{ padding: '0.5rem 0' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Servings</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--success)' }}>{totalServings}</div>
+                <div className="stats-card">
+                    <div className="label">SERVINGS</div>
+                    <div className="value" style={{ color: 'var(--success)' }}>{totalServings}</div>
                 </div>
-                <div style={{ padding: '0.5rem 0' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Confirmed</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>{confirmedGuests}</div>
+                <div className="stats-card">
+                    <div className="label">CONFIRMED</div>
+                    <div className="value">{confirmedGuests}</div>
                 </div>
-                <div style={{ padding: '0.5rem 0' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Cost</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--warning)' }}>${totalCost.toFixed(2)}</div>
+                <div className="stats-card">
+                    <div className="label">TOTAL COST</div>
+                    <div className="value" style={{ color: 'var(--warning)' }}>${totalCost.toFixed(2)}</div>
                 </div>
             </div>
 
@@ -188,13 +195,14 @@ const CateringTab = ({ event, onUpdateCatering }) => {
                             {categoryItems.map(item => (
                                 <div key={item.id}
                                     style={{
-                                        padding: '12px 0',
+                                        padding: '12px',
                                         transition: 'all 0.2s',
                                         borderRadius: '8px',
-                                        paddingLeft: '8px',
-                                        paddingRight: '8px',
-                                        marginLeft: '-8px',
-                                        marginRight: '-8px'
+                                        marginBottom: '8px',
+                                        border: '1px solid var(--card-border)',
+                                        background: 'var(--card-bg-primary)',
+                                        backdropFilter: 'blur(8px)',
+                                        WebkitBackdropFilter: 'blur(8px)'
                                     }}
                                     onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
                                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}

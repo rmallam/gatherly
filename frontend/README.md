@@ -1,4 +1,4 @@
-# Gatherly Frontend
+# HostEze Frontend
 
 React + Vite web application and mobile app (Capacitor) for event management.
 

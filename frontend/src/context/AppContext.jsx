@@ -154,9 +154,10 @@ export const AppProvider = ({ children }) => {
                 });
 
                 if (!res.ok) {
-                    console.error('Failed to save event to server:', res.status);
+                    const errorData = await res.json().catch(() => ({}));
+                    console.error('Failed to save event to server:', res.status, errorData);
                     setEvents(prev => prev.filter(e => e.id !== newEvent.id));
-                    throw new Error('Failed to save event');
+                    throw new Error(errorData.message || errorData.error || 'Failed to save event');
                 }
 
                 const savedEvent = await res.json();

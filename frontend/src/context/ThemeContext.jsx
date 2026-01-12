@@ -3,28 +3,24 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-    const [theme, setTheme] = useState(() => {
-        // Load theme from localStorage or default to 'light'
-        const savedTheme = localStorage.getItem('theme');
-        return savedTheme || 'dark';
-    });
+    const [theme, setTheme] = useState('dark');
 
     useEffect(() => {
-        // Apply theme class to document root
-        document.documentElement.className = `theme-${theme}`;
-        // Save to localStorage
-        localStorage.setItem('theme', theme);
-    }, [theme]);
+        // Enforce dark mode class
+        document.documentElement.className = 'theme-dark';
+        localStorage.setItem('theme', 'dark');
+    }, []);
 
+    // Toggle is disabled/noop
     const toggleTheme = () => {
-        setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+        console.log("Theme toggle is disabled. Enforcing Dark Mode.");
     };
 
     const value = {
-        theme,
+        theme: 'dark',
         toggleTheme,
-        isDark: theme === 'dark',
-        isLight: theme === 'light'
+        isDark: true,
+        isLight: false
     };
 
     return (

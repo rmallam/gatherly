@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
-import { ArrowLeft, Flashlight, XCircle, RotateCcw } from 'lucide-react';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { ArrowLeft, Flashlight, XCircle, RotateCcw, Camera, Image, HelpCircle, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import RateAppService from '../services/RateAppService';

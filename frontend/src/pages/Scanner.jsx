@@ -121,6 +121,8 @@ const Scanner = () => {
                         <X size={24} />
                     </button>
                 </div>
+
+
             </div>
 
             {/* Result Overlay */}

@@ -321,7 +321,10 @@ app.post('/api/auth/login', async (req, res) => {
             email: user.email,
             phone: user.phone,
             emailVerified: user.email_verified,
-            is_admin: user.is_admin
+            is_admin: user.is_admin,
+            subscription_tier: user.subscription_tier || 'free',
+            event_count: user.event_count || 0,
+            sms_credits: user.sms_credits || 0
         };
 
         res.json({ token, user: userResponse });
@@ -333,7 +336,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
     try {
-        const result = await query('SELECT id, name, email, phone, email_verified, profile_picture_url, bio, is_admin FROM users WHERE id = $1', [req.user.id]);
+        const result = await query('SELECT id, name, email, phone, email_verified, profile_picture_url, bio, is_admin, subscription_tier, event_count, sms_credits FROM users WHERE id = $1', [req.user.id]);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'User not found' });
@@ -349,7 +352,10 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
                 emailVerified: user.email_verified,
                 profilePictureUrl: user.profile_picture_url,
                 bio: user.bio,
-                is_admin: user.is_admin
+                is_admin: user.is_admin,
+                subscription_tier: user.subscription_tier || 'free',
+                event_count: user.event_count || 0,
+                sms_credits: user.sms_credits || 0
             }
         });
     } catch (error) {
@@ -741,7 +747,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
 app.get('/api/users/profile', authMiddleware, async (req, res) => {
     try {
         const result = await query(
-            'SELECT id, name, email, phone, profile_picture_url, bio, email_verified, created_at, updated_at FROM users WHERE id = $1',
+            'SELECT id, name, email, phone, profile_picture_url, bio, email_verified, created_at, updated_at, subscription_tier, event_count, sms_credits FROM users WHERE id = $1',
             [req.user.id]
         );
 
@@ -759,7 +765,10 @@ app.get('/api/users/profile', authMiddleware, async (req, res) => {
             bio: user.bio,
             emailVerified: user.email_verified,
             createdAt: user.created_at,
-            updatedAt: user.updated_at
+            updatedAt: user.updated_at,
+            subscription_tier: user.subscription_tier || 'free',
+            event_count: user.event_count || 0,
+            sms_credits: user.sms_credits || 0
         });
     } catch (error) {
         console.error('Get profile error:', error);
@@ -964,10 +973,31 @@ app.post('/api/events', authMiddleware, async (req, res) => {
         const eventDescription = description && description.trim() !== '' ? description : null;
         const eventTypeValue = eventType || 'host'; // Default to 'host' if not provided
 
+        // Check event limits for Free tier
+        const userResult = await query('SELECT subscription_tier FROM users WHERE id = $1', [req.user.id]);
+        const userTier = userResult.rows[0]?.subscription_tier || 'free';
+
+        if (userTier === 'free') {
+            const countResult = await query('SELECT COUNT(*) FROM events WHERE user_id = $1', [req.user.id]);
+            const currentCount = parseInt(countResult.rows[0].count);
+
+            if (currentCount >= 3) {
+                return res.status(403).json({
+                    error: 'Free limit reached',
+                    code: 'LIMIT_REACHED',
+                    limit: 3,
+                    message: 'You have reached the limit of 3 events on the Free plan. Please upgrade to Pro to create unlimited events.'
+                });
+            }
+        }
+
         await query(
             'INSERT INTO events (id, user_id, title, date, location, description, event_type) VALUES ($1, $2, $3, $4, $5, $6, $7)',
             [eventId, req.user.id, title, eventDate, eventLocation, eventDescription, eventTypeValue]
         );
+
+        // Update event count cache
+        await query('UPDATE users SET event_count = event_count + 1 WHERE id = $1', [req.user.id]);
 
         const event = {
             id: eventId,
@@ -1015,6 +1045,8 @@ app.put('/api/events/:id', authMiddleware, async (req, res) => {
 app.delete('/api/events/:id', authMiddleware, async (req, res) => {
     try {
         await query('DELETE FROM events WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+        // Update event count cache - ensure it doesn't go below 0
+        await query('UPDATE users SET event_count = GREATEST(0, event_count - 1) WHERE id = $1', [req.user.id]);
         res.json({ success: true });
     } catch (error) {
         console.error('Delete event error:', error);

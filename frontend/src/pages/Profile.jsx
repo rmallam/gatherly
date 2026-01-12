@@ -610,39 +610,7 @@ const Profile = () => {
                     </div>
                 </div>
 
-                {/* Theme Toggle Card */}
-                <div style={{
-                    background: 'var(--bg-primary)',
-                    borderRadius: '20px',
-                    padding: '20px',
-                    boxShadow: '0 2px 8px -2px rgba(0,0,0,0.05)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '12px',
-                            background: 'var(--bg-secondary)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: theme === 'dark' ? '#fbbf24' : '#f59e0b'
-                        }}>
-                            {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
-                        </div>
-                        <div>
-                            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Dark Mode</div>
-                            <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{theme === 'dark' ? 'On' : 'Off'}</div>
-                        </div>
-                    </div>
-                    <label className="theme-toggle">
-                        <input type="checkbox" checked={theme === 'dark'} onChange={toggleTheme} />
-                        <span className="slider"></span>
-                    </label>
-                </div>
+
 
                 {/* Simple Actions List (Change Password, etc) */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

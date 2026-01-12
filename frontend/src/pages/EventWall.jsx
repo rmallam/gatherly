@@ -17,8 +17,10 @@ const EventWall = () => {
     const [newPostContent, setNewPostContent] = useState('');
     const [selectedImage, setSelectedImage] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [event, setEvent] = useState(null);
-    const [currentUserId, setCurrentUserId] = useState(null);
+    // Safety cleanup
+    useEffect(() => {
+        return () => confetti.reset();
+    }, []);
 
     useEffect(() => {
         loadEventWall();
@@ -158,7 +160,8 @@ const EventWall = () => {
                     particleCount: 80,
                     spread: 60,
                     origin: { y: 0.7 },
-                    colors: ['#6366f1', '#a855f7', '#ec4899']
+                    colors: ['#6366f1', '#a855f7', '#ec4899'],
+                    zIndex: 2000
                 });
 
                 setNewPostContent('');

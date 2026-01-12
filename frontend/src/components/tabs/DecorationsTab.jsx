@@ -143,7 +143,7 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
             </div>
 
             {/* Theme Card */}
-            <div className="hero-card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1))', border: '1px solid rgba(255, 255, 255, 0.1)', marginBottom: 24 }}>
+            <div className="hero-card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1))', marginBottom: 24 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
                     <div style={{ padding: 8, background: 'var(--bg-primary)', borderRadius: '50%' }}>
                         <Palette size={20} color="var(--primary)" />
@@ -179,7 +179,13 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
                         </div>
                         <div className="tab-list">
                             {areaItems.map(item => (
-                                <div key={item.id} className="tab-list-item">
+                                <div key={item.id} className="tab-list-item" style={{
+                                    border: '1px solid var(--card-border)',
+                                    marginBottom: '8px',
+                                    background: 'var(--card-bg-primary)',
+                                    backdropFilter: 'blur(8px)',
+                                    WebkitBackdropFilter: 'blur(8px)'
+                                }}>
                                     <div style={{
                                         width: 40, height: 40, borderRadius: 12,
                                         background: 'rgba(236, 72, 153, 0.1)', color: '#ec4899',
@@ -206,7 +212,7 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
                                             style={{
                                                 padding: '6px 12px',
                                                 borderRadius: 20,
-                                                border: '1px solid var(--border)',
+                                                border: 'none',
                                                 background: 'var(--bg-primary)',
                                                 fontSize: 12,
                                                 fontWeight: 500,

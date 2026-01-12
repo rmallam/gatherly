@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
 import { CheckSquare, Plus, X, Check, Trash2, Calendar, AlertCircle } from 'lucide-react';
+import '../../pages/EventTabs.css';
 
 const TasksTab = ({ event, onUpdateTasks }) => {
     const [tasks, setTasks] = useState(event.tasks || []);
     const [showAddForm, setShowAddForm] = useState(false);
+
+    // DEBUG: Verify Build Version
+    React.useEffect(() => {
+        console.log('Build Version: 2026-01-11 12:15 - Solid Gray Borders');
+    }, []);
+
     const [newTask, setNewTask] = useState({
         title: '',
         category: 'planning',
@@ -147,22 +154,22 @@ const TasksTab = ({ event, onUpdateTasks }) => {
             )}
 
             {/* Stats Overview */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem", marginBottom: "2rem" }}>
-                <div style={{ padding: '1rem', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Tasks</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)' }}>{totalTasks}</div>
+            <div className="tab-stats-grid">
+                <div className="stats-card">
+                    <div className="label">TOTAL TASKS</div>
+                    <div className="value" style={{ color: 'var(--primary)' }}>{totalTasks}</div>
                 </div>
-                <div style={{ padding: '1rem', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Completed</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--success)' }}>{completedTasks}</div>
+                <div className="stats-card">
+                    <div className="label">COMPLETED</div>
+                    <div className="value" style={{ color: 'var(--success)' }}>{completedTasks}</div>
                 </div>
-                <div style={{ padding: '1rem', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>In Progress</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--warning)' }}>{inProgressTasks}</div>
+                <div className="stats-card">
+                    <div className="label">IN PROGRESS</div>
+                    <div className="value" style={{ color: 'var(--warning)' }}>{inProgressTasks}</div>
                 </div>
-                <div style={{ padding: '1rem', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Overdue</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--error)' }}>{overdueTasks.length}</div>
+                <div className="stats-card">
+                    <div className="label">OVERDUE</div>
+                    <div className="value" style={{ color: 'var(--error)' }}>{overdueTasks.length}</div>
                 </div>
             </div>
 
@@ -207,9 +214,14 @@ const TasksTab = ({ event, onUpdateTasks }) => {
                                     <div
                                         key={task.id}
                                         style={{
-                                            padding: '1rem 0.5rem',
+                                            padding: '12px',
                                             transition: 'all 0.2s',
-                                            borderRadius: '8px'
+                                            borderRadius: '8px',
+                                            border: '1px solid var(--card-border)',
+                                            marginBottom: '8px',
+                                            background: 'var(--card-bg-primary)',
+                                            backdropFilter: 'blur(8px)',
+                                            WebkitBackdropFilter: 'blur(8px)'
                                         }}
                                         onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
                                         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}

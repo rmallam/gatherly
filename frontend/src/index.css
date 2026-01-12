@@ -90,12 +90,61 @@
   --success: #9ece6a;
   --error: #f7768e;
   --warning: #e0af68;
+  /* Spacing */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
 
   /* Glassmorphism specific */
   --glass-bg: rgba(255, 255, 255, 0.08);
   --glass-border: rgba(255, 255, 255, 0.15);
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  /* Adaptive Card Variables (Enforcing Dark Mode Values) */
+  --card-border: rgba(255, 255, 255, 0.15);
+  --card-bg-primary: rgba(255, 255, 255, 0.08);
+
+  /* Scanner Specific */
+  --scanner-card-bg: #1e1e24;
+  --scanner-text: #ffffff;
+  --scanner-subtext: #a1a1aa;
 }
+
+/* Light Theme (Default) */
+/* This block is now effectively removed as all values are set in :root for dark mode */
+/* .theme-light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --border: #e5e7eb;
+  --border-light: #f3f4f6;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --success: #10b981;
+  --error: #ef4444;
+  --warning: #f59e0b;
+} */
+
+
+
+/* Enforce Dark Mode on Body */
+body {
+  background-color: var(--bg-deep) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Light Theme Overrides Removed - Only Dark Mode Exists */
+/* .theme-light {
+  --card-border: #9ca3af;
+  --card-bg-primary: #ffffff;
+} */
 
 /* Apply dark background to body in dark mode */
 .theme-dark body {

@@ -94,24 +94,45 @@ const OverviewTab = ({ event, onTabChange }) => {
 
         return (
             <div className="event-tab-page">
-                {/* Hero Section */}
-                <div className="hero-card hero-card-trip">
-                    <div className="hero-content" style={{ position: 'relative', zIndex: 1 }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: 20, fontSize: 13, fontWeight: 600, marginBottom: 12, backdropFilter: 'blur(4px)' }}>
-                            <Calendar size={12} />
-                            {daysUntil !== null ? (daysUntil > 0 ? `${daysUntil} Days Away` : daysUntil === 0 ? 'Trip starts today!' : 'Trip Completed') : 'No Date Set'}
-                        </div>
-                        <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8, lineHeight: 1.2 }}>{event.title}</h1>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 14, opacity: 0.9 }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <MapPin size={14} />
-                                {event.location || 'Location TBD'}
-                            </span>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <Clock size={14} />
-                                {tripDuration} Day Trip
-                            </span>
-                        </div>
+                {/* Minimal Hero Section (Shared/Trip View) */}
+                <div style={{ marginBottom: 28, padding: '0 4px' }}>
+                    <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        padding: '6px 12px',
+                        borderRadius: '20px',
+                        background: 'rgba(59, 130, 246, 0.15)',
+                        color: '#60a5fa',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        marginBottom: 12
+                    }}>
+                        <Calendar size={14} />
+                        {daysUntil !== null ? (daysUntil > 0 ? `${daysUntil} Days Away` : daysUntil === 0 ? 'Trip starts today!' : 'Trip Completed') : 'No Date Set'}
+                    </div>
+
+                    <h1 style={{
+                        fontSize: '32px',
+                        fontWeight: 800,
+                        color: 'var(--text-primary)',
+                        margin: '0 0 12px 0',
+                        letterSpacing: '-0.5px',
+                        lineHeight: 1.1
+                    }}>
+                        {event.title}
+                    </h1>
+
+                    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 16, fontSize: '15px', color: 'var(--text-secondary)' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <MapPin size={16} className="text-tertiary" />
+                            {event.location || 'Location TBD'}
+                        </span>
+                        <span style={{ width: 4, height: 4, background: 'var(--text-tertiary)', borderRadius: '50%' }}></span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Clock size={16} className="text-tertiary" />
+                            {tripDuration} Day Trip
+                        </span>
                     </div>
                 </div>
 
@@ -216,26 +237,48 @@ const OverviewTab = ({ event, onTabChange }) => {
 
     return (
         <div className="event-tab-page">
-            {/* Hero Section */}
-            <div className="hero-card hero-card-event">
-                <div style={{ position: 'relative', zIndex: 1 }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: 20, fontSize: 13, fontWeight: 600, marginBottom: 12, backdropFilter: 'blur(4px)' }}>
-                        <Calendar size={12} />
-                        {daysUntil !== null ? (daysUntil > 0 ? `${daysUntil} Days Away` : daysUntil === 0 ? 'Today!' : 'Event Passed') : 'No Date Set'}
-                    </div>
-                    <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8, lineHeight: 1.2 }}>{event.title}</h1>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 14, opacity: 0.9 }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <Clock size={14} />
-                            {event.date ? new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD'}
-                        </span>
-                        {event.location && (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <MapPin size={14} />
+            {/* Minimal Hero Section (Host View) */}
+            <div style={{ marginBottom: 28, padding: '0 4px' }}>
+                <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    background: 'rgba(99, 102, 241, 0.15)',
+                    color: '#818cf8',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    marginBottom: 12
+                }}>
+                    <Calendar size={14} />
+                    {daysUntil !== null ? (daysUntil > 0 ? `${daysUntil} Days Away` : daysUntil === 0 ? 'Today!' : 'Event Passed') : 'No Date Set'}
+                </div>
+
+                <h1 style={{
+                    fontSize: '32px',
+                    fontWeight: 800,
+                    color: 'var(--text-primary)',
+                    margin: '0 0 12px 0',
+                    letterSpacing: '-0.5px',
+                    lineHeight: 1.1
+                }}>
+                    {event.title}
+                </h1>
+                <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 16, fontSize: '15px', color: 'var(--text-secondary)' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Clock size={16} className="text-tertiary" />
+                        {event.date ? new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD'}
+                    </span>
+                    {event.location && (
+                        <>
+                            <span style={{ width: 4, height: 4, background: 'var(--text-tertiary)', borderRadius: '50%' }}></span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <MapPin size={16} className="text-tertiary" />
                                 {event.location}
                             </span>
-                        )}
-                    </div>
+                        </>
+                    )}
                 </div>
             </div>
 

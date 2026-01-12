@@ -19,6 +19,8 @@ const Header = ({ showAuth = true }) => {
             justifyContent: 'space-between',
             borderBottom: '1px solid var(--border)',
             backgroundColor: 'var(--bg-primary)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
             position: 'sticky',
             top: 0,
             zIndex: 100

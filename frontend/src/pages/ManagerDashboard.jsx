@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { Plus, Trash2, Calendar, ChevronRight, MapPin, Users, Sparkles, CheckCircle, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import ThemeToggle from '../components/ThemeToggle';
@@ -9,11 +10,34 @@ import './ManagerDashboard.css';
 
 const ManagerDashboard = () => {
     const { events, createEvent, deleteEvent } = useApp();
+    const { user } = useAuth();
     const navigate = useNavigate();
     const [isCreating, setIsCreating] = useState(false);
+
+    const checkLimitAndOpen = () => {
+        const isFree = !user?.subscription_tier || user?.subscription_tier === 'free';
+        // Use backend count if available, otherwise fallback to local length
+        const currentCount = user?.event_count !== undefined ? user.event_count : events.length;
+
+        if (isFree && currentCount >= 3) {
+            alert('You have reached the limit of 3 events on the Free plan. Please upgrade to Pro to create unlimited events.');
+            return;
+        }
+        setIsCreating(true);
+    };
+
+    // DEBUG: Verify Build Version
+    React.useEffect(() => {
+        console.log('Build Version: 2026-01-11 11:25 - Header Blur Added');
+    }, []);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [newEvent, setNewEvent] = useState({ title: '', date: '', location: '' });
     const [filter, setFilter] = useState('upcoming'); // 'upcoming', 'past'
+    // Safety cleanup for confetti
+    React.useEffect(() => {
+        return () => confetti.reset();
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -28,7 +52,8 @@ const ManagerDashboard = () => {
                 particleCount: 100,
                 spread: 70,
                 origin: { y: 0.6 },
-                colors: ['#6366f1', '#a855f7', '#ec4899', '#f472b6']
+                colors: ['#6366f1', '#a855f7', '#ec4899', '#f472b6'],
+                zIndex: 2000 // Ensure it's on top
             });
 
             setNewEvent({ title: '', date: '', location: '' });
@@ -42,7 +67,7 @@ const ManagerDashboard = () => {
             }
         } catch (error) {
             console.error('Failed to create event:', error);
-            alert('Failed to create event. Please try again.');
+            alert(error.message || 'Failed to create event. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -58,36 +83,41 @@ const ManagerDashboard = () => {
     return (
         <>
             <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '16px', paddingBottom: '100px' }}>
-                {/* Theme toggle aligned to the right */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+                {/* Unified Header: Title/Summary + Toggle */}
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '24px',
+                    paddingTop: '8px'
+                }}>
+                    <div>
+                        {events.length > 0 ? (
+                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
+                                {events.filter(e => {
+                                    const today = new Date();
+                                    today.setHours(0, 0, 0, 0);
+                                    if (!e.date) return filter === 'upcoming';
+                                    const eventDate = new Date(e.date);
+                                    eventDate.setHours(0, 0, 0, 0);
+                                    return filter === 'upcoming' ? eventDate >= today : eventDate < today;
+                                }).length} {filter === 'upcoming' ? 'Upcoming' : 'Past'} {events.filter(e => {
+                                    const today = new Date();
+                                    today.setHours(0, 0, 0, 0);
+                                    if (!e.date) return filter === 'upcoming';
+                                    const eventDate = new Date(e.date);
+                                    eventDate.setHours(0, 0, 0, 0);
+                                    return filter === 'upcoming' ? eventDate >= today : eventDate < today;
+                                }).length === 1 ? 'Event' : 'Events'}
+                            </div>
+                        ) : (
+                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
+                                My Events
+                            </div>
+                        )}
+                    </div>
                     <ThemeToggle />
                 </div>
-
-                {/* Summary Banner - Splitwise style (no background) */}
-                {events.length > 0 && (
-                    <div style={{
-                        padding: '16px 0',
-                        marginBottom: '8px'
-                    }}>
-                        <div style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                            {events.filter(e => {
-                                const today = new Date();
-                                today.setHours(0, 0, 0, 0);
-                                if (!e.date) return filter === 'upcoming';
-                                const eventDate = new Date(e.date);
-                                eventDate.setHours(0, 0, 0, 0);
-                                return filter === 'upcoming' ? eventDate >= today : eventDate < today;
-                            }).length} {filter === 'upcoming' ? 'upcoming' : 'past'} {events.filter(e => {
-                                const today = new Date();
-                                today.setHours(0, 0, 0, 0);
-                                if (!e.date) return filter === 'upcoming';
-                                const eventDate = new Date(e.date);
-                                eventDate.setHours(0, 0, 0, 0);
-                                return filter === 'upcoming' ? eventDate >= today : eventDate < today;
-                            }).length === 1 ? 'event' : 'events'}
-                        </div>
-                    </div>
-                )}
 
                 {/* Filter Tabs - Upcoming/Past */}
                 {events.length > 0 && (
@@ -129,39 +159,7 @@ const ManagerDashboard = () => {
                     </div>
                 )}
 
-                {/* Floating Action Button */}
-                <button
-                    onClick={() => setIsCreating(true)}
-                    style={{
-                        display: 'none', // Hidden - using the one outside container instead
-                        position: 'fixed',
-                        bottom: '24px',
-                        right: '24px',
-                        width: '56px',
-                        height: '56px',
-                        borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-                        border: 'none',
-                        color: 'white',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 16px rgba(99, 102, 241, 0.4)',
-                        zIndex: 1000,
-                        transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'scale(1.1)';
-                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(99, 102, 241, 0.5)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'scale(1)';
-                        e.currentTarget.style.boxShadow = '0 4px 16px rgba(99, 102, 241, 0.4)';
-                    }}
-                    aria-label="Create New Event"
-                >
-                    <Plus size={24} strokeWidth={2.5} />
-                </button>
+
 
                 {/* Create Event Modal */}
                 {isCreating && (
@@ -262,7 +260,7 @@ const ManagerDashboard = () => {
                         <div className="onboarding-icon-circle">
                             <Sparkles size={40} />
                         </div>
-                        <h2 className="onboarding-title">Welcome to Gatherly 🎉</h2>
+                        <h2 className="onboarding-title">Welcome to HostEze 🎉</h2>
                         <p className="onboarding-description">
                             Your all-in-one companion for perfect events. <br />
                             Manage guests, track budgets, and split expenses seamlessly.
@@ -275,7 +273,7 @@ const ManagerDashboard = () => {
                         </div>
 
                         <button
-                            onClick={() => setIsCreating(true)}
+                            onClick={checkLimitAndOpen}
                             className="onboarding-btn-large"
                         >
                             <Plus size={24} /> Create Your First Event <ArrowRight size={20} />
@@ -449,7 +447,7 @@ const ManagerDashboard = () => {
 
             {/* Floating Action Button - Splitwise style */}
             <button
-                onClick={() => setIsCreating(true)}
+                onClick={checkLimitAndOpen}
                 style={{
                     position: 'fixed',
                     bottom: '100px',

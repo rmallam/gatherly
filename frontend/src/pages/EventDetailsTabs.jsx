@@ -128,6 +128,8 @@ const EventDetailsTabs = () => {
                 top: 0,
                 zIndex: 100,
                 background: 'var(--bg-primary)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
                 borderBottom: '1px solid var(--border)',
                 padding: '12px 16px',
                 display: 'flex',
