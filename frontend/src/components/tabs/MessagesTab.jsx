@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Share2, MessageSquare, Send, Clock, CheckCircle, XCircle, Heart, History, Loader, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { API_URL } from '../../config';
+import API_URL from '../../config/api';
 import '../../pages/EventTabs.css';
 
 const MessagesTab = ({ event }) => {
