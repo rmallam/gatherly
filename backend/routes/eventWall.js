@@ -132,33 +132,34 @@ router.post('/:eventId/join', authMiddleware, async (req, res) => {
                     return res.status(404).json({ error: 'Event not found or access denied' });
                 }
             }
+        }
 
-            // Check if already joined as participant
-            const existingParticipant = await query(
-                'SELECT * FROM event_participants WHERE event_id = $1 AND guest_id = $2',
-                [eventId, guestId]
-            );
+        // Check if already joined as participant
+        const existingParticipant = await query(
+            'SELECT * FROM event_participants WHERE event_id = $1 AND guest_id = $2',
+            [eventId, guestId]
+        );
 
-            if (existingParticipant.rows.length > 0) {
-                return res.json({ participant: existingParticipant.rows[0] });
-            }
+        if (existingParticipant.rows.length > 0) {
+            return res.json({ participant: existingParticipant.rows[0] });
+        }
 
-            // Join the event wall
-            const result = await query(
-                `INSERT INTO event_participants 
+        // Join the event wall
+        const result = await query(
+            `INSERT INTO event_participants 
             (event_id, guest_id, profile_photo_url, bio, fun_fact, relationship_to_host)
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING *`,
-                [eventId, guestId, profilePhoto, bio, funFact, relationshipToHost]
-            );
+            [eventId, guestId, profilePhoto, bio, funFact, relationshipToHost]
+        );
 
-            console.log('✅ Join successful, participant:', result.rows[0]);
-            res.json({ participant: result.rows[0] });
-        } catch (error) {
-            console.error('❌ Error joining event:', error);
-            res.status(500).json({ error: 'Failed to join event', details: error.message });
-        }
-    });
+        console.log('✅ Join successful, participant:', result.rows[0]);
+        res.json({ participant: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error joining event:', error);
+        res.status(500).json({ error: 'Failed to join event', details: error.message });
+    }
+});
 
 // Get event participants
 router.get('/:eventId/participants', authMiddleware, async (req, res) => {
