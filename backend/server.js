@@ -126,6 +126,12 @@ function normalizePhone(phone) {
     return digitsOnly.slice(-10);
 }
 
+// DEBUG: Log all requests
+app.use((req, res, next) => {
+    console.log(`[REQUEST] ${req.method} ${req.url}`);
+    next();
+});
+
 // === HEALTH CHECK ===
 app.get('/api/health', async (req, res) => {
     try {
@@ -2422,6 +2428,9 @@ app.use('/api/contacts', contactsRoutes);
 
 // Contact Groups Routes
 app.use('/api/contact-groups', contactGroupsRoutes);
+
+// IAP / RevenueCat Webhook Routes (Must be before generic /api routes to avoid auth middleware)
+app.use('/api/iap', iapRoutes);
 
 // Expense Routes
 app.use('/api', expenseRoutes);

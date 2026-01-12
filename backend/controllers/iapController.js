@@ -4,6 +4,16 @@ export const handleRevenueCatWebhook = async (req, res) => {
     try {
         const event = req.body.event;
 
+        // Security Check: Verify Auth Token
+        const authHeader = req.headers.authorization;
+        const expectedToken = process.env.REVENUECAT_WEBHOOK_AUTH_TOKEN;
+
+        // Only check if env var is set (allows easier testing if needed, though not recommended for prod)
+        if (expectedToken && authHeader !== expectedToken && authHeader !== `Bearer ${expectedToken}`) {
+            console.warn('⚠️ Webhook Unauthorized: Invalid Token');
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
         if (!event) {
             return res.status(400).json({ error: 'Invalid payload' });
         }

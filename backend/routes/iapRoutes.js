@@ -4,7 +4,7 @@ import * as iapController from '../controllers/iapController.js';
 const router = express.Router();
 
 // Define webhook route
-// POST /api/webhooks/revenuecat
-router.post('/revenuecat', iapController.handleRevenueCatWebhook);
+// POST /api/iap/webhook
+router.post('/webhook', iapController.handleRevenueCatWebhook);
 
 export default router;
