@@ -69,17 +69,33 @@ const Header = ({ showAuth = true }) => {
                         {user.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                 )}
-                <span style={{
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: 'var(--text-primary)',
-                    maxWidth: '100px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                }}>
-                    {user.name}
-                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: 'var(--text-primary)',
+                        maxWidth: '100px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                    }}>
+                        {user.name}
+                    </span>
+                    {user.subscription_tier === 'pro' && (
+                        <span style={{
+                            fontSize: '10px',
+                            fontWeight: '700',
+                            color: '#f59e0b',
+                            background: 'rgba(245, 158, 11, 0.15)',
+                            padding: '1px 6px',
+                            borderRadius: '4px',
+                            alignSelf: 'flex-start',
+                            letterSpacing: '0.5px'
+                        }}>
+                            PRO
+                        </span>
+                    )}
+                </div>
             </Link>
 
             {/* Center - HostEze Branding */}
