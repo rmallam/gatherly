@@ -25,19 +25,24 @@ const PaywallPage = () => {
     }, []);
 
     const handlePurchase = async () => {
-        if (!selectedPackage && !offerings) return;
+        if (!selectedPackage) {
+            alert('Please select a plan first.');
+            return;
+        }
 
         setProcessing(true);
         try {
-            // If real offering exists, use it
-            if (selectedPackage) {
+            // Check if it's a real RevenueCat package or a mock one
+            if (offerings && selectedPackage.product?.identifier) {
+                // Real Purchase
                 await PurchaseService.purchasePackage(selectedPackage);
             } else {
-                // Simulation for web dev
-                await new Promise(r => setTimeout(r, 1500));
-                alert('Simulation: Purchase successful!');
+                // Simulation for dev/mock
+                await new Promise(r => setTimeout(r, 1000));
+                console.log('Simulating purchase for:', selectedPackage.identifier);
+                alert('Simulation: Purchase Successful! (This is a mock implementation)');
             }
-            navigate('/manager'); // Or success page
+            navigate('/manager');
         } catch (error) {
             if (error.message !== 'User cancelled') {
                 alert('Purchase failed: ' + error.message);
@@ -146,7 +151,8 @@ const PaywallPage = () => {
             <button
                 className="paywall-cta"
                 onClick={handlePurchase}
-                disabled={processing || (!selectedPackage && !offerings && displayPackages.length === 0)}
+                disabled={processing || !selectedPackage}
+                style={{ opacity: !selectedPackage ? 0.5 : 1 }}
             >
                 {processing ? 'Processing...' : 'Start Pro Access'}
             </button>
