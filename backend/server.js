@@ -2506,7 +2506,7 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
         const { page = 1, limit = 20, search = '' } = req.query;
         const offset = (page - 1) * limit;
 
-        let queryText = `SELECT id, name, email, phone, is_admin, email_verified, created_at FROM users`;
+        let queryText = `SELECT id, name, email, phone, is_admin, email_verified, created_at, subscription_tier FROM users`;
         let countQuery = 'SELECT COUNT(*) as count FROM users';
         const params = [];
 
