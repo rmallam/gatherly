@@ -71,7 +71,9 @@ const ManagerDashboard = () => {
             }
         } catch (error) {
             console.error('Failed to create event:', error);
-            if (error.message.includes('limit reached') || error.message.includes('Limit reached')) {
+            const errMsg = error.message?.toLowerCase() || '';
+
+            if (errMsg.includes('limit') || errMsg.includes('upgrade') || errMsg.includes('plan')) {
                 setUpgradeTriggerReason(error.message);
                 setShowUpgradeModal(true);
                 setIsCreating(false);

@@ -978,8 +978,9 @@ app.post('/api/events', authMiddleware, async (req, res) => {
         const userResult = await query('SELECT subscription_tier FROM users WHERE id = $1', [req.user.id]);
         const userTier = userResult.rows[0]?.subscription_tier || 'free';
 
-        if (userTier === 'free') {
-            const countResult = await query('SELECT COUNT(*) FROM events WHERE user_id = $1', [req.user.id]);
+        if (userTier === 'free' && eventTypeValue === 'host') {
+            // Count only 'host' events for the limit
+            const countResult = await query("SELECT COUNT(*) FROM events WHERE user_id = $1 AND event_type = 'host'", [req.user.id]);
             const currentCount = parseInt(countResult.rows[0].count);
 
             if (currentCount >= 3) {
@@ -987,7 +988,7 @@ app.post('/api/events', authMiddleware, async (req, res) => {
                     error: 'Free limit reached',
                     code: 'LIMIT_REACHED',
                     limit: 3,
-                    message: 'You have reached the limit of 3 events on the Free plan. Please upgrade to Pro to create unlimited events.'
+                    message: 'You have reached the limit of 3 hosted events on the Free plan. Delete an old event or upgrade to Pro to create more.'
                 });
             }
         }
@@ -997,8 +998,10 @@ app.post('/api/events', authMiddleware, async (req, res) => {
             [eventId, req.user.id, title, eventDate, eventLocation, eventDescription, eventTypeValue]
         );
 
-        // Update event count cache
-        await query('UPDATE users SET event_count = event_count + 1 WHERE id = $1', [req.user.id]);
+        // Update event count cache only for hosted events
+        if (eventTypeValue === 'host') {
+            await query('UPDATE users SET event_count = event_count + 1 WHERE id = $1', [req.user.id]);
+        }
 
         const event = {
             id: eventId,
@@ -1045,9 +1048,19 @@ app.put('/api/events/:id', authMiddleware, async (req, res) => {
 
 app.delete('/api/events/:id', authMiddleware, async (req, res) => {
     try {
-        await query('DELETE FROM events WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
-        // Update event count cache - ensure it doesn't go below 0
-        await query('UPDATE users SET event_count = GREATEST(0, event_count - 1) WHERE id = $1', [req.user.id]);
+        const deleteResult = await query(
+            'DELETE FROM events WHERE id = $1 AND user_id = $2 RETURNING event_type',
+            [req.params.id, req.user.id]
+        );
+
+        if (deleteResult.rows.length > 0) {
+            const deletedType = deleteResult.rows[0].event_type;
+            // Update event count cache only if it was a hosted event
+            if (deletedType === 'host' || !deletedType) { // Handle legacy events where type might be null (default host)
+                await query('UPDATE users SET event_count = GREATEST(0, event_count - 1) WHERE id = $1', [req.user.id]);
+            }
+        }
+
         res.json({ success: true });
     } catch (error) {
         console.error('Delete event error:', error);
