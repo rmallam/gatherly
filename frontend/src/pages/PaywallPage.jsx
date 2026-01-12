@@ -13,6 +13,7 @@ const PaywallPage = () => {
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [processing, setProcessing] = useState(false);
     const [showComparisonModal, setShowComparisonModal] = useState(false);
+    const [smsProducts, setSmsProducts] = useState([]);
 
     useEffect(() => {
         const loadOfferings = async () => {
@@ -20,6 +21,11 @@ const PaywallPage = () => {
             // We can mock data for the UI if null.
             const current = await PurchaseService.getOfferings();
             setOfferings(current);
+
+            // Allow time for RC to init if needed, or just fetch concurrently
+            const extras = await PurchaseService.getProducts(['sms_100', 'sms_300', 'sms_500']);
+            setSmsProducts(extras);
+
             setLoading(false);
         };
         loadOfferings();
@@ -174,46 +180,65 @@ const PaywallPage = () => {
             </button>
 
             {/* Extra Credits Section */}
+            {/* Extra Credits Section */}
             <div style={{ marginTop: '2rem', width: '100%' }}>
                 <h3 style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '1rem', textAlign: 'center' }}>
                     Need more SMS Credits?
                 </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    {[
-                        { id: 'sms_100', title: '100 Credits', price: '$4.99' },
-                        { id: 'sms_300', title: '300 Credits', price: '$12.99' }
-                    ].map(pack => (
-                        <button
-                            key={pack.id}
-                            onClick={() => {
-                                // In real app, PurchaseService.purchasePackage(pack_from_offerings)
-                                // For now we simulating
-                                if (confirm(`Purchase ${pack.title} for ${pack.price}?`)) {
-                                    setProcessing(true);
-                                    setTimeout(() => {
+                {loading ? (
+                    <div className="loading-spinner">Loading add-ons...</div>
+                ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        {/* If we have real fetched products, use them. Otherwise fallback for dev visibility if empty */}
+                        {(smsProducts.length > 0 ? smsProducts : [
+                            { identifier: 'sms_100', title: '100 Credits', priceString: '$4.99 (Dev)', description: 'Mock' },
+                            { identifier: 'sms_300', title: '300 Credits', priceString: '$12.99 (Dev)', description: 'Mock' }
+                        ]).map(product => (
+                            <button
+                                key={product.identifier}
+                                onClick={async () => {
+                                    if (product.description === 'Mock') {
+                                        alert('This is a mock product. Deploy to real device to see real RevenueCat products.');
+                                        return;
+                                    }
+
+                                    try {
+                                        setProcessing(true);
+                                        await PurchaseService.purchaseStoreProduct(product);
+                                        await new Promise(r => setTimeout(r, 2000)); // Wait for webhook
+                                        await refreshUser(); // Refresh credits
+                                        alert('Credits added successfully!');
+                                    } catch (err) {
+                                        if (err.message !== 'User cancelled') alert('Purchase failed: ' + err.message);
+                                    } finally {
                                         setProcessing(false);
-                                        alert('Please configure these products in RevenueCat dashboard with IDs: sms_100, sms_300');
-                                    }, 1500);
-                                }
-                            }}
-                            style={{
-                                background: 'rgba(255,255,255,0.1)',
-                                border: '1px solid rgba(255,255,255,0.2)',
-                                borderRadius: '12px',
-                                padding: '16px',
-                                color: 'white',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                gap: '4px'
-                            }}
-                        >
-                            <span style={{ fontWeight: 700 }}>{pack.title}</span>
-                            <span style={{ fontSize: '0.9rem', color: '#a78bfa' }}>{pack.price}</span>
-                        </button>
-                    ))}
-                </div>
+                                    }
+                                }}
+                                disabled={processing}
+                                style={{
+                                    background: 'rgba(255,255,255,0.1)',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    borderRadius: '12px',
+                                    padding: '16px',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    opacity: processing ? 0.5 : 1
+                                }}
+                            >
+                                <span style={{ fontWeight: 700 }}>
+                                    {product.title || product.identifier}
+                                </span>
+                                <span style={{ fontSize: '0.9rem', color: '#a78bfa' }}>
+                                    {product.priceString}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Explicit Cancel Option for Pro Users */}

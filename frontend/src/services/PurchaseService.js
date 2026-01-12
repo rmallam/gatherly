@@ -114,6 +114,37 @@ class PurchaseService {
         }
     }
 
+    // Get specific products by ID (for consumables not in offerings)
+    async getProducts(productIdentifiers) {
+        try {
+            const products = await Purchases.getProducts({ productIdentifiers });
+            console.log('💰 Products fetched:', products);
+            return products.products;
+        } catch (error) {
+            console.error('Error fetching products:', error);
+            return [];
+        }
+    }
+
+    // Purchase a store product directly (consumable)
+    async purchaseStoreProduct(product) {
+        try {
+            const { customerInfo } = await Purchases.purchaseStoreProduct({ product });
+            this.customerInfo = customerInfo;
+            // Note: For consumables, customerInfo might not change entitlments, 
+            // but the transaction is recorded and webhook should fire.
+            return customerInfo;
+        } catch (error) {
+            if (!error.userCancelled) {
+                console.error('Purchase error:', error);
+                throw error;
+            } else {
+                console.log('User cancelled purchase');
+                throw new Error('User cancelled');
+            }
+        }
+    }
+
     // Check if user has active entitlement
     async checkEntitlement(entitlementId = 'pro') {
         if (!this.customerInfo) await this.updateCustomerInfo();
