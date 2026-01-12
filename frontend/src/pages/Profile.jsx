@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, User, Mail, Phone, FileText, Lock, Save, Eye, EyeOff, Moon, Sun, X, Check, LogOut, Shield, Bell, Star } from 'lucide-react';
+import { ArrowLeft, Camera, User, Mail, Phone, Lock, Check, LogOut, Shield, Star, ChevronRight } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Camera as CapCamera } from '@capacitor/camera';
 import { useTheme } from '../context/ThemeContext';
@@ -9,23 +9,24 @@ import API_URL from '../config/api';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/cropImage';
 import SubscriptionComparisonModal from '../components/SubscriptionComparisonModal';
+import './Profile.css';
 
 const Profile = () => {
     const navigate = useNavigate();
-    const { theme, toggleTheme } = useTheme();
+    const { theme } = useTheme();
     const { refreshUser, logout, user } = useAuth();
-    const { events } = useApp(); // Get events for stats
+    const { events } = useApp();
 
     // UI State
     const [isEditing, setIsEditing] = useState(false);
-    const [activeTab, setActiveTab] = useState('details'); // 'details' | 'security' | 'settings'
+    const [activeTab, setActiveTab] = useState('details');
     const [showComparisonModal, setShowComparisonModal] = useState(false);
 
-    // Initialize loading to false if we already have user data
+    // Initialize loading
     const [loading, setLoading] = useState(!user);
     const [saving, setSaving] = useState(false);
 
-    // Stats Calculation
+    // Stats
     const hostedCount = events.filter(e => e.role === 'host' || !e.role).length;
     const attendedCount = events.filter(e => e.role === 'guest').length;
 
@@ -36,16 +37,13 @@ const Profile = () => {
         bio: user?.bio || '',
         profilePictureUrl: user?.profilePictureUrl || null
     });
+
     const [passwords, setPasswords] = useState({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
     });
-    const [showPassword, setShowPassword] = useState({
-        current: false,
-        new: false,
-        confirm: false
-    });
+
     const [countryCode, setCountryCode] = useState('+91');
     const [phoneDigits, setPhoneDigits] = useState('');
     const [error, setError] = useState('');
@@ -59,7 +57,6 @@ const Profile = () => {
     const [showCropModal, setShowCropModal] = useState(false);
     const [showEnlargedImage, setShowEnlargedImage] = useState(false);
 
-    // Initial phone parsing
     useEffect(() => {
         if (user?.phone) {
             if (user.phone.startsWith('+')) {
@@ -74,7 +71,7 @@ const Profile = () => {
                 setPhoneDigits(user.phone.replace(/\D/g, '').slice(-10));
             }
         }
-    }, []);
+    }, [user?.phone]);
 
     useEffect(() => {
         loadProfile();
@@ -82,21 +79,16 @@ const Profile = () => {
 
     const loadProfile = async () => {
         try {
-            // Only show loader if we don't have user data yet
             if (!user) setLoading(true);
 
             const token = localStorage.getItem('token');
-            console.log('Loading profile with token:', token ? 'present' : 'missing');
 
             const res = await fetch(`${API_URL}/users/profile`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
-            console.log('Profile response status:', res.status);
-
             if (res.ok) {
                 const data = await res.json();
-                console.log('Profile data received:', data);
 
                 setProfile({
                     name: data.name || '',
@@ -124,9 +116,6 @@ const Profile = () => {
                     }
                 }
             } else {
-                const errorText = await res.text();
-                console.error('Profile load failed:', res.status, errorText);
-                // Only show error if we don't have data
                 if (!user) setError('Failed to load profile');
             }
         } catch (error) {
@@ -146,7 +135,7 @@ const Profile = () => {
                 saveToGallery: false
             });
 
-            const base64Image = `data:image/${image.format};base64,${image.base64String}`;
+            const base64Image = `data: image / ${image.format}; base64, ${image.base64String} `;
             setImageSrc(base64Image);
             setShowCropModal(true);
         } catch (error) {
@@ -176,15 +165,15 @@ const Profile = () => {
             setSuccess('');
 
             const token = localStorage.getItem('token');
-            const res = await fetch(`${API_URL}/users/profile`, {
+            const res = await fetch(`${API_URL} /users/profile`, {
                 method: 'PATCH',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    'Authorization': `Bearer ${token} `,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     name: profile.name,
-                    phone: phoneDigits ? `${countryCode}${phoneDigits}` : '',
+                    phone: phoneDigits ? `${countryCode}${phoneDigits} ` : '',
                     bio: profile.bio,
                     profilePictureUrl: profile.profilePictureUrl
                 })
@@ -193,7 +182,7 @@ const Profile = () => {
             const data = await res.json();
 
             if (res.ok) {
-                setSuccess('Profile updated successfully!');
+                setSuccess('Profile updated!');
                 refreshUser();
                 setIsEditing(false); // Switch back to view mode
                 setTimeout(() => setSuccess(''), 3000);
@@ -202,11 +191,11 @@ const Profile = () => {
                     await refreshUser();
                 }
             } else {
-                setError(data.error || 'Failed to update profile');
+                setError(data.error || 'Failed to update');
             }
         } catch (error) {
-            console.error('Error saving profile:', error);
-            setError('Failed to save profile');
+            console.error('Error saving:', error);
+            setError('Failed to save');
         } finally {
             setSaving(false);
         }
@@ -214,9 +203,6 @@ const Profile = () => {
 
     const handleChangePassword = async (e) => {
         e.preventDefault();
-
-        console.log('=== Change Password Attempt ===');
-        console.log('Passwords match:', passwords.newPassword === passwords.confirmPassword);
 
         if (passwords.newPassword !== passwords.confirmPassword) {
             setError('New passwords do not match');
@@ -229,13 +215,11 @@ const Profile = () => {
             setSuccess('');
 
             const token = localStorage.getItem('token');
-            console.log('Token present:', token ? 'yes' : 'no');
-            console.log('Calling API:', `${API_URL}/users/change-password`);
 
-            const res = await fetch(`${API_URL}/users/change-password`, {
+            const res = await fetch(`${API_URL} /users/change - password`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    'Authorization': `Bearer ${token} `,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -244,9 +228,7 @@ const Profile = () => {
                 })
             });
 
-            console.log('Response status:', res.status);
             const data = await res.json();
-            console.log('Response data:', data);
 
             if (res.ok) {
                 setSuccess('Password changed successfully!');
@@ -260,7 +242,6 @@ const Profile = () => {
                 setTimeout(() => setSuccess(''), 5000); // Show for 5 seconds
             } else {
                 const errorMsg = data.error || 'Failed to change password';
-                console.error('Password change failed:', errorMsg);
                 setError(errorMsg);
                 // Keep error message visible longer
                 setTimeout(() => setError(''), 5000);
@@ -276,69 +257,24 @@ const Profile = () => {
 
     if (loading) {
         return (
-            <div style={{
-                minHeight: '100vh',
-                background: 'var(--bg-secondary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-            }}>
-                <div style={{ color: '#6366f1', fontSize: '18px', fontWeight: 600 }}>
-                    Loading profile...
-                </div>
+            <div className="profile-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ color: 'var(--accent-color)', fontWeight: 600 }}>Loading profile...</div>
             </div>
         );
     }
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            background: 'var(--bg-secondary)',
-            paddingBottom: 'max(20px, env(safe-area-inset-bottom))'
-        }}>
-            {/* Top Navigation Bar */}
-            <div style={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 100,
-                background: theme === 'dark' ? 'rgba(10, 10, 15, 0.8)' : 'rgba(255, 255, 255, 0.8)', // Theme-aware glass effect
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                borderBottom: '1px solid var(--border)',
-                padding: 'max(env(safe-area-inset-top), 16px) 16px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-            }}>
-                <button
-                    onClick={() => navigate(-1)}
-                    style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        background: 'transparent',
-                        border: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        color: 'var(--text-primary)'
-                    }}
-                >
+        <div className="profile-container">
+            {/* Navbar */}
+            <div className="profile-navbar">
+                <button onClick={() => navigate(-1)} className="nav-btn">
                     <ArrowLeft size={24} />
                 </button>
-                <div style={{ fontWeight: 600, fontSize: '17px', color: 'var(--text-primary)' }}>Profile</div>
+                <div style={{ fontWeight: 600, fontSize: '17px' }}>Profile</div>
                 <button
                     onClick={() => setIsEditing(!isEditing)}
-                    style={{
-                        background: 'none',
-                        border: 'none',
-                        color: isEditing ? '#6366f1' : 'var(--text-primary)',
-                        fontWeight: '600',
-                        fontSize: '15px',
-                        cursor: 'pointer',
-                        padding: '8px'
-                    }}
+                    className="nav-btn"
+                    style={{ color: isEditing ? 'var(--accent-color)' : 'var(--text-primary)', fontSize: '15px', fontWeight: 600, width: 'auto' }}
                 >
                     {isEditing ? 'Done' : 'Edit'}
                 </button>
@@ -346,444 +282,213 @@ const Profile = () => {
 
             {/* Success/Error Messages */}
             {(success || error) && (
-                <div style={{
-                    position: 'fixed',
-                    top: '100px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    zIndex: 200,
-                    width: '90%',
-                    maxWidth: '400px',
-                    background: success ? '#10b981' : '#ef4444',
-                    color: 'white',
-                    padding: '12px 16px',
-                    borderRadius: '12px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    fontWeight: 500,
-                    animation: 'slideDown 0.3s ease'
-                }}>
+                <div className={`message - container ${success ? 'message-success' : 'message-error'} `}>
                     {success ? <Check size={18} /> : <Shield size={18} />}
                     {success || error}
                 </div>
             )}
 
-            {/* Profile Header & Stats */}
-            <div style={{ padding: '0 16px', marginBottom: '24px' }}>
-                <div style={{
-                    marginTop: '20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '16px'
-                }}>
-                    {/* Avatar */}
-                    <div style={{ position: 'relative' }}>
+            {/* Content Wrapper */}
+            <div className="profile-content-wrapper">
+
+                {/* Header Section */}
+                <div className="profile-header">
+                    <div className="avatar-container">
                         <div
+                            className="avatar"
                             onClick={() => profile.profilePictureUrl && setShowEnlargedImage(true)}
                             style={{
-                                width: '100px',
-                                height: '100px',
-                                borderRadius: '50%',
-                                background: profile.profilePictureUrl
-                                    ? `url(${profile.profilePictureUrl})`
-                                    : 'linear-gradient(135deg, #6366f1, #a855f7)',
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#fff',
-                                fontSize: '36px',
-                                fontWeight: '700',
-                                border: '4px solid var(--bg-primary)',
-                                boxShadow: '0 8px 20px -6px rgba(0,0,0,0.15)',
-                                cursor: profile.profilePictureUrl ? 'pointer' : 'default',
+                                backgroundImage: profile.profilePictureUrl ? `url(${profile.profilePictureUrl})` : 'none',
+                                background: !profile.profilePictureUrl ? 'linear-gradient(135deg, #6366f1, #a855f7)' : undefined
                             }}
                         >
                             {!profile.profilePictureUrl && (profile.name?.charAt(0).toUpperCase() || 'U')}
                         </div>
                         {isEditing && (
-                            <button
-                                onClick={pickImage}
-                                style={{
-                                    position: 'absolute',
-                                    bottom: '0',
-                                    right: '0',
-                                    width: '32px',
-                                    height: '32px',
-                                    borderRadius: '50%',
-                                    background: '#6366f1',
-                                    border: '2px solid var(--bg-primary)',
-                                    color: 'white',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.4)'
-                                }}
-                            >
+                            <button onClick={pickImage} className="edit-avatar-btn">
                                 <Camera size={16} />
                             </button>
                         )}
                     </div>
-
-                    {/* Name & Bio */}
                     <div style={{ textAlign: 'center' }}>
-                        <h2 style={{
-                            fontSize: '24px',
-                            fontWeight: '700',
-                            color: 'var(--text-primary)',
-                            margin: '0 0 4px 0'
-                        }}>
-                            {profile.name || 'User Name'}
-                        </h2>
-                        <p style={{
-                            fontSize: '14px',
-                            color: 'var(--text-tertiary)',
-                            margin: 0,
-                            maxWidth: '300px',
-                            lineHeight: '1.4'
-                        }}>
-                            {profile.bio || 'No bio added yet'}
-                        </p>
-                    </div>
-
-                    {/* Stats Row */}
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gap: '12px',
-                        width: '100%',
-                        maxWidth: '400px'
-                    }}>
-                        <div style={{
-                            background: 'var(--bg-primary)',
-                            padding: '16px',
-                            borderRadius: '16px',
-                            textAlign: 'center',
-                            boxShadow: '0 2px 8px -2px rgba(0,0,0,0.05)'
-                        }}>
-                            <div style={{
-                                fontSize: '24px',
-                                fontWeight: '700',
-                                color: '#6366f1',
-                                marginBottom: '4px'
-                            }}>
-                                {hostedCount}
-                            </div>
-                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>
-                                Events Hosted
-                            </div>
-                        </div>
-                        <div style={{
-                            background: 'var(--bg-primary)',
-                            padding: '16px',
-                            borderRadius: '16px',
-                            textAlign: 'center',
-                            boxShadow: '0 2px 8px -2px rgba(0,0,0,0.05)'
-                        }}>
-                            <div style={{
-                                fontSize: '24px',
-                                fontWeight: '700',
-                                color: '#10b981',
-                                marginBottom: '4px'
-                            }}>
-                                {attendedCount}
-                            </div>
-                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>
-                                Events Attended
-                            </div>
-                        </div>
+                        <h2 className="user-name">{profile.name || 'User'}</h2>
+                        <p className="user-bio">{profile.bio || 'Add a bio to tell people about yourself.'}</p>
                     </div>
                 </div>
-            </div>
 
+                {/* Stats */}
+                <div className="stats-grid">
+                    <div className="stat-card">
+                        <div className="stat-value" style={{ color: '#6366f1' }}>{hostedCount}</div>
+                        <div className="stat-label">Events Hosted</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-value" style={{ color: '#10b981' }}>{attendedCount}</div>
+                        <div className="stat-label">Attended</div>
+                    </div>
+                </div>
 
-            {/* Subscription Card */}
-            <div style={{ padding: '0 16px', maxWidth: '600px', margin: '0 auto', marginBottom: '20px' }}>
-                <div style={{
-                    background: 'linear-gradient(135deg, #1f2937, #111827)',
-                    borderRadius: '20px',
-                    padding: '20px',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px'
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                {/* Subscription Card - Premium Look */}
+                <div className="sub-card">
+                    <div className="pro-badge-glow" />
+                    <div className="sub-header">
                         <div>
-                            <div style={{ fontSize: '13px', color: '#9ca3af', fontWeight: 600, letterSpacing: '0.5px' }}>CURRENT PLAN</div>
-                            <div style={{
-                                fontSize: '20px',
-                                fontWeight: 700,
-                                color: user?.subscription_tier === 'pro' ? '#f59e0b' : '#fff',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px'
-                            }}>
-                                {user?.subscription_tier === 'pro' ? 'Pro Plan' : 'Free Plan'}
-                                {user?.subscription_tier === 'pro' && <Star size={18} fill="#f59e0b" stroke="#f59e0b" />}
+                            <div className="current-plan-label">CURRENT MEMBERSHIP</div>
+                            <div className="plan-name">
+                                {user?.subscription_tier === 'pro' ? 'Pro Access' : 'Free Account'}
+                                {user?.subscription_tier === 'pro' && <Star size={20} fill="#f59e0b" stroke="#f59e0b" />}
                             </div>
                         </div>
-
-                        {/* Credits Display */}
-                        <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>SMS Credits</span>
-                                <span style={{ color: '#fff', fontWeight: 700 }}>
-                                    {user?.sms_credits || 0}
-                                </span>
-                            </div>
-                        </div>
-
-                        {user?.subscription_tier === 'pro' ? (
-                            <button
-                                onClick={() => navigate('/pro')}
-                                style={{
-                                    margin: '16px',
-                                    marginTop: 0,
-                                    background: 'rgba(255, 255, 255, 0.1)',
-                                    color: 'white',
-                                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                                    borderRadius: '12px',
-                                    padding: '8px 16px',
-                                    fontWeight: 600,
-                                    fontSize: '13px',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Manage / Buy Credits
-                            </button>
-                        ) : (
-                            <button
-                                onClick={() => navigate('/pro')}
-                                style={{
-                                    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '12px',
-                                    padding: '8px 16px',
-                                    fontWeight: 700,
-                                    fontSize: '14px',
-                                    cursor: 'pointer',
-                                    boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
-                                }}
-                            >
-                                Upgrade
-                            </button>
-                        )}
                     </div>
 
-                    {/* Free Plan Limits */}
+                    <div className="credits-row">
+                        <span className="credits-label">SMS Credits Balance</span>
+                        <span className="credits-value">{user?.sms_credits || 0}</span>
+                    </div>
+
+                    {user?.subscription_tier === 'pro' ? (
+                        <button
+                            className="action-btn btn-glass"
+                            onClick={() => navigate('/pro')}
+                        >
+                            Manage Subscription / Buy Credits
+                        </button>
+                    ) : (
+                        <button
+                            className="action-btn btn-primary-gradient"
+                            onClick={() => navigate('/paywall')}
+                        >
+                            Upgrade to Pro
+                        </button>
+                    )}
+
                     {(!user?.subscription_tier || user?.subscription_tier === 'free') && (
-                        <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#d1d5db', marginBottom: '6px' }}>
-                                <span>Events Created</span>
+                        <div style={{ marginTop: '16px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>
+                                <span>Free Events Used</span>
                                 <span>{hostedCount} / 3</span>
                             </div>
-                            <div style={{
-                                width: '100%',
-                                height: '6px',
-                                background: 'rgba(255,255,255,0.1)',
-                                borderRadius: '3px',
-                                overflow: 'hidden'
-                            }}>
+                            <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
                                 <div style={{
-                                    width: `${Math.min((hostedCount / 3) * 100, 100)}%`,
+                                    width: `${Math.min((hostedCount / 3) * 100, 100)}% `,
                                     height: '100%',
-                                    background: hostedCount >= 3 ? '#ef4444' : '#6366f1',
-                                    borderRadius: '3px'
+                                    background: hostedCount >= 3 ? '#ef4444' : '#6366f1'
                                 }} />
                             </div>
-                            {hostedCount >= 3 && (
-                                <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '6px' }}>
-                                    Limit reached. Upgrade to create more events.
-                                </div>
-                            )}
                         </div>
                     )}
                 </div>
-            </div>
 
-            {/* Compare Plans Link */}
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px', marginBottom: '8px' }}>
-                <button
-                    onClick={() => setShowComparisonModal(true)}
-                    style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: '#6366f1',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        textDecoration: 'underline'
-                    }}
-                >
-                    Compare plan features
-                </button>
-            </div>
-
-            <SubscriptionComparisonModal
-                isOpen={showComparisonModal}
-                onClose={() => setShowComparisonModal(false)}
-            />
-
-            {/* Content Tabs/Sections */}
-            <div style={{ padding: '0 16px', maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
-                {/* Personal Info Card */}
-                <div style={{
-                    background: 'var(--bg-primary)',
-                    borderRadius: '20px',
-                    padding: '20px',
-                    boxShadow: '0 2px 8px -2px rgba(0,0,0,0.05)'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                        <User size={18} className="text-secondary" />
-                        <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>Personal Info</h3>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        {/* Name Field */}
-                        <div>
-                            <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontWeight: 500, marginBottom: '6px', display: 'block' }}>FULL NAME</label>
-                            {isEditing ? (
-                                <input
-                                    type="text"
-                                    value={profile.name}
-                                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                                    className="input"
-                                    style={{ background: 'var(--bg-secondary)', border: 'none', padding: '12px', borderRadius: '12px' }}
-                                />
-                            ) : (
-                                <div style={{ fontSize: '15px', color: 'var(--text-primary)', fontWeight: 500 }}>{profile.name}</div>
-                            )}
-                        </div>
-
-                        {/* Email Field - Always Read Only */}
-                        <div>
-                            <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontWeight: 500, marginBottom: '6px', display: 'block' }}>EMAIL</label>
-                            <div style={{ fontSize: '15px', color: 'var(--text-primary)', fontWeight: 500, opacity: 0.8 }}>{profile.email}</div>
-                        </div>
-
-                        {/* Phone Field */}
-                        <div>
-                            <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontWeight: 500, marginBottom: '6px', display: 'block' }}>PHONE</label>
-                            {isEditing ? (
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    <select
-                                        value={countryCode}
-                                        onChange={(e) => setCountryCode(e.target.value)}
-                                        className="input"
-                                        style={{ width: '80px', background: 'var(--bg-secondary)', border: 'none', borderRadius: '12px' }}
-                                    >
-                                        <option value="+91">+91</option>
-                                        <option value="+1">+1</option>
-                                        <option value="+44">+44</option>
-                                        {/* Add more as needed */}
-                                    </select>
-                                    <input
-                                        type="tel"
-                                        value={phoneDigits}
-                                        onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, ''))}
-                                        className="input"
-                                        style={{ flex: 1, background: 'var(--bg-secondary)', border: 'none', padding: '12px', borderRadius: '12px' }}
-                                    />
-                                </div>
-                            ) : (
-                                <div style={{ fontSize: '15px', color: 'var(--text-primary)', fontWeight: 500 }}>
-                                    {profile.phone || 'Not set'}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Bio Field */}
-                        <div>
-                            <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontWeight: 500, marginBottom: '6px', display: 'block' }}>BIO</label>
-                            {isEditing ? (
-                                <textarea
-                                    value={profile.bio}
-                                    onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                                    className="input"
-                                    rows={3}
-                                    style={{ width: '100%', background: 'var(--bg-secondary)', border: 'none', padding: '12px', borderRadius: '12px', resize: 'none' }}
-                                />
-                            ) : (
-                                <div style={{ fontSize: '15px', color: 'var(--text-primary)', lineHeight: '1.5' }}>
-                                    {profile.bio || 'No bio'}
-                                </div>
-                            )}
-                        </div>
-
-                        {isEditing && (
-                            <button
-                                onClick={handleSaveProfile}
-                                disabled={saving}
-                                style={{
-                                    width: '100%',
-                                    padding: '14px',
-                                    borderRadius: '14px',
-                                    background: '#6366f1',
-                                    border: 'none',
-                                    color: 'white',
-                                    fontWeight: 600,
-                                    fontSize: '15px',
-                                    marginTop: '8px',
-                                    opacity: saving ? 0.7 : 1
-                                }}
-                            >
-                                {saving ? 'Saving...' : 'Save Info'}
-                            </button>
-                        )}
-                    </div>
+                {/* Compare Plans Link */}
+                <div className="compare-plans-link-container">
+                    <button
+                        onClick={() => setShowComparisonModal(true)}
+                        className="compare-plans-link"
+                    >
+                        Compare plan features
+                    </button>
                 </div>
 
+                <SubscriptionComparisonModal
+                    isOpen={showComparisonModal}
+                    onClose={() => setShowComparisonModal(false)}
+                />
 
+                {/* Info Card */}
+                <div className="info-card">
+                    <div className="card-title">
+                        <User size={18} className="text-secondary" />
+                        Personal Information
+                    </div>
 
-                {/* Simple Actions List (Change Password, etc) */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div className="field-group">
+                        <label className="field-label">Full Name</label>
+                        {isEditing ? (
+                            <input
+                                className="modern-input"
+                                value={profile.name}
+                                onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                            />
+                        ) : (
+                            <div className="field-value">{profile.name}</div>
+                        )}
+                    </div>
 
-                    {/* Collapsible Password Section could go here, for now just a button to expand */}
+                    <div className="field-group">
+                        <label className="field-label">Email Address</label>
+                        <div className="field-value" style={{ opacity: 0.8 }}>{profile.email}</div>
+                    </div>
+
+                    <div className="field-group">
+                        <label className="field-label">Phone Number</label>
+                        {isEditing ? (
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <select
+                                    className="modern-input"
+                                    style={{ width: '80px' }}
+                                    value={countryCode}
+                                    onChange={(e) => setCountryCode(e.target.value)}
+                                >
+                                    <option value="+91">+91</option>
+                                    <option value="+1">+1</option>
+                                    <option value="+44">+44</option>
+                                </select>
+                                <input
+                                    className="modern-input"
+                                    type="tel"
+                                    value={phoneDigits}
+                                    onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, ''))}
+                                />
+                            </div>
+                        ) : (
+                            <div className="field-value">{profile.phone || 'Not set'}</div>
+                        )}
+                    </div>
+
+                    <div className="field-group">
+                        <label className="field-label">Bio</label>
+                        {isEditing ? (
+                            <textarea
+                                className="modern-input"
+                                rows={3}
+                                value={profile.bio}
+                                onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                                style={{ resize: 'none' }}
+                            />
+                        ) : (
+                            <div className="field-value" style={{ lineHeight: '1.5' }}>{profile.bio || 'No bio'}</div>
+                        )}
+                    </div>
+
+                    {isEditing && (
+                        <button
+                            onClick={handleSaveProfile}
+                            disabled={saving}
+                            className="save-info-btn"
+                        >
+                            {saving ? 'Saving...' : 'Save Info'}
+                        </button>
+                    )}
+                </div>
+
+                {/* Security Section (Collapsible) */}
+                <div className="expandable-card">
                     <button
+                        className="card-header-btn"
                         onClick={() => setActiveTab(activeTab === 'security' ? 'details' : 'security')}
-                        style={{
-                            background: 'var(--bg-primary)',
-                            padding: '20px',
-                            borderRadius: '20px',
-                            border: 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            color: 'var(--text-primary)',
-                            fontSize: '15px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            boxShadow: '0 2px 8px -2px rgba(0,0,0,0.05)'
-                        }}
                     >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <Lock size={20} className="text-secondary" />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Lock size={18} className="text-secondary" />
                             Security & Password
                         </div>
-                        <div style={{ transform: activeTab === 'security' ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>›</div>
+                        <ChevronRight size={20} style={{ transform: activeTab === 'security' ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
                     </button>
 
-                    {/* Change Password Form (Visible when toggled) */}
                     {activeTab === 'security' && (
-                        <div style={{
-                            background: 'var(--bg-primary)',
-                            borderRadius: '20px',
-                            padding: '20px',
-                            marginTop: '-8px',
-                            animation: 'slideDown 0.3s ease'
-                        }}>
+                        <div className="card-content">
                             <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                <div>
-                                    <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '8px', display: 'block' }}>CURRENT PASSWORD</label>
+                                <div className="field-group">
+                                    <label className="field-label">CURRENT PASSWORD</label>
                                     <input
                                         type="password"
                                         value={passwords.currentPassword}
