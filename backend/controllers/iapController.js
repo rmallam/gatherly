@@ -1,6 +1,6 @@
-const { query } = require('../db/connection');
+import { query } from '../db/connection.js';
 
-exports.handleRevenueCatWebhook = async (req, res) => {
+export const handleRevenueCatWebhook = async (req, res) => {
     try {
         const event = req.body.event;
 
