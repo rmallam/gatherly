@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Check } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import './UpgradeModal.css';
 
 const UpgradeModal = ({ isOpen, onClose, triggerReason }) => {
@@ -13,11 +14,11 @@ const UpgradeModal = ({ isOpen, onClose, triggerReason }) => {
         "Ad-free Experience"
     ];
 
+    const navigate = useNavigate();
+
     const handleUpgrade = () => {
-        // Placeholder for IAP flow
-        // In real implementation, this would trigger RevenueCat purchase
-        alert('Upgrade functionality coming soon! This is where the purchase flow handles.');
         onClose();
+        navigate('/pro');
     };
 
     return (
