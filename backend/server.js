@@ -1994,6 +1994,28 @@ app.delete('/api/events/:eventId/budget', authMiddleware, async (req, res) => {
     }
 });
 
+// Admin: Update User Tier (Toggle Pro)
+app.put('/api/admin/users/:id/tier', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { tier } = req.body; // 'pro' or 'free'
+
+        if (!['pro', 'free'].includes(tier)) {
+            return res.status(400).json({ error: 'Invalid tier' });
+        }
+
+        await query(
+            'UPDATE users SET subscription_tier = $1, subscription_status = $2 WHERE id = $3',
+            [tier, 'active', id]
+        );
+
+        res.json({ message: `User upgraded to ${tier}`, tier });
+    } catch (error) {
+        console.error('Update tier error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Get all expenses for event
 app.get('/api/events/:eventId/budget-expenses', authMiddleware, async (req, res) => {
     try {

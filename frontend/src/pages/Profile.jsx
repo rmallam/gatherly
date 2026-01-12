@@ -529,7 +529,23 @@ const Profile = () => {
                                 {user?.subscription_tier === 'pro' && <Star size={18} fill="#f59e0b" stroke="#f59e0b" />}
                             </div>
                         </div>
-                        {user?.subscription_tier !== 'pro' && (
+                        {user?.subscription_tier === 'pro' ? (
+                            <button
+                                onClick={() => navigate('/pro')}
+                                style={{
+                                    background: 'rgba(255, 255, 255, 0.1)',
+                                    color: 'white',
+                                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                                    borderRadius: '12px',
+                                    padding: '8px 16px',
+                                    fontWeight: 600,
+                                    fontSize: '13px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Manage
+                            </button>
+                        ) : (
                             <button
                                 onClick={() => navigate('/pro')}
                                 style={{

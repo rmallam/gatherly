@@ -25,7 +25,7 @@ const PaywallPage = () => {
         loadOfferings();
     }, []);
 
-    const { refreshUser } = useAuth(); // Assuming useAuth provides this
+    const { refreshUser, user } = useAuth();
 
     const handlePurchase = async () => {
         if (!selectedPackage) {
@@ -159,19 +159,49 @@ const PaywallPage = () => {
 
             <button
                 className="paywall-cta"
-                onClick={handlePurchase}
-                disabled={processing || !selectedPackage}
-                style={{ opacity: !selectedPackage ? 0.5 : 1 }}
+                onClick={user?.subscription_tier === 'pro' ? () => PurchaseService.manageSubscriptions() : handlePurchase}
+                disabled={(!user?.subscription_tier === 'pro' && (processing || !selectedPackage))}
+                style={{
+                    opacity: (!user?.subscription_tier === 'pro' && !selectedPackage) ? 0.5 : 1,
+                    background: user?.subscription_tier === 'pro' ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                    fontWeight: 700,
+                    marginBottom: user?.subscription_tier === 'pro' ? '12px' : '0'
+                }}
             >
-                {processing ? 'Processing...' : 'Start Pro Access'}
+                {processing ? 'Processing...' : (
+                    user?.subscription_tier === 'pro' ? 'Manage Subscription' : 'Start Pro Access'
+                )}
             </button>
 
-            <button
-                className="comparison-link-btn"
-                onClick={() => setShowComparisonModal(true)}
-            >
-                View detailed plan comparison
-            </button>
+            {/* Explicit Cancel Option for Pro Users */}
+            {user?.subscription_tier === 'pro' && (
+                <button
+                    onClick={() => PurchaseService.manageSubscriptions()}
+                    style={{
+                        background: 'transparent',
+                        border: '1px solid #ef4444',
+                        color: '#ef4444',
+                        width: '100%',
+                        padding: '14px',
+                        borderRadius: '16px',
+                        fontWeight: 600,
+                        fontSize: '15px',
+                        cursor: 'pointer',
+                        marginTop: '0'
+                    }}
+                >
+                    Cancel Subscription
+                </button>
+            )}
+
+            {!user?.subscription_tier === 'pro' && (
+                <button
+                    className="comparison-link-btn"
+                    onClick={() => setShowComparisonModal(true)}
+                >
+                    View detailed plan comparison
+                </button>
+            )}
 
             <div className="paywall-footer">
                 <button onClick={handleRestore}>Restore Purchases</button>

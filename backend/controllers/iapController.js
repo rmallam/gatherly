@@ -27,31 +27,34 @@ export const handleRevenueCatWebhook = async (req, res) => {
         let tier = 'pro';
 
         // logic based on event type
-        // INITIAL_PURCHASE, RENEWAL, CANCELLATION, EXPIRATION, etc.
         if (type === 'EXPIRATION') {
             status = 'expired';
             tier = 'free';
         } else if (type === 'CANCELLATION') {
-            // User cancelled but might still have time until expiration
-            // We usually keep them pro until expiration date passess
-            // For simplicity, we just log it. Real logic should check expiration date.
-            status = 'active';
+            status = 'active'; // Cancelled but still active until auto-renew date passes (technically)
         }
 
         // Update user in DB
-        // precise mapping depends on your entitlement ids
-        if (entitlement_id === 'pro_access') {
-            tier = (status === 'active') ? 'pro' : 'free';
+        // For now, we assume any active entitlement means PRO (since we only have one tier)
+        if (entitlement_id && entitlement_id !== 'pro_access') {
+            console.log(`ℹ️ Note: Entitlement ID '${entitlement_id}' differs from expected 'pro_access', but processing as PRO.`);
         }
 
-        await query(
+        const result = await query(
             `UPDATE users 
              SET subscription_tier = $1, 
                  subscription_status = $2, 
                  revenuecat_id = $3
-             WHERE id = $4`,
-            [tier, status, app_user_id, app_user_id] // Assuming app_user_id IS our internal user ID
+             WHERE id = $4 
+             RETURNING id, email, subscription_tier`,
+            [tier, status, app_user_id, app_user_id]
         );
+
+        if (result.rowCount === 0) {
+            console.warn(`⚠️ Webhook Warning: User ${app_user_id} not found in DB. Update skipped.`);
+        } else {
+            console.log(`✅ User ${result.rows[0].email} updated to ${tier} (Status: ${status})`);
+        }
 
         res.status(200).json({ message: 'Webhook processed' });
     } catch (error) {

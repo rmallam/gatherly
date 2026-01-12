@@ -122,6 +122,17 @@ class PurchaseService {
             this.customerInfo?.entitlements?.active?.[entitlementId] !== undefined
         );
     }
+
+    async manageSubscriptions() {
+        if (Capacitor.getPlatform() === 'ios') {
+            window.location.href = 'https://apps.apple.com/account/subscriptions';
+        } else if (Capacitor.getPlatform() === 'android') {
+            window.location.href = 'https://play.google.com/store/account/subscriptions';
+        } else {
+            console.warn('Manage Subscriptions not supported on web/dev');
+            alert('On a real device, this opens the App Store Subscription settings.');
+        }
+    }
 }
 
 export default new PurchaseService();

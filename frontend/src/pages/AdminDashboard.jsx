@@ -310,6 +310,50 @@ const AdminDashboard = () => {
                                                     )}
                                                 </td>
                                                 <td style={{ padding: '1rem 0.75rem', textAlign: 'right' }}>
+                                                    {/* Toggle Pro Button */}
+                                                    <button
+                                                        onClick={async () => {
+                                                            const newTier = u.subscription_tier === 'pro' ? 'free' : 'pro';
+                                                            if (!confirm(`Switch ${u.name} to ${newTier.toUpperCase()} plan?`)) return;
+
+                                                            try {
+                                                                const token = localStorage.getItem('token');
+                                                                const res = await fetch(`${API_URL}/admin/users/${u.id}/tier`, {
+                                                                    method: 'PUT',
+                                                                    headers: {
+                                                                        'Authorization': `Bearer ${token}`,
+                                                                        'Content-Type': 'application/json'
+                                                                    },
+                                                                    body: JSON.stringify({ tier: newTier })
+                                                                });
+
+                                                                if (res.ok) {
+                                                                    fetchUsers(); // Refresh list
+                                                                    // If updated self, might need to refresh local user context but page refresh works too
+                                                                    if (u.id === user.id) window.location.reload();
+                                                                } else {
+                                                                    alert('Failed to update tier');
+                                                                }
+                                                            } catch (err) {
+                                                                console.error(err);
+                                                                alert('Error updating tier');
+                                                            }
+                                                        }}
+                                                        style={{
+                                                            padding: '0.5rem 0.75rem',
+                                                            background: u.subscription_tier === 'pro' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(99, 102, 241, 0.1)',
+                                                            color: u.subscription_tier === 'pro' ? '#10b981' : '#6366f1',
+                                                            border: 'none',
+                                                            borderRadius: '8px',
+                                                            cursor: 'pointer',
+                                                            marginRight: '8px',
+                                                            fontWeight: 600,
+                                                            fontSize: '0.75rem'
+                                                        }}
+                                                    >
+                                                        {u.subscription_tier === 'pro' ? 'REVOKE PRO' : 'GRANT PRO'}
+                                                    </button>
+
                                                     {u.id !== user.id && !u.is_admin && (
                                                         <button
                                                             onClick={() => setDeleteConfirm(u)}
