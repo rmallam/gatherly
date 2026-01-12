@@ -173,6 +173,49 @@ const PaywallPage = () => {
                 )}
             </button>
 
+            {/* Extra Credits Section */}
+            <div style={{ marginTop: '2rem', width: '100%' }}>
+                <h3 style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '1rem', textAlign: 'center' }}>
+                    Need more SMS Credits?
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    {[
+                        { id: 'sms_100', title: '100 Credits', price: '$4.99' },
+                        { id: 'sms_300', title: '300 Credits', price: '$12.99' }
+                    ].map(pack => (
+                        <button
+                            key={pack.id}
+                            onClick={() => {
+                                // In real app, PurchaseService.purchasePackage(pack_from_offerings)
+                                // For now we simulating
+                                if (confirm(`Purchase ${pack.title} for ${pack.price}?`)) {
+                                    setProcessing(true);
+                                    setTimeout(() => {
+                                        setProcessing(false);
+                                        alert('Please configure these products in RevenueCat dashboard with IDs: sms_100, sms_300');
+                                    }, 1500);
+                                }
+                            }}
+                            style={{
+                                background: 'rgba(255,255,255,0.1)',
+                                border: '1px solid rgba(255,255,255,0.2)',
+                                borderRadius: '12px',
+                                padding: '16px',
+                                color: 'white',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '4px'
+                            }}
+                        >
+                            <span style={{ fontWeight: 700 }}>{pack.title}</span>
+                            <span style={{ fontSize: '0.9rem', color: '#a78bfa' }}>{pack.price}</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+
             {/* Explicit Cancel Option for Pro Users */}
             {user?.subscription_tier === 'pro' && (
                 <button

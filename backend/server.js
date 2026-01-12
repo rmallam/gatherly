@@ -2004,12 +2004,14 @@ app.put('/api/admin/users/:id/tier', authMiddleware, adminMiddleware, async (req
             return res.status(400).json({ error: 'Invalid tier' });
         }
 
+        const credits = tier === 'pro' ? 250 : 0;
+
         await query(
-            'UPDATE users SET subscription_tier = $1, subscription_status = $2 WHERE id = $3',
-            [tier, 'active', id]
+            'UPDATE users SET subscription_tier = $1, subscription_status = $2, sms_credits = $3 WHERE id = $4',
+            [tier, 'active', credits, id]
         );
 
-        res.json({ message: `User upgraded to ${tier}`, tier });
+        res.json({ message: `User upgraded to ${tier} with ${credits} credits`, tier, credits });
     } catch (error) {
         console.error('Update tier error:', error);
         res.status(500).json({ error: 'Server error' });
