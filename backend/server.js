@@ -126,12 +126,6 @@ function normalizePhone(phone) {
     return digitsOnly.slice(-10);
 }
 
-// DEBUG: Log all requests
-app.use((req, res, next) => {
-    console.log(`[REQUEST] ${req.method} ${req.url}`);
-    next();
-});
-
 // === HEALTH CHECK ===
 app.get('/api/health', async (req, res) => {
     try {
