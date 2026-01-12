@@ -25,6 +25,7 @@ import contactsRoutes from './routes/contacts.js';
 import contactGroupsRoutes from './routes/contact-groups.js';
 import expenseRoutes from './routes/expenses.js';
 import scheduleRoutes from './routes/schedule.js';
+import iapRoutes from './routes/iapRoutes.js';
 
 const app = express();
 
@@ -1198,6 +1199,24 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
             return res.status(404).json({ error: 'Event not found' });
         }
 
+        // Check guest limits for Free tier
+        const userResult = await query('SELECT subscription_tier FROM users WHERE id = $1', [req.user.id]);
+        const userTier = userResult.rows[0]?.subscription_tier || 'free';
+
+        if (userTier === 'free') {
+            const countResult = await query('SELECT COUNT(*) FROM guests WHERE event_id = $1', [req.params.eventId]);
+            const currentCount = parseInt(countResult.rows[0].count);
+
+            if (currentCount >= 50) {
+                return res.status(403).json({
+                    error: 'Free limit reached',
+                    code: 'LIMIT_REACHED',
+                    limit: 50,
+                    message: 'You have reached the limit of 50 guests per event on the Free plan. Please upgrade to Pro to add unlimited guests.'
+                });
+            }
+        }
+
         // Check for duplicate guest (by phone or email)
         // Only check if we have actual phone or email to check against
         const hasPhone = phone && phone.trim().length > 0;
@@ -1388,6 +1407,27 @@ app.post('/api/events/:eventId/guests/bulk', authMiddleware, async (req, res) =>
 
         if (eventCheck.rows.length === 0) {
             return res.status(404).json({ error: 'Event not found' });
+        }
+
+        // Check guest limits for Free tier
+        const userResult = await query('SELECT subscription_tier FROM users WHERE id = $1', [req.user.id]);
+        const userTier = userResult.rows[0]?.subscription_tier || 'free';
+
+        if (userTier === 'free') {
+            const countResult = await query('SELECT COUNT(*) FROM guests WHERE event_id = $1', [req.params.eventId]);
+            const currentCount = parseInt(countResult.rows[0].count);
+
+            if (currentCount + guests.length > 50) {
+                const remaining = Math.max(0, 50 - currentCount);
+                return res.status(403).json({
+                    error: 'Free limit reached',
+                    code: 'LIMIT_REACHED',
+                    limit: 50,
+                    current: currentCount,
+                    remaining: remaining,
+                    message: `You can only add ${remaining} more guests on the Free plan. Please upgrade to Pro for unlimited guests.`
+                });
+            }
         }
 
         const addedGuests = [];

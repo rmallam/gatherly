@@ -25,6 +25,7 @@ import Profile from './pages/Profile';
 import NotificationList from './pages/NotificationList';
 import MyContacts from './pages/MyContacts';
 import AdminDashboard from './pages/AdminDashboard';
+import PaywallPage from './pages/PaywallPage';
 
 // Back button handler component
 function BackButtonHandler() {
@@ -180,6 +181,13 @@ function App() {
                                 <ProtectedRoute>
                                     <Layout>
                                         <AdminDashboard />
+                                    </Layout>
+                                </ProtectedRoute>
+                            } />
+                            <Route path="/pro" element={
+                                <ProtectedRoute>
+                                    <Layout>
+                                        <PaywallPage />
                                     </Layout>
                                 </ProtectedRoute>
                             } />

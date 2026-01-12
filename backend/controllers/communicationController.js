@@ -56,6 +56,30 @@ export const sendAnnouncement = async (req, res) => {
             return res.status(400).json({ error: 'No guests match the selected filter' });
         }
 
+        // Check SMS credits
+        const userResult = await query('SELECT sms_credits FROM users WHERE id = $1', [userId]);
+        const currentCredits = userResult.rows[0]?.sms_credits || 0;
+        const requiredCredits = guests.length;
+
+        if (currentCredits < requiredCredits) {
+            return res.status(403).json({
+                error: 'Insufficient SMS credits',
+                message: `You need ${requiredCredits} credits to send this message, but you only have ${currentCredits}. Please purchase more credits.`,
+                code: 'NO_CREDITS',
+                required: requiredCredits,
+                current: currentCredits
+            });
+        }
+
+        // Deduct credits
+        await query('UPDATE users SET sms_credits = sms_credits - $1 WHERE id = $2', [requiredCredits, userId]);
+
+        // Record usage in history (optional but good for tracking)
+        await query(
+            'INSERT INTO sms_usage (user_id, credits_used, reason, related_event_id, created_at) VALUES ($1, $2, $3, $4, NOW())',
+            [userId, requiredCredits, 'announcement', eventId]
+        );
+
         // Create communication record
         const commResult = await query(
             `INSERT INTO communications (event_id, type, message, recipient_filter, recipients_count, created_by)
@@ -112,6 +136,30 @@ export const sendThankYouMessages = async (req, res) => {
         if (guests.length === 0) {
             return res.status(400).json({ error: 'No guests have attended this event yet' });
         }
+
+        // Check SMS credits
+        const userResult = await query('SELECT sms_credits FROM users WHERE id = $1', [userId]);
+        const currentCredits = userResult.rows[0]?.sms_credits || 0;
+        const requiredCredits = guests.length;
+
+        if (currentCredits < requiredCredits) {
+            return res.status(403).json({
+                error: 'Insufficient SMS credits',
+                message: `You need ${requiredCredits} credits to send this message, but you only have ${currentCredits}. Please purchase more credits.`,
+                code: 'NO_CREDITS',
+                required: requiredCredits,
+                current: currentCredits
+            });
+        }
+
+        // Deduct credits
+        await query('UPDATE users SET sms_credits = sms_credits - $1 WHERE id = $2', [requiredCredits, userId]);
+
+        // Record usage
+        await query(
+            'INSERT INTO sms_usage (user_id, credits_used, reason, related_event_id, created_at) VALUES ($1, $2, $3, $4, NOW())',
+            [userId, requiredCredits, 'thank_you', eventId]
+        );
 
         // Create communication record
         const thankYouMessage = `Thank you for attending ${event.title}!`;

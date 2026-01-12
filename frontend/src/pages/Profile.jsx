@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, User, Mail, Phone, FileText, Lock, Save, Eye, EyeOff, Moon, Sun, X, Check, LogOut, Shield, Bell } from 'lucide-react';
+import { ArrowLeft, Camera, User, Mail, Phone, FileText, Lock, Save, Eye, EyeOff, Moon, Sun, X, Check, LogOut, Shield, Bell, Star } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Camera as CapCamera } from '@capacitor/camera';
 import { useTheme } from '../context/ThemeContext';
@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import API_URL from '../config/api';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/cropImage';
+import SubscriptionComparisonModal from '../components/SubscriptionComparisonModal';
 
 const Profile = () => {
     const navigate = useNavigate();
@@ -18,6 +19,7 @@ const Profile = () => {
     // UI State
     const [isEditing, setIsEditing] = useState(false);
     const [activeTab, setActiveTab] = useState('details'); // 'details' | 'security' | 'settings'
+    const [showComparisonModal, setShowComparisonModal] = useState(false);
 
     // Initialize loading to false if we already have user data
     const [loading, setLoading] = useState(!user);
@@ -500,6 +502,107 @@ const Profile = () => {
                 </div>
             </div>
 
+
+            {/* Subscription Card */}
+            <div style={{ padding: '0 16px', maxWidth: '600px', margin: '0 auto', marginBottom: '20px' }}>
+                <div style={{
+                    background: 'linear-gradient(135deg, #1f2937, #111827)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px'
+                }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                            <div style={{ fontSize: '13px', color: '#9ca3af', fontWeight: 600, letterSpacing: '0.5px' }}>CURRENT PLAN</div>
+                            <div style={{
+                                fontSize: '20px',
+                                fontWeight: 700,
+                                color: user?.subscription_tier === 'pro' ? '#f59e0b' : '#fff',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}>
+                                {user?.subscription_tier === 'pro' ? 'Pro Plan' : 'Free Plan'}
+                                {user?.subscription_tier === 'pro' && <Star size={18} fill="#f59e0b" stroke="#f59e0b" />}
+                            </div>
+                        </div>
+                        {user?.subscription_tier !== 'pro' && (
+                            <button
+                                onClick={() => navigate('/pro')}
+                                style={{
+                                    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '12px',
+                                    padding: '8px 16px',
+                                    fontWeight: 700,
+                                    fontSize: '14px',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
+                                }}
+                            >
+                                Upgrade
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Free Plan Limits */}
+                    {(!user?.subscription_tier || user?.subscription_tier === 'free') && (
+                        <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#d1d5db', marginBottom: '6px' }}>
+                                <span>Events Created</span>
+                                <span>{hostedCount} / 3</span>
+                            </div>
+                            <div style={{
+                                width: '100%',
+                                height: '6px',
+                                background: 'rgba(255,255,255,0.1)',
+                                borderRadius: '3px',
+                                overflow: 'hidden'
+                            }}>
+                                <div style={{
+                                    width: `${Math.min((hostedCount / 3) * 100, 100)}%`,
+                                    height: '100%',
+                                    background: hostedCount >= 3 ? '#ef4444' : '#6366f1',
+                                    borderRadius: '3px'
+                                }} />
+                            </div>
+                            {hostedCount >= 3 && (
+                                <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '6px' }}>
+                                    Limit reached. Upgrade to create more events.
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Compare Plans Link */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px', marginBottom: '8px' }}>
+                <button
+                    onClick={() => setShowComparisonModal(true)}
+                    style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#6366f1',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textDecoration: 'underline'
+                    }}
+                >
+                    Compare plan features
+                </button>
+            </div>
+
+            <SubscriptionComparisonModal
+                isOpen={showComparisonModal}
+                onClose={() => setShowComparisonModal(false)}
+            />
+
             {/* Content Tabs/Sections */}
             <div style={{ padding: '0 16px', maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
@@ -720,185 +823,189 @@ const Profile = () => {
             </div>
 
             {/* Crop Modal */}
-            {showCropModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    zIndex: 1000,
-                    backgroundColor: 'rgba(0, 0, 0, 0.95)',
-                    display: 'flex',
-                    flexDirection: 'column'
-                }}>
-                    {/* Header with X and Checkmark */}
+            {
+                showCropModal && (
                     <div style={{
-                        padding: '16px',
-                        paddingTop: 'calc(16px + env(safe-area-inset-top))',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        backgroundColor: '#000',
-                        zIndex: 10
-                    }}>
-                        <button
-                            onClick={() => {
-                                setShowCropModal(false);
-                                setImageSrc(null);
-                            }}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                color: 'white',
-                                cursor: 'pointer',
-                                padding: '8px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}
-                        >
-                            <X size={28} />
-                        </button>
-
-                        <h3 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 600 }}>Crop Photo</h3>
-
-                        <button
-                            onClick={handleCropSave}
-                            style={{
-                                background: '#10b981',
-                                border: 'none',
-                                borderRadius: '50%',
-                                width: '44px',
-                                height: '44px',
-                                color: 'white',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)'
-                            }}
-                        >
-                            <Check size={28} strokeWidth={3} />
-                        </button>
-                    </div>
-
-                    {/* Cropper Area with Zoom Overlay */}
-                    <div style={{
-                        position: 'relative',
-                        flex: 1,
-                        backgroundColor: '#000'
-                    }}>
-                        <Cropper
-                            image={imageSrc}
-                            crop={crop}
-                            zoom={zoom}
-                            aspect={1}
-                            cropShape="round"
-                            showGrid={false}
-                            onCropChange={setCrop}
-                            onZoomChange={setZoom}
-                            onCropComplete={onCropComplete}
-                        />
-
-                        {/* Zoom Control Overlay */}
-                        <div style={{
-                            position: 'absolute',
-                            bottom: 'calc(80px + env(safe-area-inset-bottom))',
-                            left: '20px',
-                            right: '20px',
-                            padding: '16px',
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            borderRadius: '12px',
-                            backdropFilter: 'blur(10px)'
-                        }}>
-                            <label style={{
-                                color: 'white',
-                                fontSize: '14px',
-                                marginBottom: '8px',
-                                display: 'block',
-                                fontWeight: 500
-                            }}>
-                                Zoom: {zoom.toFixed(1)}x
-                            </label>
-                            <input
-                                type="range"
-                                min={1}
-                                max={3}
-                                step={0.1}
-                                value={zoom}
-                                onChange={(e) => setZoom(Number(e.target.value))}
-                                style={{
-                                    width: '100%',
-                                    height: '6px',
-                                    accentColor: '#10b981'
-                                }}
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Enlarged Image Modal */}
-            {showEnlargedImage && profile.profilePictureUrl && (
-                <div
-                    onClick={() => setShowEnlargedImage(false)}
-                    style={{
                         position: 'fixed',
                         top: 0,
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        zIndex: 1000,
+                        backgroundColor: 'rgba(0, 0, 0, 0.95)',
                         display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 9999,
-                        padding: '20px',
-                        cursor: 'zoom-out'
-                    }}
-                >
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setShowEnlargedImage(false);
-                        }}
+                        flexDirection: 'column'
+                    }}>
+                        {/* Header with X and Checkmark */}
+                        <div style={{
+                            padding: '16px',
+                            paddingTop: 'calc(16px + env(safe-area-inset-top))',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            backgroundColor: '#000',
+                            zIndex: 10
+                        }}>
+                            <button
+                                onClick={() => {
+                                    setShowCropModal(false);
+                                    setImageSrc(null);
+                                }}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    padding: '8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                            >
+                                <X size={28} />
+                            </button>
+
+                            <h3 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 600 }}>Crop Photo</h3>
+
+                            <button
+                                onClick={handleCropSave}
+                                style={{
+                                    background: '#10b981',
+                                    border: 'none',
+                                    borderRadius: '50%',
+                                    width: '44px',
+                                    height: '44px',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)'
+                                }}
+                            >
+                                <Check size={28} strokeWidth={3} />
+                            </button>
+                        </div>
+
+                        {/* Cropper Area with Zoom Overlay */}
+                        <div style={{
+                            position: 'relative',
+                            flex: 1,
+                            backgroundColor: '#000'
+                        }}>
+                            <Cropper
+                                image={imageSrc}
+                                crop={crop}
+                                zoom={zoom}
+                                aspect={1}
+                                cropShape="round"
+                                showGrid={false}
+                                onCropChange={setCrop}
+                                onZoomChange={setZoom}
+                                onCropComplete={onCropComplete}
+                            />
+
+                            {/* Zoom Control Overlay */}
+                            <div style={{
+                                position: 'absolute',
+                                bottom: 'calc(80px + env(safe-area-inset-bottom))',
+                                left: '20px',
+                                right: '20px',
+                                padding: '16px',
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                borderRadius: '12px',
+                                backdropFilter: 'blur(10px)'
+                            }}>
+                                <label style={{
+                                    color: 'white',
+                                    fontSize: '14px',
+                                    marginBottom: '8px',
+                                    display: 'block',
+                                    fontWeight: 500
+                                }}>
+                                    Zoom: {zoom.toFixed(1)}x
+                                </label>
+                                <input
+                                    type="range"
+                                    min={1}
+                                    max={3}
+                                    step={0.1}
+                                    value={zoom}
+                                    onChange={(e) => setZoom(Number(e.target.value))}
+                                    style={{
+                                        width: '100%',
+                                        height: '6px',
+                                        accentColor: '#10b981'
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Enlarged Image Modal */}
+            {
+                showEnlargedImage && profile.profilePictureUrl && (
+                    <div
+                        onClick={() => setShowEnlargedImage(false)}
                         style={{
-                            position: 'absolute',
-                            top: '20px',
-                            right: '20px',
-                            background: 'rgba(255, 255, 255, 0.2)',
-                            border: 'none',
-                            borderRadius: '50%',
-                            width: '40px',
-                            height: '40px',
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            cursor: 'pointer',
-                            backdropFilter: 'blur(10px)',
-                            transition: 'background 0.2s'
+                            zIndex: 9999,
+                            padding: '20px',
+                            cursor: 'zoom-out'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
                     >
-                        <X size={24} color="white" />
-                    </button>
-                    <img
-                        src={profile.profilePictureUrl}
-                        alt="Profile"
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                            maxWidth: '90%',
-                            maxHeight: '90%',
-                            borderRadius: '12px',
-                            boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-                            cursor: 'default'
-                        }}
-                    />
-                </div>
-            )}
-        </div>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowEnlargedImage(false);
+                            }}
+                            style={{
+                                position: 'absolute',
+                                top: '20px',
+                                right: '20px',
+                                background: 'rgba(255, 255, 255, 0.2)',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: '40px',
+                                height: '40px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                backdropFilter: 'blur(10px)',
+                                transition: 'background 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
+                        >
+                            <X size={24} color="white" />
+                        </button>
+                        <img
+                            src={profile.profilePictureUrl}
+                            alt="Profile"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                                maxWidth: '90%',
+                                maxHeight: '90%',
+                                borderRadius: '12px',
+                                boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+                                cursor: 'default'
+                            }}
+                        />
+                    </div>
+                )
+            }
+        </div >
     );
 };
 

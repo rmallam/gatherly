@@ -6,6 +6,7 @@ import { Plus, Trash2, Calendar, ChevronRight, MapPin, Users, Sparkles, CheckCir
 import confetti from 'canvas-confetti';
 import ThemeToggle from '../components/ThemeToggle';
 import RateAppService from '../services/RateAppService';
+import UpgradeModal from '../components/UpgradeModal';
 import './ManagerDashboard.css';
 
 const ManagerDashboard = () => {
@@ -13,6 +14,8 @@ const ManagerDashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [isCreating, setIsCreating] = useState(false);
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [upgradeTriggerReason, setUpgradeTriggerReason] = useState('');
 
     const checkLimitAndOpen = () => {
         const isFree = !user?.subscription_tier || user?.subscription_tier === 'free';
@@ -20,7 +23,8 @@ const ManagerDashboard = () => {
         const currentCount = user?.event_count !== undefined ? user.event_count : events.length;
 
         if (isFree && currentCount >= 3) {
-            alert('You have reached the limit of 3 events on the Free plan. Please upgrade to Pro to create unlimited events.');
+            setUpgradeTriggerReason('You have reached the limit of 3 events on the Free plan. Please upgrade to Pro to create unlimited events.');
+            setShowUpgradeModal(true);
             return;
         }
         setIsCreating(true);
@@ -67,7 +71,13 @@ const ManagerDashboard = () => {
             }
         } catch (error) {
             console.error('Failed to create event:', error);
-            alert(error.message || 'Failed to create event. Please try again.');
+            if (error.message.includes('limit reached') || error.message.includes('Limit reached')) {
+                setUpgradeTriggerReason(error.message);
+                setShowUpgradeModal(true);
+                setIsCreating(false);
+            } else {
+                alert(error.message || 'Failed to create event. Please try again.');
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -478,6 +488,12 @@ const ManagerDashboard = () => {
             >
                 <Plus size={24} strokeWidth={2.5} />
             </button>
+
+            <UpgradeModal
+                isOpen={showUpgradeModal}
+                onClose={() => setShowUpgradeModal(false)}
+                triggerReason={upgradeTriggerReason}
+            />
         </>
     );
 };

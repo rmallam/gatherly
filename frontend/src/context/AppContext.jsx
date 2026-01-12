@@ -225,14 +225,15 @@ export const AppProvider = ({ children }) => {
             });
 
             if (!res.ok) {
-                console.error('Failed to add guest to server:', res.status);
+                const errorData = await res.json().catch(() => ({}));
+                console.error('Failed to add guest to server:', res.status, errorData);
                 setEvents(prev => prev.map(event => {
                     if (event.id === eventId) {
                         return { ...event, guests: event.guests.filter(g => g.id !== newGuest.id) };
                     }
                     return event;
                 }));
-                throw new Error('Failed to add guest');
+                throw new Error(errorData.message || errorData.error || 'Failed to add guest');
             }
 
             const savedGuest = await res.json();
@@ -399,7 +400,8 @@ export const AppProvider = ({ children }) => {
             });
 
             if (!res.ok) {
-                console.error('Failed to add guests to server:', res.status);
+                const errorData = await res.json().catch(() => ({}));
+                console.error('Failed to add guests to server:', res.status, errorData);
                 setEvents(prev => prev.map(event => {
                     if (event.id === eventId) {
                         const guestIds = newGuests.map(g => g.id);
@@ -407,7 +409,7 @@ export const AppProvider = ({ children }) => {
                     }
                     return event;
                 }));
-                throw new Error('Failed to add guests');
+                throw new Error(errorData.message || errorData.error || 'Failed to add guests');
             }
 
             const data = await res.json();

@@ -1,0 +1,189 @@
+.upgrade-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.upgrade-modal-content {
+    background: linear-gradient(145deg, #1e1e24 0%, #2d2d35 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border-radius: 24px;
+    width: 100%;
+    max-width: 400px;
+    padding: 32px 24px;
+    position: relative;
+    text-align: center;
+    animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.upgrade-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.upgrade-modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.upgrade-modal-header {
+    margin-bottom: 24px;
+}
+
+.upgrade-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.upgrade-modal-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 8px 0;
+}
+
+.upgrade-trigger-msg {
+    color: #f87171;
+    font-size: 14px;
+    font-weight: 500;
+    background: rgba(239, 68, 68, 0.1);
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: inline-block;
+}
+
+.upgrade-benefits {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 32px;
+    text-align: left;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-primary);
+    font-size: 15px;
+}
+
+.benefit-icon {
+    width: 24px;
+    height: 24px;
+    background: #1cc29f;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.upgrade-pricing {
+    margin-bottom: 24px;
+}
+
+.price-tag {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    line-height: 1;
+    color: white;
+}
+
+.currency {
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.amount {
+    font-size: 48px;
+    font-weight: 800;
+}
+
+.period {
+    font-size: 16px;
+    color: var(--text-secondary);
+    align-self: flex-end;
+    margin-bottom: 8px;
+    margin-left: 4px;
+}
+
+.cancel-anytime {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-top: 8px;
+}
+
+.upgrade-cta-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #1cc29f 0%, #0f766e 100%);
+    border: none;
+    border-radius: 16px;
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 12px rgba(28, 194, 159, 0.3);
+}
+
+.upgrade-cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(28, 194, 159, 0.4);
+}
+
+.upgrade-cta-btn:active {
+    transform: translateY(1px);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleUp {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}

@@ -1,0 +1,177 @@
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Check, X, Star, Shield, Zap, Users } from 'lucide-react';
+import PurchaseService from '../services/PurchaseService';
+import SubscriptionComparisonModal from '../components/SubscriptionComparisonModal';
+import './PaywallPage.css';
+
+const PaywallPage = () => {
+    const navigate = useNavigate();
+    const [offerings, setOfferings] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [selectedPackage, setSelectedPackage] = useState(null);
+    const [processing, setProcessing] = useState(false);
+    const [showComparisonModal, setShowComparisonModal] = useState(false);
+
+    useEffect(() => {
+        const loadOfferings = async () => {
+            // In non-native dev, we might not get offerings. 
+            // We can mock data for the UI if null.
+            const current = await PurchaseService.getOfferings();
+            setOfferings(current);
+            setLoading(false);
+        };
+        loadOfferings();
+    }, []);
+
+    const handlePurchase = async () => {
+        if (!selectedPackage && !offerings) return;
+
+        setProcessing(true);
+        try {
+            // If real offering exists, use it
+            if (selectedPackage) {
+                await PurchaseService.purchasePackage(selectedPackage);
+            } else {
+                // Simulation for web dev
+                await new Promise(r => setTimeout(r, 1500));
+                alert('Simulation: Purchase successful!');
+            }
+            navigate('/manager'); // Or success page
+        } catch (error) {
+            if (error.message !== 'User cancelled') {
+                alert('Purchase failed: ' + error.message);
+            }
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    const handleRestore = async () => {
+        setProcessing(true);
+        try {
+            await PurchaseService.restorePurchases();
+            alert('Purchases restored successfully!');
+            navigate('/manager');
+        } catch (error) {
+            alert('Failed to restore: ' + error.message);
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    // Fallback/Mock Data if no native offerings found (for web dev)
+    const displayPackages = offerings?.availablePackages || [
+        {
+            identifier: 'pro_monthly',
+            product: {
+                title: 'Pro Monthly',
+                priceString: '$4.99',
+                description: 'Unlock all features'
+            }
+        },
+        {
+            identifier: 'pro_yearly',
+            product: {
+                title: 'Pro Yearly',
+                priceString: '$49.99',
+                description: 'Save 20%'
+            }
+        }
+    ];
+
+    return (
+        <div className="paywall-container">
+            <button className="paywall-close" onClick={() => navigate(-1)}>
+                <X size={24} />
+            </button>
+
+            <div className="paywall-header">
+                <div className="pro-badge">PRO</div>
+                <h1>Upgrade to HostEze Pro</h1>
+                <p>Remove limits and unleash the full power of your events.</p>
+            </div>
+
+            <div className="paywall-benefits">
+                <div className="benefit-row">
+                    <div className="benefit-icon-box"><Star size={20} /></div>
+                    <div className="benefit-text">
+                        <h3>Unlimited Events</h3>
+                        <p>Create as many events as you need.</p>
+                    </div>
+                </div>
+                <div className="benefit-row">
+                    <div className="benefit-icon-box"><Users size={20} /></div>
+                    <div className="benefit-text">
+                        <h3>Unlimited Guests</h3>
+                        <p>No more 50-guest limit per event.</p>
+                    </div>
+                </div>
+                <div className="benefit-row">
+                    <div className="benefit-icon-box"><Shield size={20} /></div>
+                    <div className="benefit-text">
+                        <h3>Ad-Free Experience</h3>
+                        <p>Focus on what matters without distractions.</p>
+                    </div>
+                </div>
+                <div className="benefit-row">
+                    <div className="benefit-icon-box"><Zap size={20} /></div>
+                    <div className="benefit-text">
+                        <h3>Priority Support</h3>
+                        <p>Get help when you need it most.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="paywall-packages">
+                {loading ? (
+                    <div className="loading-spinner">Loading packages...</div>
+                ) : (
+                    displayPackages.map((pkg, index) => (
+                        <div
+                            key={index}
+                            className={`package-card ${selectedPackage === pkg ? 'selected' : ''}`}
+                            onClick={() => setSelectedPackage(pkg)}
+                        >
+                            <div className="package-info">
+                                <span className="package-title">{pkg.product.title}</span>
+                                {pkg.identifier.includes('yearly') && <span className="save-badge">SAVE 20%</span>}
+                            </div>
+                            <div className="package-price">{pkg.product.priceString}</div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            <button
+                className="paywall-cta"
+                onClick={handlePurchase}
+                disabled={processing || (!selectedPackage && !offerings && displayPackages.length === 0)}
+            >
+                {processing ? 'Processing...' : 'Start Pro Access'}
+            </button>
+
+            <button
+                className="comparison-link-btn"
+                onClick={() => setShowComparisonModal(true)}
+            >
+                View detailed plan comparison
+            </button>
+
+            <div className="paywall-footer">
+                <button onClick={handleRestore}>Restore Purchases</button>
+                <span>•</span>
+                <button>Terms of Service</button>
+                <span>•</span>
+                <button>Privacy Policy</button>
+            </div>
+
+            <SubscriptionComparisonModal
+                isOpen={showComparisonModal}
+                onClose={() => setShowComparisonModal(false)}
+            />
+        </div>
+    );
+};
+
+export default PaywallPage;

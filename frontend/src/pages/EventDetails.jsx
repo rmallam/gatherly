@@ -5,6 +5,7 @@ import QRGenerator from '../components/QRGenerator';
 import BulkImport from '../components/BulkImport';
 import ContactPicker from '../components/ContactPicker';
 import ContactSelector from '../components/ContactSelector';
+import UpgradeModal from '../components/UpgradeModal';
 import { exportAllGuests, exportCheckedInGuests } from '../utils/csvExport';
 import { UserPlus, QrCode, Search, CheckCircle2, ArrowLeft, Users, Upload, Smartphone, Download, Share2, Plus, X, MessageCircle, Trash2 } from 'lucide-react';
 
@@ -27,6 +28,8 @@ const EventDetails = () => {
     const [addingGuest, setAddingGuest] = useState(false);
     const [deleteConfirmGuest, setDeleteConfirmGuest] = useState(null);
     const [showDeleteEventConfirm, setShowDeleteEventConfirm] = useState(false);
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [upgradeTriggerReason, setUpgradeTriggerReason] = useState('');
 
     if (!event) {
         return (
@@ -69,10 +72,17 @@ const EventDetails = () => {
 
             // Clear form and close modal on success
             setNewGuest({ name: '', phone: '', email: '' });
+            setNewGuest({ name: '', phone: '', email: '' });
             setShowAddGuestModal(false);
         } catch (error) {
             console.error('Failed to add guest:', error);
-            alert('Failed to add guest. Please try again.');
+
+            if (error.message.includes('limit reached') || error.message.includes('Limit reached') || error.message.includes('upgrade')) {
+                setUpgradeTriggerReason(error.message);
+                setShowUpgradeModal(true);
+            } else {
+                alert(error.message || 'Failed to add guest. Please try again.');
+            }
         } finally {
             setAddingGuest(false);
         }
@@ -226,6 +236,29 @@ const EventDetails = () => {
         } catch (err) {
             console.error('Error deleting event:', err);
             alert('Failed to delete event. Please try again.');
+        }
+    };
+
+    const handleExportGuests = async () => {
+        // Feature Gating Check
+        if (!user?.subscription_tier || user?.subscription_tier === 'free') {
+            setShowAddGuestModal(false); // Close the sub-modal
+            setLimitError({
+                message: 'Exporting guest lists is a Pro feature. Upgrade to export your data.',
+                type: 'export_locked'
+            });
+            setShowUpgradeModal(true);
+            return;
+        }
+
+        try {
+            const { downloadCSV } = await import('../utils/csvExport');
+            downloadCSV(event.guests, `${event.title.replace(/\s+/g, '_')}_guests.csv`);
+            setShowAddGuestModal(false);
+            alert('Guest list exported successfully!');
+        } catch (error) {
+            console.error('Export failed:', error);
+            alert('Failed to export. Please try again.');
         }
     };
 
@@ -585,6 +618,17 @@ const EventDetails = () => {
                                     style={{ width: '100%', justifyContent: 'center', background: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#e5e7eb', border: 'none' }}
                                 >
                                     <Smartphone size={16} /> Import from Phone
+                                </button>
+
+                                <div style={{ height: '1px', background: 'rgba(255, 255, 255, 0.1)', margin: '0.5rem 0' }} />
+
+                                <button
+                                    type="button"
+                                    onClick={handleExportGuests}
+                                    className="btn btn-secondary"
+                                    style={{ width: '100%', justifyContent: 'center', background: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#ffd700', border: 'none' }}
+                                >
+                                    <Download size={16} /> Export Guest List (Pro)
                                 </button>
                             </div>
                         </div>
