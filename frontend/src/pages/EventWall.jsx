@@ -48,7 +48,14 @@ const EventWall = () => {
             if (!joinRes.ok) {
                 const errorText = await joinRes.text();
                 console.error('Join failed:', joinRes.status, errorText.substring(0, 200));
-                throw new Error(`Failed to join event wall: ${joinRes.status}`);
+                // Don't throw here, trying to load read-only view might still be possible
+            } else {
+                const joinData = await joinRes.json();
+                console.log('Join response:', joinData);
+                if (joinData.participant && joinData.participant.id) {
+                    console.log('Setting current participant ID from join:', joinData.participant.id);
+                    setCurrentParticipantId(joinData.participant.id);
+                }
             }
 
             // Load posts
@@ -80,10 +87,13 @@ const EventWall = () => {
             const participantsList = participantsData.participants || [];
             setParticipants(participantsList);
 
-            // Find and store current user's participant ID
-            const currentParticipant = participantsList.find(p => p.is_current_user);
-            if (currentParticipant) {
-                setCurrentParticipantId(currentParticipant.id);
+            // Fallback: Find current user in list if not set via join
+            if (!currentParticipantId) {
+                const currentParticipant = participantsList.find(p => p.is_current_user);
+                if (currentParticipant) {
+                    console.log('Found participant in list:', currentParticipant.id);
+                    setCurrentParticipantId(currentParticipant.id);
+                }
             }
 
             setLoading(false);
