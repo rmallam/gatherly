@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 import { MessageSquare, Heart, Send, ArrowLeft, Plus, Users, Image as ImageIcon, X, Trash2 } from 'lucide-react';
 import API_URL from '../config/api';
 import { Camera } from '@capacitor/camera';
@@ -9,7 +10,9 @@ import confetti from 'canvas-confetti';
 const EventWall = () => {
     const { eventId } = useParams();
     const navigate = useNavigate();
-    const [event, setEvent] = useState(null);
+    const { getEvent } = useApp(); // Assume useApp is imported
+    const contextEvent = getEvent(eventId);
+    const [event, setEvent] = useState(contextEvent || null);
     const [posts, setPosts] = useState([]);
     const [participants, setParticipants] = useState([]);
     const [currentParticipantId, setCurrentParticipantId] = useState(null);
@@ -24,6 +27,13 @@ const EventWall = () => {
         return () => confetti.reset();
     }, []);
 
+    // Update local state if context updates (e.g. after edit)
+    useEffect(() => {
+        if (contextEvent) {
+            setEvent(contextEvent);
+        }
+    }, [contextEvent]);
+
     useEffect(() => {
         loadEventWall();
     }, [eventId]);
@@ -32,13 +42,15 @@ const EventWall = () => {
         try {
             const token = localStorage.getItem('token');
 
-            // Fetch event details
-            const eventRes = await fetch(`${API_URL}/wall/${eventId}/details`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (eventRes.ok) {
-                const eventData = await eventRes.json();
-                setEvent(eventData);
+            // Fetch event details (only if not already loaded from context, or to refresh)
+            if (!event) {
+                const eventRes = await fetch(`${API_URL}/wall/${eventId}/details`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (eventRes.ok) {
+                    const eventData = await eventRes.json();
+                    setEvent(eventData);
+                }
             }
 
             // Auto-join event wall first
@@ -176,10 +188,16 @@ const EventWall = () => {
                     zIndex: 2000
                 });
 
+                if (responseData.post) {
+                    setPosts(prev => [responseData.post, ...prev]);
+                } else {
+                    // Fallback to reload if no post returned
+                    await loadEventWall();
+                }
+
                 setNewPostContent('');
                 setSelectedImage(null);
                 setShowNewPost(false);
-                await loadEventWall();
             } else {
                 alert(`Failed to create post: ${responseData.error || 'Unknown error'}`);
             }
