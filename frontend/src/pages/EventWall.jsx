@@ -6,6 +6,7 @@ import API_URL from '../config/api';
 import { Camera } from '@capacitor/camera';
 import Header from '../components/Header';
 import confetti from 'canvas-confetti';
+import './EventWall.css';
 
 const EventWall = () => {
     const { eventId } = useParams();
@@ -284,132 +285,49 @@ const EventWall = () => {
 
     if (loading) {
         return (
-            <div style={{
-                minHeight: '100vh',
-                background: 'linear-gradient(to bottom, #0a0b1e, #101127)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-            }}>
-                <div style={{ color: '#a5b4fc', fontSize: '18px', fontWeight: 600 }}>
-                    Loading event wall...
-                </div>
+            <div className="wall-loading">
+                Displaying event wall...
             </div>
         );
     }
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            background: '#fff'
-        }}>
-
+        <div className="event-wall-container">
             {/* Event Header */}
-            <div style={{
-                background: '#fff',
-                padding: '20px 16px',
-                borderBottom: '1px solid #e5e7eb',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
-                    <button
-                        onClick={() => navigate(-1)}
-                        style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '50%',
-                            background: 'rgba(255,255,255,0.05)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            color: '#a5b4fc'
-                        }}
-                    >
-                        <ArrowLeft size={20} />
-                    </button>
-                    <div style={{ flex: 1 }}>
-                        <h1 style={{
-                            fontSize: '20px',
-                            fontWeight: '600',
-                            color: '#1f2937',
-                            margin: 0
-                        }}>
-                            {event?.title || 'Event Wall'}
-                        </h1>
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            marginTop: '4px'
-                        }}>
-                            <Users size={14} color="#6b7280" />
-                            <span style={{ color: '#6b7280', fontSize: '12px', fontWeight: '500' }}>
-                                {participants.length} participants
-                            </span>
-                        </div>
+            <div className="wall-header">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="wall-back-btn"
+                >
+                    <ArrowLeft size={20} />
+                </button>
+                <div className="wall-title-box">
+                    <h1 className="wall-title">
+                        {event?.title || 'Event Wall'}
+                    </h1>
+                    <div className="wall-subtitle">
+                        <Users size={12} color="#94a3b8" />
+                        <span>{participants.length} participants</span>
                     </div>
-                    <button
-                        onClick={() => setShowNewPost(true)}
-                        style={{
-                            padding: '10px 16px',
-                            borderRadius: '8px',
-                            background: '#6366f1',
-                            border: 'none',
-                            color: '#ffffff',
-                            fontWeight: '600',
-                            fontSize: '14px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px'
-                        }}
-                    >
-                        <Plus size={16} strokeWidth={3} /> Post
-                    </button>
                 </div>
+                <button
+                    onClick={() => setShowNewPost(true)}
+                    className="post-btn"
+                >
+                    <Plus size={16} strokeWidth={3} /> Post
+                </button>
             </div>
 
             {/* New Post Modal */}
             {
                 showNewPost && (
-                    <div style={{
-                        position: 'fixed',
-                        inset: 0,
-                        background: 'rgba(0,0,0,0.8)',
-                        zIndex: 1000,
-                        display: 'flex',
-                        alignItems: 'flex-end',
-                        justifyContent: 'center'
-                    }}>
-                        <div style={{
-                            width: '100%',
-                            maxWidth: '600px',
-                            background: '#fff',
-                            borderTopLeftRadius: '16px',
-                            borderTopRightRadius: '16px',
-                            padding: '24px',
-                            paddingBottom: 'calc(24px + 60px + env(safe-area-inset-bottom))',
-                            boxShadow: '0 -4px 20px rgba(0,0,0,0.1)',
-                            maxHeight: '80vh',
-                            overflowY: 'auto'
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                                <h3 style={{ color: '#1f2937', fontSize: '18px', fontWeight: '600', margin: 0 }}>
-                                    New Post
-                                </h3>
+                    <div className="modal-overlay" onClick={() => setShowNewPost(false)}>
+                        <div className="modal-content" onClick={e => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <h3 className="modal-title">New Post</h3>
                                 <button
                                     onClick={() => setShowNewPost(false)}
-                                    style={{
-                                        background: '#f3f4f6',
-                                        border: '1px solid #e5e7eb',
-                                        borderRadius: '8px',
-                                        padding: '8px 16px',
-                                        color: '#6b7280',
-                                        cursor: 'pointer',
-                                        fontWeight: '500'
-                                    }}
+                                    className="modal-cancel-btn"
                                 >
                                     Cancel
                                 </button>
@@ -418,56 +336,23 @@ const EventWall = () => {
                             {/* Image Picker */}
                             <button
                                 onClick={pickImage}
-                                style={{
-                                    width: '100%',
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    background: '#f3f4f6',
-                                    border: '1px solid #e5e7eb',
-                                    color: '#6b7280',
-                                    fontWeight: '500',
-                                    fontSize: '14px',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '8px',
-                                    marginBottom: '12px'
-                                }}
+                                className="image-picker-btn"
                             >
-                                <ImageIcon size={18} /> Add Photo
+                                <ImageIcon size={20} />
+                                {selectedImage ? 'Change Photo' : 'Add Photo'}
                             </button>
 
                             {/* Image Preview */}
                             {selectedImage && (
-                                <div style={{ position: 'relative', marginBottom: '12px' }}>
+                                <div className="image-preview-container">
                                     <img
                                         src={selectedImage}
-                                        style={{
-                                            width: '100%',
-                                            maxHeight: '200px',
-                                            objectFit: 'cover',
-                                            borderRadius: '8px'
-                                        }}
+                                        className="image-preview"
                                         alt="Selected"
                                     />
                                     <button
                                         onClick={() => setSelectedImage(null)}
-                                        style={{
-                                            position: 'absolute',
-                                            top: '8px',
-                                            right: '8px',
-                                            background: 'rgba(0,0,0,0.6)',
-                                            border: 'none',
-                                            borderRadius: '50%',
-                                            width: '32px',
-                                            height: '32px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            cursor: 'pointer',
-                                            color: '#fff'
-                                        }}
+                                        className="remove-image-btn"
                                     >
                                         <X size={18} />
                                     </button>
@@ -477,45 +362,23 @@ const EventWall = () => {
                             <textarea
                                 value={newPostContent}
                                 onChange={(e) => setNewPostContent(e.target.value)}
-                                placeholder="What's on your mind?"
-                                style={{
-                                    width: '100%',
-                                    minHeight: '120px',
-                                    padding: '16px',
-                                    borderRadius: '8px',
-                                    background: '#fff',
-                                    border: '1px solid #e5e7eb',
-                                    color: '#1f2937',
-                                    fontSize: '15px',
-                                    resize: 'vertical',
-                                    marginBottom: '16px',
-                                    fontFamily: 'inherit'
-                                }}
+                                placeholder="Share a memory, wish, or fun fact..."
+                                className="post-textarea"
                             />
+
                             <button
                                 onClick={handleCreatePost}
-                                disabled={!newPostContent.trim() || isSubmitting}
-                                style={{
-                                    width: '100%',
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    background: (newPostContent.trim() && !isSubmitting)
-                                        ? '#6366f1'
-                                        : '#f3f4f6',
-                                    border: 'none',
-                                    color: (newPostContent.trim() && !isSubmitting) ? '#ffffff' : '#9ca3af',
-                                    fontWeight: '600',
-                                    fontSize: '15px',
-                                    cursor: (newPostContent.trim() && !isSubmitting) ? 'pointer' : 'not-allowed',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '8px',
-                                    opacity: isSubmitting ? 0.6 : 1
-                                }}
+                                disabled={(!newPostContent.trim() && !selectedImage) || isSubmitting}
+                                className="submit-post-btn"
                             >
-                                <Send size={18} strokeWidth={2.5} />
-                                {isSubmitting ? 'Posting...' : 'Post to Wall'}
+                                {isSubmitting ? (
+                                    'Posting...'
+                                ) : (
+                                    <>
+                                        <Send size={18} strokeWidth={2.5} />
+                                        Post to Wall
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
@@ -523,122 +386,51 @@ const EventWall = () => {
             }
 
             {/* Posts Feed */}
-            <div style={{
-                padding: '16px',
-                paddingBottom: 'max(80px, env(safe-area-inset-bottom))'
-            }}>
+            <div className="wall-feed">
                 {posts.length === 0 ? (
-                    <div style={{
-                        textAlign: 'center',
-                        padding: '60px 20px',
-                        background: '#f9fafb',
-                        borderRadius: '12px',
-                        border: '1px solid #e5e7eb'
-                    }}>
-                        <MessageSquare size={48} color="#6366f1" style={{ marginBottom: '16px' }} />
-                        <h3 style={{ color: '#1f2937', fontSize: '18px', fontWeight: '600', margin: '0 0 8px 0' }}>
-                            No posts yet
-                        </h3>
-                        <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>
-                            Be the first to share something!
+                    <div className="empty-wall-state">
+                        <MessageSquare size={48} color="#6366f1" style={{ opacity: 0.5 }} />
+                        <h3 className="empty-wall-title">No posts yet</h3>
+                        <p className="empty-wall-desc">
+                            Be the first to share a moment!
                         </p>
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div className="posts-list">
                         {posts.map((post) => (
-                            <div
-                                key={post.id}
-                                style={{
-                                    background: '#fff',
-                                    borderRadius: '12px',
-                                    padding: '20px',
-                                    marginBottom: '12px',
-                                    border: '1px solid #e5e7eb',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                                    position: 'relative',
-                                    overflow: 'hidden'
-                                }}
-                            >
+                            <div key={post.id} className="post-card">
                                 {post.is_pinned && (
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: '12px',
-                                        right: '12px',
-                                        background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-                                        color: '#000',
-                                        padding: '4px 12px',
-                                        borderRadius: '12px',
-                                        fontSize: '10px',
-                                        fontWeight: 900,
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.5px'
-                                    }}>
+                                    <div className="pinned-badge">
                                         📌 Pinned
                                     </div>
                                 )}
 
                                 {/* Author */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                                <div className="post-header">
                                     {post.author_profile_picture ? (
                                         <img
                                             src={post.author_profile_picture}
                                             alt={post.author_name}
-                                            style={{
-                                                width: '40px',
-                                                height: '40px',
-                                                borderRadius: '50%',
-                                                objectFit: 'cover',
-                                                border: '2px solid #e5e7eb'
-                                            }}
+                                            className="author-avatar"
                                         />
                                     ) : (
-                                        <div style={{
-                                            width: '40px',
-                                            height: '40px',
-                                            borderRadius: '50%',
-                                            background: 'linear-gradient(135deg, #6366f1, #a855f7)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            color: '#ffffff',
-                                            fontWeight: 900,
-                                            fontSize: '16px'
-                                        }}>
+                                        <div className="author-avatar-placeholder">
                                             {post.author_name?.charAt(0) || '?'}
                                         </div>
                                     )}
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ color: '#1f2937', fontWeight: '600', fontSize: '15px' }}>
+                                    <div className="post-info">
+                                        <div className="author-name">
                                             {post.author_name}
                                         </div>
-                                        <div style={{ color: '#6b7280', fontSize: '12px' }}>
+                                        <div className="post-date">
                                             {new Date(post.created_at).toLocaleDateString()}
                                         </div>
                                     </div>
-                                    {/* Delete Button - only for event owner or post author */}
+                                    {/* Delete Button */}
                                     {(currentUserId === event?.user_id || currentUserId === post.author_user_id) && (
                                         <button
                                             onClick={() => handleDeletePost(post.id)}
-                                            style={{
-                                                padding: '8px',
-                                                borderRadius: '8px',
-                                                background: 'transparent',
-                                                border: '1px solid #e5e7eb',
-                                                color: '#ef4444',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                transition: 'all 0.2s'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.background = '#fee2e2';
-                                                e.currentTarget.style.borderColor = '#ef4444';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.background = 'transparent';
-                                                e.currentTarget.style.borderColor = '#e5e7eb';
-                                            }}
+                                            className="delete-post-btn"
                                             title="Delete post"
                                         >
                                             <Trash2 size={16} />
@@ -647,57 +439,34 @@ const EventWall = () => {
                                 </div>
 
                                 {/* Content */}
-                                <p style={{
-                                    color: '#1f2937',
-                                    fontSize: '15px',
-                                    lineHeight: '1.6',
-                                    margin: '0 0 16px 0',
-                                    whiteSpace: 'pre-wrap'
-                                }}>
-                                    {post.content}
-                                </p>
+                                {post.content && (
+                                    <p className="post-content">
+                                        {post.content}
+                                    </p>
+                                )}
 
                                 {/* Post Image */}
                                 {post.photo_url && (
                                     <img
                                         src={post.photo_url}
-                                        style={{
-                                            width: '100%',
-                                            maxHeight: '400px',
-                                            objectFit: 'cover',
-                                            borderRadius: '8px',
-                                            marginTop: '12px',
-                                            cursor: 'pointer'
-                                        }}
+                                        className="post-image"
                                         onClick={() => window.open(post.photo_url, '_blank')}
-                                        alt="Post image"
+                                        alt="Post content"
                                     />
                                 )}
 
                                 {/* Actions */}
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '24px',
-                                    paddingTop: '12px',
-                                    borderTop: '1px solid #e5e7eb'
-                                }}>
+                                <div className="post-actions">
                                     <button
                                         onClick={() => handleLike(post.id)}
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            background: 'none',
-                                            border: 'none',
-                                            color: post.user_has_liked ? '#f87171' : '#6b7280',
-                                            cursor: 'pointer',
-                                            fontSize: '14px',
-                                            fontWeight: 600,
-                                            transition: 'color 0.2s'
-                                        }}
+                                        className={`action-btn ${post.user_has_liked ? 'liked' : ''}`}
                                     >
-                                        <Heart size={18} fill={post.user_has_liked ? '#f87171' : 'none'} /> {post.like_count || 0}
+                                        <Heart
+                                            size={20}
+                                            fill={post.user_has_liked ? '#f87171' : 'none'}
+                                            strokeWidth={post.user_has_liked ? 0 : 2}
+                                        />
+                                        {post.like_count || 0}
                                     </button>
                                 </div>
                             </div>
@@ -705,7 +474,7 @@ const EventWall = () => {
                     </div>
                 )}
             </div>
-        </div >
+        </div>
     );
 };
 
