@@ -13,6 +13,7 @@ const EventWall = () => {
     const [posts, setPosts] = useState([]);
     const [participants, setParticipants] = useState([]);
     const [currentParticipantId, setCurrentParticipantId] = useState(null);
+    const [currentUserId, setCurrentUserId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showNewPost, setShowNewPost] = useState(false);
     const [newPostContent, setNewPostContent] = useState('');
