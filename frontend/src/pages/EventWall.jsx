@@ -9,6 +9,7 @@ import confetti from 'canvas-confetti';
 const EventWall = () => {
     const { eventId } = useParams();
     const navigate = useNavigate();
+    const [event, setEvent] = useState(null);
     const [posts, setPosts] = useState([]);
     const [participants, setParticipants] = useState([]);
     const [currentParticipantId, setCurrentParticipantId] = useState(null);
