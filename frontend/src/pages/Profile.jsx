@@ -350,11 +350,6 @@ const Profile = () => {
                         </div>
                     </div>
 
-                    <div className="credits-row">
-                        <span className="credits-label">SMS Credits Balance</span>
-                        <span className="credits-value">{user?.sms_credits || 0}</span>
-                    </div>
-
                     {user?.subscription_tier === 'pro' ? (
                         <button
                             className="action-btn btn-glass"
