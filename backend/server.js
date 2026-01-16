@@ -1757,11 +1757,11 @@ app.post('/api/events/:eventId/guests/:guestId/checkin', authMiddleware, async (
             return res.status(403).json({ error: 'Unauthorized' });
         }
 
-        // Update guest check-in status
+        // Update guest check-in status with party size
         const result = await query(
             `UPDATE guests 
              SET attended = true, 
-                 attended_count = COALESCE(attended_count, 0) + $1,
+                 actual_party_size = $1,
                  check_in_time = COALESCE(check_in_time, NOW())
              WHERE id = $2 AND event_id = $3
              RETURNING *`,
@@ -1855,18 +1855,19 @@ app.post('/api/public/events/:eventId/rsvp', async (req, res) => {
                  SET name = COALESCE($1, name), 
                      email = COALESCE($2, email), 
                      phone = COALESCE($3, phone),
-                     rsvp = $4
-                 WHERE id = $5 AND event_id = $6
+                     rsvp = $4,
+                     expected_party_size = COALESCE($5, expected_party_size)
+                 WHERE id = $6 AND event_id = $7
                  RETURNING *`,
-                [name, email, phone, rsvpValue, existingGuest.id, eventId]
+                [name, email, phone, rsvpValue, plusOnes || 1, existingGuest.id, eventId]
             );
             guest = updateResult.rows[0];
         } else {
             // Create new guest
             const guestId = uuidv4();
             const insertResult = await query(
-                'INSERT INTO guests (id, event_id, name, email, phone, rsvp) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-                [guestId, eventId, name, email || null, phone || null, rsvpValue]
+                'INSERT INTO guests (id, event_id, name, email, phone, rsvp, expected_party_size) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+                [guestId, eventId, name, email || null, phone || null, rsvpValue, plusOnes || 1]
             );
             guest = insertResult.rows[0];
         }
