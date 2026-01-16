@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import QRGenerator from '../components/QRGenerator';
-import AttendanceStatsWidget from '../components/AttendanceStatsWidget';
 import BulkImport from '../components/BulkImport';
 import ContactPicker from '../components/ContactPicker';
 import ContactSelector from '../components/ContactSelector';
@@ -385,11 +384,6 @@ const EventDetails = () => {
                     />
                 </div>
             </div>
-
-            {/* Attendance Stats */}
-            {event.guests && event.guests.length > 0 && (
-                <AttendanceStatsWidget guests={event.guests} />
-            )}
 
             {/* Bulk Actions Bar */}
             {filteredGuests.length > 0 && (

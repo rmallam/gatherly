@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, Users, CheckCircle, X, DollarSign, Clock } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import AttendanceStatsWidget from '../AttendanceStatsWidget';
 import '../../pages/EventTabs.css';
 
 const OverviewTab = ({ event, onTabChange }) => {
@@ -303,6 +304,11 @@ const OverviewTab = ({ event, onTabChange }) => {
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Budget</span>
                 </div>
             </div>
+
+            {/* Attendance Analytics */}
+            {event.guests && event.guests.length > 0 && (
+                <AttendanceStatsWidget guests={event.guests} />
+            )}
 
             {/* At a Glance Stats */}
             <h3 className="section-title">At a Glance</h3>
