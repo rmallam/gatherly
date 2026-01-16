@@ -2591,6 +2591,22 @@ app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, 
     }
 });
 
+// === SERVE FRONTEND (for web-based invitation links) ===
+const path = require('path');
+const frontendPath = path.join(__dirname, '../frontend/dist');
+
+// Serve static files from React build
+app.use(express.static(frontendPath));
+
+// SPA fallback - serve index.html for all non-API routes
+app.get('*', (req, res) => {
+    // Don't serve index.html for API routes
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    res.sendFile(path.join(frontendPath, 'index.html'));
+});
+
 // Initialize database and start server
 const PORT = process.env.PORT || 3001;
 
