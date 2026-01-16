@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { query } from '../db/connection.js';
 import { sendSMS } from '../services/reminderService.js';
+import { checkSMSQuota } from '../services/smsTrackingService.js';
 
 // Message templates
 const templates = {
@@ -56,29 +57,21 @@ export const sendAnnouncement = async (req, res) => {
             return res.status(400).json({ error: 'No guests match the selected filter' });
         }
 
-        // Check SMS credits
-        const userResult = await query('SELECT sms_credits FROM users WHERE id = $1', [userId]);
-        const currentCredits = userResult.rows[0]?.sms_credits || 0;
-        const requiredCredits = guests.length;
+        // Check SMS quota
+        const quota = await checkSMSQuota(userId);
+        const requiredSMS = guests.filter(g => g.phone).length;
 
-        if (currentCredits < requiredCredits) {
+        if (!quota.allowed || quota.remaining < requiredSMS) {
             return res.status(403).json({
-                error: 'Insufficient SMS credits',
-                message: `You need ${requiredCredits} credits to send this message, but you only have ${currentCredits}. Please purchase more credits.`,
-                code: 'NO_CREDITS',
-                required: requiredCredits,
-                current: currentCredits
+                error: 'SMS limit reached',
+                message: `You need ${requiredSMS} SMS to send this announcement, but you only have ${quota.remaining} remaining. Upgrade your plan to send more messages.`,
+                code: 'SMS_LIMIT_REACHED',
+                required: requiredSMS,
+                remaining: quota.remaining,
+                limit: quota.limit,
+                tier: quota.tier
             });
         }
-
-        // Deduct credits
-        await query('UPDATE users SET sms_credits = sms_credits - $1 WHERE id = $2', [requiredCredits, userId]);
-
-        // Record usage in history (optional but good for tracking)
-        await query(
-            'INSERT INTO sms_usage (user_id, credits_used, reason, related_event_id, created_at) VALUES ($1, $2, $3, $4, NOW())',
-            [userId, requiredCredits, 'announcement', eventId]
-        );
 
         // Create communication record
         const commResult = await query(
@@ -137,29 +130,21 @@ export const sendThankYouMessages = async (req, res) => {
             return res.status(400).json({ error: 'No guests have attended this event yet' });
         }
 
-        // Check SMS credits
-        const userResult = await query('SELECT sms_credits FROM users WHERE id = $1', [userId]);
-        const currentCredits = userResult.rows[0]?.sms_credits || 0;
-        const requiredCredits = guests.length;
+        // Check SMS quota
+        const quota = await checkSMSQuota(userId);
+        const requiredSMS = guests.filter(g => g.phone).length;
 
-        if (currentCredits < requiredCredits) {
+        if (!quota.allowed || quota.remaining < requiredSMS) {
             return res.status(403).json({
-                error: 'Insufficient SMS credits',
-                message: `You need ${requiredCredits} credits to send this message, but you only have ${currentCredits}. Please purchase more credits.`,
-                code: 'NO_CREDITS',
-                required: requiredCredits,
-                current: currentCredits
+                error: 'SMS limit reached',
+                message: `You need ${requiredSMS} SMS to send thank you messages, but you only have ${quota.remaining} remaining. Upgrade your plan to send more messages.`,
+                code: 'SMS_LIMIT_REACHED',
+                required: requiredSMS,
+                remaining: quota.remaining,
+                limit: quota.limit,
+                tier: quota.tier
             });
         }
-
-        // Deduct credits
-        await query('UPDATE users SET sms_credits = sms_credits - $1 WHERE id = $2', [requiredCredits, userId]);
-
-        // Record usage
-        await query(
-            'INSERT INTO sms_usage (user_id, credits_used, reason, related_event_id, created_at) VALUES ($1, $2, $3, $4, NOW())',
-            [userId, requiredCredits, 'thank_you', eventId]
-        );
 
         // Create communication record
         const thankYouMessage = `Thank you for attending ${event.title}!`;
@@ -240,8 +225,12 @@ async function sendMessagesInBackground(communicationId, event, guests, customMe
                 messageText = templates.thankYou(event.title, guest.name, senderName);
             }
 
-            // Send SMS
-            const result = await sendSMS(guest.phone, messageText);
+            // Send SMS with tracking metadata
+            const result = await sendSMS(guest.phone, messageText, {
+                userId: event.user_id,
+                eventId: event.id,
+                messageType: type
+            });
 
             if (result.success) {
                 sentCount++;
