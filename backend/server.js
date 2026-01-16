@@ -1651,9 +1651,9 @@ app.put('/api/events/:eventId/guests/:guestId/rsvp', async (req, res) => {
         // console.log(`Public RSVP attempt for Event: ${eventId}, Guest: ${guestId}, Response: ${rsvp}`);
 
         // Security check: Ensure the guest actually belongs to this event
-        // We removed rsvp_details as it might not exist in the schema
+        // We removed rsvp_details and rsvp_time as they might not exist in the schema
         const result = await query(
-            'UPDATE guests SET rsvp = $1, rsvp_time = NOW() WHERE id = $2 AND event_id = $3 RETURNING *',
+            'UPDATE guests SET rsvp = $1 WHERE id = $2 AND event_id = $3 RETURNING *',
             [rsvp, guestId, eventId]
         );
 
