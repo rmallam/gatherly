@@ -190,18 +190,28 @@
     position: fixed;
     bottom: 90px;
     right: 20px;
-    width: 56px;
-    height: 56px;
-    border-radius: 28px;
-    background: var(--primary);
+    width: 64px;
+    height: 64px;
+    border-radius: 32px;
+    background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
     color: white;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 50;
     border: none;
     cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-floating-action:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 32px rgba(99, 102, 241, 0.6);
+}
+
+.btn-floating-action:active {
+    transform: scale(0.95);
 }
 
 /* --- Modals --- */
