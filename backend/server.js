@@ -2602,11 +2602,11 @@ const frontendPath = path.join(__dirname, '../frontend/dist');
 // Serve static files from React build
 app.use(express.static(frontendPath));
 
-// SPA fallback - serve index.html for all non-API routes
+// SPA fallback - serve index.html for all non-API/non-asset routes
 app.get('*', (req, res) => {
-    // Don't serve index.html for API routes
-    if (req.path.startsWith('/api/')) {
-        return res.status(404).json({ error: 'API endpoint not found' });
+    // Don't serve index.html for API routes or static assets
+    if (req.path.startsWith('/api/') || req.path.startsWith('/assets/')) {
+        return res.status(404).json({ error: 'Not found' });
     }
     res.sendFile(path.join(frontendPath, 'index.html'));
 });
