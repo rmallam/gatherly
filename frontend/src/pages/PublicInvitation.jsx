@@ -30,7 +30,10 @@ const PublicInvitation = () => {
 
             // If the backend returned the guest object (via our modified endpoint)
             if (eventData.currentUserGuest) {
+                console.log('Guest found:', eventData.currentUserGuest);
                 setGuest(eventData.currentUserGuest);
+            } else {
+                console.log('No guest found in event data. Query param:', guestId);
             }
         } catch (err) {
             setError('Event not found');
@@ -217,6 +220,13 @@ const PublicInvitation = () => {
                 {/* Footer */}
                 <div style={{ textAlign: 'center', color: 'white', opacity: 0.7, fontSize: '0.75rem', marginTop: '3rem' }}>
                     Powered by Host<i>Eze</i> ✨
+                </div>
+
+                {/* DEBUG: REMOVE LATER */}
+                <div style={{ marginTop: '2rem', padding: '1rem', background: '#333', color: '#0f0', fontSize: '10px', overflow: 'auto' }}>
+                    <p>DEBUG INFO:</p>
+                    <p>Guest Loaded: {guest ? 'YES' : 'NO'}</p>
+                    <pre>{JSON.stringify(guest, null, 2)}</pre>
                 </div>
             </div>
 
