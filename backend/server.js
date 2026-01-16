@@ -1647,20 +1647,24 @@ app.put('/api/events/:eventId/guests/:guestId/rsvp', async (req, res) => {
         const { eventId, guestId } = req.params;
         const { rsvp } = req.body;
 
+        // Validating inputs
+        // console.log(`Public RSVP attempt for Event: ${eventId}, Guest: ${guestId}, Response: ${rsvp}`);
+
         // Security check: Ensure the guest actually belongs to this event
-        // This prevents random guessing of IDs across events (though UUIDs make this hard anyway)
+        // We removed rsvp_details as it might not exist in the schema
         const result = await query(
-            'UPDATE guests SET rsvp = $1, rsvp_details = $2 WHERE id = $3 AND event_id = $4 RETURNING *',
-            [rsvp, JSON.stringify({ timestamp: new Date(), source: 'public_link' }), guestId, eventId]
+            'UPDATE guests SET rsvp = $1, rsvp_time = NOW() WHERE id = $2 AND event_id = $3 RETURNING *',
+            [rsvp, guestId, eventId]
         );
 
         if (result.rowCount === 0) {
+            console.error('RSVP failed: Guest not found/mismatch');
             return res.status(404).json({ error: 'Guest not found or invalid event' });
         }
 
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('RSVP error:', error);
+        console.error('RSVP server error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -1737,6 +1741,7 @@ app.post('/api/events/:eventId/guests/:guestId/checkin', authMiddleware, async (
 // === PUBLIC ROUTES (for RSVP) ===
 app.get('/api/public/events/:id', async (req, res) => {
     try {
+        // console.log(`Fetch public event: ${req.params.id}, Guest query: ${req.query.guest}`);
         const eventsResult = await query('SELECT * FROM events WHERE id = $1', [req.params.id]);
 
         if (eventsResult.rows.length === 0) {
