@@ -14,7 +14,7 @@ const SMSUsageWidget = () => {
         try {
             const token = localStorage.getItem('token');
             console.log('Fetching SMS usage from API...');
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/sms/usage`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/sms/usage`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
