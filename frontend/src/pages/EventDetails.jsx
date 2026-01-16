@@ -461,11 +461,38 @@ const EventDetails = () => {
                                     style={{ cursor: 'pointer', width: '18px', height: '18px', flexShrink: 0 }}
                                 />
 
-                                {/* Guest Info */}
                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                    <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.375rem' }}>
-                                        {guest.name}
-                                    </h4>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
+                                        <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+                                            {guest.name}
+                                        </h4>
+                                        {/* Plus-One Badge */}
+                                        {guest.expected_party_size > 1 && (
+                                            <span style={{
+                                                background: '#3b82f6',
+                                                color: 'white',
+                                                padding: '2px 8px',
+                                                borderRadius: '12px',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 600
+                                            }}>
+                                                +{guest.expected_party_size - 1}
+                                            </span>
+                                        )}
+                                        {/* Actual Check-in Badge */}
+                                        {guest.attended && guest.actual_party_size > 1 && (
+                                            <span style={{
+                                                background: '#10b981',
+                                                color: 'white',
+                                                padding: '2px 8px',
+                                                borderRadius: '12px',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 600
+                                            }}>
+                                                ✓ {guest.actual_party_size}
+                                            </span>
+                                        )}
+                                    </div>
                                     <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                                         {guest.phone ? (
                                             <a href={`tel:${guest.phone}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
