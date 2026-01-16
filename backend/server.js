@@ -2597,7 +2597,7 @@ app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, 
 
 // === SERVE FRONTEND (for web-based invitation links) ===
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__dirname);
+const __dirname = dirname(__filename);
 
 // Try multiple possible locations for the frontend build
 const possiblePaths = [
