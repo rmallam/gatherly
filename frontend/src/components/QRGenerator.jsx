@@ -126,7 +126,7 @@ const QRGenerator = ({ payload, name, eventTitle, phoneNumber }) => {
     };
 
     return (
-        <div ref={qrRef} className="card" style={{ maxWidth: '340px', width: '100%', overflow: 'hidden' }}>
+        <div ref={qrRef} className="card" style={{ width: '100%', overflow: 'hidden' }}>
             {/* Header */}
             <div style={{
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
