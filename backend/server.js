@@ -369,6 +369,44 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
     }
 });
 
+// === SMS USAGE ROUTES ===
+import { checkSMSQuota, getSMSUsageStats, getSMSLogs } from './services/smsTrackingService.js';
+
+// Get current user's SMS usage
+app.get('/api/sms/usage', authMiddleware, async (req, res) => {
+    try {
+        const quota = await checkSMSQuota(req.user.id);
+        res.json(quota);
+    } catch (error) {
+        console.error('Get SMS usage error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Get SMS usage statistics
+app.get('/api/sms/stats', authMiddleware, async (req, res) => {
+    try {
+        const { period = 'month' } = req.query;
+        const stats = await getSMSUsageStats(req.user.id, period);
+        res.json(stats);
+    } catch (error) {
+        console.error('Get SMS stats error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Get SMS logs with pagination
+app.get('/api/sms/logs', authMiddleware, async (req, res) => {
+    try {
+        const { page = 1, limit = 20 } = req.query;
+        const logs = await getSMSLogs(req.user.id, parseInt(page), parseInt(limit));
+        res.json(logs);
+    } catch (error) {
+        console.error('Get SMS logs error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Email verification endpoint
 app.get('/api/auth/verify-email', async (req, res) => {
     try {

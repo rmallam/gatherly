@@ -1,5 +1,6 @@
 import twilio from 'twilio';
 import { query } from '../db/connection.js';
+import { logSMSUsage, incrementSMSQuota } from './smsTrackingService.js';
 
 // Initialize Twilio client
 let twilioClient = null;
@@ -25,11 +26,25 @@ export const initTwilio = () => {
 };
 
 /**
- * Send SMS to a single phone number
+ * Send SMS to a single phone number with tracking
+ * @param {string} to - Recipient phone number
+ * @param {string} message - Message content
+ * @param {object} metadata - Tracking metadata (userId, eventId, messageType)
  */
-export const sendSMS = async (to, message) => {
+export const sendSMS = async (to, message, metadata = {}) => {
     if (!twilioClient) {
         console.log('Twilio not configured, skipping SMS:', { to, message });
+
+        // Log failed attempt
+        if (metadata.userId) {
+            await logSMSUsage({
+                ...metadata,
+                recipientPhone: to,
+                status: 'failed',
+                errorMessage: 'Twilio not configured'
+            });
+        }
+
         return { success: false, error: 'Twilio not configured' };
     }
 
@@ -41,9 +56,39 @@ export const sendSMS = async (to, message) => {
         });
 
         console.log(`✓ SMS sent to ${to} (SID: ${result.sid})`);
+
+        // Log successful send
+        if (metadata.userId) {
+            await logSMSUsage({
+                userId: metadata.userId,
+                eventId: metadata.eventId || null,
+                recipientPhone: to,
+                messageType: metadata.messageType || 'other',
+                status: 'sent',
+                twilioSid: result.sid,
+                costUnits: 1
+            });
+
+            // Increment user's SMS quota
+            await incrementSMSQuota(metadata.userId, 1);
+        }
+
         return { success: true, sid: result.sid };
     } catch (error) {
         console.error(`Failed to send SMS to ${to}:`, error.message);
+
+        // Log failed send
+        if (metadata.userId) {
+            await logSMSUsage({
+                userId: metadata.userId,
+                eventId: metadata.eventId || null,
+                recipientPhone: to,
+                messageType: metadata.messageType || 'other',
+                status: 'failed',
+                errorMessage: error.message
+            });
+        }
+
         return { success: false, error: error.message };
     }
 };
