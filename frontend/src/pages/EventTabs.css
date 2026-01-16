@@ -257,6 +257,23 @@
     }
 }
 
+/* Modal Button Enhancements */
+.modal-card .btn-primary,
+.modal-card button[class*="btn"] {
+    min-height: 52px;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 14px 24px;
+    border-radius: 14px;
+    transition: all 0.2s ease;
+}
+
+.modal-card .btn-primary:hover,
+.modal-card button[class*="btn"]:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+}
+
 /* --- Empty States --- */
 .tab-empty-state {
     padding: 60px 20px;
