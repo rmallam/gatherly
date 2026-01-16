@@ -30,6 +30,8 @@ const EventDetails = () => {
     const [showDeleteEventConfirm, setShowDeleteEventConfirm] = useState(false);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [upgradeTriggerReason, setUpgradeTriggerReason] = useState('');
+    const [selectedGuests, setSelectedGuests] = useState([]);
+    const [isBulkSending, setIsBulkSending] = useState(false);
 
     if (!event) {
         return (
@@ -169,6 +171,72 @@ const EventDetails = () => {
             alert(`Failed to send WhatsApp invitation: ${err.message}`);
         } finally {
             setInvitingGuest(null);
+        }
+    };
+
+    // Bulk WhatsApp invite
+    const handleBulkWhatsAppInvite = async () => {
+        const guestsToInvite = selectedGuests
+            .map(guestId => event.guests.find(g => g.id === guestId))
+            .filter(g => g && g.phone);
+
+        if (guestsToInvite.length === 0) {
+            alert('Please select guests with phone numbers to invite.');
+            return;
+        }
+
+        const confirm = window.confirm(`Send WhatsApp invitations to ${guestsToInvite.length} guest(s)?`);
+        if (!confirm) return;
+
+        setIsBulkSending(true);
+
+        try {
+            const baseUrl = window.location.origin.includes('localhost')
+                ? (import.meta.env.VITE_APP_URL || 'https://gatherly-backend-3vmv.onrender.com')
+                : window.location.origin;
+
+            for (let i = 0; i < guestsToInvite.length; i++) {
+                const guest = guestsToInvite[i];
+
+                const guestQRUrl = `${baseUrl}/invite/${id}?guest=${guest.id}`;
+                const inviteText = `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/hosteze`;
+
+                const cleanPhone = guest.phone.replace(/\D/g, '');
+                const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(inviteText)}`;
+
+                window.open(whatsappUrl, '_blank');
+
+                // Add delay between opens to prevent popup blocking
+                if (i < guestsToInvite.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                }
+            }
+
+            // Clear selection after sending
+            setSelectedGuests([]);
+            alert(`Invitations sent to ${guestsToInvite.length} guest(s)!`);
+        } catch (err) {
+            console.error('Error sending bulk invitations:', err);
+            alert('Failed to send some invitations. Please try again.');
+        } finally {
+            setIsBulkSending(false);
+        }
+    };
+
+    // Selection helpers
+    const toggleGuestSelection = (guestId) => {
+        setSelectedGuests(prev =>
+            prev.includes(guestId)
+                ? prev.filter(id => id !== guestId)
+                : [...prev, guestId]
+        );
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedGuests.length === filteredGuests.length) {
+            setSelectedGuests([]);
+        } else {
+            setSelectedGuests(filteredGuests.map(g => g.id));
         }
     };
 
@@ -317,6 +385,42 @@ const EventDetails = () => {
                 </div>
             </div>
 
+            {/* Bulk Actions Bar */}
+            {filteredGuests.length > 0 && (
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '1rem',
+                    padding: '0.75rem 1rem',
+                    background: 'var(--bg-secondary)',
+                    borderRadius: 'var(--radius-md)',
+                    gap: '1rem'
+                }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500 }}>
+                        <input
+                            type="checkbox"
+                            checked={selectedGuests.length === filteredGuests.length && filteredGuests.length > 0}
+                            onChange={toggleSelectAll}
+                            style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                        />
+                        {selectedGuests.length > 0 ? `${selectedGuests.length} selected` : 'Select All'}
+                    </label>
+
+                    {selectedGuests.length > 0 && (
+                        <button
+                            onClick={handleBulkWhatsAppInvite}
+                            disabled={isBulkSending}
+                            className="btn btn-primary"
+                            style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                        >
+                            <MessageCircle size={16} />
+                            {isBulkSending ? 'Sending...' : `Send WhatsApp (${selectedGuests.length})`}
+                        </button>
+                    )}
+                </div>
+            )}
+
             {/* Guest Cards */}
             {filteredGuests.length === 0 ? (
                 <div style={{ padding: '3rem 2rem', textAlign: 'center', backgroundColor: 'var(--bg-secondary)', borderRadius: '16px' }}>
@@ -348,6 +452,15 @@ const EventDetails = () => {
                             onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+                                {/* Checkbox */}
+                                <input
+                                    type="checkbox"
+                                    checked={selectedGuests.includes(guest.id)}
+                                    onChange={() => toggleGuestSelection(guest.id)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{ cursor: 'pointer', width: '18px', height: '18px', flexShrink: 0 }}
+                                />
+
                                 {/* Guest Info */}
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                     <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.375rem' }}>
