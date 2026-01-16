@@ -49,3 +49,4 @@ temp/
 *.jks
 keystore.properties
 gradle.properties
+revenuecat-creds.json

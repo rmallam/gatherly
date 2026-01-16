@@ -81,7 +81,7 @@ const PaywallPage = () => {
     };
 
     // Fallback/Mock Data if no native offerings found (for web dev)
-    const displayPackages = offerings?.availablePackages || [
+    const rawPackages = offerings?.availablePackages || [
         {
             identifier: 'pro_monthly',
             product: {
@@ -99,6 +99,9 @@ const PaywallPage = () => {
             }
         }
     ];
+
+    // Filter out SMS packs from the main subscription list
+    const displayPackages = rawPackages.filter(p => !p.identifier.toLowerCase().includes('sms'));
 
     return (
         <div className="paywall-container">
@@ -189,87 +192,116 @@ const PaywallPage = () => {
                     <div className="loading-spinner">Loading add-ons...</div>
                 ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                        {/* If we have real fetched products, use them. Otherwise fallback for dev visibility if empty */}
-                        {(smsProducts.length > 0 ? smsProducts : [
-                            { identifier: 'sms_100', title: '100 Credits', priceString: '$4.99 (Dev)', description: 'Mock' },
-                            { identifier: 'sms_300', title: '300 Credits', priceString: '$12.99 (Dev)', description: 'Mock' }
-                        ]).map(product => (
-                            <button
-                                key={product.identifier}
-                                onClick={async () => {
-                                    if (product.description === 'Mock') {
-                                        alert('This is a mock product. Deploy to real device to see real RevenueCat products.');
-                                        return;
-                                    }
+                        {(() => {
+                            // Combine explicit fetches and offering-found SMS packs
+                            const fetchFound = smsProducts || [];
+                            const offeringFound = rawPackages.filter(p => p.identifier.toLowerCase().includes('sms'));
 
-                                    try {
-                                        setProcessing(true);
-                                        await PurchaseService.purchaseStoreProduct(product);
-                                        await new Promise(r => setTimeout(r, 2000)); // Wait for webhook
-                                        await refreshUser(); // Refresh credits
-                                        alert('Credits added successfully!');
-                                    } catch (err) {
-                                        if (err.message !== 'User cancelled') alert('Purchase failed: ' + err.message);
-                                    } finally {
-                                        setProcessing(false);
-                                    }
-                                }}
-                                disabled={processing}
-                                style={{
-                                    background: 'rgba(255,255,255,0.1)',
-                                    border: '1px solid rgba(255,255,255,0.2)',
-                                    borderRadius: '12px',
-                                    padding: '16px',
-                                    color: 'white',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                    opacity: processing ? 0.5 : 1
-                                }}
-                            >
-                                <span style={{ fontWeight: 700 }}>
-                                    {product.title || product.identifier}
-                                </span>
-                                <span style={{ fontSize: '0.9rem', color: '#a78bfa' }}>
-                                    {product.priceString}
-                                </span>
-                            </button>
-                        ))}
+                            // Merge unique by identifier
+                            const uniqueSms = [...new Map([...fetchFound, ...offeringFound].map(item => [item.identifier, item])).values()];
+                            const showReal = uniqueSms.length > 0;
+
+                            const list = showReal ? uniqueSms : [
+                                { identifier: 'sms_100', title: '100 Credits', priceString: '$4.99 (Dev)', description: 'Mock' },
+                                { identifier: 'sms_300', title: '300 Credits', priceString: '$12.99 (Dev)', description: 'Mock' }
+                            ];
+
+                            return list.map(product => {
+                                // Extract price/title safely whether it's a Package or StoreProduct
+                                const title = product.product?.title || product.title || product.identifier;
+                                const price = product.product?.priceString || product.priceString || 'N/A';
+
+                                return (
+                                    <button
+                                        key={product.identifier}
+                                        onClick={async () => {
+                                            if (product.description === 'Mock') {
+                                                alert('This is a mock product. Deploy to real device to see real RevenueCat products.');
+                                                return;
+                                            }
+
+                                            try {
+                                                setProcessing(true);
+                                                // Determine if it is a Package (from offering) or StoreProduct (from getProducts)
+                                                if (product.product) {
+                                                    // It's a Package
+                                                    await PurchaseService.purchasePackage(product);
+                                                } else {
+                                                    // It's a StoreProduct
+                                                    await PurchaseService.purchaseStoreProduct(product);
+                                                }
+
+                                                await new Promise(r => setTimeout(r, 2000)); // Wait for webhook
+                                                await refreshUser(); // Refresh credits
+                                                alert('Credits added successfully!');
+                                            } catch (err) {
+                                                if (err.message !== 'User cancelled') alert('Purchase failed: ' + err.message);
+                                            } finally {
+                                                setProcessing(false);
+                                            }
+                                        }}
+                                        disabled={processing}
+                                        style={{
+                                            background: 'rgba(255,255,255,0.1)',
+                                            border: '1px solid rgba(255,255,255,0.2)',
+                                            borderRadius: '12px',
+                                            padding: '16px',
+                                            color: 'white',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            opacity: processing ? 0.5 : 1
+                                        }}
+                                    >
+                                        <span style={{ fontWeight: 700 }}>
+                                            {title}
+                                        </span>
+                                        <span style={{ fontSize: '0.9rem', color: '#a78bfa' }}>
+                                            {price}
+                                        </span>
+                                    </button>
+                                );
+                            });
+                        })()}
                     </div>
                 )}
             </div>
 
             {/* Explicit Cancel Option for Pro Users */}
-            {user?.subscription_tier === 'pro' && (
-                <button
-                    onClick={() => PurchaseService.manageSubscriptions()}
-                    style={{
-                        background: 'transparent',
-                        border: '1px solid #ef4444',
-                        color: '#ef4444',
-                        width: '100%',
-                        padding: '14px',
-                        borderRadius: '16px',
-                        fontWeight: 600,
-                        fontSize: '15px',
-                        cursor: 'pointer',
-                        marginTop: '0'
-                    }}
-                >
-                    Cancel Subscription
-                </button>
-            )}
+            {
+                user?.subscription_tier === 'pro' && (
+                    <button
+                        onClick={() => PurchaseService.manageSubscriptions()}
+                        style={{
+                            background: 'transparent',
+                            border: '1px solid #ef4444',
+                            color: '#ef4444',
+                            width: '100%',
+                            padding: '14px',
+                            borderRadius: '16px',
+                            fontWeight: 600,
+                            fontSize: '15px',
+                            cursor: 'pointer',
+                            marginTop: '0'
+                        }}
+                    >
+                        Cancel Subscription
+                    </button>
+                )
+            }
 
-            {!user?.subscription_tier === 'pro' && (
-                <button
-                    className="comparison-link-btn"
-                    onClick={() => setShowComparisonModal(true)}
-                >
-                    View detailed plan comparison
-                </button>
-            )}
+            {
+                !user?.subscription_tier === 'pro' && (
+                    <button
+                        className="comparison-link-btn"
+                        onClick={() => setShowComparisonModal(true)}
+                    >
+                        View detailed plan comparison
+                    </button>
+                )
+            }
 
             <div className="paywall-footer">
                 <button onClick={handleRestore}>Restore Purchases</button>
@@ -283,7 +315,7 @@ const PaywallPage = () => {
                 isOpen={showComparisonModal}
                 onClose={() => setShowComparisonModal(false)}
             />
-        </div>
+        </div >
     );
 };
 

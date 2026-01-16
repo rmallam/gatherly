@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, User, Mail, Phone, Lock, Check, LogOut, Shield, Star, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Camera, User, Mail, Phone, Lock, Check, LogOut, Shield, Star, ChevronRight, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Camera as CapCamera } from '@capacitor/camera';
 import { useTheme } from '../context/ThemeContext';
@@ -135,7 +135,7 @@ const Profile = () => {
                 saveToGallery: false
             });
 
-            const base64Image = `data: image / ${image.format}; base64, ${image.base64String} `;
+            const base64Image = `data:image/${image.format};base64,${image.base64String}`;
             setImageSrc(base64Image);
             setShowCropModal(true);
         } catch (error) {
@@ -298,11 +298,19 @@ const Profile = () => {
                             className="avatar"
                             onClick={() => profile.profilePictureUrl && setShowEnlargedImage(true)}
                             style={{
-                                backgroundImage: profile.profilePictureUrl ? `url(${profile.profilePictureUrl})` : 'none',
-                                background: !profile.profilePictureUrl ? 'linear-gradient(135deg, #6366f1, #a855f7)' : undefined
+                                background: !profile.profilePictureUrl ? 'linear-gradient(135deg, #6366f1, #a855f7)' : 'transparent',
+                                overflow: 'hidden'
                             }}
                         >
-                            {!profile.profilePictureUrl && (profile.name?.charAt(0).toUpperCase() || 'U')}
+                            {profile.profilePictureUrl ? (
+                                <img
+                                    src={profile.profilePictureUrl}
+                                    alt="Profile"
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                            ) : (
+                                profile.name?.charAt(0).toUpperCase() || 'U'
+                            )}
                         </div>
                         {isEditing && (
                             <button onClick={pickImage} className="edit-avatar-btn">

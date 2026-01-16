@@ -1644,14 +1644,21 @@ app.post('/api/events/:eventId/invite-group/:groupId', authMiddleware, async (re
 
 app.put('/api/events/:eventId/guests/:guestId/rsvp', async (req, res) => {
     try {
+        const { eventId, guestId } = req.params;
         const { rsvp } = req.body;
 
-        await query(
-            'UPDATE guests SET rsvp = $1 WHERE id = $2 AND event_id = $3',
-            [rsvp, req.params.guestId, req.params.eventId]
+        // Security check: Ensure the guest actually belongs to this event
+        // This prevents random guessing of IDs across events (though UUIDs make this hard anyway)
+        const result = await query(
+            'UPDATE guests SET rsvp = $1, rsvp_details = $2 WHERE id = $3 AND event_id = $4 RETURNING *',
+            [rsvp, JSON.stringify({ timestamp: new Date(), source: 'public_link' }), guestId, eventId]
         );
 
-        res.json({ success: true });
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Guest not found or invalid event' });
+        }
+
+        res.json(result.rows[0]);
     } catch (error) {
         console.error('RSVP error:', error);
         res.status(500).json({ error: 'Server error' });
@@ -1730,13 +1737,27 @@ app.post('/api/events/:eventId/guests/:guestId/checkin', authMiddleware, async (
 // === PUBLIC ROUTES (for RSVP) ===
 app.get('/api/public/events/:id', async (req, res) => {
     try {
-        const result = await query('SELECT * FROM events WHERE id = $1', [req.params.id]);
+        const eventsResult = await query('SELECT * FROM events WHERE id = $1', [req.params.id]);
 
-        if (result.rows.length === 0) {
+        if (eventsResult.rows.length === 0) {
             return res.status(404).json({ error: 'Event not found' });
         }
 
-        res.json(result.rows[0]);
+        const event = eventsResult.rows[0];
+
+        // If guest ID is provided in query, fetch that guest's details
+        if (req.query.guest) {
+            const guestResult = await query(
+                'SELECT * FROM guests WHERE id = $1 AND event_id = $2',
+                [req.query.guest, req.params.id]
+            );
+
+            if (guestResult.rows.length > 0) {
+                event.currentUserGuest = guestResult.rows[0];
+            }
+        }
+
+        res.json(event);
     } catch (error) {
         console.error('Fetch public event error:', error);
         res.status(500).json({ error: 'Server error' });

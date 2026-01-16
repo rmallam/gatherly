@@ -156,7 +156,7 @@ const EventDetailsTabs = () => {
                     <h1 style={{
                         fontSize: '16px',
                         fontWeight: 700,
-                        color: '#000000',
+                        color: 'var(--text-primary)',
                         margin: 0,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',

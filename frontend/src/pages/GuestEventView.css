@@ -11,8 +11,11 @@
 
 .guest-view-container {
     min-height: 100vh;
+    min-height: 100vh;
+    background-color: #0f172a;
+    /* Fallback */
     background: var(--guest-bg-gradient);
-    padding: 24px 20px 100px;
+    padding: max(24px, env(safe-area-inset-top)) 20px 100px;
     /* Bottom padding for FAB/Button */
     color: #fff;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;

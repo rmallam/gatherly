@@ -376,6 +376,28 @@ export const AppProvider = ({ children }) => {
         }
     };
 
+    // Public version (no auth headers)
+    const publicRsvpGuest = async (eventId, guestId, response) => {
+        try {
+            const res = await fetch(`${API_URL}/events/${eventId}/guests/${guestId}/rsvp`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ rsvp: response })
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'Failed to update RSVP');
+            }
+            return await res.json();
+        } catch (error) {
+            console.error('Public RSVP update failed:', error);
+            throw error;
+        }
+    };
+
     const addBulkGuests = async (eventId, guestsArray) => {
         const newGuests = guestsArray.map(guestData => ({
             id: uuidv4(),
@@ -624,7 +646,7 @@ export const AppProvider = ({ children }) => {
         });
     };
 
-    const fetchPublicEvent = async (eventId) => {
+    const fetchPublicEvent = async (eventId, guestId) => {
         const guestEvents = localStorage.getItem('guestEvents');
         if (guestEvents) {
             const events = JSON.parse(guestEvents);
@@ -642,7 +664,11 @@ export const AppProvider = ({ children }) => {
         }
 
         try {
-            const res = await fetch(`${API_URL}/public/events/${eventId}`);
+            const url = guestId
+                ? `${API_URL}/public/events/${eventId}?guest=${guestId}`
+                : `${API_URL}/public/events/${eventId}`;
+
+            const res = await fetch(url);
             if (res.ok) {
                 return await res.json();
             }
@@ -735,7 +761,8 @@ export const AppProvider = ({ children }) => {
             addContactsToEvent,
             saveGuestToContacts,
             fetchPublicEvent,
-            submitPublicRSVP
+            submitPublicRSVP,
+            publicRsvpGuest
         }}>
             {children}
         </AppContext.Provider>
