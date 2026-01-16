@@ -86,7 +86,7 @@ const PublicInvitation = () => {
 
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', padding: '1.5rem 1rem 3rem' }}>
-            <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+            <div style={{ maxWidth: '420px', margin: '0 auto' }}>
                 {/* Header */}
                 <div style={{ textAlign: 'center', marginBottom: '2rem', paddingTop: '1rem' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
@@ -209,7 +209,7 @@ const PublicInvitation = () => {
                     {/* QR Code Section */}
                     {guest && (
                         <div style={{ display: 'flex', justifyContent: 'center' }}>
-                            <div style={{ maxWidth: '400px', width: '100%' }}>
+                            <div style={{ maxWidth: '380px', width: '100%' }}>
                                 <QRGenerator
                                     payload={{
                                         eventId: event.id,
