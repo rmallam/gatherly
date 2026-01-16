@@ -208,18 +208,22 @@ const PublicInvitation = () => {
 
                     {/* QR Code Section */}
                     {guest && (
-                        <QRGenerator
-                            payload={{
-                                eventId: event.id,
-                                guestId: guest.id,
-                                name: guest.name,
-                                valid: true,
-                                timestamp: Date.now()
-                            }}
-                            name={guest.name}
-                            eventTitle={event.title}
-                            phoneNumber={guest.phone}
-                        />
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <div style={{ maxWidth: '400px', width: '100%' }}>
+                                <QRGenerator
+                                    payload={{
+                                        eventId: event.id,
+                                        guestId: guest.id,
+                                        name: guest.name,
+                                        valid: true,
+                                        timestamp: Date.now()
+                                    }}
+                                    name={guest.name}
+                                    eventTitle={event.title}
+                                    phoneNumber={guest.phone}
+                                />
+                            </div>
+                        </div>
                     )}
                 </div>
 
