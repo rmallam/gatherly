@@ -4,6 +4,7 @@ import { MessageCircle, TrendingUp, AlertCircle } from 'lucide-react';
 const SMSUsageWidget = () => {
     const [usage, setUsage] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         fetchUsage();
@@ -12,6 +13,7 @@ const SMSUsageWidget = () => {
     const fetchUsage = async () => {
         try {
             const token = localStorage.getItem('token');
+            console.log('Fetching SMS usage from API...');
             const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/sms/usage`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -20,10 +22,15 @@ const SMSUsageWidget = () => {
 
             if (response.ok) {
                 const data = await response.json();
+                console.log('SMS usage data:', data);
                 setUsage(data);
+            } else {
+                console.error('SMS usage API error:', response.status);
+                setError(`API error: ${response.status}`);
             }
         } catch (error) {
             console.error('Failed to fetch SMS usage:', error);
+            setError(error.message);
         } finally {
             setLoading(false);
         }
@@ -39,7 +46,19 @@ const SMSUsageWidget = () => {
         );
     }
 
-    if (!usage) return null;
+    if (error || !usage) {
+        return (
+            <div className="card" style={{ padding: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <MessageCircle size={20} style={{ color: 'var(--primary)' }} />
+                    <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>SMS Usage</h3>
+                </div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                    {error ? `Error loading SMS data: ${error}` : 'Unable to load SMS usage data'}
+                </div>
+            </div>
+        );
+    }
 
     const percentage = (usage.used / usage.limit) * 100;
     const isLow = usage.remaining < 10;
