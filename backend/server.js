@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { generateToken, hashPassword, comparePassword, authMiddleware } from './server/auth.js';
@@ -2596,8 +2597,29 @@ app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, 
 
 // === SERVE FRONTEND (for web-based invitation links) ===
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const frontendPath = path.join(__dirname, '../frontend/dist');
+const __dirname = dirname(__dirname);
+
+// Try multiple possible locations for the frontend build
+const possiblePaths = [
+    path.join(__dirname, '../frontend/dist'),
+    path.join(__dirname, '../../frontend/dist'),
+    path.join(process.cwd(), 'frontend/dist'),
+    path.join(process.cwd(), '../frontend/dist')
+];
+
+let frontendPath = null;
+for (const testPath of possiblePaths) {
+    if (fs.existsSync(testPath)) {
+        frontendPath = testPath;
+        console.log('✓ Found frontend build at:', frontendPath);
+        break;
+    }
+}
+
+if (!frontendPath) {
+    console.warn('⚠️  Frontend build not found. Web invitations will not work. Checked paths:', possiblePaths);
+    frontendPath = path.join(__dirname, '../frontend/dist'); // Fallback
+}
 
 // Serve static files from React build
 app.use(express.static(frontendPath));
@@ -2608,7 +2630,14 @@ app.get('*', (req, res) => {
     if (req.path.startsWith('/api/') || req.path.startsWith('/assets/')) {
         return res.status(404).json({ error: 'Not found' });
     }
-    res.sendFile(path.join(frontendPath, 'index.html'));
+
+    const indexPath = path.join(frontendPath, 'index.html');
+    res.sendFile(indexPath, (err) => {
+        if (err) {
+            console.error('Error serving index.html:', err);
+            res.status(500).send('Frontend not available');
+        }
+    });
 });
 
 // Initialize database and start server
