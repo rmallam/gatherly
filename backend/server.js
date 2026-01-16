@@ -1841,10 +1841,7 @@ app.post('/api/public/events/:eventId/rsvp', async (req, res) => {
 });
 
 // === INVITE/RSVP ROUTES ===
-// Serve invite page
-app.get('/invite/:eventId', (req, res) => {
-    res.sendFile('invite.html', { root: './public' });
-});
+// Note: /invite/:eventId is now handled by the React app (see bottom of file)
 
 // Get event and guest data for invite page
 app.get('/api/events/:eventId/invite/:guestId', async (req, res) => {
