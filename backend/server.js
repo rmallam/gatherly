@@ -6,6 +6,9 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import { generateToken, hashPassword, comparePassword, authMiddleware } from './server/auth.js';
 import { initializeDatabase, query } from './db/connection.js';
 import { validateEmail, validatePassword } from './server/validators.js';
@@ -2592,7 +2595,8 @@ app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, 
 });
 
 // === SERVE FRONTEND (for web-based invitation links) ===
-const path = require('path');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 const frontendPath = path.join(__dirname, '../frontend/dist');
 
 // Serve static files from React build
