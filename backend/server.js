@@ -15,6 +15,7 @@ import { initializeDatabase, query } from './db/connection.js';
 import { validateEmail, validatePassword } from './server/validators.js';
 import { sendVerificationEmail, sendPasswordResetEmail } from './server/email.js';
 import { initTwilio, sendSMS } from './services/reminderService.js';
+import { checkSMSQuota, getSMSUsageStats, getSMSLogs } from './services/smsTrackingService.js';
 import { startReminderCron } from './jobs/reminderCron.js';
 import { sendAnnouncement, sendThankYouMessages, getCommunications } from './controllers/communicationController.js';
 import {
@@ -370,7 +371,6 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
 });
 
 // === SMS USAGE ROUTES ===
-import { checkSMSQuota, getSMSUsageStats, getSMSLogs } from './services/smsTrackingService.js';
 
 // Get current user's SMS usage
 app.get('/api/sms/usage', authMiddleware, async (req, res) => {
