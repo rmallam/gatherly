@@ -9,6 +9,7 @@ import API_URL from '../config/api';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/cropImage';
 import SubscriptionComparisonModal from '../components/SubscriptionComparisonModal';
+import SMSUsageWidget from '../components/SMSUsageWidget';
 import './Profile.css';
 
 const Profile = () => {
@@ -386,6 +387,9 @@ const Profile = () => {
                         </div>
                     )}
                 </div>
+
+                {/* SMS Usage Widget */}
+                <SMSUsageWidget />
 
                 {/* Compare Plans Link */}
                 <div className="compare-plans-link-container">
