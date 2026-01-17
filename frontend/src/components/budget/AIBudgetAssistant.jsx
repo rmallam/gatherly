@@ -12,6 +12,13 @@ const AIBudgetAssistant = ({ event, budget, expenses }) => {
     const [decorData, setDecorData] = useState(null);
     const [optimizationData, setOptimizationData] = useState(null);
 
+    // Debug logging
+    console.log('🤖 AIBudgetAssistant rendered', {
+        eventId: event?.id,
+        hasbudget: !!budget,
+        expenseCount: expenses?.length
+    });
+
     const tabs = [
         { id: 'budget', label: 'Budget Builder', icon: Sparkles },
         { id: 'menu', label: 'Menu Ideas', icon: ChefHat },
@@ -20,6 +27,7 @@ const AIBudgetAssistant = ({ event, budget, expenses }) => {
     ];
 
     const fetchBudgetSuggestions = async () => {
+        console.log('🤖 Fetching budget suggestions...', { eventId: event.id, API_URL });
         setLoading(true);
         setError(null);
         try {

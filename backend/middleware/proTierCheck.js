@@ -2,6 +2,13 @@
  * Middleware to check if user has Pro subscription
  */
 export const requireProTier = (req, res, next) => {
+    console.log('🔒 Pro Tier Check:', {
+        userId: req.user?.id,
+        email: req.user?.email,
+        subscription_tier: req.user?.subscription_tier,
+        subscription_status: req.user?.subscription_status
+    });
+
     if (!req.user) {
         return res.status(401).json({ error: 'Authentication required' });
     }
