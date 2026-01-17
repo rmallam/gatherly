@@ -1244,9 +1244,17 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
         const { name, email, phone } = req.body;
         const guestId = uuidv4();
 
-        // Verify event ownership
+        // Verify event access - user must be owner OR participant (for shared events)
         const eventCheck = await query(
-            'SELECT id FROM events WHERE id = $1 AND user_id = $2',
+            `SELECT e.id, e.event_type FROM events e
+             WHERE e.id = $1 AND (
+                 e.user_id = $2 
+                 OR EXISTS (
+                     SELECT 1 FROM guests g 
+                     WHERE g.event_id = e.id 
+                     AND g.user_id = $2
+                 )
+             )`,
             [req.params.eventId, req.user.id]
         );
 
@@ -1454,9 +1462,17 @@ app.post('/api/events/:eventId/guests/bulk', authMiddleware, async (req, res) =>
     try {
         const { guests } = req.body;
 
-        // Verify event ownership
+        // Verify event access - user must be owner OR participant (for shared events)
         const eventCheck = await query(
-            'SELECT id FROM events WHERE id = $1 AND user_id = $2',
+            `SELECT e.id, e.event_type FROM events e
+             WHERE e.id = $1 AND (
+                 e.user_id = $2 
+                 OR EXISTS (
+                     SELECT 1 FROM guests g 
+                     WHERE g.event_id = e.id 
+                     AND g.user_id = $2
+                 )
+             )`,
             [req.params.eventId, req.user.id]
         );
 
