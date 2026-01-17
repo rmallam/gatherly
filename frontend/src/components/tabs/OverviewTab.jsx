@@ -282,6 +282,23 @@ const OverviewTab = ({ event, onTabChange }) => {
                             </span>
                         </>
                     )}
+                    {event.country && (
+                        <>
+                            <span style={{ width: 4, height: 4, background: 'var(--text-tertiary)', borderRadius: '50%' }}></span>
+                            <span style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                background: 'var(--bg-secondary)',
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                fontWeight: 600
+                            }}>
+                                🏳️ {event.country}
+                            </span>
+                        </>
+                    )}
                 </div>
             </div>
 

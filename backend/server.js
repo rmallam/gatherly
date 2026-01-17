@@ -1069,16 +1069,18 @@ app.post('/api/events', authMiddleware, async (req, res) => {
 
 app.put('/api/events/:id', authMiddleware, async (req, res) => {
     try {
-        const { title, date, location, description, ...extraData } = req.body;
+        const { title, date, location, description, country, ...extraData } = req.body;
 
         // Store catering, tasks, venue, and other fields in data jsonb column
+        // ALSO update country column if provided
         await query(
-            'UPDATE events SET title = $1, date = $2, location = $3, description = $4, data = $5 WHERE id = $6 AND user_id = $7',
+            'UPDATE events SET title = $1, date = $2, location = $3, description = $4, country = COALESCE($5, country), data = $6 WHERE id = $7 AND user_id = $8',
             [
                 title,
                 date || null,
                 location || null,
                 description || null,
+                country || null, // Will use current value due to COALESCE if null (or handle logically) -- wait, null overrides? COALESCE($5, country) keeps existing if $5 is null
                 JSON.stringify(extraData),
                 req.params.id,
                 req.user.id
@@ -2765,7 +2767,8 @@ app.post('/api/events/:eventId/ai/menu-suggestions', authMiddleware, requireProT
             cuisine: req.body.cuisine || 'Mixed',
             cateringBudget: req.body.cateringBudget || 2500,
             dietary: req.body.dietary || 'None specified',
-            country: req.body.country || 'US'
+            // Prefer DB country if frontend sends 'US' (default) or nothing, otherwise use frontend
+            country: (req.body.country && req.body.country !== 'US') ? req.body.country : (event.country || 'US')
         };
 
         const menuSuggestions = await getMenuSuggestions(eventData);
@@ -2809,7 +2812,8 @@ app.post('/api/events/:eventId/ai/decor-ideas', authMiddleware, requireProTier, 
             season: req.body.season || 'Spring',
             decorBudget: req.body.decorBudget || 800,
             style: req.body.style || 'Modern',
-            country: req.body.country || 'US'
+            // Prefer DB country if frontend sends 'US' (default) or nothing, otherwise use frontend
+            country: (req.body.country && req.body.country !== 'US') ? req.body.country : (event.country || 'US')
         };
 
         const decorIdeas = await getDecorIdeas(eventData);
