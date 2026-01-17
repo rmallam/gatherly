@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { DollarSign, Plus, Trash2, Edit2, Check, X, AlertCircle } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { DollarSign, Plus, Trash2, Edit2, Check, X, AlertCircle, TrendingUp, Lock } from 'lucide-react';
+import CategoryChart from '../budget/CategoryChart';
 import '../../pages/EventTabs.css'; // Import shared styles
 
 const CATEGORIES = [
@@ -16,6 +18,7 @@ const CATEGORIES = [
 
 const BudgetTab = ({ event }) => {
     const { API_URL } = useApp();
+    const { user } = useAuth();
     const [budget, setBudget] = useState(null);
     const [expenses, setExpenses] = useState([]);
     const [summary, setSummary] = useState(null);
@@ -307,6 +310,69 @@ const BudgetTab = ({ event }) => {
                             </div>
                         )}
                     </div>
+
+                    {/* Budget Analytics (Pro Feature) */}
+                    {user?.subscription_tier === 'pro' ? (
+                        <CategoryChart expenses={expenses} budget={budget} />
+                    ) : (
+                        <div style={{
+                            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))',
+                            borderRadius: '16px',
+                            padding: '32px 24px',
+                            marginBottom: '24px',
+                            textAlign: 'center',
+                            border: '2px dashed rgba(99, 102, 241, 0.3)'
+                        }}>
+                            <div style={{
+                                width: '64px',
+                                height: '64px',
+                                background: 'rgba(99, 102, 241, 0.2)',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                margin: '0 auto 16px'
+                            }}>
+                                <TrendingUp size={32} color="var(--primary)" />
+                            </div>
+                            <h3 style={{
+                                fontSize: '20px',
+                                fontWeight: 700,
+                                color: 'var(--text-primary)',
+                                marginBottom: '8px'
+                            }}>
+                                Budget Analytics
+                            </h3>
+                            <p style={{
+                                color: 'var(--text-secondary)',
+                                marginBottom: '20px',
+                                fontSize: '15px'
+                            }}>
+                                Unlock visual charts, spending insights, and smart recommendations
+                            </p>
+                            <a
+                                href="/pro"
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
+                                    color: 'white',
+                                    padding: '14px 28px',
+                                    borderRadius: '12px',
+                                    textDecoration: 'none',
+                                    fontWeight: 600,
+                                    fontSize: '16px',
+                                    transition: 'transform 0.2s'
+                                }}
+                                onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                                onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                            >
+                                <Lock size={18} />
+                                Upgrade to Pro
+                            </a>
+                        </div>
+                    )}
 
                     {/* Expenses List */}
                     <div className="section-header">
