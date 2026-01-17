@@ -90,7 +90,12 @@ Event Details:
 - Cuisine Preference: ${eventData.cuisine || 'Mixed'}
 - Catering Budget: ${eventData.cateringBudget || 2500}
 - Dietary Restrictions: ${eventData.dietary || 'None specified'}
-- Location/Country: ${eventData.country || 'US'}
+- Location/Country Code: ${eventData.country || 'US'}
+
+Instructions:
+1. Interpret the Country Code (e.g., IN -> India, US -> USA).
+2. All suggestions MUST be authentic to the country's food culture unless 'Cuisine Preference' specifies otherwise.
+3. All costs MUST be in the local currency of that country (e.g., ₹ for India, $ for US).
 
 Create a complete menu with:
 1. Appetizers (3-4 items with costs in local currency)
@@ -100,7 +105,7 @@ Create a complete menu with:
 5. Cost per person calculation
 6. Dietary accommodation suggestions
 
-Consider the local culinary culture of ${eventData.country || 'the region'} when suggesting items.
+Consider the local culinary culture of ${eventData.country} when suggesting items.
 
 IMPORTANT: Respond ONLY with valid JSON in this exact format:
 {
@@ -168,7 +173,12 @@ Event Details:
 - Season: ${eventData.season || 'Spring'}
 - Decor Budget: ${eventData.decorBudget || 800}
 - Style Preference: ${eventData.style || 'Modern'}
-- Location/Country: ${eventData.country || 'US'}
+- Location/Country Code: ${eventData.country || 'US'}
+
+Instructions:
+1. Interpret the Country Code (e.g., IN -> India, US -> USA, UK -> United Kingdom).
+2. All suggestions MUST be culturally appropriate and available in that country.
+3. All costs MUST be in the local currency of that country (e.g., ₹ for India, $ for US).
 
 Provide:
 1. Theme recommendation suitable for the location/season

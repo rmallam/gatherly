@@ -1009,7 +1009,7 @@ app.get('/api/events', authMiddleware, async (req, res) => {
 
 app.post('/api/events', authMiddleware, async (req, res) => {
     try {
-        const { title, date, location, description, eventType } = req.body;
+        const { title, date, location, description, eventType, country } = req.body;
         const eventId = uuidv4();
 
         // Convert empty strings to null for optional fields
@@ -1017,6 +1017,7 @@ app.post('/api/events', authMiddleware, async (req, res) => {
         const eventLocation = location && location.trim() !== '' ? location : null;
         const eventDescription = description && description.trim() !== '' ? description : null;
         const eventTypeValue = eventType || 'host'; // Default to 'host' if not provided
+        const eventCountry = country || 'US';
 
         // Check event limits for Free tier
         const userResult = await query('SELECT subscription_tier FROM users WHERE id = $1', [req.user.id]);
@@ -1038,8 +1039,8 @@ app.post('/api/events', authMiddleware, async (req, res) => {
         }
 
         await query(
-            'INSERT INTO events (id, user_id, title, date, location, description, event_type) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-            [eventId, req.user.id, title, eventDate, eventLocation, eventDescription, eventTypeValue]
+            'INSERT INTO events (id, user_id, title, date, location, description, event_type, country) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+            [eventId, req.user.id, title, eventDate, eventLocation, eventDescription, eventTypeValue, eventCountry]
         );
 
         // Update event count cache only for hosted events
@@ -1055,6 +1056,7 @@ app.post('/api/events', authMiddleware, async (req, res) => {
             location: eventLocation,
             description: eventDescription,
             event_type: eventTypeValue,
+            country: eventCountry,
             guests: []
         };
 

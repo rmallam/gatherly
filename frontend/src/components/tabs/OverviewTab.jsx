@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Users, CheckCircle, X, DollarSign, Clock } from 'lucide-react';
+import { Calendar, MapPin, Users, CheckCircle, X, DollarSign, Clock, Sparkles } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import AttendanceStatsWidget from '../AttendanceStatsWidget';
+import AIBudgetOptimizer from '../ai/AIBudgetOptimizer';
 import '../../pages/EventTabs.css';
 
 const OverviewTab = ({ event, onTabChange }) => {
@@ -11,6 +12,7 @@ const OverviewTab = ({ event, onTabChange }) => {
     const [showGuestModal, setShowGuestModal] = useState(false);
     const [modalTitle, setModalTitle] = useState('');
     const [modalGuests, setModalGuests] = useState([]);
+    const [showAIOptimizer, setShowAIOptimizer] = useState(false);
 
     // Shared Event Data State
     const [sharedData, setSharedData] = useState({
@@ -305,6 +307,36 @@ const OverviewTab = ({ event, onTabChange }) => {
                 </div>
             </div>
 
+            {/* AI Budget Optimizer */}
+            {!isSharedEvent && (
+                <div style={{ marginBottom: 24 }}>
+                    <button
+                        onClick={() => setShowAIOptimizer(!showAIOptimizer)}
+                        className="btn btn-secondary"
+                        style={{
+                            width: '100%',
+                            background: showAIOptimizer ? 'var(--bg-secondary)' : 'transparent',
+                            borderColor: showAIOptimizer ? 'var(--primary)' : 'var(--border-color)',
+                            color: showAIOptimizer ? 'var(--primary)' : 'var(--text-primary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            padding: '0.75rem'
+                        }}
+                    >
+                        <Sparkles size={16} />
+                        {showAIOptimizer ? 'Hide Budget Optimizer' : 'AI Budget Optimizer'}
+                    </button>
+
+                    {showAIOptimizer && (
+                        <div style={{ marginTop: '1rem' }}>
+                            <AIBudgetOptimizer event={event} />
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Attendance Analytics */}
             {event.guests && event.guests.length > 0 && (
                 <AttendanceStatsWidget guests={event.guests} />
@@ -356,50 +388,54 @@ const OverviewTab = ({ event, onTabChange }) => {
             </div>
 
             {/* List Preview (Tasks) */}
-            {event.tasks && event.tasks.length > 0 && pendingTasks.length > 0 && (
-                <div style={{ marginTop: 24 }}>
-                    <h3 className="section-title">Action Items</h3>
-                    <div className="tab-list">
-                        {pendingTasks.slice(0, 3).map(task => (
-                            <div key={task.id} className="tab-list-item">
-                                <div style={{ width: 20, height: 20, borderRadius: 6, border: '2px solid var(--text-tertiary)' }} />
-                                <div style={{ flex: 1, fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>{task.text || task.title}</div>
-                                {task.assignee && (
-                                    <div style={{ fontSize: 11, padding: '2px 8px', background: 'var(--bg-tertiary)', borderRadius: 10, color: 'var(--text-secondary)' }}>{task.assignee}</div>
-                                )}
-                            </div>
-                        ))}
+            {
+                event.tasks && event.tasks.length > 0 && pendingTasks.length > 0 && (
+                    <div style={{ marginTop: 24 }}>
+                        <h3 className="section-title">Action Items</h3>
+                        <div className="tab-list">
+                            {pendingTasks.slice(0, 3).map(task => (
+                                <div key={task.id} className="tab-list-item">
+                                    <div style={{ width: 20, height: 20, borderRadius: 6, border: '2px solid var(--text-tertiary)' }} />
+                                    <div style={{ flex: 1, fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>{task.text || task.title}</div>
+                                    {task.assignee && (
+                                        <div style={{ fontSize: 11, padding: '2px 8px', background: 'var(--bg-tertiary)', borderRadius: 10, color: 'var(--text-secondary)' }}>{task.assignee}</div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Guest Modal */}
-            {showGuestModal && (
-                <div className="modal-overlay" onClick={() => setShowGuestModal(false)}>
-                    <div className="modal-card" onClick={e => e.stopPropagation()}>
-                        <div className="section-header">
-                            <h3 className="section-title">{modalTitle}</h3>
-                            <button onClick={() => setShowGuestModal(false)} style={{ border: 'none', background: 'transparent' }}><X size={20} /></button>
-                        </div>
-                        <div className="tab-list">
-                            {modalGuests.length === 0 ? (
-                                <div className="tab-empty-state">No guests found</div>
-                            ) : (
-                                modalGuests.map(guest => (
-                                    <div key={guest.id} className="tab-list-item">
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{guest.name}</div>
-                                            {guest.phone && <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{guest.phone}</div>}
+            {
+                showGuestModal && (
+                    <div className="modal-overlay" onClick={() => setShowGuestModal(false)}>
+                        <div className="modal-card" onClick={e => e.stopPropagation()}>
+                            <div className="section-header">
+                                <h3 className="section-title">{modalTitle}</h3>
+                                <button onClick={() => setShowGuestModal(false)} style={{ border: 'none', background: 'transparent' }}><X size={20} /></button>
+                            </div>
+                            <div className="tab-list">
+                                {modalGuests.length === 0 ? (
+                                    <div className="tab-empty-state">No guests found</div>
+                                ) : (
+                                    modalGuests.map(guest => (
+                                        <div key={guest.id} className="tab-list-item">
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{guest.name}</div>
+                                                {guest.phone && <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{guest.phone}</div>}
+                                            </div>
+                                            {guest.attended && <CheckCircle size={16} color="#10b981" />}
                                         </div>
-                                        {guest.attended && <CheckCircle size={16} color="#10b981" />}
-                                    </div>
-                                ))
-                            )}
+                                    ))
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 

@@ -7,6 +7,7 @@ import confetti from 'canvas-confetti';
 import ThemeToggle from '../components/ThemeToggle';
 import RateAppService from '../services/RateAppService';
 import UpgradeModal from '../components/UpgradeModal';
+import { countries } from '../components/ai/AICommon';
 import './ManagerDashboard.css';
 
 const ManagerDashboard = () => {
@@ -36,7 +37,7 @@ const ManagerDashboard = () => {
     }, []);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [newEvent, setNewEvent] = useState({ title: '', date: '', location: '' });
+    const [newEvent, setNewEvent] = useState({ title: '', date: '', location: '', country: 'US' });
     const [filter, setFilter] = useState('upcoming'); // 'upcoming', 'past'
     // Safety cleanup for confetti
     React.useEffect(() => {
@@ -60,7 +61,7 @@ const ManagerDashboard = () => {
                 zIndex: 2000 // Ensure it's on top
             });
 
-            setNewEvent({ title: '', date: '', location: '' });
+            setNewEvent({ title: '', date: '', location: '', country: 'US' });
             setIsCreating(false);
 
             // Navigate to the newly created event
@@ -243,6 +244,22 @@ const ManagerDashboard = () => {
                                         />
                                     </div>
                                 </div>
+
+                                <div>
+                                    <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Event Region (for local pricing)</label>
+                                    <select
+                                        value={newEvent.country || 'US'}
+                                        onChange={(e) => setNewEvent({ ...newEvent, country: e.target.value })}
+                                        className="form-input"
+                                        style={{ width: '100%', cursor: 'pointer' }}
+                                    >
+                                        {countries.map(c => (
+                                            <option key={c.code} value={c.code}>
+                                                {c.name} ({c.currency})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
                                     <button
                                         type="button"
@@ -263,202 +280,204 @@ const ManagerDashboard = () => {
                                 </div>
                             </form>
                         </div>
-                    </div>
+                    </div >
                 )}
 
                 {/* Events List */}
-                {events.length === 0 ? (
-                    <div className="onboarding-empty-state">
-                        <div className="onboarding-icon-circle">
-                            <Sparkles size={40} />
+                {
+                    events.length === 0 ? (
+                        <div className="onboarding-empty-state">
+                            <div className="onboarding-icon-circle">
+                                <Sparkles size={40} />
+                            </div>
+                            <h2 className="onboarding-title">Welcome to HostEze 🎉</h2>
+                            <p className="onboarding-description">
+                                Your all-in-one companion for perfect events. <br />
+                                Manage guests, track budgets, and split expenses seamlessly.
+                            </p>
+
+                            <div className="onboarding-features">
+                                <div className="feature-pill"><Users size={16} /> Guest List</div>
+                                <div className="feature-pill"><Calendar size={16} /> Scheduler</div>
+                                <div className="feature-pill"><CheckCircle size={16} /> RSVPs</div>
+                            </div>
+
+                            <button
+                                onClick={checkLimitAndOpen}
+                                className="onboarding-btn-large"
+                            >
+                                <Plus size={24} /> Create Your First Event <ArrowRight size={20} />
+                            </button>
                         </div>
-                        <h2 className="onboarding-title">Welcome to HostEze 🎉</h2>
-                        <p className="onboarding-description">
-                            Your all-in-one companion for perfect events. <br />
-                            Manage guests, track budgets, and split expenses seamlessly.
-                        </p>
+                    ) : (
+                        <div style={{ display: 'grid', gap: '12px' }}>
+                            {events
+                                .filter(event => {
+                                    const today = new Date();
+                                    today.setHours(0, 0, 0, 0); // Reset to start of day
 
-                        <div className="onboarding-features">
-                            <div className="feature-pill"><Users size={16} /> Guest List</div>
-                            <div className="feature-pill"><Calendar size={16} /> Scheduler</div>
-                            <div className="feature-pill"><CheckCircle size={16} /> RSVPs</div>
-                        </div>
+                                    if (!event.date) {
+                                        // Events without dates show in upcoming
+                                        return filter === 'upcoming';
+                                    }
 
-                        <button
-                            onClick={checkLimitAndOpen}
-                            className="onboarding-btn-large"
-                        >
-                            <Plus size={24} /> Create Your First Event <ArrowRight size={20} />
-                        </button>
-                    </div>
-                ) : (
-                    <div style={{ display: 'grid', gap: '12px' }}>
-                        {events
-                            .filter(event => {
-                                const today = new Date();
-                                today.setHours(0, 0, 0, 0); // Reset to start of day
+                                    const eventDate = new Date(event.date);
+                                    eventDate.setHours(0, 0, 0, 0);
 
-                                if (!event.date) {
-                                    // Events without dates show in upcoming
-                                    return filter === 'upcoming';
-                                }
+                                    if (filter === 'upcoming') {
+                                        return eventDate >= today;
+                                    } else if (filter === 'past') {
+                                        return eventDate < today;
+                                    }
+                                    return true;
+                                })
+                                .sort((a, b) => {
+                                    // Sort by date - upcoming events first
+                                    if (!a.date && !b.date) return 0;
+                                    if (!a.date) return 1;
+                                    if (!b.date) return -1;
+                                    return new Date(a.date) - new Date(b.date);
+                                })
+                                .map(event => {
+                                    const isGuest = event.role === 'guest';
+                                    const isSharedEvent = event.event_type === 'shared';
+                                    // Shared event participants get full access, only host event guests get limited view
+                                    const linkPath = (isGuest && !isSharedEvent) ? `/guest/event/${event.id}` : `/event/${event.id}`;
 
-                                const eventDate = new Date(event.date);
-                                eventDate.setHours(0, 0, 0, 0);
-
-                                if (filter === 'upcoming') {
-                                    return eventDate >= today;
-                                } else if (filter === 'past') {
-                                    return eventDate < today;
-                                }
-                                return true;
-                            })
-                            .sort((a, b) => {
-                                // Sort by date - upcoming events first
-                                if (!a.date && !b.date) return 0;
-                                if (!a.date) return 1;
-                                if (!b.date) return -1;
-                                return new Date(a.date) - new Date(b.date);
-                            })
-                            .map(event => {
-                                const isGuest = event.role === 'guest';
-                                const isSharedEvent = event.event_type === 'shared';
-                                // Shared event participants get full access, only host event guests get limited view
-                                const linkPath = (isGuest && !isSharedEvent) ? `/guest/event/${event.id}` : `/event/${event.id}`;
-
-                                return (
-                                    <Link to={linkPath} key={event.id} style={{ textDecoration: 'none' }}>
-                                        <div style={{
-                                            padding: '20px 0',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '16px',
-                                            transition: 'all 0.2s',
-                                            cursor: 'pointer'
-                                        }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.background = 'transparent';
-                                            }}>
-                                            {/* Icon Badge - Splitwise style */}
+                                    return (
+                                        <Link to={linkPath} key={event.id} style={{ textDecoration: 'none' }}>
                                             <div style={{
-                                                width: '64px',
-                                                height: '64px',
-                                                background: isGuest
-                                                    ? 'linear-gradient(135deg, #60a5fa, #3b82f6)'
-                                                    : isSharedEvent
-                                                        ? 'linear-gradient(135deg, #f59e0b, #d97706)'
-                                                        : 'linear-gradient(135deg, #ec4899, #db2777)',
-                                                borderRadius: '14px',
+                                                padding: '20px 0',
                                                 display: 'flex',
-                                                flexDirection: 'column',
                                                 alignItems: 'center',
-                                                justifyContent: 'center',
-                                                flexShrink: 0,
-                                                color: 'white'
-                                            }}>
-                                                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', opacity: 0.9 }}>
-                                                    {event.date ? new Date(event.date).toLocaleString('default', { month: 'short' }) : 'TBD'}
-                                                </span>
-                                                <span style={{ fontSize: '22px', fontWeight: 700, lineHeight: 1 }}>
-                                                    {event.date ? new Date(event.date).getDate() : '?'}
-                                                </span>
-                                            </div>
-
-                                            {/* Event Details */}
-                                            <div style={{ flex: 1, minWidth: 0 }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                                    <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, wordBreak: 'break-word', lineHeight: '1.3' }}>
-                                                        {event.title}
-                                                    </h3>
-                                                    {isSharedEvent && (
-                                                        <span style={{
-                                                            padding: '2px 8px',
-                                                            background: 'rgba(245, 158, 11, 0.15)',
-                                                            color: '#f59e0b',
-                                                            borderRadius: '12px',
-                                                            fontSize: '10px',
-                                                            fontWeight: 700,
-                                                            textTransform: 'uppercase',
-                                                            flexShrink: 0,
-                                                            border: '1px solid #f59e0b'
-                                                        }}>
-                                                            SHARED
-                                                        </span>
-                                                    )}
-                                                    {isGuest && !isSharedEvent && (
-                                                        <span style={{
-                                                            padding: '2px 8px',
-                                                            background: 'rgba(96, 165, 250, 0.15)',
-                                                            color: '#60a5fa',
-                                                            borderRadius: '12px',
-                                                            fontSize: '10px',
-                                                            fontWeight: 700,
-                                                            textTransform: 'uppercase',
-                                                            flexShrink: 0,
-                                                            border: '1px solid #60a5fa'
-                                                        }}>
-                                                            GUEST
-                                                        </span>
-                                                    )}
+                                                gap: '16px',
+                                                transition: 'all 0.2s',
+                                                cursor: 'pointer'
+                                            }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = 'transparent';
+                                                }}>
+                                                {/* Icon Badge - Splitwise style */}
+                                                <div style={{
+                                                    width: '64px',
+                                                    height: '64px',
+                                                    background: isGuest
+                                                        ? 'linear-gradient(135deg, #60a5fa, #3b82f6)'
+                                                        : isSharedEvent
+                                                            ? 'linear-gradient(135deg, #f59e0b, #d97706)'
+                                                            : 'linear-gradient(135deg, #ec4899, #db2777)',
+                                                    borderRadius: '14px',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    flexShrink: 0,
+                                                    color: 'white'
+                                                }}>
+                                                    <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', opacity: 0.9 }}>
+                                                        {event.date ? new Date(event.date).toLocaleString('default', { month: 'short' }) : 'TBD'}
+                                                    </span>
+                                                    <span style={{ fontSize: '22px', fontWeight: 700, lineHeight: 1 }}>
+                                                        {event.date ? new Date(event.date).getDate() : '?'}
+                                                    </span>
                                                 </div>
-                                                <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                                                    {event.location && (
-                                                        <div style={{ marginBottom: '2px' }}>
-                                                            {event.location}
-                                                        </div>
-                                                    )}
+
+                                                {/* Event Details */}
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                                        <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, wordBreak: 'break-word', lineHeight: '1.3' }}>
+                                                            {event.title}
+                                                        </h3>
+                                                        {isSharedEvent && (
+                                                            <span style={{
+                                                                padding: '2px 8px',
+                                                                background: 'rgba(245, 158, 11, 0.15)',
+                                                                color: '#f59e0b',
+                                                                borderRadius: '12px',
+                                                                fontSize: '10px',
+                                                                fontWeight: 700,
+                                                                textTransform: 'uppercase',
+                                                                flexShrink: 0,
+                                                                border: '1px solid #f59e0b'
+                                                            }}>
+                                                                SHARED
+                                                            </span>
+                                                        )}
+                                                        {isGuest && !isSharedEvent && (
+                                                            <span style={{
+                                                                padding: '2px 8px',
+                                                                background: 'rgba(96, 165, 250, 0.15)',
+                                                                color: '#60a5fa',
+                                                                borderRadius: '12px',
+                                                                fontSize: '10px',
+                                                                fontWeight: 700,
+                                                                textTransform: 'uppercase',
+                                                                flexShrink: 0,
+                                                                border: '1px solid #60a5fa'
+                                                            }}>
+                                                                GUEST
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                                        {event.location && (
+                                                            <div style={{ marginBottom: '2px' }}>
+                                                                {event.location}
+                                                            </div>
+                                                        )}
+                                                        {!isGuest && (
+                                                            <div>
+                                                                {event.guests?.length || 0} {event.guests?.length === 1 ? 'guest' : 'guests'}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Actions */}
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                                                     {!isGuest && (
-                                                        <div>
-                                                            {event.guests?.length || 0} {event.guests?.length === 1 ? 'guest' : 'guests'}
-                                                        </div>
+                                                        <button
+                                                            onClick={(e) => handleDelete(e, event.id)}
+                                                            id={`delete-event-from-list-${event.id}`}
+                                                            data-testid={`delete-event-from-list-${event.id}`}
+                                                            style={{
+                                                                padding: '8px',
+                                                                color: '#9ca3af',
+                                                                transition: 'all 0.2s',
+                                                                border: 'none',
+                                                                background: 'none',
+                                                                cursor: 'pointer',
+                                                                borderRadius: '8px'
+                                                            }}
+                                                            onMouseEnter={(e) => {
+                                                                e.currentTarget.style.background = '#fee2e2';
+                                                                e.currentTarget.style.color = '#ef4444';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                e.currentTarget.style.background = 'none';
+                                                                e.currentTarget.style.color = '#9ca3af';
+                                                            }}
+                                                            title="Delete Event"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
                                                     )}
+                                                    <ChevronRight size={18} style={{ color: '#9ca3af' }} />
                                                 </div>
                                             </div>
-
-                                            {/* Actions */}
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                                                {!isGuest && (
-                                                    <button
-                                                        onClick={(e) => handleDelete(e, event.id)}
-                                                        id={`delete-event-from-list-${event.id}`}
-                                                        data-testid={`delete-event-from-list-${event.id}`}
-                                                        style={{
-                                                            padding: '8px',
-                                                            color: '#9ca3af',
-                                                            transition: 'all 0.2s',
-                                                            border: 'none',
-                                                            background: 'none',
-                                                            cursor: 'pointer',
-                                                            borderRadius: '8px'
-                                                        }}
-                                                        onMouseEnter={(e) => {
-                                                            e.currentTarget.style.background = '#fee2e2';
-                                                            e.currentTarget.style.color = '#ef4444';
-                                                        }}
-                                                        onMouseLeave={(e) => {
-                                                            e.currentTarget.style.background = 'none';
-                                                            e.currentTarget.style.color = '#9ca3af';
-                                                        }}
-                                                        title="Delete Event"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                )}
-                                                <ChevronRight size={18} style={{ color: '#9ca3af' }} />
-                                            </div>
-                                        </div>
-                                    </Link>
-                                );
-                            })}
-                    </div>
-                )}
-            </div>
+                                        </Link>
+                                    );
+                                })}
+                        </div>
+                    )
+                }
+            </div >
 
             {/* Floating Action Button - Splitwise style */}
-            <button
+            < button
                 onClick={checkLimitAndOpen}
                 style={{
                     position: 'fixed',

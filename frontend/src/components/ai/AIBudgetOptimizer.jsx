@@ -8,7 +8,8 @@ const AIBudgetOptimizer = ({ event, budget, expenses }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [suggestions, setSuggestions] = useState(null);
-    const [selectedCountry, setSelectedCountry] = useState(event.location?.includes('India') ? 'IN' : 'US');
+    // Use event country or default to 'US'
+    const eventCountry = event.country || 'US';
 
     const fetchBudgetSuggestions = async () => {
         setLoading(true);
@@ -24,7 +25,7 @@ const AIBudgetOptimizer = ({ event, budget, expenses }) => {
                 body: JSON.stringify({
                     guestCount: event.guest_count || 100,
                     budget: budget?.total_budget || 5000,
-                    country: selectedCountry
+                    country: eventCountry
                 })
             });
 
@@ -50,11 +51,7 @@ const AIBudgetOptimizer = ({ event, budget, expenses }) => {
                 badge="AI Finance"
             />
 
-            <CountrySelector
-                selectedCountry={selectedCountry}
-                onCountryChange={setSelectedCountry}
-                disabled={loading}
-            />
+
 
             {!suggestions && !loading && (
                 <div style={{ textAlign: 'center', padding: '2rem' }}>
@@ -115,7 +112,7 @@ const AIBudgetOptimizer = ({ event, budget, expenses }) => {
                     {/* Category Breakdown */}
                     <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Category Breakdown</h4>
                     <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', marginBottom: '2rem' }}>
-                        {suggestions.categories.map((cat, idx) => (
+                        {Array.isArray(suggestions.categories) && suggestions.categories.map((cat, idx) => (
                             <div key={idx} style={{
                                 background: 'var(--bg-secondary)',
                                 padding: '1rem',

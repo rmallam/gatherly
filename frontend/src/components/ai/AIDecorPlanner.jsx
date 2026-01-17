@@ -8,7 +8,8 @@ const AIDecorPlanner = ({ event, onAddItems }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [suggestions, setSuggestions] = useState(null);
-    const [selectedCountry, setSelectedCountry] = useState(event.location?.includes('India') ? 'IN' : 'US');
+    // Use event country or default to 'US'
+    const eventCountry = event.country || 'US';
 
     const fetchSuggestions = async () => {
         setLoading(true);
@@ -22,7 +23,7 @@ const AIDecorPlanner = ({ event, onAddItems }) => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    country: selectedCountry
+                    country: eventCountry
                 })
             });
 
@@ -32,7 +33,7 @@ const AIDecorPlanner = ({ event, onAddItems }) => {
             }
 
             const data = await response.json();
-            setSuggestions(data);
+            setSuggestions(data.decor);
         } catch (err) {
             console.error('AI Suggestion Error:', err);
             setError(err.message);
@@ -62,11 +63,7 @@ const AIDecorPlanner = ({ event, onAddItems }) => {
                 badge="AI Stylist"
             />
 
-            <CountrySelector
-                selectedCountry={selectedCountry}
-                onCountryChange={setSelectedCountry}
-                disabled={loading}
-            />
+
 
             {!suggestions && !loading && (
                 <div style={{ textAlign: 'center', padding: '2rem' }}>
@@ -135,7 +132,7 @@ const AIDecorPlanner = ({ event, onAddItems }) => {
                                 Recommended Items
                             </h4>
                             <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
-                                {suggestions.decorItems && suggestions.decorItems.map((item, idx) => (
+                                {Array.isArray(suggestions.decorItems) && suggestions.decorItems.map((item, idx) => (
                                     <div key={idx} style={{
                                         background: 'var(--bg-secondary)',
                                         padding: '1rem',

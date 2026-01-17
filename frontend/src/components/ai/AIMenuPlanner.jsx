@@ -8,7 +8,8 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [suggestions, setSuggestions] = useState(null);
-    const [selectedCountry, setSelectedCountry] = useState(event.location?.includes('India') ? 'IN' : 'US');
+    // Use event country or default to 'US'
+    const eventCountry = event.country || 'US';
 
     const fetchSuggestions = async () => {
         setLoading(true);
@@ -22,7 +23,7 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    country: selectedCountry
+                    country: eventCountry
                 })
             });
 
@@ -32,7 +33,7 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
             }
 
             const data = await response.json();
-            setSuggestions(data);
+            setSuggestions(data.menu);
         } catch (err) {
             console.error('AI Suggestion Error:', err);
             setError(err.message);
@@ -74,11 +75,7 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
                 badge="AI Chef"
             />
 
-            <CountrySelector
-                selectedCountry={selectedCountry}
-                onCountryChange={setSelectedCountry}
-                disabled={loading}
-            />
+
 
             {!suggestions && !loading && (
                 <div style={{ textAlign: 'center', padding: '2rem' }}>
@@ -130,64 +127,66 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
                         )}
 
                         {/* Menu Categories */}
-                        {Object.entries(suggestions.menu).map(([category, items]) => (
-                            <div key={category}>
-                                <h4 style={{
-                                    textTransform: 'capitalize',
-                                    fontSize: '1.1rem',
-                                    fontWeight: 600,
-                                    marginBottom: '1rem',
-                                    borderBottom: '2px solid var(--border-color)',
-                                    paddingBottom: '0.5rem',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem'
-                                }}>
-                                    {category}
-                                </h4>
-                                <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-                                    {Array.isArray(items) && items.map((item, idx) => (
-                                        <div key={idx} style={{
-                                            background: 'var(--bg-secondary)',
-                                            padding: '1rem',
-                                            borderRadius: '12px',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            justifyContent: 'space-between',
-                                            gap: '0.75rem'
-                                        }}>
-                                            <div>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
-                                                    <h5 style={{ fontWeight: 600, fontSize: '1rem' }}>{item.name}</h5>
-                                                    <span style={{
-                                                        background: 'var(--card-bg-primary)',
-                                                        padding: '2px 8px',
-                                                        borderRadius: '12px',
-                                                        fontSize: '0.8rem',
-                                                        fontWeight: 600
-                                                    }}>${item.cost}</span>
-                                                </div>
-                                                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                                                    {item.description}
-                                                </p>
-                                                {item.servings && (
-                                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '0.5rem' }}>
-                                                        Serves: {item.servings}
+                        {Object.entries(suggestions.menu)
+                            .filter(([category]) => ['appetizers', 'starters', 'mains', 'main course', 'desserts', 'beverages', 'drinks'].includes(category.toLowerCase()))
+                            .map(([category, items]) => (
+                                <div key={category}>
+                                    <h4 style={{
+                                        textTransform: 'capitalize',
+                                        fontSize: '1.1rem',
+                                        fontWeight: 600,
+                                        marginBottom: '1rem',
+                                        borderBottom: '2px solid var(--border-color)',
+                                        paddingBottom: '0.5rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem'
+                                    }}>
+                                        {category}
+                                    </h4>
+                                    <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+                                        {Array.isArray(items) && items.map((item, idx) => (
+                                            <div key={idx} style={{
+                                                background: 'var(--bg-secondary)',
+                                                padding: '1rem',
+                                                borderRadius: '12px',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                justifyContent: 'space-between',
+                                                gap: '0.75rem'
+                                            }}>
+                                                <div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
+                                                        <h5 style={{ fontWeight: 600, fontSize: '1rem' }}>{item.name}</h5>
+                                                        <span style={{
+                                                            background: 'var(--card-bg-primary)',
+                                                            padding: '2px 8px',
+                                                            borderRadius: '12px',
+                                                            fontSize: '0.8rem',
+                                                            fontWeight: 600
+                                                        }}>${item.cost}</span>
                                                     </div>
-                                                )}
+                                                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                                                        {item.description}
+                                                    </p>
+                                                    {item.servings && (
+                                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '0.5rem' }}>
+                                                            Serves: {item.servings}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    onClick={() => handleAddItem(item, category)}
+                                                    className="btn btn-secondary"
+                                                    style={{ width: '100%', marginTop: 'auto', justifyContent: 'center' }}
+                                                >
+                                                    <Plus size={14} style={{ marginRight: '6px' }} /> Add to Menu
+                                                </button>
                                             </div>
-                                            <button
-                                                onClick={() => handleAddItem(item, category)}
-                                                className="btn btn-secondary"
-                                                style={{ width: '100%', marginTop: 'auto', justifyContent: 'center' }}
-                                            >
-                                                <Plus size={14} style={{ marginRight: '6px' }} /> Add to Menu
-                                            </button>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
 
                         {/* Tips */}
                         {suggestions.tips && (
