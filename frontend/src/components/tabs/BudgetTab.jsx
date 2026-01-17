@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { DollarSign, Plus, Trash2, Edit2, Check, X, AlertCircle, TrendingUp, Lock } from 'lucide-react';
 import CategoryChart from '../budget/CategoryChart';
+import AIBudgetAssistant from '../budget/AIBudgetAssistant';
 import '../../pages/EventTabs.css'; // Import shared styles
 
 const CATEGORIES = [
@@ -372,6 +373,11 @@ const BudgetTab = ({ event }) => {
                                 Upgrade to Pro
                             </a>
                         </div>
+                    )}
+
+                    {/* AI Budget Assistant (Pro Feature) */}
+                    {user?.subscription_tier === 'pro' && (
+                        <AIBudgetAssistant event={event} budget={budget} expenses={expenses} />
                     )}
 
                     {/* Expenses List */}
