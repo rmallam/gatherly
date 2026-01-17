@@ -28,6 +28,8 @@ import {
 import eventWallRoutes from './routes/eventWall.js';
 import contactsRoutes from './routes/contacts.js';
 import contactGroupsRoutes from './routes/contact-groups.js';
+import { getBudgetSuggestions, getMenuSuggestions, getDecorIdeas, getCostOptimization } from './services/geminiService.js';
+import { requireProTier } from './middleware/proTierCheck.js';
 import expenseRoutes from './routes/expenses.js';
 import scheduleRoutes from './routes/schedule.js';
 import iapRoutes from './routes/iapRoutes.js';
@@ -2668,6 +2670,7 @@ for (const testPath of possiblePaths) {
     }
 }
 
+
 if (!frontendPath) {
     console.warn('⚠️  Frontend build not found. Web invitations will not work. Checked paths:', possiblePaths);
     frontendPath = path.join(__dirname, '../frontend/dist'); // Fallback
@@ -2675,6 +2678,203 @@ if (!frontendPath) {
 
 // Serve static files from React build
 app.use(express.static(frontendPath));
+
+// ============================================================================
+// AI BUDGET ASSISTANT ENDPOINTS (Pro Feature)
+// ============================================================================
+
+/**
+ * Get AI-powered budget suggestions
+ */
+app.post('/api/events/:eventId/ai/budget-suggestions', authMiddleware, requireProTier, async (req, res) => {
+    try {
+        const eventId = req.params.eventId;
+
+        // Get event details
+        const eventResult = await query(
+            'SELECT * FROM events WHERE id = $1 AND user_id = $2',
+            [eventId, req.user.id]
+        );
+
+        if (eventResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        const event = eventResult.rows[0];
+
+        // Get current budget
+        const budgetResult = await query(
+            'SELECT total_budget FROM budgets WHERE event_id = $1',
+            [eventId]
+        );
+
+        const eventData = {
+            eventType: event.event_type || 'General Event',
+            guestCount: req.body.guestCount || 100,
+            location: event.location || 'United States',
+            budget: budgetResult.rows[0]?.total_budget || req.body.budget || 5000,
+            date: event.date || new Date().toISOString()
+        };
+
+        const suggestions = await getBudgetSuggestions(eventData);
+
+        res.json({
+            success: true,
+            suggestions
+        });
+    } catch (error) {
+        console.error('AI budget suggestions error:', error);
+        res.status(500).json({
+            error: 'Failed to generate budget suggestions',
+            message: error.message
+        });
+    }
+});
+
+/**
+ * Get AI-powered menu suggestions
+ */
+app.post('/api/events/:eventId/ai/menu-suggestions', authMiddleware, requireProTier, async (req, res) => {
+    try {
+        const eventId = req.params.eventId;
+
+        const eventResult = await query(
+            'SELECT * FROM events WHERE id = $1 AND user_id = $2',
+            [eventId, req.user.id]
+        );
+
+        if (eventResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        const event = eventResult.rows[0];
+
+        const eventData = {
+            eventType: event.event_type || 'General Event',
+            guestCount: req.body.guestCount || 100,
+            cuisine: req.body.cuisine || 'Mixed',
+            cateringBudget: req.body.cateringBudget || 2500,
+            dietary: req.body.dietary || 'None specified'
+        };
+
+        const menuSuggestions = await getMenuSuggestions(eventData);
+
+        res.json({
+            success: true,
+            menu: menuSuggestions
+        });
+    } catch (error) {
+        console.error('AI menu suggestions error:', error);
+        res.status(500).json({
+            error: 'Failed to generate menu suggestions',
+            message: error.message
+        });
+    }
+});
+
+/**
+ * Get AI-powered decor ideas
+ */
+app.post('/api/events/:eventId/ai/decor-ideas', authMiddleware, requireProTier, async (req, res) => {
+    try {
+        const eventId = req.params.eventId;
+
+        const eventResult = await query(
+            'SELECT * FROM events WHERE id = $1 AND user_id = $2',
+            [eventId, req.user.id]
+        );
+
+        if (eventResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        const event = eventResult.rows[0];
+
+        const eventData = {
+            eventType: event.event_type || 'General Event',
+            venueType: req.body.venueType || 'Indoor',
+            season: req.body.season || 'Spring',
+            decorBudget: req.body.decorBudget || 800,
+            style: req.body.style || 'Modern'
+        };
+
+        const decorIdeas = await getDecorIdeas(eventData);
+
+        res.json({
+            success: true,
+            decor: decorIdeas
+        });
+    } catch (error) {
+        console.error('AI decor ideas error:', error);
+        res.status(500).json({
+            error: 'Failed to generate decor ideas',
+            message: error.message
+        });
+    }
+});
+
+/**
+ * Get AI-powered cost optimization
+ */
+app.post('/api/events/:eventId/ai/cost-optimization', authMiddleware, requireProTier, async (req, res) => {
+    try {
+        const eventId = req.params.eventId;
+
+        const eventResult = await query(
+            'SELECT * FROM events WHERE id = $1 AND user_id = $2',
+            [eventId, req.user.id]
+        );
+
+        if (eventResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        const event = eventResult.rows[0];
+
+        // Get budget and expenses
+        const budgetResult = await query(
+            'SELECT total_budget FROM budgets WHERE event_id = $1',
+            [eventId]
+        );
+
+        const expensesResult = await query(
+            'SELECT category, amount, description FROM expenses WHERE event_id = $1',
+            [eventId]
+        );
+
+        const totalBudget = budgetResult.rows[0]?.total_budget || 10000;
+        const expenses = expensesResult.rows;
+        const currentSpending = expenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
+
+        const eventData = {
+            totalBudget,
+            currentSpending,
+            daysUntil: req.body.daysUntil || 60,
+            expenses: expenses.map(exp => ({
+                category: exp.category,
+                amount: parseFloat(exp.amount),
+                description: exp.description
+            }))
+        };
+
+        const optimization = await getCostOptimization(eventData);
+
+        res.json({
+            success: true,
+            optimization
+        });
+    } catch (error) {
+        console.error('AI cost optimization error:', error);
+        res.status(500).json({
+            error: 'Failed to generate cost optimization',
+            message: error.message
+        });
+    }
+});
+
+// ============================================================================
+// FRONTEND SERVING (Must be last)
+// ============================================================================
 
 // SPA fallback - serve index.html for all non-API/non-asset routes
 app.get('*', (req, res) => {
