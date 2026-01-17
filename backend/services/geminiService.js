@@ -8,7 +8,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy_key_fo
  */
 export async function getBudgetSuggestions(eventData) {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
     const prompt = `You are an expert event planner with 20 years of experience. Generate a detailed budget recommendation.
 
@@ -80,7 +80,7 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
  */
 export async function getMenuSuggestions(eventData) {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
     const prompt = `You are an expert caterer and menu planner. Create a detailed menu recommendation.
 
@@ -155,7 +155,7 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
  */
 export async function getDecorIdeas(eventData) {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
     const prompt = `You are an expert event decorator and stylist. Create detailed decor recommendations.
 
@@ -227,7 +227,7 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
  */
 export async function getCostOptimization(eventData) {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
     const prompt = `You are an expert budget analyst for events. Analyze the current spending and provide optimization suggestions.
 
