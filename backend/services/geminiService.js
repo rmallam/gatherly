@@ -15,16 +15,16 @@ export async function getBudgetSuggestions(eventData) {
 Event Details:
 - Type: ${eventData.eventType || 'General Event'}
 - Guests: ${eventData.guestCount || 100}
-- Location: ${eventData.location || 'United States'}
+- Location: ${eventData.location || 'United States'} (User Country: ${eventData.country || 'US'})
 - Current Budget: $${eventData.budget || 5000}
 - Date: ${eventData.date || 'Not specified'}
 
 Provide a comprehensive budget breakdown including:
-1. Recommended total budget range (min and max)
+1. Recommended total budget range (min and max) in the local currency of the country (${eventData.country || 'US'})
 2. Category-wise breakdown (Venue, Catering, Decorations, Entertainment, Photography, Transportation, Gifts, Misc)
 3. Percentage allocation for each category
-4. Clear reasoning for each recommendation
-5. Market comparison (is this above/below average?)
+4. Clear reasoning for each recommendation considering local market rates
+5. Market comparison (is this above/below average for this country?)
 6. Three specific cost-saving tips for this event
 
 IMPORTANT: Respond ONLY with valid JSON in this exact format:
@@ -88,16 +88,19 @@ Event Details:
 - Type: ${eventData.eventType || 'General Event'}
 - Guests: ${eventData.guestCount || 100}
 - Cuisine Preference: ${eventData.cuisine || 'Mixed'}
-- Catering Budget: $${eventData.cateringBudget || 2500}
+- Catering Budget: ${eventData.cateringBudget || 2500}
 - Dietary Restrictions: ${eventData.dietary || 'None specified'}
+- Location/Country: ${eventData.country || 'US'}
 
 Create a complete menu with:
-1. Appetizers (3-4 items with costs)
-2. Main courses (3-4 items with costs)
-3. Desserts (2-3 items with costs)
+1. Appetizers (3-4 items with costs in local currency)
+2. Main courses (3-4 items with costs in local currency)
+3. Desserts (2-3 items with costs in local currency)
 4. Beverages
 5. Cost per person calculation
 6. Dietary accommodation suggestions
+
+Consider the local culinary culture of ${eventData.country || 'the region'} when suggesting items.
 
 IMPORTANT: Respond ONLY with valid JSON in this exact format:
 {
@@ -163,13 +166,14 @@ Event Details:
 - Type: ${eventData.eventType || 'General Event'}
 - Venue Type: ${eventData.venueType || 'Indoor'}
 - Season: ${eventData.season || 'Spring'}
-- Decor Budget: $${eventData.decorBudget || 800}
+- Decor Budget: ${eventData.decorBudget || 800}
 - Style Preference: ${eventData.style || 'Modern'}
+- Location/Country: ${eventData.country || 'US'}
 
 Provide:
-1. Theme recommendation
+1. Theme recommendation suitable for the location/season
 2. Color palette (3-5 colors)
-3. Specific decor items with costs
+3. Specific decor items with costs in local currency
 4. DIY tips to save money
 5. Shopping list
 
