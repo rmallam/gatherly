@@ -82,64 +82,66 @@ export async function getMenuSuggestions(eventData) {
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
-    const prompt = `You are an expert caterer and menu planner. Create a detailed menu recommendation.
+    const countryMap = {
+      'US': 'United States',
+      'IN': 'India',
+      'GB': 'United Kingdom',
+      'AE': 'United Arab Emirates',
+      'AU': 'Australia',
+      'CA': 'Canada'
+    };
+    const countryCode = eventData.country || 'US';
+    const countryName = countryMap[countryCode] || countryCode;
 
+    console.log(`[Gemini] Generating menu for ${countryName} (${countryCode})`);
+
+    const prompt = `You are an expert caterer and menu planner specializing in authentic ${countryName} cuisine and others.
+    
 Event Details:
 - Type: ${eventData.eventType || 'General Event'}
 - Guests: ${eventData.guestCount || 100}
-- Cuisine Preference: ${eventData.cuisine || 'Mixed'}
-- Catering Budget: ${eventData.cateringBudget || 2500}
-- Dietary Restrictions: ${eventData.dietary || 'None specified'}
-- Location/Country Code: ${eventData.country || 'US'}
+- Cuisine Preference: ${eventData.cuisine || 'Authentic Local'}
+- Catering Budget: ${eventData.cateringBudget}
+- Location: ${countryName} (${countryCode})
 
-Instructions:
-1. Interpret the Country Code (e.g., IN -> India, US -> USA).
-2. All suggestions MUST be authentic to the country's food culture unless 'Cuisine Preference' specifies otherwise.
-3. All costs MUST be in the local currency of that country (e.g., ₹ for India, $ for US).
+CRITICAL INSTRUCTIONS:
+1. The menu MUST be authentic to ${countryName} if no specific cuisine is requested.
+2. If the country is India (IN), use Indian Rupee (₹) for ALL costs.
+3. If the country is US, use US Dollar ($).
+4. SUGGESTIONS MUST BE LOCALLY SOURCED AND CULTURALLY APPROPRIATE for ${countryName}.
+5. Do NOT suggest generic western food for an Indian wedding unless explicitly asked.
 
 Create a complete menu with:
-1. Appetizers (3-4 items with costs in local currency)
-2. Main courses (3-4 items with costs in local currency)
-3. Desserts (2-3 items with costs in local currency)
+1. Appetizers (3-4 items, costs in local currency)
+2. Main courses (3-4 items, costs in local currency)
+3. Desserts (2-3 items, costs in local currency)
 4. Beverages
 5. Cost per person calculation
 6. Dietary accommodation suggestions
 
-Consider the local culinary culture of ${eventData.country} when suggesting items.
-
-IMPORTANT: Respond ONLY with valid JSON in this exact format:
+IMPORTANT: Respond ONLY with valid JSON in this detailed format:
 {
   "menu": {
     "appetizers": [
-      {"name": "Vegetable Samosas", "quantity": "50 pieces", "cost": 120, "description": "Crispy pastries filled with spiced potatoes"}
+      {"name": "Specific Dish Name", "quantity": "amount", "cost": 0, "description": "Description"}
     ],
-    "mains": [
-      {"name": "Butter Chicken", "servings": 150, "cost": 600, "description": "Tender chicken in creamy tomato sauce"}
-    ],
-    "desserts": [
-      {"name": "Gulab Jamun", "servings": 150, "cost": 200, "description": "Sweet milk dumplings in syrup"}
-    ],
-    "beverages": [
-      {"name": "Soft Drinks & Water", "cost": 300}
-    ]
+    "mains": [],
+    "desserts": [],
+    "beverages": []
   },
   "costBreakdown": {
-    "appetizers": 450,
-    "mains": 2100,
-    "desserts": 400,
-    "beverages": 550,
-    "total": 3500,
-    "costPerPerson": 23.33
+    "appetizers": 0,
+    "mains": 0,
+    "desserts": 0,
+    "beverages": 0,
+    "total": 0,
+    "costPerPerson": 0
   },
-  "dietaryAccommodations": [
-    "Add vegan option (+$180) for estimated 15% of guests",
-    "Gluten-free alternatives available (+$120)"
-  ],
-  "tips": [
-    "Order 10% extra for unexpected guests",
-    "Seasonal ingredients can save 15-20%"
-  ]
+  "dietaryAccommodations": [],
+  "tips": []
 }`;
+
+    console.log('[Gemini] Menu Prompt:', prompt);
 
     const result = await model.generateContent(prompt);
     const text = result.response.text().trim();
@@ -165,23 +167,37 @@ export async function getDecorIdeas(eventData) {
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
-    const prompt = `You are an expert event decorator and stylist. Create detailed decor recommendations.
+    const countryMap = {
+      'US': 'United States',
+      'IN': 'India',
+      'GB': 'United Kingdom',
+      'AE': 'United Arab Emirates',
+      'AU': 'Australia',
+      'CA': 'Canada'
+    };
+    const countryCode = eventData.country || 'US';
+    const countryName = countryMap[countryCode] || countryCode;
 
+    console.log(`[Gemini] Generating decor for ${countryName} (${countryCode})`);
+
+    const prompt = `You are an expert event decorator specializing in weddings and events in ${countryName}.
+    
 Event Details:
 - Type: ${eventData.eventType || 'General Event'}
 - Venue Type: ${eventData.venueType || 'Indoor'}
 - Season: ${eventData.season || 'Spring'}
-- Decor Budget: ${eventData.decorBudget || 800}
-- Style Preference: ${eventData.style || 'Modern'}
-- Location/Country Code: ${eventData.country || 'US'}
+- Decor Budget: ${eventData.decorBudget}
+- Style: ${eventData.style || 'Traditional'}
+- Location: ${countryName} (${countryCode})
 
-Instructions:
-1. Interpret the Country Code (e.g., IN -> India, US -> USA, UK -> United Kingdom).
-2. All suggestions MUST be culturally appropriate and available in that country.
-3. All costs MUST be in the local currency of that country (e.g., ₹ for India, $ for US).
+CRITICAL INSTRUCTIONS:
+1. SUGGESTIONS MUST BE CULTURALLY SPECIFIC to ${countryName}.
+2. For India: Suggest Marigold flowers, Rangoli, Diyas, Mandap styles if relevant.
+3. Use the LOCAL CURRENCY for ${countryName} (e.g. ₹ for India) for ALL prices.
+4. Do not provide generic western decor unless the style specifically says 'Western'.
 
 Provide:
-1. Theme recommendation suitable for the location/season
+1. Theme recommendation suitable for the location/season in ${countryName}
 2. Color palette (3-5 colors)
 3. Specific decor items with costs in local currency
 4. DIY tips to save money
@@ -189,35 +205,23 @@ Provide:
 
 IMPORTANT: Respond ONLY with valid JSON in this exact format:
 {
-  "theme": "Rustic Elegance",
-  "description": "A blend of natural elements with sophisticated touches",
-  "colorPalette": ["Blush Pink (#FFC0CB)", "Sage Green (#9DC183)", "Ivory (#FFFFF0)", "Gold (#FFD700)"],
+  "theme": "Theme Name",
+  "description": "Description",
+  "colorPalette": ["Color 1", "Color 2"],
   "decorItems": [
     {
-      "category": "Floral Centerpieces",
-      "items": "Peonies & eucalyptus for 15 tables",
-      "cost": 300,
-      "diyTip": "Buy wholesale from local flower market to save $150"
-    },
-    {
-      "category": "Lighting",
-      "items": "Warm white string lights",
-      "cost": 150,
-      "diyTip": "Rent instead of buy to save $80"
+      "category": "Category",
+      "items": "Item details",
+      "cost": 0,
+      "diyTip": "Tip"
     }
   ],
-  "totalCost": 800,
-  "savingsTips": [
-    "DIY centerpieces can save 40-50%",
-    "Use seasonal flowers for 20% savings",
-    "Borrow items from venue when possible"
-  ],
-  "shoppingList": [
-    "15 glass vases ($5 each)",
-    "200ft string lights",
-    "50 votive candles"
-  ]
+  "totalCost": 0,
+  "savingsTips": [],
+  "shoppingList": []
 }`;
+
+    console.log('[Gemini] Decor Prompt:', prompt);
 
     const result = await model.generateContent(prompt);
     const text = result.response.text().trim();

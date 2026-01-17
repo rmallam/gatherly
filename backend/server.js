@@ -2757,6 +2757,8 @@ app.post('/api/events/:eventId/ai/menu-suggestions', authMiddleware, requireProT
 
         const event = eventResult.rows[0];
 
+        console.log('[API] Menu Suggestions Request Body:', JSON.stringify(req.body, null, 2));
+
         const eventData = {
             eventType: event.event_type || 'General Event',
             guestCount: req.body.guestCount || 100,
@@ -2798,6 +2800,8 @@ app.post('/api/events/:eventId/ai/decor-ideas', authMiddleware, requireProTier, 
         }
 
         const event = eventResult.rows[0];
+
+        console.log('[API] Decor Ideas Request Body:', JSON.stringify(req.body, null, 2));
 
         const eventData = {
             eventType: event.event_type || 'General Event',
