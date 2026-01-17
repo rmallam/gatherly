@@ -7,10 +7,10 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy_key_fo
  * Get AI-powered budget suggestions for an event
  */
 export async function getBudgetSuggestions(eventData) {
-    try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-        const prompt = `You are an expert event planner with 20 years of experience. Generate a detailed budget recommendation.
+    const prompt = `You are an expert event planner with 20 years of experience. Generate a detailed budget recommendation.
 
 Event Details:
 - Type: ${eventData.eventType || 'General Event'}
@@ -55,34 +55,34 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
   ]
 }`;
 
-        const result = await model.generateContent(prompt);
-        const response = result.response;
-        const text = response.text();
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
 
-        // Extract JSON from response (handle markdown code blocks)
-        let jsonText = text.trim();
-        if (jsonText.startsWith('```json')) {
-            jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-        } else if (jsonText.startsWith('```')) {
-            jsonText = jsonText.replace(/```\n?/g, '');
-        }
-
-        const suggestions = JSON.parse(jsonText);
-        return suggestions;
-    } catch (error) {
-        console.error('Gemini API error:', error);
-        throw new Error('Failed to generate budget suggestions');
+    // Extract JSON from response (handle markdown code blocks)
+    let jsonText = text.trim();
+    if (jsonText.startsWith('```json')) {
+      jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    } else if (jsonText.startsWith('```')) {
+      jsonText = jsonText.replace(/```\n?/g, '');
     }
+
+    const suggestions = JSON.parse(jsonText);
+    return suggestions;
+  } catch (error) {
+    console.error('Gemini API error:', error);
+    throw new Error('Failed to generate budget suggestions');
+  }
 }
 
 /**
  * Get AI-powered menu suggestions
  */
 export async function getMenuSuggestions(eventData) {
-    try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
-        const prompt = `You are an expert caterer and menu planner. Create a detailed menu recommendation.
+    const prompt = `You are an expert caterer and menu planner. Create a detailed menu recommendation.
 
 Event Details:
 - Type: ${eventData.eventType || 'General Event'}
@@ -133,31 +133,31 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
   ]
 }`;
 
-        const result = await model.generateContent(prompt);
-        const text = result.response.text().trim();
+    const result = await model.generateContent(prompt);
+    const text = result.response.text().trim();
 
-        let jsonText = text;
-        if (jsonText.startsWith('```json')) {
-            jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-        } else if (jsonText.startsWith('```')) {
-            jsonText = jsonText.replace(/```\n?/g, '');
-        }
-
-        return JSON.parse(jsonText);
-    } catch (error) {
-        console.error('Gemini API error:', error);
-        throw new Error('Failed to generate menu suggestions');
+    let jsonText = text;
+    if (jsonText.startsWith('```json')) {
+      jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    } else if (jsonText.startsWith('```')) {
+      jsonText = jsonText.replace(/```\n?/g, '');
     }
+
+    return JSON.parse(jsonText);
+  } catch (error) {
+    console.error('Gemini API error:', error);
+    throw new Error('Failed to generate menu suggestions');
+  }
 }
 
 /**
  * Get AI-powered decor ideas
  */
 export async function getDecorIdeas(eventData) {
-    try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
-        const prompt = `You are an expert event decorator and stylist. Create detailed decor recommendations.
+    const prompt = `You are an expert event decorator and stylist. Create detailed decor recommendations.
 
 Event Details:
 - Type: ${eventData.eventType || 'General Event'}
@@ -205,31 +205,31 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
   ]
 }`;
 
-        const result = await model.generateContent(prompt);
-        const text = result.response.text().trim();
+    const result = await model.generateContent(prompt);
+    const text = result.response.text().trim();
 
-        let jsonText = text;
-        if (jsonText.startsWith('```json')) {
-            jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-        } else if (jsonText.startsWith('```')) {
-            jsonText = jsonText.replace(/```\n?/g, '');
-        }
-
-        return JSON.parse(jsonText);
-    } catch (error) {
-        console.error('Gemini API error:', error);
-        throw new Error('Failed to generate decor ideas');
+    let jsonText = text;
+    if (jsonText.startsWith('```json')) {
+      jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    } else if (jsonText.startsWith('```')) {
+      jsonText = jsonText.replace(/```\n?/g, '');
     }
+
+    return JSON.parse(jsonText);
+  } catch (error) {
+    console.error('Gemini API error:', error);
+    throw new Error('Failed to generate decor ideas');
+  }
 }
 
 /**
  * Get cost optimization suggestions
  */
 export async function getCostOptimization(eventData) {
-    try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
-        const prompt = `You are an expert budget analyst for events. Analyze the current spending and provide optimization suggestions.
+    const prompt = `You are an expert budget analyst for events. Analyze the current spending and provide optimization suggestions.
 
 Event Details:
 - Total Budget: $${eventData.totalBudget || 10000}
@@ -277,19 +277,19 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
   ]
 }`;
 
-        const result = await model.generateContent(prompt);
-        const text = result.response.text().trim();
+    const result = await model.generateContent(prompt);
+    const text = result.response.text().trim();
 
-        let jsonText = text;
-        if (jsonText.startsWith('```json')) {
-            jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-        } else if (jsonText.startsWith('```')) {
-            jsonText = jsonText.replace(/```\n?/g, '');
-        }
-
-        return JSON.parse(jsonText);
-    } catch (error) {
-        console.error('Gemini API error:', error);
-        throw new Error('Failed to generate cost optimization');
+    let jsonText = text;
+    if (jsonText.startsWith('```json')) {
+      jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    } else if (jsonText.startsWith('```')) {
+      jsonText = jsonText.replace(/```\n?/g, '');
     }
+
+    return JSON.parse(jsonText);
+  } catch (error) {
+    console.error('Gemini API error:', error);
+    throw new Error('Failed to generate cost optimization');
+  }
 }
