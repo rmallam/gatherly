@@ -2897,6 +2897,28 @@ app.get('*', (req, res) => {
     });
 });
 
+// Debug endpoint to list available Gemini models
+app.get('/api/debug/gemini-models', async (req, res) => {
+    try {
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            return res.status(500).json({ error: 'GEMINI_API_KEY not set' });
+        }
+
+        // Direct fetch to list models
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        const data = await response.json();
+
+        res.json({
+            keyConfigured: true,
+            keyPrefix: apiKey.substring(0, 5) + '...',
+            availableModels: data
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message, stack: error.stack });
+    }
+});
+
 // Initialize database and start server
 const PORT = process.env.PORT || 3001;
 
