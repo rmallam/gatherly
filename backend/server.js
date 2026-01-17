@@ -2718,7 +2718,8 @@ app.post('/api/events/:eventId/ai/budget-suggestions', authMiddleware, requirePr
             guestCount: req.body.guestCount || 100,
             location: event.location || 'United States',
             budget: budgetResult.rows[0]?.total_budget || req.body.budget || 5000,
-            date: event.date || new Date().toISOString()
+            date: event.date || new Date().toISOString(),
+            country: req.body.country || 'US'
         };
 
         const suggestions = await getBudgetSuggestions(eventData);
@@ -2759,7 +2760,8 @@ app.post('/api/events/:eventId/ai/menu-suggestions', authMiddleware, requireProT
             guestCount: req.body.guestCount || 100,
             cuisine: req.body.cuisine || 'Mixed',
             cateringBudget: req.body.cateringBudget || 2500,
-            dietary: req.body.dietary || 'None specified'
+            dietary: req.body.dietary || 'None specified',
+            country: req.body.country || 'US'
         };
 
         const menuSuggestions = await getMenuSuggestions(eventData);
@@ -2800,7 +2802,8 @@ app.post('/api/events/:eventId/ai/decor-ideas', authMiddleware, requireProTier, 
             venueType: req.body.venueType || 'Indoor',
             season: req.body.season || 'Spring',
             decorBudget: req.body.decorBudget || 800,
-            style: req.body.style || 'Modern'
+            style: req.body.style || 'Modern',
+            country: req.body.country || 'US'
         };
 
         const decorIdeas = await getDecorIdeas(eventData);
