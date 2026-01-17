@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Sparkles, Plus, X, Check, Trash2, Palette, Edit2 } from 'lucide-react';
 import '../../pages/EventTabs.css';
 
+import AIDecorPlanner from '../ai/AIDecorPlanner';
+
 const DecorationsTab = ({ event, onUpdateDecorations }) => {
     const [decorations, setDecorations] = useState(event.decorations || {
         theme: '',
@@ -9,6 +11,7 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
         items: []
     });
     const [showAddForm, setShowAddForm] = useState(false);
+    const [showAIPlanner, setShowAIPlanner] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
     const [newItem, setNewItem] = useState({
         item: '',
@@ -52,6 +55,21 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
         onUpdateDecorations?.(updated);
         setNewItem({ item: '', area: 'entrance', quantity: '', cost: '', status: 'planned' });
         setShowAddForm(false);
+    };
+
+    const handleAddAIItems = (newItems) => {
+        const processedItems = newItems.map(item => ({
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+            ...item
+        }));
+
+        const updated = {
+            ...decorations,
+            items: [...(decorations.items || []), ...processedItems]
+        };
+
+        setDecorations(updated);
+        onUpdateDecorations?.(updated);
     };
 
     const handleDeleteItem = (id) => {
@@ -142,7 +160,37 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
                 </div>
             </div>
 
-            {/* Theme Card */}
+            {/* Action Buttons Row */}
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+                <button
+                    onClick={() => setShowAddForm(!showAddForm)}
+                    className="btn btn-primary"
+                    style={{ flex: 1 }}
+                >
+                    <Plus size={16} /> Add Custom Item
+                </button>
+                <button
+                    onClick={() => setShowAIPlanner(!showAIPlanner)}
+                    className="btn btn-secondary"
+                    style={{
+                        flex: 1,
+                        background: showAIPlanner ? 'var(--bg-secondary)' : 'transparent',
+                        borderColor: showAIPlanner ? 'var(--primary)' : 'var(--border-color)',
+                        color: showAIPlanner ? 'var(--primary)' : 'var(--text-primary)'
+                    }}
+                >
+                    <Sparkles size={16} style={{ color: 'var(--accent)' }} />
+                    {showAIPlanner ? 'Hide AI Stylist' : 'AI Decor Ideas'}
+                </button>
+            </div>
+
+            {/* AI Planner Section */}
+            {showAIPlanner && (
+                <AIDecorPlanner
+                    event={event}
+                    onAddItems={handleAddAIItems}
+                />
+            )}
             <div className="hero-card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1))', marginBottom: 24 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
                     <div style={{ padding: 8, background: 'var(--bg-primary)', borderRadius: '50%' }}>
