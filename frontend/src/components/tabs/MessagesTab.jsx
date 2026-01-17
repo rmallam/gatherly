@@ -222,42 +222,87 @@ const MessagesTab = ({ event }) => {
                     </div>
 
                     <div style={{ marginBottom: 24 }}>
-                        <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
+                        <label style={{ display: 'block', marginBottom: 12, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
                             Send to
                         </label>
-                        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            <label style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 12,
+                                cursor: 'pointer',
+                                padding: '14px 16px',
+                                background: recipientFilter === 'all' ? 'rgba(99, 102, 241, 0.1)' : 'var(--bg-secondary)',
+                                borderRadius: '12px',
+                                border: recipientFilter === 'all' ? '2px solid var(--primary)' : '2px solid transparent',
+                                transition: 'all 0.2s'
+                            }}>
                                 <input
                                     type="radio"
                                     name="recipient"
                                     value="all"
                                     checked={recipientFilter === 'all'}
                                     onChange={(e) => setRecipientFilter(e.target.value)}
-                                    style={{ accentColor: 'var(--primary)' }}
+                                    style={{
+                                        accentColor: 'var(--primary)',
+                                        width: '20px',
+                                        height: '20px',
+                                        cursor: 'pointer'
+                                    }}
                                 />
-                                <span style={{ fontSize: 14 }}>All Guests</span>
+                                <span style={{ fontSize: 16, fontWeight: 500, color: 'var(--text-primary)' }}>All Guests</span>
                             </label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                            <label style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 12,
+                                cursor: 'pointer',
+                                padding: '14px 16px',
+                                background: recipientFilter === 'confirmed' ? 'rgba(99, 102, 241, 0.1)' : 'var(--bg-secondary)',
+                                borderRadius: '12px',
+                                border: recipientFilter === 'confirmed' ? '2px solid var(--primary)' : '2px solid transparent',
+                                transition: 'all 0.2s'
+                            }}>
                                 <input
                                     type="radio"
                                     name="recipient"
                                     value="confirmed"
                                     checked={recipientFilter === 'confirmed'}
                                     onChange={(e) => setRecipientFilter(e.target.value)}
-                                    style={{ accentColor: 'var(--primary)' }}
+                                    style={{
+                                        accentColor: 'var(--primary)',
+                                        width: '20px',
+                                        height: '20px',
+                                        cursor: 'pointer'
+                                    }}
                                 />
-                                <span style={{ fontSize: 14 }}>Confirmed Only</span>
+                                <span style={{ fontSize: 16, fontWeight: 500, color: 'var(--text-primary)' }}>Confirmed Only</span>
                             </label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                            <label style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 12,
+                                cursor: 'pointer',
+                                padding: '14px 16px',
+                                background: recipientFilter === 'attended' ? 'rgba(99, 102, 241, 0.1)' : 'var(--bg-secondary)',
+                                borderRadius: '12px',
+                                border: recipientFilter === 'attended' ? '2px solid var(--primary)' : '2px solid transparent',
+                                transition: 'all 0.2s'
+                            }}>
                                 <input
                                     type="radio"
                                     name="recipient"
                                     value="attended"
                                     checked={recipientFilter === 'attended'}
                                     onChange={(e) => setRecipientFilter(e.target.value)}
-                                    style={{ accentColor: 'var(--primary)' }}
+                                    style={{
+                                        accentColor: 'var(--primary)',
+                                        width: '20px',
+                                        height: '20px',
+                                        cursor: 'pointer'
+                                    }}
                                 />
-                                <span style={{ fontSize: 14 }}>Attended Only</span>
+                                <span style={{ fontSize: 16, fontWeight: 500, color: 'var(--text-primary)' }}>Attended Only</span>
                             </label>
                         </div>
                     </div>
