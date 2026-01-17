@@ -320,17 +320,17 @@ const MessagesTab = ({ event }) => {
                             justifyContent: 'space-between',
                             alignItems: 'center',
                             background: 'rgba(99, 102, 241, 0.1)',
-                            padding: '12px',
-                            borderRadius: '8px',
-                            marginBottom: '16px'
+                            padding: '16px 20px',
+                            borderRadius: '12px',
+                            marginBottom: '20px'
                         }}>
-                            <span style={{ color: '#fff', fontSize: '0.9rem' }}>
-                                Cost: <strong>{getRecipientCount()} credits</strong>
+                            <span style={{ color: 'var(--text-primary)', fontSize: '16px', fontWeight: 500 }}>
+                                Cost: <strong style={{ fontSize: '18px' }}>{getRecipientCount()} credits</strong>
                             </span>
                             <span style={{
                                 color: (user?.sms_credits || 0) < getRecipientCount() ? '#ef4444' : '#10b981',
                                 fontWeight: 700,
-                                fontSize: '0.9rem'
+                                fontSize: '18px'
                             }}>
                                 Balance: {user?.sms_credits || 0}
                             </span>
@@ -342,8 +342,13 @@ const MessagesTab = ({ event }) => {
                             disabled={sending || !message.trim() || (user?.sms_credits || 0) < getRecipientCount()}
                             style={{
                                 width: '100%',
+                                minHeight: '56px',
+                                fontSize: '17px',
+                                fontWeight: 600,
                                 opacity: ((user?.sms_credits || 0) < getRecipientCount()) ? 0.5 : 1,
-                                justifyContent: 'center'
+                                justifyContent: 'center',
+                                borderRadius: '14px',
+                                padding: '16px 24px'
                             }}
                         >
                             {sending ? (
@@ -351,9 +356,14 @@ const MessagesTab = ({ event }) => {
                             ) : ((user?.sms_credits || 0) < getRecipientCount() ? 'Insufficient Credits' : <><Send size={18} /> Send Announcement</>)}
                         </button>
                         {(user?.sms_credits || 0) < getRecipientCount() && (
-                            <div style={{ textAlign: 'center', marginTop: '12px' }}>
-                                <a href="/pro" style={{ color: '#8b5cf6', fontSize: '14px', textDecoration: 'none' }}>
-                                    Buy more credits &rarr;
+                            <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                                <a href="/pro" style={{
+                                    color: '#8b5cf6',
+                                    fontSize: '16px',
+                                    fontWeight: 600,
+                                    textDecoration: 'none'
+                                }}>
+                                    Buy more credits →
                                 </a>
                             </div>
                         )}
