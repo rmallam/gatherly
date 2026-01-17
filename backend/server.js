@@ -2687,6 +2687,11 @@ app.use(express.static(frontendPath));
  * Get AI-powered budget suggestions
  */
 app.post('/api/events/:eventId/ai/budget-suggestions', authMiddleware, requireProTier, async (req, res) => {
+    console.log('🤖 AI Budget Suggestions Request:', {
+        eventId: req.params.eventId,
+        userId: req.user?.id,
+        hasGeminiKey: !!process.env.GEMINI_API_KEY
+    });
     try {
         const eventId = req.params.eventId;
 
