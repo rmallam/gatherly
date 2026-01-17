@@ -2,8 +2,9 @@ import React from 'react';
 import API_URL from '../../config/api';
 import { Trash2, MapPin, DollarSign, Users, Clock } from 'lucide-react';
 import '../../pages/EventTabs.css';
+import { formatCurrency } from '../../utils/currencyUtils';
 
-const ScheduleItemCard = ({ item, eventId, onUpdate, onDelete }) => {
+const ScheduleItemCard = ({ item, event, eventId, onUpdate, onDelete }) => {
 
     const handleDelete = async () => {
         if (!confirm('Are you sure you want to delete this activity?')) return;
@@ -100,12 +101,10 @@ const ScheduleItemCard = ({ item, eventId, onUpdate, onDelete }) => {
                             {item.location}
                         </span>
                     )}
-                    {item.estimated_cost && (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#f59e0b', fontWeight: 500 }}>
-                            <DollarSign size={12} />
-                            ${parseFloat(item.estimated_cost).toFixed(2)}
-                        </span>
-                    )}
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#f59e0b', fontWeight: 500 }}>
+                        <DollarSign size={12} />
+                        {formatCurrency(item.estimated_cost, event?.country)}
+                    </span>
                 </div>
             </div>
 

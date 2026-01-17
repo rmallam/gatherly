@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import API_URL from '../../config/api';
 import { X, Calendar, Clock, MapPin, DollarSign, Type } from 'lucide-react';
 import '../../pages/EventTabs.css';
+import { getCurrencySymbol } from '../../utils/currencyUtils';
 
 const AddScheduleItemModal = ({ event, selectedDate, onClose, onItemAdded }) => {
     const [formData, setFormData] = useState({
@@ -203,7 +204,7 @@ const AddScheduleItemModal = ({ event, selectedDate, onClose, onItemAdded }) => 
 
                     {/* Estimated Cost */}
                     <div>
-                        <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Estimated Cost ($)</label>
+                        <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Estimated Cost ({getCurrencySymbol(event.country)})</label>
                         <div style={{ position: 'relative' }}>
                             <DollarSign size={16} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--text-tertiary)' }} />
                             <input

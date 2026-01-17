@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Briefcase, Plus, X, Check, Trash2, Phone, Mail, Edit2 } from 'lucide-react';
 import '../../pages/EventTabs.css';
+import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 
 const VendorsTab = ({ event, onUpdateVendors }) => {
     const [vendors, setVendors] = useState(event.vendors || []);
@@ -112,7 +113,7 @@ const VendorsTab = ({ event, onUpdateVendors }) => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                         <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Cost</span>
                     </div>
-                    <span style={{ fontSize: 20, fontWeight: 700, color: '#f59e0b' }}>${totalCost.toLocaleString()}</span>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: '#f59e0b' }}>{formatCurrency(totalCost, event.country)}</span>
                 </div>
             </div>
 
@@ -161,7 +162,7 @@ const VendorsTab = ({ event, onUpdateVendors }) => {
                                             )}
                                             {vendor.cost > 0 && (
                                                 <div style={{ fontWeight: 600, color: '#f59e0b', marginTop: 4 }}>
-                                                    Cost: ${vendor.cost.toFixed(2)}
+                                                    Cost: {formatCurrency(vendor.cost, event.country)}
                                                 </div>
                                             )}
                                         </div>
@@ -275,7 +276,7 @@ const VendorsTab = ({ event, onUpdateVendors }) => {
                                     <input type="email" className="modern-input" value={newVendor.email} onChange={(e) => setNewVendor({ ...newVendor, email: e.target.value })} />
                                 </div>
                                 <div>
-                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Cost ($)</label>
+                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Cost ({getCurrencySymbol(event.country)})</label>
                                     <input type="number" step="0.01" className="modern-input" value={newVendor.cost} onChange={(e) => setNewVendor({ ...newVendor, cost: e.target.value })} />
                                 </div>
                             </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Gift, Plus, X, Check, Trash2, Edit2 } from 'lucide-react';
 import '../../pages/EventTabs.css';
+import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 
 const GiftsTab = ({ event, onUpdateGifts }) => {
     const [gifts, setGifts] = useState(event.gifts?.items || []);
@@ -103,7 +104,7 @@ const GiftsTab = ({ event, onUpdateGifts }) => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                         <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Cost</span>
                     </div>
-                    <span style={{ fontSize: 20, fontWeight: 700, color: '#f59e0b' }}>${totalCost.toLocaleString()}</span>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: '#f59e0b' }}>{formatCurrency(totalCost, event.country)}</span>
                 </div>
             </div>
 
@@ -146,8 +147,8 @@ const GiftsTab = ({ event, onUpdateGifts }) => {
                                 </div>
                                 <div style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'flex', gap: 12 }}>
                                     <span>Qty: {gift.quantity}</span>
-                                    <span>${(gift.cost / (gift.quantity || 1)).toFixed(2)} ea</span>
-                                    <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Total: ${gift.cost.toFixed(2)}</span>
+                                    <span>{formatCurrency(gift.cost / (gift.quantity || 1), event.country)} ea</span>
+                                    <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Total: {formatCurrency(gift.cost, event.country)}</span>
                                 </div>
                                 {gift.personalization && (
                                     <div style={{ fontSize: 12, color: 'var(--text-tertiary)', fontStyle: 'italic', marginTop: 4 }}>
@@ -237,7 +238,7 @@ const GiftsTab = ({ event, onUpdateGifts }) => {
                                     <input type="number" className="modern-input" value={newGift.quantity} onChange={(e) => setNewGift({ ...newGift, quantity: e.target.value })} placeholder={totalGuests || "0"} />
                                 </div>
                                 <div>
-                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Total Cost ($)</label>
+                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Total Cost ({getCurrencySymbol(event.country)})</label>
                                     <input type="number" step="0.01" className="modern-input" value={newGift.cost} onChange={(e) => setNewGift({ ...newGift, cost: e.target.value })} placeholder="0.00" />
                                 </div>
                             </div>

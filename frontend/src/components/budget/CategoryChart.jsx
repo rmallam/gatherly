@@ -1,5 +1,6 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { formatCurrency } from '../../utils/currencyUtils';
 
 const COLORS = {
     'Venue': '#6366f1',
@@ -13,7 +14,7 @@ const COLORS = {
     'Misc': '#64748b'
 };
 
-const CategoryChart = ({ expenses, budget }) => {
+const CategoryChart = ({ expenses, budget, country }) => {
     // Group expenses by category
     const categoryData = expenses.reduce((acc, expense) => {
         const category = expense.category || 'Misc';
@@ -36,8 +37,8 @@ const CategoryChart = ({ expenses, budget }) => {
         .filter(item => item.value > 0)
         .sort((a, b) => b.value - a.value);
 
-    const formatCurrency = (value) => {
-        return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const formatValue = (value) => {
+        return formatCurrency(value, country);
     };
 
     const CustomTooltip = ({ active, payload }) => {
@@ -55,7 +56,7 @@ const CategoryChart = ({ expenses, budget }) => {
                         {data.name}
                     </p>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>
-                        {formatCurrency(data.value)} ({data.percentage}%)
+                        {formatValue(data.value)} ({data.percentage}%)
                     </p>
                 </div>
             );
@@ -151,7 +152,7 @@ const CategoryChart = ({ expenses, budget }) => {
                         </div>
                         <div style={{ textAlign: 'right' }}>
                             <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
-                                {formatCurrency(item.value)}
+                                {formatValue(item.value)}
                             </div>
                             <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                                 {item.percentage}% of budget

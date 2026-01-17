@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChefHat, Loader, AlertCircle, Plus, Sparkles } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { CountrySelector, AIHeader } from './AICommon';
+import { formatCurrency } from '../../utils/currencyUtils';
 
 const AIMenuPlanner = ({ event, onAddItems, styles }) => {
     const { API_URL } = useApp();
@@ -120,7 +121,7 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
                             <div style={{ background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '12px' }}>
                                 <h4 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Estimated Costs</h4>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>Total: ${suggestions.costBreakdown.total}</span>
+                                    <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>Total: {formatCurrency(suggestions.costBreakdown.total, eventCountry)}</span>
                                     <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>(${suggestions.costBreakdown.costPerPerson}/person)</span>
                                 </div>
                             </div>
@@ -164,7 +165,7 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
                                                             borderRadius: '12px',
                                                             fontSize: '0.8rem',
                                                             fontWeight: 600
-                                                        }}>${item.cost}</span>
+                                                        }}>{formatCurrency(item.cost, eventCountry)}</span>
                                                     </div>
                                                     <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
                                                         {item.description}

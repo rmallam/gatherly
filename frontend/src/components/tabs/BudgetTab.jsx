@@ -4,7 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import { DollarSign, Plus, Trash2, Edit2, Check, X, AlertCircle, TrendingUp, Lock } from 'lucide-react';
 import CategoryChart from '../budget/CategoryChart';
 import AIBudgetOptimizer from '../ai/AIBudgetOptimizer';
-import '../../pages/EventTabs.css'; // Import shared styles
+import '../../pages/EventTabs.css';
+import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils'; // Import shared styles
 
 const CATEGORIES = [
     'Venue',
@@ -41,10 +42,11 @@ const BudgetTab = ({ event }) => {
         date: new Date().toISOString().split('T')[0]
     });
 
+
+
     // Helper: Format Currency
-    const formatCurrency = (value) => {
-        const num = parseFloat(value);
-        return isNaN(num) ? '0.00' : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const formatValue = (value) => {
+        return formatCurrency(value, event.country);
     };
 
     // Fetch data
@@ -272,8 +274,8 @@ const BudgetTab = ({ event }) => {
 
                         <div style={{ marginBottom: 16 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                                <span style={{ fontSize: 32, fontWeight: 700 }}>${formatCurrency(remaining)}</span>
-                                <span style={{ fontSize: 14, opacity: 0.9 }}>Left of ${formatCurrency(totalBudgetAmount)}</span>
+                                <span style={{ fontSize: 32, fontWeight: 700 }}>{formatValue(remaining)}</span>
+                                <span style={{ fontSize: 14, opacity: 0.9 }}>Left of {formatValue(totalBudgetAmount)}</span>
                             </div>
                         </div>
 
@@ -289,7 +291,7 @@ const BudgetTab = ({ event }) => {
 
                         {isOverBudget && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#fca5a5', fontWeight: 600 }}>
-                                <AlertCircle size={14} /> Only ${formatCurrency(Math.abs(remaining))} over budget
+                                <AlertCircle size={14} /> Only {formatValue(Math.abs(remaining))} over budget
                             </div>
                         )}
                     </div>
@@ -298,7 +300,7 @@ const BudgetTab = ({ event }) => {
                     <div className="tab-stats-grid">
                         <div className="stats-card">
                             <span style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Spent</span>
-                            <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>${formatCurrency(totalExpenses)}</span>
+                            <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>{formatValue(totalExpenses)}</span>
                         </div>
                         <div className="stats-card">
                             <span style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Items</span>
@@ -307,14 +309,14 @@ const BudgetTab = ({ event }) => {
                         {summary?.cost_per_guest > 0 && (
                             <div className="stats-card">
                                 <span style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>/ Guest</span>
-                                <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>${formatCurrency(summary.cost_per_guest)}</span>
+                                <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>{formatValue(summary.cost_per_guest)}</span>
                             </div>
                         )}
                     </div>
 
                     {/* Budget Analytics (Pro Feature) */}
                     {user?.subscription_tier === 'pro' ? (
-                        <CategoryChart expenses={expenses} budget={budget} />
+                        <CategoryChart expenses={expenses} budget={budget} country={event.country} />
                     ) : (
                         <div style={{
                             background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))',
@@ -403,7 +405,7 @@ const BudgetTab = ({ event }) => {
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{expense.category}</span>
-                                            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>-${formatCurrency(expense.amount)}</span>
+                                            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>-{formatValue(expense.amount)}</span> // Kept negative sign, removed hardcoded $ inside
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
                                             <span style={{ truncate: true }}>{expense.description || 'No description'}</span>
@@ -450,7 +452,7 @@ const BudgetTab = ({ event }) => {
                     <div className="modal-card" onClick={e => e.stopPropagation()}>
                         <h3 className="section-title" style={{ marginBottom: 16 }}>Set Total Budget</h3>
                         <div style={{ marginBottom: 20 }}>
-                            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: 8 }}>Target Amount ($)</label>
+                            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: 8 }}>Target Amount ({getCurrencySymbol(event.country)})</label>
                             <input
                                 type="number"
                                 className="modern-input"

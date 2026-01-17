@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { UtensilsCrossed, Plus, X, Edit2, Check, Trash2, Sparkles } from 'lucide-react';
 import '../../pages/EventTabs.css';
+import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 
 import AIMenuPlanner from '../ai/AIMenuPlanner';
 
@@ -177,7 +178,7 @@ const CateringTab = ({ event, onUpdateCatering }) => {
                             <input type="number" className="form-input" value={newItem.servings} onChange={(e) => setNewItem({ ...newItem, servings: e.target.value })} placeholder="0" />
                         </div>
                         <div>
-                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Cost ($)</label>
+                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Cost ({getCurrencySymbol(event.country)})</label>
                             <input type="number" step="0.01" className="form-input" value={newItem.cost} onChange={(e) => setNewItem({ ...newItem, cost: e.target.value })} placeholder="0.00" />
                         </div>
                         <div>
@@ -208,7 +209,7 @@ const CateringTab = ({ event, onUpdateCatering }) => {
                 </div>
                 <div className="stats-card">
                     <div className="label">TOTAL COST</div>
-                    <div className="value" style={{ color: 'var(--warning)' }}>${totalCost.toFixed(2)}</div>
+                    <div className="value" style={{ color: 'var(--warning)' }}>{formatCurrency(totalCost, event.country)}</div>
                 </div>
             </div>
 
@@ -342,7 +343,7 @@ const CateringTab = ({ event, onUpdateCatering }) => {
                                             </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexShrink: 0 }}>
                                                 <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '1rem' }}>
-                                                    ${item.cost.toFixed(2)}
+                                                    {formatCurrency(item.cost, event.country)}
                                                 </div>
 
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

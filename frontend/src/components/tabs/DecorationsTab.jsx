@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Plus, X, Check, Trash2, Palette, Edit2 } from 'lucide-react';
 import '../../pages/EventTabs.css';
+import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 
 import AIDecorPlanner from '../ai/AIDecorPlanner';
 
@@ -147,7 +148,7 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                         <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Cost</span>
                     </div>
-                    <span style={{ fontSize: 20, fontWeight: 700, color: '#f59e0b' }}>${totalCost.toLocaleString()}</span>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: '#f59e0b' }}>{formatCurrency(totalCost, event.country)}</span>
                 </div>
                 <div className="stats-card">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -248,7 +249,7 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
                                         </div>
                                         <div style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'flex', gap: 12 }}>
                                             <span>Qty: {item.quantity}</span>
-                                            <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>${item.cost.toFixed(2)}</span>
+                                            <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{formatCurrency(item.cost, event.country)}</span>
                                         </div>
                                     </div>
 
@@ -343,7 +344,7 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
                                     <input type="number" className="modern-input" value={newItem.quantity} onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })} />
                                 </div>
                                 <div>
-                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Cost ($)</label>
+                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Cost ({getCurrencySymbol(event.country)})</label>
                                     <input type="number" step="0.01" className="modern-input" value={newItem.cost} onChange={(e) => setNewItem({ ...newItem, cost: e.target.value })} />
                                 </div>
                             </div>
@@ -387,7 +388,7 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
                                     <input type="number" className="modern-input" value={editingItem.quantity} onChange={(e) => setEditingItem({ ...editingItem, quantity: e.target.value })} />
                                 </div>
                                 <div>
-                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Cost ($)</label>
+                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Cost ({getCurrencySymbol(event.country)})</label>
                                     <input type="number" step="0.01" className="modern-input" value={editingItem.cost} onChange={(e) => setEditingItem({ ...editingItem, cost: e.target.value })} />
                                 </div>
                             </div>

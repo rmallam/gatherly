@@ -4,6 +4,7 @@ import { Calendar, MapPin, Users, CheckCircle, X, DollarSign, Clock, Sparkles } 
 import { useApp } from '../../context/AppContext';
 import AttendanceStatsWidget from '../AttendanceStatsWidget';
 import AIBudgetOptimizer from '../ai/AIBudgetOptimizer';
+import { formatCurrency } from '../../utils/currencyUtils';
 import '../../pages/EventTabs.css';
 
 const OverviewTab = ({ event, onTabChange }) => {
@@ -158,7 +159,7 @@ const OverviewTab = ({ event, onTabChange }) => {
                             <DollarSign size={14} color="#10b981" />
                             <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Total Spent</span>
                         </div>
-                        <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>${sharedData.totalExpenses.toLocaleString()}</span>
+                        <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>{formatCurrency(sharedData.totalExpenses, event.country)}</span>
                     </div>
                     <div className="stats-card">
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -207,7 +208,7 @@ const OverviewTab = ({ event, onTabChange }) => {
                                             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{exp.description}</div>
                                             <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{exp.category} • {new Date(exp.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>
                                         </div>
-                                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>${parseFloat(exp.amount).toFixed(2)}</div>
+                                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{formatCurrency(exp.amount, event.country)}</div>
                                     </div>
                                 ))
                             ) : (

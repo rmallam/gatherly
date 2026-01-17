@@ -121,6 +121,7 @@ const ScheduleTab = ({ event }) => {
                         <ScheduleItemCard
                             key={item.id}
                             item={item}
+                            event={event}
                             eventId={event.id}
                             onUpdate={fetchScheduleItems}
                             onDelete={fetchScheduleItems}

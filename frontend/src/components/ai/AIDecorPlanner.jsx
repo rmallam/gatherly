@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Palette, Loader, AlertCircle, Plus, Sparkles } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { CountrySelector, AIHeader } from './AICommon';
+import { formatCurrency } from '../../utils/currencyUtils';
 
 const AIDecorPlanner = ({ event, onAddItems }) => {
     const { API_URL } = useApp();
@@ -144,7 +145,7 @@ const AIDecorPlanner = ({ event, onAddItems }) => {
                                         <div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
                                                 <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 600 }}>{item.category}</span>
-                                                <span style={{ fontWeight: 600 }}>${item.cost}</span>
+                                                <span style={{ fontWeight: 600 }}>{formatCurrency(item.cost, eventCountry)}</span>
                                             </div>
                                             <div style={{ fontWeight: 600, fontSize: '1rem', marginBottom: '0.5rem' }}>{item.items}</div>
                                             {item.diyTip && (

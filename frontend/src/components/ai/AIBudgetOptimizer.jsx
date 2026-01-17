@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Sparkles, Loader, TrendingDown, AlertCircle } from 'lucide-react';
 import { CountrySelector, AIHeader } from './AICommon';
+import { formatCurrency } from '../../utils/currencyUtils';
 
 const AIBudgetOptimizer = ({ event, budget, expenses }) => {
     const { API_URL } = useApp();
@@ -101,7 +102,7 @@ const AIBudgetOptimizer = ({ event, budget, expenses }) => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                             <h4 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#059669' }}>Recommended Range</h4>
                             <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#059669' }}>
-                                ${suggestions.recommendedBudget.min.toLocaleString()} - ${suggestions.recommendedBudget.max.toLocaleString()}
+                                {formatCurrency(suggestions.recommendedBudget.min, event.country)} - {formatCurrency(suggestions.recommendedBudget.max, event.country)}
                             </span>
                         </div>
                         <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
@@ -121,7 +122,7 @@ const AIBudgetOptimizer = ({ event, budget, expenses }) => {
                             }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                                     <span style={{ fontWeight: 600 }}>{cat.name}</span>
-                                    <span style={{ fontWeight: 600 }}>${cat.amount.toLocaleString()}</span>
+                                    <span style={{ fontWeight: 600 }}>{formatCurrency(cat.amount, event.country)}</span>
                                 </div>
                                 <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>
                                     {cat.percentage}% of total

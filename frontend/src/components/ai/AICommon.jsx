@@ -1,23 +1,7 @@
 import React from 'react';
 import { Globe, Sparkles } from 'lucide-react';
 
-export const countries = [
-    { code: 'US', name: 'United States', currency: '$', locale: 'en-US' },
-    { code: 'IN', name: 'India', currency: '₹', locale: 'en-IN' },
-    { code: 'UK', name: 'United Kingdom', currency: '£', locale: 'en-GB' },
-    { code: 'CA', name: 'Canada', currency: 'CA$', locale: 'en-CA' },
-    { code: 'AU', name: 'Australia', currency: 'A$', locale: 'en-AU' },
-    { code: 'AE', name: 'UAE', currency: 'AED', locale: 'en-AE' },
-    { code: 'SG', name: 'Singapore', currency: 'S$', locale: 'en-SG' },
-    { code: 'MY', name: 'Malaysia', currency: 'RM', locale: 'en-MY' },
-    { code: 'DE', name: 'Germany', currency: '€', locale: 'de-DE' },
-    { code: 'FR', name: 'France', currency: '€', locale: 'fr-FR' },
-    { code: 'ES', name: 'Spain', currency: '€', locale: 'es-ES' },
-    { code: 'IT', name: 'Italy', currency: '€', locale: 'it-IT' },
-    { code: 'JP', name: 'Japan', currency: '¥', locale: 'ja-JP' },
-    { code: 'BR', name: 'Brazil', currency: 'R$', locale: 'pt-BR' },
-    { code: 'MX', name: 'Mexico', currency: 'MX$', locale: 'es-MX' }
-];
+import { countries } from '../../utils/currencyUtils';
 
 export const CountrySelector = ({ selectedCountry, onCountryChange, disabled }) => {
     return (

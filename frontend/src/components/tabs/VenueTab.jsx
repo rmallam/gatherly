@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MapPin, Save, X, Check, Building2 } from 'lucide-react';
+import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 
 const VenueTab = ({ event, onUpdateVenue }) => {
     const [venue, setVenue] = useState(event.venue || {
@@ -162,13 +163,13 @@ const VenueTab = ({ event, onUpdateVenue }) => {
                                     {venue.deposit && (
                                         <div>
                                             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Deposit Paid</div>
-                                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--warning)' }}>${parseFloat(venue.deposit).toFixed(2)}</div>
+                                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--warning)' }}>{formatCurrency(venue.deposit, event.country)}</div>
                                         </div>
                                     )}
                                     {venue.totalCost && (
                                         <div>
                                             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Total Cost</div>
-                                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)' }}>${parseFloat(venue.totalCost).toFixed(2)}</div>
+                                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)' }}>{formatCurrency(venue.totalCost, event.country)}</div>
                                         </div>
                                     )}
                                 </div>
@@ -309,7 +310,7 @@ const VenueTab = ({ event, onUpdateVenue }) => {
                                 </select>
                             </div>
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Deposit Paid ($)</label>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Deposit Paid ({getCurrencySymbol(event.country)})</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -320,7 +321,7 @@ const VenueTab = ({ event, onUpdateVenue }) => {
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Total Cost ($)</label>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Total Cost ({getCurrencySymbol(event.country)})</label>
                                 <input
                                     type="number"
                                     step="0.01"
