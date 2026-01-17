@@ -2919,6 +2919,17 @@ app.get('/api/debug/gemini-models', async (req, res) => {
     }
 });
 
+// Ad-hoc migration endpoint
+app.get('/api/debug/run-migration', async (req, res) => {
+    try {
+        const { query: dbQuery } = await import('./db/connection.js');
+        await dbQuery(`ALTER TABLE events ADD COLUMN IF NOT EXISTS country VARCHAR(10) DEFAULT 'US';`);
+        res.json({ success: true, message: 'Migration executed: Added country column' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Initialize database and start server
 const PORT = process.env.PORT || 3001;
 
