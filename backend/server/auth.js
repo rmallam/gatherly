@@ -62,13 +62,26 @@ export const authMiddleware = async (req, res, next) => {
         const decoded = jwt.verify(token, JWT_SECRET);
         console.log('Auth middleware: Token verified for user:', decoded.id);
 
-        // Use decoded.id because generateToken sets { id, email, name, phone, is_admin }
+        // Fetch fresh user data from database to get subscription info
+        const { query } = await import('../db/connection.js');
+        const userResult = await query(
+            'SELECT id, name, email, phone, is_admin, subscription_tier, subscription_status FROM users WHERE id = $1',
+            [decoded.id]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(401).json({ error: 'User not found' });
+        }
+
+        const user = userResult.rows[0];
         req.user = {
-            id: decoded.id,
-            name: decoded.name,
-            email: decoded.email,
-            phone: decoded.phone,
-            is_admin: decoded.is_admin || false
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            is_admin: user.is_admin || false,
+            subscription_tier: user.subscription_tier || 'free',
+            subscription_status: user.subscription_status || 'inactive'
         };
         next();
     } catch (error) {
