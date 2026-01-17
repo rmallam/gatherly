@@ -7,7 +7,7 @@ import confetti from 'canvas-confetti';
 import ThemeToggle from '../components/ThemeToggle';
 import RateAppService from '../services/RateAppService';
 import UpgradeModal from '../components/UpgradeModal';
-import { countries } from '../components/ai/AICommon';
+import { countries } from '../utils/currencyUtils';
 import './ManagerDashboard.css';
 
 const ManagerDashboard = () => {
