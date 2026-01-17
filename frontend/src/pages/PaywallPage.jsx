@@ -80,6 +80,34 @@ const PaywallPage = () => {
         }
     };
 
+    // Helper to normalize subscription period display
+    // Google Play test subscriptions use accelerated periods (5 mins = 1 month)
+    const normalizeSubscriptionPeriod = (title, priceString) => {
+        // If it's a test subscription with "5 mins" or similar, map to production period
+        const testPeriodMap = {
+            '5 mins': 'month',
+            '5 minutes': 'month',
+            '10 mins': '2 months',
+            '15 mins': '3 months',
+            '1 hour': 'year'
+        };
+
+        let normalizedTitle = title;
+        let normalizedPrice = priceString;
+
+        // Check if title contains test period
+        for (const [testPeriod, prodPeriod] of Object.entries(testPeriodMap)) {
+            if (title.toLowerCase().includes(testPeriod)) {
+                normalizedTitle = title.replace(new RegExp(testPeriod, 'gi'), prodPeriod);
+            }
+            if (priceString.toLowerCase().includes(testPeriod)) {
+                normalizedPrice = priceString.replace(new RegExp(testPeriod, 'gi'), prodPeriod);
+            }
+        }
+
+        return { title: normalizedTitle, priceString: normalizedPrice };
+    };
+
     // Fallback/Mock Data if no native offerings found (for web dev)
     const rawPackages = offerings?.availablePackages || [
         {
@@ -150,19 +178,25 @@ const PaywallPage = () => {
                 {loading ? (
                     <div className="loading-spinner">Loading packages...</div>
                 ) : (
-                    displayPackages.map((pkg, index) => (
-                        <div
-                            key={index}
-                            className={`package-card ${selectedPackage?.identifier === pkg.identifier ? 'selected' : ''}`}
-                            onClick={() => setSelectedPackage(pkg)}
-                        >
-                            <div className="package-info">
-                                <span className="package-title">{pkg.product.title}</span>
-                                {pkg.identifier.includes('yearly') && <span className="save-badge">SAVE 20%</span>}
+                    displayPackages.map((pkg, index) => {
+                        const normalized = normalizeSubscriptionPeriod(
+                            pkg.product.title,
+                            pkg.product.priceString
+                        );
+                        return (
+                            <div
+                                key={index}
+                                className={`package-card ${selectedPackage?.identifier === pkg.identifier ? 'selected' : ''}`}
+                                onClick={() => setSelectedPackage(pkg)}
+                            >
+                                <div className="package-info">
+                                    <span className="package-title">{normalized.title}</span>
+                                    {pkg.identifier.includes('yearly') && <span className="save-badge">SAVE 20%</span>}
+                                </div>
+                                <div className="package-price">{normalized.priceString}</div>
                             </div>
-                            <div className="package-price">{pkg.product.priceString}</div>
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
 
