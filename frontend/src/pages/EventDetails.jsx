@@ -48,6 +48,12 @@ const EventDetails = () => {
         e.preventDefault();
         if (!newGuest.name.trim() || addingGuest) return;
 
+        // Validate that either phone or email is provided
+        if (!newGuest.phone.trim() && !newGuest.email.trim()) {
+            alert('Please provide either a phone number or an email address.');
+            return;
+        }
+
         // Check for duplicates
         const isDuplicate = event.guests.some(g =>
             g.name.toLowerCase() === newGuest.name.trim().toLowerCase() &&
@@ -73,7 +79,6 @@ const EventDetails = () => {
             }
 
             // Clear form and close modal on success
-            setNewGuest({ name: '', phone: '', email: '' });
             setNewGuest({ name: '', phone: '', email: '' });
             setShowAddGuestModal(false);
         } catch (error) {
@@ -332,7 +337,7 @@ const EventDetails = () => {
 
     const filteredGuests = event.guests?.filter(g =>
         g.name.toLowerCase().includes(search.toLowerCase()) ||
-        g.phone.includes(search)
+        (g.phone && g.phone.includes(search)) // Add check for g.phone existence
     ).sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt)) || [];
 
     const totalGuests = event.guests?.length || 0;

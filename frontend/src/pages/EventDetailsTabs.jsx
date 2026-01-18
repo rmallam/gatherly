@@ -117,6 +117,7 @@ const EventDetailsTabs = () => {
         { id: 'schedule', label: 'Schedule', icon: Calendar, badge: null },
         { id: 'guests', label: 'Participants', icon: Users, badge: event.guests?.length || 0 },
         { id: 'expenses', label: 'Expenses', icon: DollarSign, badge: null },
+        { id: 'gallery', label: 'Gallery', icon: ImageIcon, badge: null },
         { id: 'messages', label: 'Messages', icon: MessageCircle, badge: null }
     ];
 

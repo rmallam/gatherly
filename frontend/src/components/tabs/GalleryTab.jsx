@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Image as ImageIcon, Upload, Loader2, X, Plus, Maximize2 } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+import { compressImage } from '../../utils/imageUtils';
 
 const GalleryTab = ({ event }) => {
-    const { user } = useApp();
+    const { user } = useAuth();
     const [photos, setPhotos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [selectedPhoto, setSelectedPhoto] = useState(null);
     const fileInputRef = useRef(null);
+    const touchStartRef = useRef(null);
+    const touchEndRef = useRef(null);
+    const minSwipeDistance = 50;
 
     const API_URL = window.location.origin.includes('localhost')
         ? (import.meta.env.VITE_API_URL || 'http://localhost:5001/api')
@@ -48,17 +49,25 @@ const GalleryTab = ({ event }) => {
             return;
         }
 
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-            const base64String = reader.result;
-            await handleUpload(base64String);
-        };
-        reader.readAsDataURL(file);
+        try {
+            setUploading(true); // Start loading state early
+            // Compress Image
+            const compressedBase64 = await compressImage(file, {
+                maxWidth: 1920,
+                maxHeight: 1920,
+                quality: 0.8
+            });
+            await handleUpload(compressedBase64);
+        } catch (err) {
+            console.error('Compression failed:', err);
+            alert('Failed to process image.');
+            setUploading(false);
+        }
     };
 
     const handleUpload = async (base64Image) => {
         try {
-            setUploading(true);
+            // setUploading(true) is already called in handleFileSelect
             const token = localStorage.getItem('token');
 
             // 1. Upload to Cloudinary via Backend
@@ -148,6 +157,69 @@ const GalleryTab = ({ event }) => {
         }
     };
 
+    const handleNext = (e) => {
+        e.stopPropagation();
+        if (!selectedPhoto) return;
+        const currentIndex = photos.findIndex(p => p.id === selectedPhoto.id);
+        if (currentIndex < photos.length - 1) {
+            setSelectedPhoto(photos[currentIndex + 1]);
+        }
+    };
+
+    const handlePrev = (e) => {
+        e.stopPropagation();
+        if (!selectedPhoto) return;
+        const currentIndex = photos.findIndex(p => p.id === selectedPhoto.id);
+        if (currentIndex > 0) {
+            setSelectedPhoto(photos[currentIndex - 1]);
+        }
+    };
+
+    const onTouchStart = (e) => {
+        touchEndRef.current = null;
+        touchStartRef.current = e.targetTouches[0].clientX;
+    };
+
+    const onTouchMove = (e) => {
+        touchEndRef.current = e.targetTouches[0].clientX;
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStartRef.current || !touchEndRef.current) return;
+
+        const distance = touchStartRef.current - touchEndRef.current;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe) {
+            // Swiped Left -> Next Photo
+            const currentIndex = photos.findIndex(p => p.id === selectedPhoto?.id);
+            if (currentIndex < photos.length - 1) {
+                setSelectedPhoto(photos[currentIndex + 1]);
+            }
+        }
+
+        if (isRightSwipe) {
+            // Swiped Right -> Prev Photo
+            const currentIndex = photos.findIndex(p => p.id === selectedPhoto?.id);
+            if (currentIndex > 0) {
+                setSelectedPhoto(photos[currentIndex - 1]);
+            }
+        }
+    };
+
+    // Keyboard navigation
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (!selectedPhoto) return;
+            if (e.key === 'ArrowRight') handleNext(e);
+            if (e.key === 'ArrowLeft') handlePrev(e);
+            if (e.key === 'Escape') setSelectedPhoto(null);
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [selectedPhoto, photos]);
+
     return (
         <div style={{ padding: '0 0 2rem 0' }}>
             <div style={{
@@ -218,8 +290,8 @@ const GalleryTab = ({ event }) => {
             ) : (
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                    gap: '1rem'
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                    gap: '0.5rem'
                 }}>
                     {photos.map(photo => (
                         <div
@@ -228,17 +300,16 @@ const GalleryTab = ({ event }) => {
                             style={{
                                 position: 'relative',
                                 aspectRatio: '1',
-                                borderRadius: '12px',
+                                borderRadius: '8px',
                                 overflow: 'hidden',
                                 cursor: 'pointer',
-                                background: '#000',
-                                group: 'hover'
+                                background: '#1f2937',
                             }}
-                            className="gallery-item-container"
                         >
                             <img
                                 src={photo.photo_url || photo.photoUrl}
                                 alt="Event moment"
+                                loading="lazy"
                                 style={{
                                     width: '100%',
                                     height: '100%',
@@ -246,21 +317,6 @@ const GalleryTab = ({ event }) => {
                                     transition: 'transform 0.3s'
                                 }}
                             />
-                            <div style={{
-                                position: 'absolute',
-                                inset: 0,
-                                background: 'rgba(0,0,0,0.3)',
-                                opacity: 0,
-                                transition: 'opacity 0.2s',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}
-                                onMouseEnter={e => e.currentTarget.style.opacity = 1}
-                                onMouseLeave={e => e.currentTarget.style.opacity = 0}
-                            >
-                                <Maximize2 style={{ color: 'white' }} />
-                            </div>
                         </div>
                     ))}
                 </div>
@@ -273,14 +329,19 @@ const GalleryTab = ({ event }) => {
                         position: 'fixed',
                         inset: 0,
                         zIndex: 2000,
-                        background: 'rgba(0,0,0,0.9)',
+                        background: 'rgba(0,0,0,0.95)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        padding: '2rem'
+                        padding: '1rem',
+                        touchAction: 'none'
                     }}
                     onClick={() => setSelectedPhoto(null)}
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
                 >
+                    {/* Close Button */}
                     <button
                         style={{
                             position: 'absolute',
@@ -290,39 +351,96 @@ const GalleryTab = ({ event }) => {
                             border: 'none',
                             color: 'white',
                             borderRadius: '50%',
-                            width: '40px',
-                            height: '40px',
+                            width: '44px',
+                            height: '44px',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
+                            zIndex: 2010
                         }}
                         onClick={() => setSelectedPhoto(null)}
                     >
                         <X size={24} />
                     </button>
+
+                    {/* Navigation Buttons */}
+                    <button
+                        onClick={handlePrev}
+                        disabled={photos.findIndex(p => p.id === selectedPhoto.id) === 0}
+                        style={{
+                            position: 'absolute',
+                            left: '20px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'rgba(255,255,255,0.1)',
+                            border: 'none',
+                            color: 'white',
+                            borderRadius: '50%',
+                            width: '44px',
+                            height: '44px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 2010,
+                            opacity: photos.findIndex(p => p.id === selectedPhoto.id) === 0 ? 0.3 : 1
+                        }}
+                    >
+                        ◀
+                    </button>
+
+                    <button
+                        onClick={handleNext}
+                        disabled={photos.findIndex(p => p.id === selectedPhoto.id) === photos.length - 1}
+                        style={{
+                            position: 'absolute',
+                            right: '20px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'rgba(255,255,255,0.1)',
+                            border: 'none',
+                            color: 'white',
+                            borderRadius: '50%',
+                            width: '44px',
+                            height: '44px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 2010,
+                            opacity: photos.findIndex(p => p.id === selectedPhoto.id) === photos.length - 1 ? 0.3 : 1
+                        }}
+                    >
+                        ▶
+                    </button>
+
                     <img
                         src={selectedPhoto.photo_url || selectedPhoto.photoUrl}
                         alt="Full size"
                         style={{
                             maxWidth: '100%',
                             maxHeight: '90vh',
-                            borderRadius: '8px',
-                            boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+                            borderRadius: '4px',
+                            boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+                            objectFit: 'contain'
                         }}
                         onClick={e => e.stopPropagation()}
                     />
+
                     {selectedPhoto.author_name && (
                         <div style={{
                             position: 'absolute',
                             bottom: '20px',
                             left: '50%',
                             transform: 'translateX(-50%)',
-                            color: 'white',
-                            background: 'rgba(0,0,0,0.5)',
+                            color: 'rgba(255,255,255,0.9)',
+                            background: 'rgba(0,0,0,0.6)',
                             padding: '8px 16px',
                             borderRadius: '20px',
-                            backdropFilter: 'blur(4px)'
+                            backdropFilter: 'blur(4px)',
+                            fontSize: '0.9rem',
+                            fontWeight: 500
                         }}>
                             Shared by {selectedPhoto.author_name}
                         </div>

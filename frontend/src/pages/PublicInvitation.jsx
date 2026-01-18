@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { Calendar, Clock, MapPin, Loader, ArrowLeft, CheckCircle, XCircle, Sparkles } from 'lucide-react';
-import QRGenerator from '../components/QRGenerator';
+import GalleryTab from '../components/tabs/GalleryTab';
+import { Calendar, Clock, MapPin, Loader, ArrowLeft, CheckCircle, XCircle, Sparkles, Image as ImageIcon, X } from 'lucide-react';
 
 const PublicInvitation = () => {
     const { id } = useParams();
@@ -18,6 +18,7 @@ const PublicInvitation = () => {
     const [guest, setGuest] = useState(null);
     const [isRSVPing, setIsRSVPing] = useState(false);
     const [rsvpSuccess, setRsvpSuccess] = useState(false);
+    const [showGallery, setShowGallery] = useState(false);
 
     useEffect(() => {
         loadEvent();
@@ -104,6 +105,81 @@ const PublicInvitation = () => {
                         </p>
                     )}
                 </div>
+
+                {/* Gallery Button */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                    <button
+                        onClick={() => setShowGallery(true)}
+                        className="btn"
+                        style={{
+                            width: '100%',
+                            justifyContent: 'center',
+                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            color: 'white',
+                            border: 'none',
+                            padding: '12px',
+                            borderRadius: '12px',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.2)'
+                        }}
+                    >
+                        <ImageIcon size={20} />
+                        View Event Gallery
+                    </button>
+                </div>
+
+                {/* Gallery Modal */}
+                {showGallery && (
+                    <div style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 9999,
+                        background: 'var(--guest-bg-gradient, #0f172a)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        animation: 'fadeIn 0.2s ease-out'
+                    }}>
+                        {/* Close Button - Absolute Positioned for reliability */}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowGallery(false);
+                            }}
+                            style={{
+                                position: 'absolute',
+                                top: 'max(16px, env(safe-area-inset-top))',
+                                right: '20px',
+                                zIndex: 10000,
+                                background: 'rgba(0,0,0,0.3)',
+                                border: '1px solid rgba(255,255,255,0.2)',
+                                borderRadius: '50%',
+                                width: '44px',
+                                height: '44px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                color: 'white',
+                                backdropFilter: 'blur(4px)'
+                            }}
+                        >
+                            <X size={24} />
+                        </button>
+
+                        {/* Spacer for the absolute button */}
+                        <div style={{ height: '80px', flexShrink: 0 }} />
+
+                        <div style={{ flexGrow: 1, overflowY: 'auto', padding: '0 20px 40px' }}>
+                            <GalleryTab event={event} />
+                        </div>
+                    </div>
+                )}
 
                 {/* Main Content */}
                 <div style={{ display: 'grid', gap: '1.5rem' }}>

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, MapPin, ArrowLeft, MessageCircle, CheckCircle, XCircle, QrCode, AlignLeft } from 'lucide-react';
+import GalleryTab from '../components/tabs/GalleryTab';
+import { Calendar, MapPin, ArrowLeft, MessageCircle, CheckCircle, XCircle, QrCode, AlignLeft, Image as ImageIcon, X } from 'lucide-react';
 import QRGenerator from '../components/QRGenerator';
 import './GuestEventView.css';
 
@@ -14,6 +15,7 @@ const GuestEventView = () => {
     const event = getEvent(id);
     const [currentGuest, setCurrentGuest] = useState(null);
     const [isRSVPing, setIsRSVPing] = useState(false);
+    const [showGallery, setShowGallery] = useState(false);
 
     // Find the current guest in the event's guest list
     useEffect(() => {
@@ -76,11 +78,74 @@ const GuestEventView = () => {
                 </div>
             </div>
 
-            {/* Event Wall Button - Moved to Top */}
-            <Link to={`/event/${id}/wall`} className="event-wall-btn">
-                <MessageCircle size={20} fill="white" />
-                Open Event Wall
-            </Link>
+            {/* Action Buttons Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+                <Link to={`/event/${id}/wall`} className="event-wall-btn" style={{ margin: 0, justifyContent: 'center' }}>
+                    <MessageCircle size={20} fill="white" />
+                    Event Wall
+                </Link>
+                <button
+                    onClick={() => {
+                        setShowGallery(true);
+                    }}
+                    className="event-wall-btn"
+                    style={{ margin: 0, justifyContent: 'center', background: 'linear-gradient(135deg, #10b981, #059669)' }}
+                >
+                    <ImageIcon size={20} />
+                    Gallery
+                </button>
+            </div>
+
+            {/* Gallery Modal */}
+            {showGallery && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 9999,
+                    background: 'var(--guest-bg-gradient, #0f172a)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    animation: 'fadeIn 0.2s ease-out'
+                }}>
+                    {/* Close Button - Absolute Positioned for reliability */}
+                    <button
+                        onClick={(e) => {
+                            console.log('Close button clicked');
+                            e.stopPropagation();
+                            setShowGallery(false);
+                        }}
+                        style={{
+                            position: 'absolute',
+                            top: 'max(16px, env(safe-area-inset-top))',
+                            right: '20px',
+                            zIndex: 10000,
+                            background: 'rgba(0,0,0,0.3)',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            borderRadius: '50%',
+                            width: '44px',
+                            height: '44px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            color: 'white',
+                            backdropFilter: 'blur(4px)'
+                        }}
+                    >
+                        <X size={24} />
+                    </button>
+
+                    {/* Spacer for the absolute button */}
+                    <div style={{ height: '80px', flexShrink: 0 }} />
+
+                    <div style={{ flexGrow: 1, overflowY: 'auto', padding: '0 20px 40px' }}>
+                        <GalleryTab event={event} />
+                    </div>
+                </div>
+            )}
 
             {/* Event Details Card */}
             <div className="glass-card">

@@ -161,42 +161,91 @@ const Profile = () => {
 
     const handleSaveProfile = async () => {
         try {
+            console.log('Starting save profile process...');
             setSaving(true);
             setError('');
             setSuccess('');
 
             const token = localStorage.getItem('token');
-            const res = await fetch(`${API_URL} /users/profile`, {
+            let finalProfilePictureUrl = profile.profilePictureUrl;
+
+            // Check if profile picture is a base64 string (newly cropped image)
+            if (profile.profilePictureUrl && profile.profilePictureUrl.startsWith('data:image')) {
+                console.log('Detected new base64 image, attempting upload...');
+                try {
+                    console.log('Uploading to:', `${API_URL}/upload/image`);
+                    // Upload to Cloudinary via backend
+                    const uploadRes = await fetch(`${API_URL}/upload/image`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            image: profile.profilePictureUrl
+                        })
+                    });
+
+                    console.log('Upload response status:', uploadRes.status);
+
+                    if (!uploadRes.ok) {
+                        const errorText = await uploadRes.text();
+                        console.error('Upload failed response:', errorText);
+                        throw new Error('Failed to upload image: ' + errorText);
+                    }
+
+                    const uploadData = await uploadRes.json();
+                    console.log('Upload success, URL:', uploadData.url);
+                    finalProfilePictureUrl = uploadData.url; // Use the returned Cloudinary URL
+                } catch (uploadError) {
+                    console.error('Image upload failed exception:', uploadError);
+                    setError('Failed to upload profile picture: ' + uploadError.message);
+                    setSaving(false);
+                    return;
+                }
+            } else {
+                console.log('No new image detected or image is already a URL');
+            }
+
+            console.log('Saving profile data with URL:', finalProfilePictureUrl);
+
+            // Save Profile with URL
+            const res = await fetch(`${API_URL}/users/profile`, {
                 method: 'PATCH',
                 headers: {
-                    'Authorization': `Bearer ${token} `,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     name: profile.name,
-                    phone: phoneDigits ? `${countryCode}${phoneDigits} ` : '',
+                    phone: phoneDigits ? `${countryCode}${phoneDigits}` : null, // Send null if empty
                     bio: profile.bio,
-                    profilePictureUrl: profile.profilePictureUrl
+                    profilePictureUrl: finalProfilePictureUrl
                 })
             });
 
+            console.log('Profile update response status:', res.status);
             const data = await res.json();
 
             if (res.ok) {
+                console.log('Profile update success:', data);
                 setSuccess('Profile updated!');
                 refreshUser();
                 setIsEditing(false); // Switch back to view mode
+                // Update local state with the new URL to prevent re-upload
+                setProfile(prev => ({ ...prev, profilePictureUrl: finalProfilePictureUrl }));
                 setTimeout(() => setSuccess(''), 3000);
+
                 // Refresh user data to update header avatar
                 if (refreshUser) {
                     await refreshUser();
                 }
             } else {
+                console.warn('Profile update failed:', data);
                 setError(data.error || 'Failed to update');
             }
         } catch (error) {
-            console.error('Error saving:', error);
-            setError('Failed to save');
+            console.error('Error saving profile (outer catch):', error);
+            setError('Failed to save: ' + error.message);
         } finally {
             setSaving(false);
         }
@@ -217,10 +266,10 @@ const Profile = () => {
 
             const token = localStorage.getItem('token');
 
-            const res = await fetch(`${API_URL} /users/change - password`, {
+            const res = await fetch(`${API_URL}/users/change-password`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token} `,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({

@@ -98,8 +98,8 @@ app.use('/api/auth/forgot-password', authLimiter);
 app.use('/api/auth/reset-password', authLimiter);
 
 // Body parser
-app.use(bodyParser.json({ limit: '10mb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 // Compression - Gzip all responses
 app.use(compression({
@@ -1578,6 +1578,47 @@ app.post('/api/events/:eventId/guests/bulk', authMiddleware, async (req, res) =>
                     'UPDATE guests SET user_id = $1 WHERE id = $2',
                     [linkedUserId, guestId]
                 );
+            }
+
+            // Auto-save to user's contact library
+            let contactId = null;
+            try {
+                // Check if contact already exists (by phone or email)
+                const existingContact = await query(
+                    `SELECT id FROM user_contacts 
+                     WHERE user_id = $1 
+                     AND ((phone IS NOT NULL AND phone = $2) OR (email IS NOT NULL AND email = $3))
+                     LIMIT 1`,
+                    [req.user.id, guest.phone || null, guest.email || null]
+                );
+
+                if (existingContact.rows.length > 0) {
+                    // Contact exists, just link it
+                    contactId = existingContact.rows[0].id;
+                } else {
+                    // Create new contact
+                    const contactResult = await query(
+                        `INSERT INTO user_contacts (user_id, name, phone, email)
+                         VALUES ($1, $2, $3, $4)
+                         RETURNING id`,
+                        [req.user.id, guest.name, guest.phone || null, guest.email || null]
+                    );
+
+                    if (contactResult.rows.length > 0) {
+                        contactId = contactResult.rows[0].id;
+                    }
+                }
+
+                // Link the guest to the contact
+                if (contactId) {
+                    await query(
+                        'UPDATE guests SET contact_id = $1 WHERE id = $2',
+                        [contactId, guestId]
+                    );
+                }
+            } catch (contactError) {
+                // Don't fail guest addition if contact save fails
+                console.error('Contact auto-save error:', contactError);
             }
 
             addedGuests.push({ id: guestId, ...guest, rsvp: null, attended: false, attended_count: 0 });

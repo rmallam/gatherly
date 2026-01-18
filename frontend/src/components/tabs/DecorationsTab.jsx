@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { Sparkles, Plus, X, Check, Trash2, Palette, Edit2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import '../../pages/EventTabs.css';
 import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 
 import AIDecorPlanner from '../ai/AIDecorPlanner';
 
 const DecorationsTab = ({ event, onUpdateDecorations }) => {
+    const { user } = useAuth(); // Get user from context
+
+    // Default Fallback
     const [decorations, setDecorations] = useState(event.decorations || {
         theme: '',
         colorPalette: [],
@@ -170,27 +174,90 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
                 >
                     <Plus size={16} /> Add Custom Item
                 </button>
-                <button
-                    onClick={() => setShowAIPlanner(!showAIPlanner)}
-                    className="btn btn-secondary"
-                    style={{
-                        flex: 1,
-                        background: showAIPlanner ? 'var(--bg-secondary)' : 'transparent',
-                        borderColor: showAIPlanner ? 'var(--primary)' : 'var(--border-color)',
-                        color: showAIPlanner ? 'var(--primary)' : 'var(--text-primary)'
-                    }}
-                >
-                    <Sparkles size={16} style={{ color: 'var(--accent)' }} />
-                    {showAIPlanner ? 'Hide AI Stylist' : 'AI Decor Ideas'}
-                </button>
+                {user?.subscription_tier === 'pro' && (
+                    <button
+                        onClick={() => setShowAIPlanner(!showAIPlanner)}
+                        className="btn btn-secondary"
+                        style={{
+                            flex: 1,
+                            background: showAIPlanner ? 'var(--bg-secondary)' : 'transparent',
+                            borderColor: showAIPlanner ? 'var(--primary)' : 'var(--border-color)',
+                            color: showAIPlanner ? 'var(--primary)' : 'var(--text-primary)'
+                        }}
+                    >
+                        <Sparkles size={16} style={{ color: 'var(--accent)' }} />
+                        {showAIPlanner ? 'Hide AI Stylist' : 'AI Decor Ideas'}
+                    </button>
+                )}
             </div>
 
-            {/* AI Planner Section */}
-            {showAIPlanner && (
+            {/* AI Planner Section (Pro only) */}
+            {showAIPlanner && user?.subscription_tier === 'pro' && (
                 <AIDecorPlanner
                     event={event}
                     onAddItems={handleAddAIItems}
                 />
+            )}
+
+            {/* Upgrade Card (Free only) */}
+            {(!user?.subscription_tier || user?.subscription_tier === 'free') && (
+                <div style={{
+                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))',
+                    borderRadius: '16px',
+                    padding: '32px 24px',
+                    marginBottom: '24px',
+                    textAlign: 'center',
+                    border: '2px dashed rgba(99, 102, 241, 0.3)'
+                }}>
+                    <div style={{
+                        width: '64px',
+                        height: '64px',
+                        background: 'rgba(99, 102, 241, 0.2)',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px'
+                    }}>
+                        <Palette size={32} color="var(--primary)" />
+                    </div>
+                    <h3 style={{
+                        fontSize: '20px',
+                        fontWeight: 700,
+                        color: 'var(--text-primary)',
+                        marginBottom: '8px'
+                    }}>
+                        AI Decor Stylist
+                    </h3>
+                    <p style={{
+                        color: 'var(--text-secondary)',
+                        marginBottom: '20px',
+                        fontSize: '15px'
+                    }}>
+                        Get professional decoration themes, color palettes, and item suggestions instantly.
+                    </p>
+                    <a
+                        href="/pro"
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
+                            color: 'white',
+                            padding: '14px 28px',
+                            borderRadius: '12px',
+                            textDecoration: 'none',
+                            fontWeight: 600,
+                            fontSize: '16px',
+                            transition: 'transform 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                        onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                    >
+                        <Sparkles size={18} />
+                        Upgrade to Pro
+                    </a>
+                </div>
             )}
             <div className="hero-card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1))', marginBottom: 24 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
