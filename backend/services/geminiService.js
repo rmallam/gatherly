@@ -311,3 +311,57 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
     throw new Error('Failed to generate cost optimization');
   }
 }
+
+/**
+ * Check if the input is a valid receipt and extract details
+ */
+export async function analyzeReceipt(imagePart, mimeType = 'image/jpeg') {
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+
+    const prompt = `You are an expert expense tracker. Analyze this image.
+    
+    1. First, determine if this is a receipt, invoice, or bill.
+    2. If it is NOT a receipt/bill, return valid JSON with {"isReceipt": false}.
+    3. If it IS a receipt, extract:
+       - Total Amount (number)
+       - Currency Code (e.g., USD, INR, EUR) based on symbols or text
+       - Date (YYYY-MM-DD format). If multiple, use the transaction date.
+       - Merchant Name (for Description)
+       - Category (choose one: 'food', 'transport', 'accommodation', 'activities', 'entertainment', 'other')
+       - Items list (brief summary)
+    
+    IMPORTANT: Respond ONLY with valid JSON in this format:
+    {
+      "isReceipt": true,
+      "amount": 0.00,
+      "currency": "USD",
+      "date": "2024-01-01",
+      "merchant": "Store Name",
+      "category": "food",
+      "items": ["Item 1", "Item 2"]
+    }`;
+
+    const image = {
+      inlineData: {
+        data: imagePart,
+        mimeType: mimeType
+      }
+    };
+
+    const result = await model.generateContent([prompt, image]);
+    const text = result.response.text().trim();
+
+    let jsonText = text;
+    if (jsonText.startsWith('```json')) {
+      jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    } else if (jsonText.startsWith('```')) {
+      jsonText = jsonText.replace(/```\n?/g, '');
+    }
+
+    return JSON.parse(jsonText);
+  } catch (error) {
+    console.error('Gemini Receipt Analysis Error:', error);
+    throw new Error('Failed to analyze receipt');
+  }
+}

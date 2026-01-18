@@ -28,7 +28,7 @@ import {
 import eventWallRoutes from './routes/eventWall.js';
 import contactsRoutes from './routes/contacts.js';
 import contactGroupsRoutes from './routes/contact-groups.js';
-import { getBudgetSuggestions, getMenuSuggestions, getDecorIdeas, getCostOptimization } from './services/geminiService.js';
+import { getBudgetSuggestions, getMenuSuggestions, getDecorIdeas, getCostOptimization, analyzeReceipt } from './services/geminiService.js';
 import { requireProTier } from './middleware/proTierCheck.js';
 import expenseRoutes from './routes/expenses.js';
 import scheduleRoutes from './routes/schedule.js';
@@ -2537,6 +2537,26 @@ app.use('/api/contact-groups', contactGroupsRoutes);
 
 // IAP / RevenueCat Webhook Routes (Must be before generic /api routes to avoid auth middleware)
 app.use('/api/iap', iapRoutes);
+
+// Receipt Analysis Endpoint (Pro Feature)
+app.post('/api/gemini/analyze-receipt', authMiddleware, requireProTier, async (req, res) => {
+    try {
+        const { image, mimeType } = req.body;
+
+        if (!image) {
+            return res.status(400).json({ error: 'Image data is required' });
+        }
+
+        // Limit check could go here if needed per user
+
+        const analysis = await analyzeReceipt(image, mimeType || 'image/jpeg');
+        res.json(analysis);
+
+    } catch (error) {
+        console.error('Receipt analysis error:', error);
+        res.status(500).json({ error: 'Failed to analyze receipt' });
+    }
+});
 
 // Expense Routes
 app.use('/api', expenseRoutes);

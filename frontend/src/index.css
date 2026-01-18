@@ -575,3 +575,8 @@ h4 {
 .theme-toggle input:checked+.slider:before {
   transform: translateX(24px);
 }
+
+/* Fix for Google Places Autocomplete dropdown z-index in modals */
+.pac-container {
+  z-index: 2000 !important;
+}

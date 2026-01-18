@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import API_URL from '../../config/api';
 import { X, DollarSign, Receipt, Calendar } from 'lucide-react';
 
-const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded }) => {
+const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData }) => {
     const [formData, setFormData] = useState({
-        amount: '',
-        currency: 'USD',
-        description: '',
-        category: 'food',
+        amount: initialData?.amount || '',
+        currency: initialData?.currency || 'USD',
+        description: initialData?.merchant || initialData?.description || '', // Use merchant as description
+        category: initialData?.category || 'food',
         paidBy: '',
-        expenseDate: new Date().toISOString().split('T')[0],
+        expenseDate: initialData?.date || new Date().toISOString().split('T')[0],
         splitType: 'equal'
     });
     const [customSplits, setCustomSplits] = useState({});

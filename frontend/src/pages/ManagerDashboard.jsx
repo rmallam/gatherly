@@ -8,6 +8,7 @@ import ThemeToggle from '../components/ThemeToggle';
 import RateAppService from '../services/RateAppService';
 import UpgradeModal from '../components/UpgradeModal';
 import { countries } from '../utils/currencyUtils';
+import LocationAutocomplete from '../components/common/LocationAutocomplete';
 import './ManagerDashboard.css';
 
 const ManagerDashboard = () => {
@@ -235,11 +236,15 @@ const ManagerDashboard = () => {
                                     </div>
                                     <div>
                                         <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Location</label>
-                                        <input
-                                            type="text"
+                                        <LocationAutocomplete
                                             value={newEvent.location}
-                                            onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-                                            className="form-input"
+                                            onChange={(val) => setNewEvent({ ...newEvent, location: val })}
+                                            onSelect={(place) => {
+                                                setNewEvent({
+                                                    ...newEvent,
+                                                    location: place.formatted_address || place.name
+                                                });
+                                            }}
                                             placeholder="Grand Hall"
                                         />
                                     </div>

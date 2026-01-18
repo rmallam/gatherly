@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MapPin, Save, X, Check, Building2 } from 'lucide-react';
+import LocationAutocomplete from '../common/LocationAutocomplete';
 import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 
 const VenueTab = ({ event, onUpdateVenue }) => {
@@ -232,11 +233,16 @@ const VenueTab = ({ event, onUpdateVenue }) => {
                         {/* Contact */}
                         <div>
                             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Address</label>
-                            <input
-                                type="text"
-                                className="form-input"
+                            <LocationAutocomplete
                                 value={venue.address}
-                                onChange={(e) => setVenue({ ...venue, address: e.target.value })}
+                                onChange={(val) => setVenue({ ...venue, address: val })}
+                                onSelect={(place) => {
+                                    setVenue({
+                                        ...venue,
+                                        address: place.formatted_address || place.name,
+                                        // We could also store place.place_id or geometry if needed in the future
+                                    });
+                                }}
                                 placeholder="Full venue address"
                             />
                         </div>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import API_URL from '../../config/api';
-import { Plus } from 'lucide-react';
+import { Plus, ScanLine, Loader, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useApp } from '../../context/AppContext';
 import ExpenseList from './ExpenseList';
 import AddExpenseModal from './AddExpenseModal';
 import BalanceSummary from './BalanceSummary';
@@ -13,6 +15,75 @@ const ExpensesDashboard = ({ eventId, event }) => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [selectedExpense, setSelectedExpense] = useState(null);
     const [activeTab, setActiveTab] = useState('expenses');
+
+    // Receipt Scanning State
+    const [isScanning, setIsScanning] = useState(false);
+    const [scannedData, setScannedData] = useState(null);
+    const fileInputRef = React.useRef(null);
+    const navigate = useNavigate();
+    const { user } = useApp(); // Get user for pro check
+
+    const handleScanClick = () => {
+        // Check for Pro/Business tier
+        const isPro = user?.subscription_tier === 'pro' || user?.subscription_tier === 'business';
+
+        if (!isPro) {
+            // Redirect to pro page or show upgrade alert
+            if (confirm('Receipt Scanning is a Pro feature. Upgrade to unlock?')) {
+                navigate('/pro');
+            }
+            return;
+        }
+
+        // Trigger file input
+        fileInputRef.current?.click();
+    };
+
+    const handleFileSelect = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsScanning(true);
+        try {
+            // Convert to base64
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const base64Image = reader.result.split(',')[1]; // Remove data:image/...;base64, prefix
+                const mimeType = file.type;
+
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/gemini/analyze-receipt`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ image: base64Image, mimeType })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to analyze receipt');
+                }
+
+                const data = await response.json();
+
+                if (data.isReceipt) {
+                    setScannedData(data); // Store AI results
+                    setShowAddModal(true); // Open modal
+                } else {
+                    alert('Could not detect a valid receipt in this image.');
+                }
+            };
+        } catch (error) {
+            console.error('Scan error:', error);
+            alert('Failed to analyze receipt. Please try again.');
+        } finally {
+            setIsScanning(false);
+            // Reset input
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
 
     const fetchExpenses = async () => {
         try {
@@ -98,20 +169,55 @@ const ExpensesDashboard = ({ eventId, event }) => {
                     Expenses
                 </h2>
 
-                <button
-                    onClick={() => setShowAddModal(true)}
-                    className="btn btn-primary"
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        padding: '0.75rem 1.25rem',
-                        fontSize: '0.9375rem'
-                    }}
-                >
-                    <Plus size={18} />
-                    Add Expense
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        style={{ display: 'none' }}
+                        accept="image/*"
+                        capture="environment" // Prefer camera on mobile
+                        onChange={handleFileSelect}
+                    />
+
+                    <button
+                        onClick={handleScanClick}
+                        disabled={isScanning}
+                        className="btn btn-secondary"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.75rem 1rem',
+                            fontSize: '0.9375rem',
+                            position: 'relative'
+                        }}
+                    >
+                        {isScanning ? <Loader size={18} className="spin" /> : <ScanLine size={18} />}
+                        {isScanning ? 'Analyzing...' : 'Scan Receipt'}
+                        {/* Lock icon if not pro (optional visual cue) */}
+                        {!(user?.subscription_tier === 'pro' || user?.subscription_tier === 'business') && (
+                            <Lock size={12} style={{ position: 'absolute', top: -4, right: -4, color: '#d97706' }} />
+                        )}
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            setScannedData(null); // Clear previous scan data
+                            setShowAddModal(true);
+                        }}
+                        className="btn btn-primary"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.75rem 1.25rem',
+                            fontSize: '0.9375rem'
+                        }}
+                    >
+                        <Plus size={18} />
+                        Add Expense
+                    </button>
+                </div>
             </div>
 
             {/* Tabs - Simplified Styling */}
@@ -185,11 +291,16 @@ const ExpensesDashboard = ({ eventId, event }) => {
                 <AddExpenseModal
                     eventId={eventId}
                     event={event}
-                    onClose={() => setShowAddModal(false)}
+                    initialData={scannedData} // Pass scanned data
+                    onClose={() => {
+                        setShowAddModal(false);
+                        setScannedData(null);
+                    }}
                     onExpenseAdded={() => {
                         fetchExpenses();
                         fetchBalances();
                         setShowAddModal(false);
+                        setScannedData(null);
                     }}
                 />
             )}
