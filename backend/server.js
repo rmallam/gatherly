@@ -26,6 +26,7 @@ import {
     getUnreadCount
 } from './services/notificationService.js';
 import eventWallRoutes from './routes/eventWall.js';
+import uploadRoutes from './routes/upload.js';
 import contactsRoutes from './routes/contacts.js';
 import contactGroupsRoutes from './routes/contact-groups.js';
 import { getBudgetSuggestions, getMenuSuggestions, getDecorIdeas, getCostOptimization, analyzeReceipt } from './services/geminiService.js';
@@ -114,6 +115,13 @@ app.use(compression({
 
 // Serve static files (for email verification page)
 app.use(express.static('public'));
+
+// Serve Uploads Directory (Local Storage)
+// This serves files from backend/uploads at https://api/uploads/filename.jpg
+app.use('/uploads', express.static(path.join(path.resolve(), 'uploads')));
+
+// Upload Routes
+app.use('/api/upload', uploadRoutes);
 
 // Serve Digital Asset Links file for Android App Links
 app.get('/.well-known/assetlinks.json', (req, res) => {

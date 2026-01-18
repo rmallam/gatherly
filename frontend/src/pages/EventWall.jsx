@@ -161,6 +161,40 @@ const EventWall = () => {
                 return;
             }
 
+            let finalPhotoUrl = null;
+
+            // 1. Upload Image if exists
+            if (selectedImage) {
+                // Check if it's a base64 string (new upload) vs existing URL (unlikely here but good safety)
+                if (selectedImage.startsWith('data:')) {
+                    try {
+                        const uploadRes = await fetch(`${API_URL}/upload/image`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ image: selectedImage })
+                        });
+
+                        if (!uploadRes.ok) {
+                            throw new Error('Image upload failed');
+                        }
+
+                        const uploadData = await uploadRes.json();
+                        finalPhotoUrl = uploadData.url;
+                    } catch (uploadError) {
+                        console.error('Upload failed:', uploadError);
+                        alert('Failed to upload image. Please try again.');
+                        setIsSubmitting(false);
+                        return;
+                    }
+                } else {
+                    finalPhotoUrl = selectedImage;
+                }
+            }
+
+            // 2. Create Post with URL
             const res = await fetch(`${API_URL}/wall/${eventId}/posts`, {
                 method: 'POST',
                 headers: {
@@ -169,9 +203,9 @@ const EventWall = () => {
                 },
                 body: JSON.stringify({
                     participantId: currentParticipantId,
-                    type: selectedImage ? 'photo' : 'message',
+                    type: finalPhotoUrl ? 'photo' : 'message',
                     content: newPostContent || '',
-                    photoUrl: selectedImage || null
+                    photoUrl: finalPhotoUrl
                 })
             });
 
