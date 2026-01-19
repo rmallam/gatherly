@@ -157,9 +157,7 @@ const EventDetails = () => {
                 return;
             }
 
-            const baseUrl = window.location.origin.includes('localhost')
-                ? (import.meta.env.VITE_APP_URL || 'https://events.hosteze.app')
-                : window.location.origin;
+            const baseUrl = import.meta.env.VITE_APP_URL || 'https://events.hosteze.app';
 
             const guestQRUrl = `${baseUrl}/invite/${id}?guest=${guest.id}`;
             const inviteText = `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/hosteze`;
@@ -196,9 +194,7 @@ const EventDetails = () => {
         setIsBulkSending(true);
 
         try {
-            const baseUrl = window.location.origin.includes('localhost')
-                ? (import.meta.env.VITE_APP_URL || 'https://events.hosteze.app')
-                : window.location.origin;
+            const baseUrl = import.meta.env.VITE_APP_URL || 'https://events.hosteze.app';
 
             for (let i = 0; i < guestsToInvite.length; i++) {
                 const guest = guestsToInvite[i];
@@ -252,9 +248,7 @@ const EventDetails = () => {
         try {
             setInvitingGuest(guest.id);
 
-            const baseUrl = window.location.origin.includes('localhost')
-                ? (import.meta.env.VITE_APP_URL || 'https://gatherly-backend-3vmv.onrender.com')
-                : window.location.origin;
+            const baseUrl = import.meta.env.VITE_APP_URL || 'https://events.hosteze.app';
 
             const guestQRUrl = `${baseUrl}/invite/${id}?guest=${guest.id}`;
             const inviteText = `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/hosteze`;

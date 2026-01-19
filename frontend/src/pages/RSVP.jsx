@@ -5,47 +5,66 @@ import { CheckCircle, Calendar, MapPin } from 'lucide-react';
 
 const RSVP = () => {
     const { eventId, guestId } = useParams();
-    const { getEvent, rsvpGuest, loading: appLoading } = useApp();
+    const { getEvent, rsvpGuest, fetchPublicEvent, publicRsvpGuest, loading: appLoading } = useApp();
     const [status, setStatus] = useState('loading');
     const [guest, setGuest] = useState(null);
     const [event, setEvent] = useState(null);
 
+    const [loadingEvent, setLoadingEvent] = useState(true);
+
     useEffect(() => {
-        // Wait for app context to load events
-        if (appLoading) {
-            setStatus('loading');
-            return;
-        }
+        const loadEventDetails = async () => {
+            try {
+                // If we already have the event in context (e.g. local testing as host), use it
+                const contextEvent = getEvent(eventId);
+                if (contextEvent) {
+                    const g = contextEvent.guests?.find(guest => guest.id === guestId);
+                    if (g) {
+                        setEvent(contextEvent);
+                        setGuest(g);
+                        if (g.rsvp !== undefined && g.rsvp !== null) {
+                            setStatus('already-rsvpd');
+                        } else {
+                            setStatus('ready');
+                        }
+                        setLoadingEvent(false);
+                        return;
+                    }
+                }
 
-        const ev = getEvent(eventId);
-        if (!ev) {
-            setStatus('error');
-            return;
-        }
+                // Otherwise, fetch from public API
+                const data = await fetchPublicEvent(eventId, guestId);
+                if (data && data.event && data.guest) {
+                    setEvent(data.event);
+                    setGuest(data.guest);
+                    if (data.guest.rsvp !== undefined && data.guest.rsvp !== null) {
+                        setStatus('already-rsvpd');
+                    } else {
+                        setStatus('ready');
+                    }
+                } else {
+                    setStatus('error');
+                }
+            } catch (err) {
+                console.error('Failed to load invitation:', err);
+                setStatus('error');
+            } finally {
+                setLoadingEvent(false);
+            }
+        };
 
-        const g = ev.guests?.find(guest => guest.id === guestId);
-        if (!g) {
-            setStatus('error');
-            return;
-        }
-
-        setEvent(ev);
-        setGuest(g);
-
-        if (g.rsvp !== undefined && g.rsvp !== null) {
-            setStatus('already-rsvpd');
-        } else {
-            setStatus('ready');
-        }
-    }, [eventId, guestId, getEvent, appLoading]);
+        loadEventDetails();
+    }, [eventId, guestId, getEvent, fetchPublicEvent]);
 
     const handleRSVP = async (response) => {
         try {
-            await rsvpGuest(eventId, guestId, response);
+            await publicRsvpGuest(eventId, guestId, response);
             setStatus('success');
+            // Update local state to reflect change
+            setGuest(prev => ({ ...prev, rsvp: response }));
         } catch (err) {
             console.error('RSVP error:', err);
-            setStatus('error');
+            alert('Failed to submit RSVP. Please try again.');
         }
     };
 
