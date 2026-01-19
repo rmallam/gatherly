@@ -24,6 +24,19 @@ export async function initializeDatabase() {
         try {
             await client.query('SELECT 1 FROM users LIMIT 1');
             console.log('✓ Database tables verified');
+
+            // Auto-run OTP migration if needed (Quick fix for production)
+            try {
+                // Check if otp_codes exists
+                await client.query('SELECT 1 FROM otp_codes LIMIT 1');
+            } catch (err) {
+                console.log('Creating otp_codes table...');
+                const migrationPath = join(__dirname, '../migrations/08_create_otp_codes.sql');
+                const migrationSql = await fs.readFile(migrationPath, 'utf8');
+                await client.query(migrationSql);
+                console.log('✓ Created otp_codes table');
+            }
+
         } catch (err) {
             console.warn('⚠️  Database tables may not exist. Run migrations manually if needed.');
         }
