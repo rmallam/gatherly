@@ -1,3 +1,6 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { Loader2, Upload, ImageIcon, X } from 'lucide-react';
 import { compressImage } from '../../utils/imageUtils';
 
 const GalleryTab = ({ event }) => {

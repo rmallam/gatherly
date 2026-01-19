@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import API_URL from '../../config/api';
 import { Plus, ScanLine, Loader, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext'; // Correct Context
 import ExpenseList from './ExpenseList';
 import AddExpenseModal from './AddExpenseModal';
 import BalanceSummary from './BalanceSummary';
@@ -21,7 +21,7 @@ const ExpensesDashboard = ({ eventId, event }) => {
     const [scannedData, setScannedData] = useState(null);
     const fileInputRef = React.useRef(null);
     const navigate = useNavigate();
-    const { user } = useApp(); // Get user for pro check
+    const { user } = useAuth(); // Get user from AuthContext (correct source of truth)
 
     const handleScanClick = () => {
         // Check for Pro/Business tier
@@ -336,6 +336,44 @@ const ExpensesDashboard = ({ eventId, event }) => {
                         setSelectedExpense(null);
                     }}
                 />
+            )}
+            {/* AI Analysis Overlay */}
+            {isScanning && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    zIndex: 9999,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    padding: '2rem',
+                    textAlign: 'center'
+                }}>
+                    <div style={{
+                        width: '80px',
+                        height: '80px',
+                        border: '4px solid rgba(255,255,255,0.1)',
+                        borderTop: '4px solid var(--primary)',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite',
+                        marginBottom: '1.5rem'
+                    }} />
+                    <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+                        AI is Analyzing Receipt
+                    </h3>
+                    <p style={{ color: 'rgba(255,255,255,0.7)', maxWidth: '300px' }}>
+                        Extracting merchant, date, and total amount...
+                    </p>
+                    <style>{`
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    `}</style>
+                </div>
             )}
         </div>
     );
