@@ -46,8 +46,10 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
+            connectSrc: ["'self'", "https://events.hosteze.app", "https://gatherly-backend-3vmv.onrender.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://events.hosteze.app"],
             imgSrc: ["'self'", "data:", "https:"],
         },
     },
