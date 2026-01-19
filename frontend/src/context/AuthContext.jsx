@@ -148,6 +148,65 @@ export const AuthProvider = ({ children }) => {
         return data;
     };
 
+    const sendOTP = async (phone) => {
+        const response = await fetchWithRetry(`${API_URL}/auth/send-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone })
+        }, 3, 30000);
+
+        if (!response.ok) {
+            let errorMessage = 'Failed to send OTP';
+            try {
+                const error = await response.json();
+                errorMessage = error.error || errorMessage;
+            } catch (e) { }
+            throw new Error(errorMessage);
+        }
+
+        return await response.json();
+    };
+
+    const verifyOTP = async (phone, code) => {
+        const response = await fetchWithRetry(`${API_URL}/auth/verify-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, code })
+        }, 3, 30000);
+
+        if (!response.ok) {
+            let errorMessage = 'Invalid OTP';
+            try {
+                const error = await response.json();
+                errorMessage = error.error || errorMessage;
+            } catch (e) { }
+            throw new Error(errorMessage);
+        }
+
+        const data = await response.json();
+
+        // Save session
+        localStorage.setItem('token', data.token);
+        setToken(data.token);
+        setUser(data.user);
+
+        // Initialize RevenueCat
+        try {
+            PurchaseService.initialize(data.user.id);
+        } catch (e) {
+            console.error('Failed to init purchases:', e);
+        }
+
+        // Register device
+        try {
+            await pushNotificationService.registerDevice(data.user.id, data.token);
+        } catch (error) {
+            console.error('Failed to register device:', error);
+        }
+
+        return data;
+    };
+
     const loginWithBiometric = async () => {
         try {
             // Authenticate with biometric
@@ -231,6 +290,8 @@ export const AuthProvider = ({ children }) => {
             biometricAvailable,
             signup,
             login,
+            sendOTP,
+            verifyOTP,
             loginWithBiometric,
             enableBiometric,
             disableBiometric,

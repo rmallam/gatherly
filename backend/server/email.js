@@ -23,8 +23,8 @@ const FROM_EMAIL = USE_GMAIL
     ? process.env.GMAIL_USER
     : (process.env.FROM_EMAIL || 'onboarding@resend.dev');
 
-const APP_URL = process.env.APP_URL || 'https://gatherly-backend-3vmv.onrender.com';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://gatherly-backend-3vmv.onrender.com';
+const APP_URL = process.env.APP_URL || 'https://events.hosteze.app';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://events.hosteze.app';
 
 /**
  * Send email using Gmail or Resend

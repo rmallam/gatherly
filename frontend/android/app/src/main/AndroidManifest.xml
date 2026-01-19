@@ -28,7 +28,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" 
-                      android:host="gatherly-backend-3vmv.onrender.com" />
+                      android:host="events.hosteze.app" />
             </intent-filter>
 
             <!-- Custom URL scheme for guaranteed app opening -->

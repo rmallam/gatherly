@@ -1,8 +1,8 @@
 appId: com.guestscanner.app
 ---
 # Test: Admin Dashboard Access
-- launchApp
-- clearState
+- launchApp:
+    clearState: true
 
 # Login as admin
 - tapOn:

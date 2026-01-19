@@ -5,7 +5,8 @@
     "server": {
         "androidScheme": "https",
         "allowNavigation": [
-            "https://gatherly-backend-3vmv.onrender.com"
+            "https://gatherly-backend-3vmv.onrender.com",
+            "https://events.hosteze.app"
         ],
         "cleartext": true
     },

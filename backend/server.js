@@ -67,6 +67,7 @@ const allowedOrigins = [
     'http://localhost',        // Capacitor fallback
     'https://localhost',       // Capacitor HTTPS mode
     'https://gatherly-backend-3vmv.onrender.com', // Production backend (for invite.html)
+    'https://events.hosteze.app', // Custom domain
 ].filter(Boolean);
 
 app.use(cors({
@@ -507,6 +508,157 @@ app.post('/api/auth/resend-verification', async (req, res) => {
     }
 });
 
+// === OTP AUTH ROUTES ===
+import { sendOTP, verifyOTP } from './services/otpService.js';
+
+// Send OTP
+app.post('/api/auth/send-otp', authLimiter, async (req, res) => {
+    try {
+        const { phone } = req.body;
+
+        if (!phone) {
+            return res.status(400).json({ error: 'Phone number is required' });
+        }
+
+        // Normalize phone: Remove non-digits
+        // If length is 10, assume India +91
+        // If starts with +, keep as is
+        // We need a consistent format for DB storage key
+        let normalizedPhone = phone.replace(/[^\d+]/g, '');
+
+        if (!normalizedPhone.startsWith('+')) {
+            const digits = normalizedPhone.replace(/\D/g, '');
+            if (digits.length === 10) {
+                normalizedPhone = '+91' + digits;
+            } else if (digits.length > 10 && digits.startsWith('91')) {
+                normalizedPhone = '+' + digits;
+            } else {
+                // Fallback: If we can't guess, just use +91 or require user to send correct format?
+                // For now, let's assume +91 if ambiguous 10 digits, otherwise error?
+                if (digits.length < 10) {
+                    return res.status(400).json({ error: 'Invalid phone number' });
+                }
+                if (!normalizedPhone.startsWith('+')) {
+                    normalizedPhone = '+91' + digits; // Default to India for this app context
+                }
+            }
+        }
+
+        const result = await sendOTP(normalizedPhone);
+
+        if (!result.success) {
+            return res.status(500).json({ error: result.error || 'Failed to send OTP' });
+        }
+
+        res.json({
+            success: true,
+            message: 'OTP sent successfully',
+            phone: normalizedPhone // Return normalized phone so frontend can use it for verification
+        });
+
+    } catch (error) {
+        console.error('Send OTP error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Verify OTP & Login/Signup
+app.post('/api/auth/verify-otp', authLimiter, async (req, res) => {
+    try {
+        const { phone, code } = req.body;
+
+        if (!phone || !code) {
+            return res.status(400).json({ error: 'Phone and code are required' });
+        }
+
+        // Verify OTP
+        const verification = await verifyOTP(phone, code);
+
+        if (!verification.valid) {
+            return res.status(400).json({ error: verification.reason || 'Invalid OTP' });
+        }
+
+        // OTP is valid. Now find or create user.
+        // Similar loose matching logic as Login
+        const digitsOnly = phone.replace(/\D/g, '');
+        const last10 = digitsOnly.slice(-10);
+
+        let result = await query(
+            `SELECT * FROM users WHERE 
+             phone IS NOT NULL AND 
+             RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
+            [last10]
+        );
+
+        let user;
+        let isNewUser = false;
+
+        if (result.rows.length > 0) {
+            // User exists
+            user = result.rows[0];
+
+            // If user has no phone set but matched via some other logic? unlikely.
+            // If found, good.
+        } else {
+            // Create new user (Guest)
+            // We only have phone.
+            isNewUser = true;
+            const userId = uuidv4();
+            const tempName = 'Guest'; // User will update this later
+
+            // Generate dummy password (since they use OTP) or empty?
+            // Auth schema requires password usually?
+            // Let's check schema. Usually not null. So we set a random strong password.
+            const randomPassword = crypto.randomBytes(16).toString('hex');
+            const hashedPassword = hashPassword(randomPassword);
+
+            // Insert
+            await query(
+                `INSERT INTO users (id, name, phone, password, email_verified) 
+                 VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+                [userId, tempName, phone, hashedPassword, true] // Phone verified by definition
+            );
+
+            // Update guests table linkage
+            await query(
+                `UPDATE guests SET user_id = $1 
+                  WHERE user_id IS NULL 
+                  AND phone IS NOT NULL 
+                  AND RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $2`,
+                [userId, last10]
+            );
+
+            // Fetch created user
+            const newUserResult = await query('SELECT * FROM users WHERE id = $1', [userId]);
+            user = newUserResult.rows[0];
+        }
+
+        // Generate Token
+        const token = generateToken(user);
+        const userResponse = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            emailVerified: user.email_verified,
+            is_admin: user.is_admin,
+            subscription_tier: user.subscription_tier || 'free',
+            event_count: user.event_count || 0,
+            subscription_status: user.subscription_status || 'inactive'
+        };
+
+        res.json({
+            token,
+            user: userResponse,
+            isNewUser
+        });
+
+    } catch (error) {
+        console.error('Verify OTP error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Forgot password - Request password reset
 app.post('/api/auth/forgot-password', async (req, res) => {
     try {
@@ -868,15 +1020,15 @@ app.patch('/api/users/profile', authMiddleware, async (req, res) => {
 
         if (name !== undefined) {
             updates.push(`name = $${paramCount++}`);
-            values.push(name.trim());
+            values.push(typeof name === 'string' ? name.trim() : name);
         }
         if (phone !== undefined) {
             updates.push(`phone = $${paramCount++}`);
-            values.push(phone.trim() || null);
+            values.push(typeof phone === 'string' ? phone.trim() || null : null);
         }
         if (bio !== undefined) {
             updates.push(`bio = $${paramCount++}`);
-            values.push(bio.trim() || null);
+            values.push(typeof bio === 'string' ? bio.trim() || null : null);
         }
         if (profilePictureUrl !== undefined) {
             updates.push(`profile_picture_url = $${paramCount++}`);

@@ -5,12 +5,14 @@ import { LogIn, Mail, Lock, AlertCircle, Scan, Fingerprint, Phone } from 'lucide
 
 const Login = () => {
     const navigate = useNavigate();
-    const { login, loginWithBiometric, enableBiometric, biometricAvailable } = useAuth();
+    const { login, loginWithBiometric, enableBiometric, biometricAvailable, sendOTP, verifyOTP } = useAuth();
     const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
     const [email, setEmail] = useState('');
     const [countryCode, setCountryCode] = useState('+91');
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
+    const [otp, setOtp] = useState('');
+    const [showOtpInput, setShowOtpInput] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [biometricLoading, setBiometricLoading] = useState(false);
@@ -60,25 +62,33 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const isPhone = loginMethod === 'phone';
-            const identifier = isPhone ? `${countryCode}${phone}` : email;
-            await login(identifier, password, isPhone);
+            if (loginMethod === 'phone') {
+                const fullPhone = `${countryCode}${phone}`;
 
-            // Check if biometric is already enabled before prompting
-            if (biometricAvailable) {
-                // Check if credentials are already saved
-                const { BiometricService } = await import('../services/biometric');
-                const hasSavedCredentials = await BiometricService.hasCredentials('hosteze-app');
-
-                if (!hasSavedCredentials) {
-                    // Only show prompt if not already set up
-                    setSavedCredentials({ email: identifier, password });
-                    setShowBiometricPrompt(true);
+                if (showOtpInput) {
+                    // Verify OTP
+                    await verifyOTP(fullPhone, otp);
+                    navigate('/'); // Login successful
                 } else {
-                    // Already set up, just navigate
-                    navigate('/');
+                    // Send OTP
+                    await sendOTP(fullPhone);
+                    setShowOtpInput(true);
                 }
             } else {
+                // Email + Password Login
+                await login(email, password);
+
+                // Check if biometric is already enabled before prompting
+                if (biometricAvailable) {
+                    const { BiometricService } = await import('../services/biometric');
+                    const hasSavedCredentials = await BiometricService.hasCredentials('hosteze-app');
+
+                    if (!hasSavedCredentials) {
+                        setSavedCredentials({ email, password });
+                        setShowBiometricPrompt(true);
+                        return; // Wait for prompt interaction
+                    }
+                }
                 navigate('/');
             }
         } catch (err) {
@@ -100,6 +110,14 @@ const Login = () => {
 
     const handleSkipBiometric = () => {
         navigate('/');
+    };
+
+    // Reset OTP state when switching methods
+    const handleMethodSwitch = (method) => {
+        setLoginMethod(method);
+        setShowOtpInput(false);
+        setOtp('');
+        setError('');
     };
 
     // Biometric enrollment prompt
@@ -215,7 +233,7 @@ const Login = () => {
                             Welcome Back
                         </h2>
                         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>
-                            Sign in to manage your events
+                            {loginMethod === 'email' ? 'Sign in to manage your events' : 'Sign in with one-time password'}
                         </p>
                     </div>
 
@@ -246,7 +264,7 @@ const Login = () => {
                     }}>
                         <button
                             type="button"
-                            onClick={() => setLoginMethod('email')}
+                            onClick={() => handleMethodSwitch('email')}
                             style={{
                                 flex: 1,
                                 padding: '0.5rem',
@@ -266,7 +284,7 @@ const Login = () => {
                         </button>
                         <button
                             type="button"
-                            onClick={() => setLoginMethod('phone')}
+                            onClick={() => handleMethodSwitch('phone')}
                             style={{
                                 flex: 1,
                                 padding: '0.5rem',
@@ -282,99 +300,141 @@ const Login = () => {
                             }}
                         >
                             <Phone size={16} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-                            Phone
+                            Phone + OTP
                         </button>
                     </div>
 
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginBottom: '1.5rem' }}>
                         {loginMethod === 'email' ? (
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                                    Email Address
-                                </label>
-                                <div style={{ position: 'relative' }}>
-                                    <Mail size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-                                    <input
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="form-input"
-                                        style={{ paddingLeft: '2.75rem' }}
-                                        placeholder="your@email.com"
-                                        required
-                                    />
-                                </div>
-                            </div>
-                        ) : (
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                                    Phone Number
-                                </label>
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <div style={{ position: 'relative', width: '120px' }}>
-                                        <select
-                                            value={countryCode}
-                                            onChange={(e) => setCountryCode(e.target.value)}
-                                            className="form-input"
-                                            style={{ paddingLeft: '1rem', paddingRight: '0.5rem' }}
-                                        >
-                                            <option value="+91">🇮🇳 +91</option>
-                                            <option value="+1">🇺🇸 +1</option>
-                                            <option value="+44">🇬🇧 +44</option>
-                                            <option value="+61">🇦🇺 +61</option>
-                                            <option value="+971">🇦🇪 +971</option>
-                                        </select>
-                                    </div>
-                                    <div style={{ position: 'relative', flex: 1 }}>
-                                        <Phone size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                            <>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                                        Email Address
+                                    </label>
+                                    <div style={{ position: 'relative' }}>
+                                        <Mail size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
                                         <input
-                                            type="tel"
-                                            value={phone}
-                                            onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
                                             className="form-input"
                                             style={{ paddingLeft: '2.75rem' }}
-                                            placeholder="9876543210"
-                                            maxLength={10}
+                                            placeholder="your@email.com"
                                             required
                                         />
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                                        Password
+                                    </label>
+                                    <div style={{ position: 'relative' }}>
+                                        <Lock size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                                        <input
+                                            type="password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="form-input"
+                                            style={{ paddingLeft: '2.75rem' }}
+                                            placeholder="Enter your password"
+                                            required
+                                        />
+                                    </div>
+                                    <div style={{ marginTop: '0.5rem', textAlign: 'right' }}>
+                                        <Link
+                                            to="/forgot-password"
+                                            style={{
+                                                color: 'var(--primary)',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 600,
+                                                textDecoration: 'none',
+                                                transition: 'opacity 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.opacity = '0.8'}
+                                            onMouseLeave={(e) => e.target.style.opacity = '1'}
+                                        >
+                                            Forgot Password?
+                                        </Link>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                                        Phone Number
+                                    </label>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <div style={{ position: 'relative', width: '120px' }}>
+                                            <select
+                                                value={countryCode}
+                                                onChange={(e) => setCountryCode(e.target.value)}
+                                                className="form-input"
+                                                style={{ paddingLeft: '1rem', paddingRight: '0.5rem' }}
+                                                disabled={showOtpInput}
+                                            >
+                                                <option value="+91">🇮🇳 +91</option>
+                                                <option value="+1">🇺🇸 +1</option>
+                                                <option value="+44">🇬🇧 +44</option>
+                                                <option value="+61">🇦🇺 +61</option>
+                                                <option value="+971">🇦🇪 +971</option>
+                                            </select>
+                                        </div>
+                                        <div style={{ position: 'relative', flex: 1 }}>
+                                            <Phone size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                                            <input
+                                                type="tel"
+                                                value={phone}
+                                                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                                                className="form-input"
+                                                style={{ paddingLeft: '2.75rem' }}
+                                                placeholder="9876543210"
+                                                maxLength={10}
+                                                required
+                                                disabled={showOtpInput}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
 
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                                Password
-                            </label>
-                            <div style={{ position: 'relative' }}>
-                                <Lock size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="form-input"
-                                    style={{ paddingLeft: '2.75rem' }}
-                                    placeholder="Enter your password"
-                                    required
-                                />
-                            </div>
-                            <div style={{ marginTop: '0.5rem', textAlign: 'right' }}>
-                                <Link
-                                    to="/forgot-password"
-                                    style={{
-                                        color: 'var(--primary)',
-                                        fontSize: '0.875rem',
-                                        fontWeight: 600,
-                                        textDecoration: 'none',
-                                        transition: 'opacity 0.2s'
-                                    }}
-                                    onMouseEnter={(e) => e.target.style.opacity = '0.8'}
-                                    onMouseLeave={(e) => e.target.style.opacity = '1'}
-                                >
-                                    Forgot Password?
-                                </Link>
-                            </div>
-                        </div>
+                                {showOtpInput && (
+                                    <div className="fade-in">
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                                            Enter Verification Code
+                                        </label>
+                                        <div style={{ position: 'relative' }}>
+                                            <Lock size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                                            <input
+                                                type="text"
+                                                value={otp}
+                                                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                                className="form-input"
+                                                style={{ paddingLeft: '2.75rem', letterSpacing: '2px', fontSize: '1.1rem' }}
+                                                placeholder="123456"
+                                                required
+                                                autoFocus
+                                            />
+                                        </div>
+                                        <div style={{ marginTop: '0.5rem', textAlign: 'right' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => { setShowOtpInput(false); setOtp(''); }}
+                                                style={{
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    color: 'var(--primary)',
+                                                    fontSize: '0.875rem',
+                                                    cursor: 'pointer',
+                                                    padding: 0
+                                                }}
+                                            >
+                                                Change Phone Number
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        )}
 
                         <button
                             type="submit"
@@ -382,7 +442,11 @@ const Login = () => {
                             disabled={loading}
                             style={{ width: '100%', padding: '0.875rem', fontSize: '1rem', fontWeight: 600 }}
                         >
-                            {loading ? 'Signing in...' : 'Sign In'}
+                            {loading ? (
+                                'Processing...'
+                            ) : (
+                                loginMethod === 'email' ? 'Sign In' : (showOtpInput ? 'Verify & Login' : 'Send OTP')
+                            )}
                         </button>
                     </form>
 

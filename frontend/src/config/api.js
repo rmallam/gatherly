@@ -4,10 +4,10 @@
  */
 
 // Base API URL - uses environment variable or defaults to production
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://gatherly-backend-3vmv.onrender.com/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://events.hosteze.app/api';
 
 // Legacy base URL (without /api suffix) for components that need it
-export const API_BASE_URL_LEGACY = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://gatherly-backend-3vmv.onrender.com';
+export const API_BASE_URL_LEGACY = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://events.hosteze.app';
 
 // Export default for convenience
 export default API_BASE_URL;
