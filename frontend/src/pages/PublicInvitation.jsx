@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import GalleryTab from '../components/tabs/GalleryTab';
+import QRGenerator from '../components/QRGenerator';
 import { Calendar, Clock, MapPin, Loader, ArrowLeft, CheckCircle, XCircle, Sparkles, Image as ImageIcon, X } from 'lucide-react';
 
 const PublicInvitation = () => {

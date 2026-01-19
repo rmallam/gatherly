@@ -33,7 +33,15 @@ class PushNotificationService {
         try {
             console.log('🔔 Initializing OneSignal...');
 
-            // Initialize OneSignal (v5.x API)
+            // Start OneSignal (Web-safe check)
+            const platform = this.getPlatform();
+            if (platform === 'web') {
+                console.log('🌐 OneSignal Web initialization skipped (Native plugin only)');
+                this.initialized = true;
+                return;
+            }
+
+            // Initialize OneSignal (v5.x API for Native)
             window.plugins.OneSignal.initialize(ONESIGNAL_APP_ID);
 
             // Set up notification handlers
