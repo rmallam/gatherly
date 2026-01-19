@@ -74,7 +74,7 @@ function DeepLinkHandler() {
                     path = '/' + pathPart;
                     search = queryPart ? '?' + queryPart : '';
                 } else {
-                    // HTTPS scheme: https://gatherly-backend-3vmv.onrender.com/reset-password?token=abc123
+                    // HTTPS scheme: https://events.hosteze.app/reset-password?token=abc123
                     const url = new URL(data.url);
                     path = url.pathname;
                     search = url.search;

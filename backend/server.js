@@ -724,7 +724,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
         // Send SMS if user has phone (either as primary or backup)
         if (user.phone) {
             try {
-                const resetUrl = `https://gatherly-backend-3vmv.onrender.com/reset-password?token=${resetToken}`;
+                const resetUrl = `https://events.hosteze.app/reset-password?token=${resetToken}`;
                 const smsMessage = `Hi ${user.name}, reset your HostEze password: ${resetUrl} (Link expires in 1 hour)`;
 
                 // Format phone number for SMS - handle international numbers

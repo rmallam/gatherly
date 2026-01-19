@@ -16,7 +16,7 @@ const GalleryTab = ({ event }) => {
 
     const API_URL = window.location.origin.includes('localhost')
         ? (import.meta.env.VITE_API_URL || 'http://localhost:5001/api')
-        : (import.meta.env.VITE_API_URL || 'https://gatherly-backend-3vmv.onrender.com/api');
+        : (import.meta.env.VITE_API_URL || 'https://events.hosteze.app/api');
 
     const fetchPhotos = async () => {
         try {

@@ -158,7 +158,7 @@ const EventDetails = () => {
             }
 
             const baseUrl = window.location.origin.includes('localhost')
-                ? (import.meta.env.VITE_APP_URL || 'https://gatherly-backend-3vmv.onrender.com')
+                ? (import.meta.env.VITE_APP_URL || 'https://events.hosteze.app')
                 : window.location.origin;
 
             const guestQRUrl = `${baseUrl}/invite/${id}?guest=${guest.id}`;
@@ -197,7 +197,7 @@ const EventDetails = () => {
 
         try {
             const baseUrl = window.location.origin.includes('localhost')
-                ? (import.meta.env.VITE_APP_URL || 'https://gatherly-backend-3vmv.onrender.com')
+                ? (import.meta.env.VITE_APP_URL || 'https://events.hosteze.app')
                 : window.location.origin;
 
             for (let i = 0; i < guestsToInvite.length; i++) {

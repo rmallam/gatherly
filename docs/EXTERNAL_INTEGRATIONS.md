@@ -99,7 +99,7 @@ The application supports two email providers. You can configure either one.
 
 ### **Frontend (`frontend/.env`)**
 ```env
-VITE_API_URL=https://gatherly-backend-3vmv.onrender.com/api
+VITE_API_URL=https://events.hosteze.app/api
 VITE_ONESIGNAL_APP_ID=your_onesignal_app_id
 VITE_REVENUECAT_IOS_KEY=your_rc_ios_key
 VITE_REVENUECAT_ANDROID_KEY=your_rc_android_key
