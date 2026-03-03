@@ -136,7 +136,7 @@ app.post('/api/events/:id/ai-invite', authMiddleware, async (req, res) => {
 
         // Verify user owns the event
         const eventResult = await query(
-            'SELECT title, description, date, time, location, event_type FROM events WHERE id = $1 AND user_id = $2',
+            'SELECT title, description, date, location, data FROM events WHERE id = $1 AND user_id = $2',
             [eventId, req.user.id]
         );
 
@@ -149,9 +149,14 @@ app.post('/api/events/:id/ai-invite', authMiddleware, async (req, res) => {
             [eventId]
         );
 
+        const dbEvent = eventResult.rows[0];
         const eventData = {
-            ...eventResult.rows[0],
-            venue: eventLocation.rows.length > 0 ? eventLocation.rows[0] : null
+            title: dbEvent.title,
+            description: dbEvent.description,
+            date: dbEvent.date,
+            time: dbEvent.data?.time || 'TBD',
+            eventType: dbEvent.data?.eventType || 'General',
+            venue: eventLocation.rows.length > 0 ? eventLocation.rows[0] : { name: dbEvent.location, address: '' }
         };
 
         console.log(`[AI-INVITE] Processing request for Event ID: ${eventId}, Tone: ${tone}, Theme: ${theme}`);
