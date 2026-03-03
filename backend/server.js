@@ -154,11 +154,16 @@ app.post('/api/events/:id/ai-invite', authMiddleware, async (req, res) => {
             venue: eventLocation.rows.length > 0 ? eventLocation.rows[0] : null
         };
 
+        console.log(`[AI-INVITE] Processing request for Event ID: ${eventId}, Tone: ${tone}, Theme: ${theme}`);
+        console.log(`[AI-INVITE] Event Data constructed:`, JSON.stringify(eventData, null, 2));
+
         const invitationText = await generateInvitation(eventData, tone, theme);
+        console.log(`[AI-INVITE] Successfully generated invitation text length: ${invitationText?.length}`);
+
         res.json({ invitation: invitationText });
     } catch (error) {
-        console.error('Error generating AI invitation:', error);
-        res.status(500).json({ error: 'Failed to generate invitation' });
+        console.error('[AI-INVITE] Request failed with error:', error);
+        res.status(500).json({ error: 'Failed to generate invitation', details: error.message });
     }
 });
 

@@ -397,11 +397,19 @@ export async function generateInvitation(eventData, tone = 'Standard', theme = '
     `;
 
     const result = await model.generateContent(prompt);
+    console.log('Gemini Invitation API Response Status:', result.response?.promptFeedback || 'No feedback');
     const text = result.response.text().trim();
 
     return text;
   } catch (error) {
-    console.error('Gemini Invitation Generation Error:', error);
+    console.error('Gemini Invitation Generation Error DETAILS:', {
+      message: error.message,
+      name: error.name,
+      status: error.status,
+      statusText: error.statusText,
+      errorDetails: error.errorDetails,
+      stack: error.stack
+    });
     throw new Error('Failed to generate invitation');
   }
 }
