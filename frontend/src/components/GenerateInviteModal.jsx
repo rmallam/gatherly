@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Wand2, Copy, CheckCircle2 } from 'lucide-react';
-import { getAuthToken } from '../utils/auth';
+import { useAuth } from '../context/AuthContext';
 
 const GenerateInviteModal = ({ isOpen, onClose, event, onInviteGenerated }) => {
+    const { token } = useAuth();
     const [tone, setTone] = useState('Casual');
     const [theme, setTheme] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
@@ -14,7 +15,6 @@ const GenerateInviteModal = ({ isOpen, onClose, event, onInviteGenerated }) => {
     const handleGenerate = async () => {
         setIsGenerating(true);
         try {
-            const token = getAuthToken();
             const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
             const res = await fetch(`${baseUrl}/events/${event.id}/ai-invite`, {
                 method: 'POST',
