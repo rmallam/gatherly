@@ -7,7 +7,8 @@ import ContactPicker from '../components/ContactPicker';
 import ContactSelector from '../components/ContactSelector';
 import UpgradeModal from '../components/UpgradeModal';
 import { exportAllGuests, exportCheckedInGuests } from '../utils/csvExport';
-import { UserPlus, QrCode, Search, CheckCircle2, ArrowLeft, Users, Upload, Smartphone, Download, Share2, Plus, X, MessageCircle, Trash2 } from 'lucide-react';
+import { UserPlus, QrCode, Search, CheckCircle2, ArrowLeft, Users, Upload, Smartphone, Download, Share2, Plus, X, MessageCircle, Trash2, Wand2 } from 'lucide-react';
+import GenerateInviteModal from '../components/GenerateInviteModal';
 
 const EventDetails = () => {
     const { id } = useParams();
@@ -32,6 +33,8 @@ const EventDetails = () => {
     const [upgradeTriggerReason, setUpgradeTriggerReason] = useState('');
     const [selectedGuests, setSelectedGuests] = useState([]);
     const [isBulkSending, setIsBulkSending] = useState(false);
+    const [showAiInviteModal, setShowAiInviteModal] = useState(false);
+    const [customInviteText, setCustomInviteText] = useState('');
 
     if (!event) {
         return (
@@ -160,7 +163,8 @@ const EventDetails = () => {
             const baseUrl = import.meta.env.VITE_APP_URL || 'https://events.hosteze.app';
 
             const guestQRUrl = `${baseUrl}/invite/${id}?guest=${guest.id}`;
-            const inviteText = `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/hosteze`;
+            const baseText = customInviteText ? customInviteText : `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}`;
+            const inviteText = `${baseText}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/hosteze`;
 
             const cleanPhone = guest.phone.replace(/\D/g, '');
             const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(inviteText)}`;
@@ -200,7 +204,8 @@ const EventDetails = () => {
                 const guest = guestsToInvite[i];
 
                 const guestQRUrl = `${baseUrl}/invite/${id}?guest=${guest.id}`;
-                const inviteText = `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/hosteze`;
+                const baseText = customInviteText ? customInviteText : `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}`;
+                const inviteText = `${baseText}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/hosteze`;
 
                 const cleanPhone = guest.phone.replace(/\D/g, '');
                 const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(inviteText)}`;
@@ -251,7 +256,8 @@ const EventDetails = () => {
             const baseUrl = import.meta.env.VITE_APP_URL || 'https://events.hosteze.app';
 
             const guestQRUrl = `${baseUrl}/invite/${id}?guest=${guest.id}`;
-            const inviteText = `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/hosteze`;
+            const baseText = customInviteText ? customInviteText : `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}`;
+            const inviteText = `${baseText}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/hosteze`;
 
             const { Share } = await import('@capacitor/share');
 
@@ -352,6 +358,13 @@ const EventDetails = () => {
                     </div>
 
                     <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <button
+                            onClick={() => setShowAiInviteModal(true)}
+                            className="btn btn-secondary"
+                            style={{ fontSize: '0.875rem', background: 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.1))', color: '#a855f7', borderColor: 'rgba(168,85,247,0.2)' }}
+                        >
+                            <Wand2 size={16} /> AI Draft
+                        </button>
                         <button
                             onClick={() => exportAllGuests(event)}
                             className="btn btn-secondary"
@@ -878,6 +891,18 @@ const EventDetails = () => {
                     </div>
                 </div>
             )}
+
+            {/* AI Generate Invite Modal */}
+            <GenerateInviteModal
+                isOpen={showAiInviteModal}
+                onClose={() => setShowAiInviteModal(false)}
+                event={event}
+                onInviteGenerated={(text) => {
+                    setCustomInviteText(text);
+                    // notify the user their invite text is set
+                    alert('Custom invite text enabled! Click Share or WhatsApp on any guest to use it.');
+                }}
+            />
         </div>
     );
 };

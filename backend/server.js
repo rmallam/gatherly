@@ -11,6 +11,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import * as cheerio from 'cheerio';
 import { generateToken, hashPassword, comparePassword, authMiddleware } from './server/auth.js';
 import { initializeDatabase, query } from './db/connection.js';
 import { validateEmail, validatePassword } from './server/validators.js';
@@ -30,7 +31,7 @@ import eventWallRoutes from './routes/eventWall.js';
 import uploadRoutes from './routes/upload.js';
 import contactsRoutes from './routes/contacts.js';
 import contactGroupsRoutes from './routes/contact-groups.js';
-import { getBudgetSuggestions, getMenuSuggestions, getDecorIdeas, getCostOptimization, analyzeReceipt } from './services/geminiService.js';
+import { getBudgetSuggestions, getMenuSuggestions, getDecorIdeas, getCostOptimization, analyzeReceipt, generateInvitation } from './services/geminiService.js';
 import { requireProTier } from './middleware/proTierCheck.js';
 import expenseRoutes from './routes/expenses.js';
 import scheduleRoutes from './routes/schedule.js';
@@ -126,6 +127,40 @@ app.use('/uploads', express.static(path.join(path.resolve(), 'uploads')));
 
 // Upload Routes
 app.use('/api/upload', uploadRoutes);
+
+// AI Invitation Generation Route
+app.post('/api/events/:id/ai-invite', authMiddleware, async (req, res) => {
+    try {
+        const eventId = req.params.id;
+        const { tone = 'Standard', theme = 'None' } = req.body;
+
+        // Verify user owns the event
+        const eventResult = await query(
+            'SELECT title, description, date, time, location, event_type FROM events WHERE id = $1 AND user_id = $2',
+            [eventId, req.user.id]
+        );
+
+        if (eventResult.rows.length === 0) {
+            return res.status(403).json({ error: 'Not authorized or event not found' });
+        }
+
+        const eventLocation = await query(
+            'SELECT name, address FROM event_venues WHERE event_id = $1',
+            [eventId]
+        );
+
+        const eventData = {
+            ...eventResult.rows[0],
+            venue: eventLocation.rows.length > 0 ? eventLocation.rows[0] : null
+        };
+
+        const invitationText = await generateInvitation(eventData, tone, theme);
+        res.json({ invitation: invitationText });
+    } catch (error) {
+        console.error('Error generating AI invitation:', error);
+        res.status(500).json({ error: 'Failed to generate invitation' });
+    }
+});
 
 // Serve Digital Asset Links file for Android App Links
 app.get('/.well-known/assetlinks.json', (req, res) => {
@@ -862,6 +897,60 @@ app.get('/reset-password', (req, res) => {
     `);
 });
 
+// OpenGraph tag interceptor (Serve index.html with OG tags)
+app.get('/invite/:id', async (req, res, next) => {
+    try {
+        const eventId = req.params.id;
+
+        // Find event details for OpenGraph tags
+        const eventResult = await query(
+            'SELECT title, description, cover_image_url FROM events WHERE id = $1',
+            [eventId]
+        );
+
+        // Fallback to static serving/SPA fallback if event not found
+        if (eventResult.rows.length === 0) {
+            return next();
+        }
+
+        const event = eventResult.rows[0];
+
+        // Path to built frontend index.html
+        // Assuming current directory structure runs from backend/
+        const indexPath = path.join(path.resolve(), '..', 'frontend', 'dist', 'index.html');
+
+        if (!fs.existsSync(indexPath)) {
+            console.warn('index.html not found, falling back to Next() middleware');
+            return next();
+        }
+
+        let html = fs.readFileSync(indexPath, 'utf-8');
+        const $ = cheerio.load(html);
+
+        const title = `You're invited: ${event.title || 'Event'}`;
+        const description = event.description || 'Join us for this special event. RSVP inside.';
+        const imageUrl = event.cover_image_url || 'https://events.hosteze.app/og-default.jpg';
+        const url = `https://events.hosteze.app/invite/${eventId}`;
+
+        // Inject OpenGraph Meta Tags
+        $('head').append(`<meta property="og:title" content="${title}">`);
+        $('head').append(`<meta property="og:description" content="${description}">`);
+        $('head').append(`<meta property="og:image" content="${imageUrl}">`);
+        $('head').append(`<meta property="og:url" content="${url}">`);
+
+        // Twitter Card Meta Tags
+        $('head').append(`<meta name="twitter:card" content="summary_large_image">`);
+        $('head').append(`<meta name="twitter:title" content="${title}">`);
+        $('head').append(`<meta name="twitter:description" content="${description}">`);
+        $('head').append(`<meta name="twitter:image" content="${imageUrl}">`);
+
+        res.send($.html());
+    } catch (error) {
+        console.error('OpenGraph intercept error:', error);
+        next();
+    }
+});
+
 // Verify reset token
 app.get('/api/auth/verify-reset-token', async (req, res) => {
     try {
@@ -1021,19 +1110,19 @@ app.patch('/api/users/profile', authMiddleware, async (req, res) => {
         let paramCount = 1;
 
         if (name !== undefined) {
-            updates.push(`name = $${paramCount++}`);
+            updates.push(`name = $${paramCount++} `);
             values.push(typeof name === 'string' ? name.trim() : name);
         }
         if (phone !== undefined) {
-            updates.push(`phone = $${paramCount++}`);
+            updates.push(`phone = $${paramCount++} `);
             values.push(typeof phone === 'string' ? phone.trim() || null : null);
         }
         if (bio !== undefined) {
-            updates.push(`bio = $${paramCount++}`);
+            updates.push(`bio = $${paramCount++} `);
             values.push(typeof bio === 'string' ? bio.trim() || null : null);
         }
         if (profilePictureUrl !== undefined) {
-            updates.push(`profile_picture_url = $${paramCount++}`);
+            updates.push(`profile_picture_url = $${paramCount++} `);
             values.push(profilePictureUrl || null);
         }
 
@@ -1121,9 +1210,9 @@ app.get('/api/events', authMiddleware, async (req, res) => {
     try {
         // Get events created by the user
         const createdEvents = await query(
-            `SELECT e.*, 
-             (SELECT json_agg(g.*) FROM guests g WHERE g.event_id = e.id) as guests,
-             'organizer' as role
+            `SELECT e.*,
+            (SELECT json_agg(g.*) FROM guests g WHERE g.event_id = e.id) as guests,
+    'organizer' as role
              FROM events e 
              WHERE e.user_id = $1 
              ORDER BY e.created_at DESC`,
@@ -1132,12 +1221,12 @@ app.get('/api/events', authMiddleware, async (req, res) => {
 
         // Get events where user is invited as a guest (but NOT the organizer)
         const invitedEvents = await query(
-            `SELECT e.*, 
-             (SELECT json_agg(g.*) FROM guests g WHERE g.event_id = e.id) as guests,
-             'guest' as role,
-             g.id as guest_id,
-             g.rsvp,
-             g.attended
+            `SELECT e.*,
+    (SELECT json_agg(g.*) FROM guests g WHERE g.event_id = e.id) as guests,
+        'guest' as role,
+        g.id as guest_id,
+        g.rsvp,
+        g.attended
              FROM events e
              JOIN guests g ON g.event_id = e.id
              WHERE g.user_id = $1 AND e.user_id != $1
@@ -1323,7 +1412,7 @@ app.get('/api/notifications', authMiddleware, async (req, res) => {
             SELECT id, type, title, body, data, read, created_at
             FROM notifications
             WHERE user_id = $1
-        `;
+    `;
 
         if (unreadOnly === 'true') {
             sqlQuery += ' AND read = FALSE';
@@ -1416,14 +1505,14 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
         // Verify event access - user must be owner OR participant (for shared events)
         const eventCheck = await query(
             `SELECT e.id, e.event_type FROM events e
-             WHERE e.id = $1 AND (
-                 e.user_id = $2 
-                 OR EXISTS (
-                     SELECT 1 FROM guests g 
+             WHERE e.id = $1 AND(
+        e.user_id = $2 
+                 OR EXISTS(
+            SELECT 1 FROM guests g 
                      WHERE g.event_id = e.id 
                      AND g.user_id = $2
-                 )
-             )`,
+        )
+    )`,
             [req.params.eventId, req.user.id]
         );
 
@@ -1492,7 +1581,7 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
 
             if (duplicateName) {
                 return res.status(400).json({
-                    error: `Already invited: ${duplicateName}`,
+                    error: `Already invited: ${duplicateName} `,
                     duplicate: true
                 });
             }
@@ -1510,8 +1599,8 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
             if (normalized) {
                 const userByPhone = await query(
                     `SELECT id FROM users WHERE 
-                     phone IS NOT NULL AND 
-                     RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
+                     phone IS NOT NULL AND
+RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
                     [normalized]
                 );
                 if (userByPhone.rows.length > 0) {

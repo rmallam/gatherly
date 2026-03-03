@@ -365,3 +365,43 @@ export async function analyzeReceipt(imagePart, mimeType = 'image/jpeg') {
     throw new Error('Failed to analyze receipt');
   }
 }
+
+/**
+ * Generate a custom invitation message based on event details
+ */
+export async function generateInvitation(eventData, tone = 'Standard', theme = 'None') {
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+
+    const prompt = `You are an expert event copywriter. Write an engaging, beautiful invitation message for an upcoming event.
+    
+    Event Details:
+    - Title: ${eventData.title || 'Special Event'}
+    - Description: ${eventData.description || ''}
+    - Type: ${eventData.eventType || 'General'}
+    - Date: ${eventData.date || 'TBD'}
+    - Time: ${eventData.time || 'TBD'}
+    - LocationName: ${eventData.venue?.name || 'TBD'}
+    - LocationAddress: ${eventData.venue?.address || ''}
+
+    Style Requirements:
+    - Tone: ${tone} (e.g., Formal, Casual, Fun, Humorous, Elegant)
+    - Theme/Vibe: ${theme}
+    
+    CRITICAL INSTRUCTIONS:
+    1. Write ONLY the invitation text message. Do NOT include markdown blocks, JSON, or meta-commentary.
+    2. The message should be formatted beautifully with appropriate line breaks and spacing.
+    3. Include emojis if the tone is 'Casual', 'Fun', or 'Humorous'. Avoid or minimize them if 'Formal'.
+    4. Provide clear details of When and Where in the text.
+    5. Be persuasive and warm to encourage people to RSVP.
+    `;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text().trim();
+
+    return text;
+  } catch (error) {
+    console.error('Gemini Invitation Generation Error:', error);
+    throw new Error('Failed to generate invitation');
+  }
+}
