@@ -191,9 +191,32 @@ const EventDetails = () => {
                     return true;
                 } catch (webshareErr) {
                     console.error('Web share fallback failed:', webshareErr);
+                    // Continue to ultimate fallback
                 }
             }
-            throw err;
+
+            // Ultimate fallback for Desktop Web
+            console.log('Falling back to file download and manual WhatsApp launch');
+            try {
+                // 1. Force download the image
+                const link = document.createElement('a');
+                link.href = customInviteText;
+                link.download = `invite-${guest.name.replace(/\s+/g, '-')}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // 2. Open WhatsApp Web manually for the text link
+                if (guest.phone) {
+                    const cleanPhone = guest.phone.replace(/\D/g, '');
+                    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Here is your visual invitation! 👇\n${guestQRUrl}`)}`;
+                    window.open(whatsappUrl, '_blank');
+                }
+                return true;
+            } catch (fallbackErr) {
+                console.error('Ultimate fallback failed:', fallbackErr);
+                throw fallbackErr;
+            }
         }
     };
 

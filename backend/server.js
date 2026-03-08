@@ -205,6 +205,28 @@ app.post('/api/events/:id/ai-invite-image', authMiddleware, async (req, res) => 
         const hFont = inviteData.typography?.headlineFont || 'Georgia, serif';
         const bFont = inviteData.typography?.bodyFont || 'Arial, sans-serif';
 
+        // Helper to wrap SVG text into multiple lines
+        const wrapText = (text, maxChars) => {
+            if (!text) return [];
+            const words = text.split(' ');
+            let lines = [];
+            let currentLine = '';
+            for (let word of words) {
+                if ((currentLine + word).length > maxChars) {
+                    lines.push(currentLine.trim());
+                    currentLine = word + ' ';
+                } else {
+                    currentLine += word + ' ';
+                }
+            }
+            if (currentLine.trim()) lines.push(currentLine.trim());
+            return lines;
+        };
+
+        const headlineLines = wrapText(inviteData.content?.headline || dbEvent.title, 18);
+        const locationLines = wrapText(inviteData.content?.location || 'Location TBD', 35);
+        const footerLines = wrapText(inviteData.content?.footer || 'Please RSVP', 35);
+
         // Construct SVG String
         const svgString = `
         <svg width="800" height="1200" xmlns="http://www.w3.org/2000/svg">
@@ -222,24 +244,25 @@ app.post('/api/events/:id/ai-invite-image', authMiddleware, async (req, res) => 
                     ${inviteData.content?.supertitle || 'YOU ARE INVITED'}
                 </text>
                 
-                <!-- Headline -->
-                <text x="300" y="120" font-size="72" font-weight="bold">
-                    ${inviteData.content?.headline || dbEvent.title}
+                <!-- Headline with multi-line support -->
+                <text x="300" y="120" font-size="64" font-weight="bold">
+                    ${headlineLines.map((line, i) => `<tspan x="300" dy="${i === 0 ? 0 : 70}">${line}</tspan>`).join('')}
                 </text>
                 
-                <text x="300" y="300" font-size="36" font-family="${bFont}">
+                <text x="300" y="320" font-size="36" font-family="${bFont}">
                     ${inviteData.content?.dateAndTime || 'Date TBD'}
                 </text>
                 
-                <text x="300" y="420" font-size="30" font-family="${bFont}" opacity="0.8">
-                    ${inviteData.content?.location || 'Location TBD'}
+                <!-- Location with multi-line support -->
+                <text x="300" y="420" font-size="28" font-family="${bFont}" opacity="0.8">
+                    ${locationLines.map((line, i) => `<tspan x="300" dy="${i === 0 ? 0 : 35}">${line}</tspan>`).join('')}
                 </text>
                 
                 <!-- Line Separator -->
-                <line x1="150" y1="540" x2="450" y2="540" stroke="${accent}" stroke-width="3" />
+                <line x1="150" y1="560" x2="450" y2="560" stroke="${accent}" stroke-width="3" />
 
-                <text x="300" y="660" font-size="28" font-family="${bFont}" fill="${accent}">
-                    ${inviteData.content?.footer || 'Please RSVP'}
+                <text x="300" y="680" font-size="28" font-family="${bFont}" fill="${accent}">
+                    ${footerLines.map((line, i) => `<tspan x="300" dy="${i === 0 ? 0 : 35}">${line}</tspan>`).join('')}
                 </text>
             </g>
         </svg>`;
