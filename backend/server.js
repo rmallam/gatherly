@@ -144,11 +144,6 @@ app.post('/api/events/:id/ai-invite', authMiddleware, async (req, res) => {
             return res.status(403).json({ error: 'Not authorized or event not found' });
         }
 
-        const eventLocation = await query(
-            'SELECT name, address FROM event_venues WHERE event_id = $1',
-            [eventId]
-        );
-
         const dbEvent = eventResult.rows[0];
         const eventData = {
             title: dbEvent.title,
@@ -156,7 +151,7 @@ app.post('/api/events/:id/ai-invite', authMiddleware, async (req, res) => {
             date: dbEvent.date,
             time: dbEvent.data?.time || 'TBD',
             eventType: dbEvent.data?.eventType || 'General',
-            venue: eventLocation.rows.length > 0 ? eventLocation.rows[0] : { name: dbEvent.location, address: '' }
+            venue: { name: dbEvent.location || 'TBD', address: '' }
         };
 
         console.log(`[AI-INVITE] Processing request for Event ID: ${eventId}, Tone: ${tone}, Theme: ${theme}`);
