@@ -516,6 +516,7 @@ export async function parseUserIntent(userMessage, currentContext = {}) {
     "${userMessage}"
 
     IMPORTANT INSTRUCTIONS:
+    - You must read the "history" array provided inside CURRENT CONTEXT. It contains the last few messages of our dialogue. Use this to remember what we are talking about (e.g. if you just asked "Which event?", the user's reply "Birthday" is answering that question!).
     - Respond ONLY with valid JSON. Do not wrap it in markdown codeblocks. Do not include extra conversational text outside the JSON.
     - The JSON MUST have an "action" key (one of ADD_GUESTS, ADD_EXPENSE, CREATE_EVENT, GENERAL_CHAT).
     - If action is ADD_GUESTS, include "data": { "eventId" (if inferred from context or message), "guests": [{name, phone, email}] }

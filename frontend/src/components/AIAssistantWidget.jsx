@@ -62,7 +62,8 @@ const AIAssistantWidget = () => {
                     context: {
                         eventId: id, // Explicit active context
                         activeEventStats: activeEventSummary,
-                        userEvents: userEventsData // All events the user owns
+                        userEvents: userEventsData, // All events the user owns
+                        history: messages.map(m => ({ role: m.role, text: m.text })).slice(-6) // Send up to last 6 messages for context
                     }
                 })
             });
