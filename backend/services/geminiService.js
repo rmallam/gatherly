@@ -480,3 +480,68 @@ export async function generateImageInvitationData(eventData, tone = 'Standard', 
     throw new Error('Failed to generate visual invitation data');
   }
 }
+
+/**
+ * Parse natural language intent into a structured JSON action.
+ * @param {string} userMessage The user's typed command.
+ * @param {object} currentContext Contains context like active eventId, user's timezone, etc.
+ */
+export async function parseUserIntent(userMessage, currentContext = {}) {
+  try {
+    const model = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
+
+    const prompt = `You are an intelligent AI Assistant built into the HostEze App. 
+    Your job is to read the user's natural language command, and map it strictly to one of our app's defined actions by returning a structured JSON response.
+
+    DEFINED ACTIONS:
+    1. "ADD_GUESTS"
+       - Use this when the user mentions adding, inviting, or putting people on a guest list.
+       - Extract: Array of objects with "name", "phone" (if provided), and "email" (if provided).
+    2. "ADD_EXPENSE"
+       - Use this when the user mentions spending money, buying things, or adding a budget item.
+       - Extract: "description" (string), "amount" (number), "category" (string: Venue, Catering, Decor, Entertainment, Other).
+    3. "CREATE_EVENT"
+       - Use this when the user wants to start a new event, party, or get-together.
+       - Extract: "title" (string), "date" (YYYY-MM-DD or string if relative), "location" (string), "description" (string).
+    4. "GENERAL_CHAT"
+       - Use this for any other conversational inputs like "hello", "how are you", or things you cannot parse into an action.
+       - Provide a conversational "reply" string.
+
+    CURRENT CONTEXT:
+    ${JSON.stringify(currentContext, null, 2)}
+
+    USER MESSAGE: 
+    "${userMessage}"
+
+    IMPORTANT INSTRUCTIONS:
+    - Respond ONLY with valid JSON. Do not wrap it in markdown codeblocks. Do not include extra conversational text outside the JSON.
+    - The JSON MUST have an "action" key (one of ADD_GUESTS, ADD_EXPENSE, CREATE_EVENT, GENERAL_CHAT).
+    - If action is ADD_GUESTS, include "data": { "guests": [{name, phone, email}] }
+    - If action is ADD_EXPENSE, include "data": { "description", "amount", "category" }
+    - If action is CREATE_EVENT, include "data": { "title", "date", "location", "description" }
+    - If action is GENERAL_CHAT, include "data": { "reply": "Your conversational response here" }
+    - Always output a conversational "message" key inside the root JSON to show to the user, confirming what you understood (e.g. "I'll add 2 guests for you!").
+    
+    EXPECTED JSON FORMAT:
+    {
+      "action": "...",
+      "message": "...",
+      "data": {}
+    }
+    `;
+
+    const result = await model.generateContent(prompt);
+    let text = result.response.text().trim();
+
+    if (text.startsWith('\`\`\`json')) {
+      text = text.replace(/\`\`\`json\n?/g, '').replace(/\`\`\`\n?/g, '');
+    } else if (text.startsWith('\`\`\`')) {
+      text = text.replace(/\`\`\`\n?/g, '');
+    }
+
+    return JSON.parse(text);
+  } catch (error) {
+    console.error('Intent Parser Error DETAILS:', error);
+    throw new Error('Failed to parse AI intent');
+  }
+}

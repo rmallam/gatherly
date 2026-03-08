@@ -32,7 +32,7 @@ import eventWallRoutes from './routes/eventWall.js';
 import uploadRoutes from './routes/upload.js';
 import contactsRoutes from './routes/contacts.js';
 import contactGroupsRoutes from './routes/contact-groups.js';
-import { getBudgetSuggestions, getMenuSuggestions, getDecorIdeas, getCostOptimization, analyzeReceipt, generateInvitation, generateImageInvitationData } from './services/geminiService.js';
+import { getBudgetSuggestions, getMenuSuggestions, getDecorIdeas, getCostOptimization, analyzeReceipt, generateInvitation, generateImageInvitationData, parseUserIntent } from './services/geminiService.js';
 import { requireProTier } from './middleware/proTierCheck.js';
 import expenseRoutes from './routes/expenses.js';
 import scheduleRoutes from './routes/schedule.js';
@@ -281,6 +281,87 @@ app.post('/api/events/:id/ai-invite-image', authMiddleware, async (req, res) => 
     } catch (error) {
         console.error('[AI-IMAGE-INVITE] Request failed with error:', error);
         res.status(500).json({ error: 'Failed to generate visual invitation', details: error.message });
+    }
+});
+
+// AI Assistant Chatbot Route
+app.post('/api/ai/chat', authMiddleware, async (req, res) => {
+    try {
+        const { message, context } = req.body;
+
+        if (!message) {
+            return res.status(400).json({ error: 'Message is required' });
+        }
+
+        console.log(`[AI-CHAT] Parsing intent for user message: "${message}"`);
+        const intent = await parseUserIntent(message, context);
+        console.log(`[AI-CHAT] Parsed Intent:`, intent);
+
+        let result = null;
+
+        // Execute action based on parsed intent
+        switch (intent.action) {
+            case 'ADD_GUESTS':
+                if (intent.data?.guests && Array.isArray(intent.data.guests) && context.eventId) {
+                    const guestsAdded = [];
+                    for (const guest of intent.data.guests) {
+                        const guestId = uuidv4();
+                        const newGuest = await query(
+                            'INSERT INTO guests (id, event_id, name, email, phone) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+                            [guestId, context.eventId, guest.name, guest.email || null, guest.phone || null]
+                        );
+                        guestsAdded.push(newGuest.rows[0]);
+                    }
+                    result = { added: guestsAdded.length, guests: guestsAdded };
+                }
+                break;
+
+            case 'ADD_EXPENSE':
+                if (intent.data && context.eventId) {
+                    // Make sure budget exists first to avoid foreign key issues
+                    await query(
+                        'INSERT INTO budgets (id, event_id, total_budget, currency) VALUES ($1, $2, $3, $4) ON CONFLICT (event_id) DO NOTHING',
+                        [uuidv4(), context.eventId, 0, 'USD']
+                    );
+
+                    const expenseId = uuidv4();
+                    const newExpense = await query(
+                        'INSERT INTO expenses (id, event_id, category, description, amount, vendor, paid, date) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+                        [expenseId, context.eventId, intent.data.category || 'Other', intent.data.description, intent.data.amount, null, false, new Date().toISOString().split('T')[0]]
+                    );
+                    result = newExpense.rows[0];
+                }
+                break;
+
+            case 'CREATE_EVENT':
+                if (intent.data) {
+                    const eventId = uuidv4();
+                    const newEvent = await query(
+                        'INSERT INTO events (id, user_id, title, date, location, description, event_type, country, data) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+                        [eventId, req.user.id, intent.data.title, intent.data.date || new Date().toISOString().split('T')[0], intent.data.location || null, intent.data.description || null, 'General', 'US', JSON.stringify({ eventType: 'General' })]
+                    );
+                    result = newEvent.rows[0];
+                }
+                break;
+
+            case 'GENERAL_CHAT':
+                // Handled natively by the return JSON
+                break;
+
+            default:
+                console.log(`[AI-CHAT] Unsupported action: ${intent.action}`);
+        }
+
+        res.json({
+            success: true,
+            reply: intent.message,
+            action: intent.action,
+            data: result
+        });
+
+    } catch (error) {
+        console.error('[AI-CHAT] Request failed with error:', error);
+        res.status(500).json({ error: 'Failed to process AI request', details: error.message });
     }
 });
 

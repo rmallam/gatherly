@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import Header from './Header';
 import BottomNavigation from './BottomNavigation';
+import AIAssistantWidget from './AIAssistantWidget';
 
 const Layout = ({ children }) => {
     const { user } = useAuth();
@@ -33,6 +34,9 @@ const Layout = ({ children }) => {
             }}>
                 {children}
             </main>
+
+            {/* AI Assistant Chatbot overlay */}
+            {!user?.isGuest && <AIAssistantWidget />}
 
             {/* Bottom Navigation */}
             <BottomNavigation />
