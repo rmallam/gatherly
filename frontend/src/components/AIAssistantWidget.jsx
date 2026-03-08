@@ -50,6 +50,7 @@ const AIAssistantWidget = () => {
                 };
             }
 
+            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
             const res = await fetch(`${baseUrl}/ai/chat`, {
                 method: 'POST',
                 headers: {
