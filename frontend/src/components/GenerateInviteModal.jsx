@@ -6,6 +6,7 @@ const GenerateInviteModal = ({ isOpen, onClose, event, onInviteGenerated }) => {
     const { token } = useAuth();
     const [tone, setTone] = useState('Casual');
     const [theme, setTheme] = useState('');
+    const [format, setFormat] = useState('text');
     const [isGenerating, setIsGenerating] = useState(false);
     const [generatedInvite, setGeneratedInvite] = useState('');
     const [copied, setCopied] = useState(false);
@@ -16,7 +17,11 @@ const GenerateInviteModal = ({ isOpen, onClose, event, onInviteGenerated }) => {
         setIsGenerating(true);
         try {
             const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-            const res = await fetch(`${baseUrl}/events/${event.id}/ai-invite`, {
+            const endpoint = format === 'image'
+                ? `${baseUrl}/events/${event.id}/ai-invite-image`
+                : `${baseUrl}/events/${event.id}/ai-invite`;
+
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -31,7 +36,7 @@ const GenerateInviteModal = ({ isOpen, onClose, event, onInviteGenerated }) => {
             }
 
             const data = await res.json();
-            setGeneratedInvite(data.invitation);
+            setGeneratedInvite(format === 'image' ? data.image : data.invitation);
         } catch (error) {
             console.error('Error generating invite:', error);
             alert(error.message);
@@ -101,6 +106,29 @@ const GenerateInviteModal = ({ isOpen, onClose, event, onInviteGenerated }) => {
                         />
                     </div>
 
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#e5e7eb', cursor: 'pointer' }}>
+                            <input
+                                type="radio"
+                                name="inviteFormat"
+                                value="text"
+                                checked={format === 'text'}
+                                onChange={() => setFormat('text')}
+                            />
+                            Text Message
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#e5e7eb', cursor: 'pointer' }}>
+                            <input
+                                type="radio"
+                                name="inviteFormat"
+                                value="image"
+                                checked={format === 'image'}
+                                onChange={() => setFormat('image')}
+                            />
+                            Visual Image Card
+                        </label>
+                    </div>
+
                     <button
                         onClick={handleGenerate}
                         disabled={isGenerating}
@@ -128,44 +156,55 @@ const GenerateInviteModal = ({ isOpen, onClose, event, onInviteGenerated }) => {
                 {generatedInvite && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1, minHeight: 0 }}>
                         <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', background: '#111827', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-                            <textarea
-                                value={generatedInvite}
-                                onChange={(e) => setGeneratedInvite(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    height: '200px',
-                                    padding: '1rem',
-                                    background: 'transparent',
-                                    border: 'none',
-                                    color: '#e5e7eb',
-                                    resize: 'none',
-                                    outline: 'none',
-                                    lineHeight: '1.5',
-                                    fontSize: '0.95rem'
-                                }}
-                            />
-                            <button
-                                onClick={handleCopy}
-                                style={{
-                                    position: 'absolute',
-                                    top: '0.5rem',
-                                    right: '0.5rem',
-                                    background: 'rgba(255,255,255,0.1)',
-                                    border: 'none',
-                                    color: copied ? '#10b981' : '#9ca3af',
-                                    padding: '0.5rem',
-                                    borderRadius: '0.375rem',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    transition: 'all 0.2s',
-                                    backdropFilter: 'blur(4px)'
-                                }}
-                                title="Copy to clipboard"
-                            >
-                                {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
-                            </button>
+                            {generatedInvite.startsWith('data:image') ? (
+                                <img
+                                    src={generatedInvite}
+                                    alt="Generated Invite Card"
+                                    style={{ width: '100%', maxHeight: '400px', objectFit: 'contain', display: 'block' }}
+                                />
+                            ) : (
+                                <textarea
+                                    value={generatedInvite}
+                                    onChange={(e) => setGeneratedInvite(e.target.value)}
+                                    style={{
+                                        width: '100%',
+                                        height: '200px',
+                                        padding: '1rem',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: '#e5e7eb',
+                                        resize: 'none',
+                                        outline: 'none',
+                                        lineHeight: '1.5',
+                                        fontSize: '0.95rem'
+                                    }}
+                                />
+                            )}
+
+                            {!generatedInvite.startsWith('data:image') && (
+                                <button
+                                    onClick={handleCopy}
+                                    style={{
+                                        position: 'absolute',
+                                        top: '0.5rem',
+                                        right: '0.5rem',
+                                        background: 'rgba(255,255,255,0.1)',
+                                        border: 'none',
+                                        color: copied ? '#10b981' : '#9ca3af',
+                                        padding: '0.5rem',
+                                        borderRadius: '0.375rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transition: 'all 0.2s',
+                                        backdropFilter: 'blur(4px)'
+                                    }}
+                                    title="Copy to clipboard"
+                                >
+                                    {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                                </button>
+                            )}
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
@@ -179,7 +218,7 @@ const GenerateInviteModal = ({ isOpen, onClose, event, onInviteGenerated }) => {
                                 onClick={handleUseInvite}
                                 style={{ padding: '0.75rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer' }}
                             >
-                                Use This Message
+                                Use This {generatedInvite.startsWith('data:image') ? 'Image' : 'Message'}
                             </button>
                         </div>
                     </div>

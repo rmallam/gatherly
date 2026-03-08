@@ -148,6 +148,55 @@ const EventDetails = () => {
         }
     };
 
+    // Helper to share image invite using Native Capacitor or Web Share
+    const shareImageInvite = async (guest, guestQRUrl) => {
+        try {
+            const { Share } = await import('@capacitor/share');
+            const { Filesystem, Directory } = await import('@capacitor/filesystem');
+
+            const base64Data = customInviteText.split(',')[1];
+            const fileName = `invite-${guest.id}-${Date.now()}.png`;
+
+            await Filesystem.writeFile({
+                path: fileName,
+                data: base64Data,
+                directory: Directory.Cache
+            });
+
+            const fileUri = await Filesystem.getUri({
+                path: fileName,
+                directory: Directory.Cache
+            });
+
+            await Share.share({
+                title: `Invitation to ${event.title}`,
+                text: `👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}`,
+                url: fileUri.uri,
+                dialogTitle: `Invite ${guest.name}`
+            });
+            return true;
+        } catch (err) {
+            console.error('Error sharing native image:', err);
+            // Fallback for Web Browsers
+            if (navigator.share) {
+                try {
+                    const res = await fetch(customInviteText);
+                    const blob = await res.blob();
+                    const file = new File([blob], 'invite.png', { type: 'image/png' });
+                    await navigator.share({
+                        title: `Invitation to ${event.title}`,
+                        text: `👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}`,
+                        files: [file]
+                    });
+                    return true;
+                } catch (webshareErr) {
+                    console.error('Web share fallback failed:', webshareErr);
+                }
+            }
+            throw err;
+        }
+    };
+
     // WhatsApp-specific invite
     const handleWhatsAppInvite = async (guest) => {
         if (invitingGuest) return;
@@ -163,6 +212,15 @@ const EventDetails = () => {
             const baseUrl = import.meta.env.VITE_APP_URL || 'https://events.hosteze.app';
 
             const guestQRUrl = `${baseUrl}/invite/${id}?guest=${guest.id}`;
+            const isImage = customInviteText?.startsWith('data:image');
+
+            if (isImage) {
+                await shareImageInvite(guest, guestQRUrl);
+                setSharedGuestId(guest.id);
+                setTimeout(() => setSharedGuestId(null), 2000);
+                return;
+            }
+
             const baseText = customInviteText ? customInviteText : `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}`;
             const inviteText = `${baseText}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/hosteze`;
 
@@ -256,6 +314,15 @@ const EventDetails = () => {
             const baseUrl = import.meta.env.VITE_APP_URL || 'https://events.hosteze.app';
 
             const guestQRUrl = `${baseUrl}/invite/${id}?guest=${guest.id}`;
+            const isImage = customInviteText?.startsWith('data:image');
+
+            if (isImage) {
+                await shareImageInvite(guest, guestQRUrl);
+                setSharedGuestId(guest.id);
+                setTimeout(() => setSharedGuestId(null), 2000);
+                return;
+            }
+
             const baseText = customInviteText ? customInviteText : `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}`;
             const inviteText = `${baseText}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/hosteze`;
 

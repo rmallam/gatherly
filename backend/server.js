@@ -12,6 +12,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import * as cheerio from 'cheerio';
+import sharp from 'sharp';
 import { generateToken, hashPassword, comparePassword, authMiddleware } from './server/auth.js';
 import { initializeDatabase, query } from './db/connection.js';
 import { validateEmail, validatePassword } from './server/validators.js';
@@ -31,7 +32,7 @@ import eventWallRoutes from './routes/eventWall.js';
 import uploadRoutes from './routes/upload.js';
 import contactsRoutes from './routes/contacts.js';
 import contactGroupsRoutes from './routes/contact-groups.js';
-import { getBudgetSuggestions, getMenuSuggestions, getDecorIdeas, getCostOptimization, analyzeReceipt, generateInvitation } from './services/geminiService.js';
+import { getBudgetSuggestions, getMenuSuggestions, getDecorIdeas, getCostOptimization, analyzeReceipt, generateInvitation, generateImageInvitationData } from './services/geminiService.js';
 import { requireProTier } from './middleware/proTierCheck.js';
 import expenseRoutes from './routes/expenses.js';
 import scheduleRoutes from './routes/schedule.js';
@@ -167,6 +168,99 @@ app.post('/api/events/:id/ai-invite', authMiddleware, async (req, res) => {
     }
 });
 
+// AI Image Invitation Generation Route
+app.post('/api/events/:id/ai-invite-image', authMiddleware, async (req, res) => {
+    try {
+        const eventId = req.params.id;
+        const { tone = 'Standard', theme = 'None' } = req.body;
+
+        // Verify user owns the event
+        const eventResult = await query(
+            'SELECT title, description, date, location, data FROM events WHERE id = $1 AND user_id = $2',
+            [eventId, req.user.id]
+        );
+
+        if (eventResult.rows.length === 0) {
+            return res.status(403).json({ error: 'Not authorized or event not found' });
+        }
+
+        const dbEvent = eventResult.rows[0];
+        const eventData = {
+            title: dbEvent.title,
+            description: dbEvent.description,
+            date: dbEvent.date,
+            time: dbEvent.data?.time || 'TBD',
+            eventType: dbEvent.data?.eventType || 'General',
+            venue: { name: dbEvent.location || 'TBD', address: '' }
+        };
+
+        console.log(`[AI-IMAGE-INVITE] Processing image request for Event ID: ${eventId}, Tone: ${tone}`);
+
+        const inviteData = await generateImageInvitationData(eventData, tone, theme);
+
+        // Fallbacks in case AI misses parameters
+        const bg = inviteData.colors?.background || '#ffffff';
+        const txt = inviteData.colors?.primaryText || '#000000';
+        const accent = inviteData.colors?.accent || '#6366f1';
+        const hFont = inviteData.typography?.headlineFont || 'Georgia, serif';
+        const bFont = inviteData.typography?.bodyFont || 'Arial, sans-serif';
+
+        // Construct SVG String
+        const svgString = `
+        <svg width="800" height="1200" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background -->
+            <rect width="800" height="1200" fill="${bg}" />
+            
+            <!-- Accents -->
+            <circle cx="400" cy="150" r="600" fill="${accent}" opacity="0.1" />
+            <circle cx="800" cy="1050" r="450" fill="${accent}" opacity="0.1" />
+
+            <!-- Content Area -->
+            <g transform="translate(100, 300)" font-family="${hFont}" text-anchor="middle" fill="${txt}">
+                
+                <text x="300" y="0" font-size="24" font-family="${bFont}" letter-spacing="6" fill="${accent}">
+                    ${inviteData.content?.supertitle || 'YOU ARE INVITED'}
+                </text>
+                
+                <!-- Headline -->
+                <text x="300" y="120" font-size="72" font-weight="bold">
+                    ${inviteData.content?.headline || dbEvent.title}
+                </text>
+                
+                <text x="300" y="300" font-size="36" font-family="${bFont}">
+                    ${inviteData.content?.dateAndTime || 'Date TBD'}
+                </text>
+                
+                <text x="300" y="420" font-size="30" font-family="${bFont}" opacity="0.8">
+                    ${inviteData.content?.location || 'Location TBD'}
+                </text>
+                
+                <!-- Line Separator -->
+                <line x1="150" y1="540" x2="450" y2="540" stroke="${accent}" stroke-width="3" />
+
+                <text x="300" y="660" font-size="28" font-family="${bFont}" fill="${accent}">
+                    ${inviteData.content?.footer || 'Please RSVP'}
+                </text>
+            </g>
+        </svg>`;
+
+        console.log('[AI-IMAGE-INVITE] Rasterizing SVG to PNG buffer...');
+
+        // Rasterize to PNG using sharp
+        const pngBuffer = await sharp(Buffer.from(svgString))
+            .png()
+            .toBuffer();
+        const base64Image = `data:image/png;base64,${pngBuffer.toString('base64')}`;
+
+        console.log('[AI-IMAGE-INVITE] Successfully generated image buffer');
+        res.json({ image: base64Image });
+
+    } catch (error) {
+        console.error('[AI-IMAGE-INVITE] Request failed with error:', error);
+        res.status(500).json({ error: 'Failed to generate visual invitation', details: error.message });
+    }
+});
+
 // Serve Digital Asset Links file for Android App Links
 app.get('/.well-known/assetlinks.json', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
@@ -270,8 +364,8 @@ app.post('/api/auth/signup', async (req, res) => {
         const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
         await query(
-            `INSERT INTO users (id, name, email, phone, password, email_verified, verification_token, verification_token_expires) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            `INSERT INTO users(id, name, email, phone, password, email_verified, verification_token, verification_token_expires)
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8)`,
             [userId, name, validatedEmail, validatedPhone, hashedPassword, false, verificationToken, tokenExpires]
         );
 
@@ -343,8 +437,8 @@ app.post('/api/auth/login', async (req, res) => {
             // Use RIGHT() to get last 10 digits - works correctly in PostgreSQL
             result = await query(
                 `SELECT * FROM users WHERE 
-                 phone IS NOT NULL AND 
-                 RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
+                 phone IS NOT NULL AND
+        RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
                 [normalized]
             );
             console.log('Login attempt - Users found:', result.rows.length);
@@ -627,8 +721,8 @@ app.post('/api/auth/verify-otp', authLimiter, async (req, res) => {
 
         let result = await query(
             `SELECT * FROM users WHERE 
-             phone IS NOT NULL AND 
-             RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
+             phone IS NOT NULL AND
+        RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
             [last10]
         );
 
@@ -656,8 +750,8 @@ app.post('/api/auth/verify-otp', authLimiter, async (req, res) => {
 
             // Insert
             await query(
-                `INSERT INTO users (id, name, phone, password, email_verified) 
-                 VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+                `INSERT INTO users(id, name, phone, password, email_verified)
+        VALUES($1, $2, $3, $4, $5) RETURNING * `,
                 [userId, tempName, phone, hashedPassword, true] // Phone verified by definition
             );
 
@@ -722,8 +816,8 @@ app.post('/api/auth/forgot-password', async (req, res) => {
             }
             result = await query(
                 `SELECT * FROM users WHERE 
-                 phone IS NOT NULL AND 
-                 RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
+                 phone IS NOT NULL AND
+        RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
                 [normalized]
             );
         }

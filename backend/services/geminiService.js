@@ -414,3 +414,69 @@ export async function generateInvitation(eventData, tone = 'Standard', theme = '
     throw new Error('Failed to generate invitation');
   }
 }
+
+/**
+ * Generate structural data (JSON) to build a visual Image Invitation (SVG/PNG)
+ */
+export async function generateImageInvitationData(eventData, tone = 'Standard', theme = 'None') {
+  try {
+    const model = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
+
+    const prompt = `You are an expert graphic designer and event copywriter. 
+    We need to perfectly design a digital invitation card for an event.
+    
+    Event Details:
+    - Title: ${eventData.title || 'Special Event'}
+    - Description: ${eventData.description || ''}
+    - Type: ${eventData.eventType || 'General'}
+    - Date: ${eventData.date || 'TBD'}
+    - Time: ${eventData.time || 'TBD'}
+    - LocationName: ${eventData.venue?.name || 'TBD'}
+    - LocationAddress: ${eventData.venue?.address || ''}
+
+    Style Requirements:
+    - Tone: ${tone} (e.g., Formal, Casual, Fun, Humorous, Elegant)
+    - Theme/Vibe: ${theme}
+
+    Generate the textual and visual parameters to build this card.
+    Use web-safe CSS fonts (e.g., 'Georgia, serif', 'Arial, sans-serif', 'Impact, sans-serif').
+    Pick a cohesive, beautiful hex color palette (background, primary text, accent/highlight).
+
+    IMPORTANT: Respond ONLY with valid JSON in this exact structure:
+    {
+      "colors": {
+        "background": "#FFFFFF",
+        "primaryText": "#111827",
+        "accent": "#6366F1"
+      },
+      "typography": {
+        "headlineFont": "Georgia, serif",
+        "bodyFont": "Arial, sans-serif"
+      },
+      "content": {
+        "supertitle": "YOU'RE INVITED TO",
+        "headline": "Short Catchy Event Title",
+        "dateAndTime": "Saturday, October 31st at 8:00 PM",
+        "location": "The Grand Hall, 123 Main St",
+        "footer": "Please RSVP by Friday!"
+      }
+    }`;
+
+    const result = await model.generateContent(prompt);
+    let text = result.response.text().trim();
+
+    if (text.startsWith('\`\`\`json')) {
+      text = text.replace(/\`\`\`json\n?/g, '').replace(/\`\`\`\n?/g, '');
+    } else if (text.startsWith('\`\`\`')) {
+      text = text.replace(/\`\`\`\n?/g, '');
+    }
+
+    return JSON.parse(text);
+  } catch (error) {
+    console.error('Gemini Image Invitation Generation Error DETAILS:', {
+      message: error.message,
+      stack: error.stack
+    });
+    throw new Error('Failed to generate visual invitation data');
+  }
+}
