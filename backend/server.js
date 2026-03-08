@@ -301,37 +301,47 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
 
         // Execute action based on parsed intent
         switch (intent.action) {
-            case 'ADD_GUESTS':
-                if (intent.data?.guests && Array.isArray(intent.data.guests) && context.eventId) {
+            case 'ADD_GUESTS': {
+                const guestEventId = intent.data?.eventId || context.eventId;
+                if (intent.data?.guests && Array.isArray(intent.data.guests) && guestEventId) {
                     const guestsAdded = [];
                     for (const guest of intent.data.guests) {
                         const guestId = uuidv4();
                         const newGuest = await query(
                             'INSERT INTO guests (id, event_id, name, email, phone) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-                            [guestId, context.eventId, guest.name, guest.email || null, guest.phone || null]
+                            [guestId, guestEventId, guest.name, guest.email || null, guest.phone || null]
                         );
                         guestsAdded.push(newGuest.rows[0]);
                     }
                     result = { added: guestsAdded.length, guests: guestsAdded };
+                } else if (!guestEventId) {
+                    intent.action = 'GENERAL_CHAT';
+                    intent.message = "I can add those guests, but you didn't specify which event. Can you tell me which one? (You can say something like 'Add them to my Birthday party').";
                 }
                 break;
+            }
 
-            case 'ADD_EXPENSE':
-                if (intent.data && context.eventId) {
+            case 'ADD_EXPENSE': {
+                const expenseEventId = intent.data?.eventId || context.eventId;
+                if (intent.data && expenseEventId) {
                     // Make sure budget exists first to avoid foreign key issues
                     await query(
                         'INSERT INTO budgets (id, event_id, total_budget, currency) VALUES ($1, $2, $3, $4) ON CONFLICT (event_id) DO NOTHING',
-                        [uuidv4(), context.eventId, 0, 'USD']
+                        [uuidv4(), expenseEventId, 0, 'USD']
                     );
 
                     const expenseId = uuidv4();
                     const newExpense = await query(
                         'INSERT INTO expenses (id, event_id, category, description, amount, vendor, paid, date) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-                        [expenseId, context.eventId, intent.data.category || 'Other', intent.data.description, intent.data.amount, null, false, new Date().toISOString().split('T')[0]]
+                        [expenseId, expenseEventId, intent.data.category || 'Other', intent.data.description, intent.data.amount, null, false, new Date().toISOString().split('T')[0]]
                     );
                     result = newExpense.rows[0];
+                } else if (!expenseEventId) {
+                    intent.action = 'GENERAL_CHAT';
+                    intent.message = "I can add that expense, but which event is it for?";
                 }
                 break;
+            }
 
             case 'CREATE_EVENT':
                 if (intent.data) {

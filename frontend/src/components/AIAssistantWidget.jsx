@@ -6,12 +6,12 @@ import { useApp } from '../context/AppContext';
 
 const AIAssistantWidget = () => {
     const { token } = useAuth();
-    const { id } = useParams(); // eventId context
-    const { fetchEvents } = useApp(); // Used to refresh data after actions
+    const { id } = useParams(); // active eventId context, if any
+    const { fetchEvents, events } = useApp(); // Access all events to give AI context
 
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
-        { role: 'ai', text: 'Hi! I am your HostEze AI Assistant. I can help you add guests, track expenses, or create events instantly! What would you like to do?' }
+        { role: 'ai', text: 'Hi! I am your HostEze AI Assistant. I can help you add guests, track expenses, answer questions, or create events instantly! What would you like to do?' }
     ]);
     const [inputText, setInputText] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +34,22 @@ const AIAssistantWidget = () => {
         setIsLoading(true);
 
         try {
-            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+            // Create a lightweight summary of events for the AI
+            const userEventsData = events.map(e => ({ id: e.id, title: e.title, date: e.date, type: e.eventType }));
+
+            // Find active event summary
+            const activeEvent = id ? events.find(e => e.id === id) : null;
+            let activeEventSummary = null;
+            if (activeEvent) {
+                activeEventSummary = {
+                    id: activeEvent.id,
+                    title: activeEvent.title,
+                    guestCount: activeEvent.guests?.length || 0,
+                    guestsAttended: activeEvent.guests?.filter(g => g.attended)?.length || 0,
+                    budget: activeEvent.budget || 0
+                };
+            }
+
             const res = await fetch(`${baseUrl}/ai/chat`, {
                 method: 'POST',
                 headers: {
@@ -43,7 +58,11 @@ const AIAssistantWidget = () => {
                 },
                 body: JSON.stringify({
                     message: userMsg,
-                    context: { eventId: id } // Pass active event context
+                    context: {
+                        eventId: id, // Explicit active context
+                        activeEventStats: activeEventSummary,
+                        userEvents: userEventsData // All events the user owns
+                    }
                 })
             });
 
@@ -75,7 +94,7 @@ const AIAssistantWidget = () => {
     };
 
     return (
-        <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+        <div style={{ position: 'fixed', bottom: '80px', right: '24px', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
 
             {/* Chat Window */}
             {isOpen && (

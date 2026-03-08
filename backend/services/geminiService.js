@@ -504,8 +504,10 @@ export async function parseUserIntent(userMessage, currentContext = {}) {
        - Use this when the user wants to start a new event, party, or get-together.
        - Extract: "title" (string), "date" (YYYY-MM-DD or string if relative), "location" (string), "description" (string).
     4. "GENERAL_CHAT"
-       - Use this for any other conversational inputs like "hello", "how are you", or things you cannot parse into an action.
-       - Provide a conversational "reply" string.
+       - Use this for any other conversational inputs, specifically:
+         A. General greetings ("hello", "how are you").
+         B. Clarifications: If the user wants to Add Guests or Expenses, but doesn't specify an Event AND there is no "eventId" in the CURRENT CONTEXT, you MUST ask them which event they mean based on the "userEvents" list provided.
+         C. Analytical queries: If the user asks "how many guests do I have?" or "what's my budget?", read the "activeEventStats" provided in the context and answer conversationally. Do NOT guess.
 
     CURRENT CONTEXT:
     ${JSON.stringify(currentContext, null, 2)}
@@ -516,11 +518,16 @@ export async function parseUserIntent(userMessage, currentContext = {}) {
     IMPORTANT INSTRUCTIONS:
     - Respond ONLY with valid JSON. Do not wrap it in markdown codeblocks. Do not include extra conversational text outside the JSON.
     - The JSON MUST have an "action" key (one of ADD_GUESTS, ADD_EXPENSE, CREATE_EVENT, GENERAL_CHAT).
-    - If action is ADD_GUESTS, include "data": { "guests": [{name, phone, email}] }
-    - If action is ADD_EXPENSE, include "data": { "description", "amount", "category" }
+    - If action is ADD_GUESTS, include "data": { "eventId" (if inferred from context or message), "guests": [{name, phone, email}] }
+       * RULE: Do NOT return ADD_GUESTS if you cannot determine the eventId. Return GENERAL_CHAT asking for clarification instead.
+    - If action is ADD_EXPENSE, include "data": { "eventId", "description", "amount", "category" }
+       * RULE: Do NOT return ADD_EXPENSE if you cannot determine the eventId. Return GENERAL_CHAT asking for clarification instead.
     - If action is CREATE_EVENT, include "data": { "title", "date", "location", "description" }
-    - If action is GENERAL_CHAT, include "data": { "reply": "Your conversational response here" }
-    - Always output a conversational "message" key inside the root JSON to show to the user, confirming what you understood (e.g. "I'll add 2 guests for you!").
+    - If action is GENERAL_CHAT, include "data": { }
+    - Always output a conversational "message" key inside the root JSON to show to the user.
+       * If answering a question based on stats, put the answer here.
+       * If confirming an action, put the confirmation here (e.g., "Adding 2 guests!").
+       * If asking for clarification, put the question here (e.g., "Which event should I add this to? You have 'Birthday' and 'Wedding'.").
     
     EXPECTED JSON FORMAT:
     {
