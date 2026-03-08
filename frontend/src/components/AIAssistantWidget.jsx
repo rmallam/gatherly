@@ -96,7 +96,7 @@ const AIAssistantWidget = () => {
     };
 
     return (
-        <div style={{ position: 'fixed', bottom: '80px', right: '24px', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+        <div style={{ position: 'fixed', bottom: '120px', right: '24px', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
 
             {/* Chat Window */}
             {isOpen && (

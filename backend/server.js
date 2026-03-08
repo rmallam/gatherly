@@ -354,6 +354,90 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
                 }
                 break;
 
+            case 'UPDATE_EVENT': {
+                const updateEventId = intent.data?.eventId || context.eventId;
+                if (intent.data && updateEventId) {
+                    const updates = [];
+                    const values = [];
+                    let valIdx = 1;
+
+                    if (intent.data.title) { updates.push(`title = $${valIdx++}`); values.push(intent.data.title); }
+                    if (intent.data.date) { updates.push(`date = $${valIdx++}`); values.push(intent.data.date); }
+                    if (intent.data.location) { updates.push(`location = $${valIdx++}`); values.push(intent.data.location); }
+                    if (intent.data.description) { updates.push(`description = $${valIdx++}`); values.push(intent.data.description); }
+
+                    if (updates.length > 0) {
+                        values.push(updateEventId);
+                        values.push(req.user.id);
+
+                        const updateQuery = `UPDATE events SET ${updates.join(', ')} WHERE id = $${valIdx++ - 2} AND user_id = $${valIdx - 2} RETURNING *`;
+                        const updatedEvent = await query(updateQuery, values);
+                        if (updatedEvent.rows.length > 0) {
+                            result = updatedEvent.rows[0];
+                        }
+                    }
+                } else if (!updateEventId) {
+                    intent.action = 'GENERAL_CHAT';
+                    intent.message = "I can update that event, but which one did you mean?";
+                }
+                break;
+            }
+
+            case 'RSVP_GUEST': {
+                const rsvpEventId = intent.data?.eventId || context.eventId;
+                if (intent.data?.guestName && rsvpEventId) {
+                    const guestQuery = await query(
+                        'SELECT id FROM guests WHERE event_id = $1 AND name ILIKE $2 LIMIT 1',
+                        [rsvpEventId, `%${intent.data.guestName}%`]
+                    );
+
+                    if (guestQuery.rows.length > 0) {
+                        const guestId = guestQuery.rows[0].id;
+                        const status = intent.data.status !== undefined ? intent.data.status : true;
+
+                        await query(
+                            'UPDATE guests SET rsvp = $1 WHERE id = $2',
+                            [status, guestId]
+                        );
+                        result = { success: true, guestId, status };
+                    } else {
+                        intent.message = `I couldn't find a guest named ${intent.data.guestName} on the guest list for this event.`;
+                        intent.action = 'GENERAL_CHAT';
+                    }
+                } else if (!rsvpEventId) {
+                    intent.action = 'GENERAL_CHAT';
+                    intent.message = "I can record that RSVP, but which event is it for?";
+                }
+                break;
+            }
+
+            case 'REMOVE_GUEST': {
+                const removeEventId = intent.data?.eventId || context.eventId;
+                if (intent.data?.guestName && removeEventId) {
+                    const guestQuery = await query(
+                        'SELECT id FROM guests WHERE event_id = $1 AND name ILIKE $2 LIMIT 1',
+                        [removeEventId, `%${intent.data.guestName}%`]
+                    );
+
+                    if (guestQuery.rows.length > 0) {
+                        const guestId = guestQuery.rows[0].id;
+
+                        await query(
+                            'DELETE FROM guests WHERE id = $1 AND event_id = $2',
+                            [guestId, removeEventId]
+                        );
+                        result = { success: true, deletedGuestId: guestId };
+                    } else {
+                        intent.message = `I couldn't find a guest named ${intent.data.guestName} to remove.`;
+                        intent.action = 'GENERAL_CHAT';
+                    }
+                } else if (!removeEventId) {
+                    intent.action = 'GENERAL_CHAT';
+                    intent.message = "I can remove that guest, but which event are they on?";
+                }
+                break;
+            }
+
             case 'GENERAL_CHAT':
                 // Handled natively by the return JSON
                 break;
@@ -1534,7 +1618,14 @@ app.post('/api/events', authMiddleware, async (req, res) => {
 
 app.put('/api/events/:id', authMiddleware, async (req, res) => {
     try {
-        const { title, date, location, description, country, ...extraData } = req.body;
+        const { title, date, location, description, country, venue, ...extraData } = req.body;
+
+        // Sync venue info to top-level location so Overview and Headers display correctly
+        let finalLocation = location;
+        if (venue && (venue.address || venue.name)) {
+            finalLocation = venue.address || venue.name;
+        }
+        if (venue) extraData.venue = venue;
 
         // Store catering, tasks, venue, and other fields in data jsonb column
         // ALSO update country column if provided
@@ -1543,9 +1634,9 @@ app.put('/api/events/:id', authMiddleware, async (req, res) => {
             [
                 title,
                 date || null,
-                location || null,
+                finalLocation || null,
                 description || null,
-                country || null, // Will use current value due to COALESCE if null (or handle logically) -- wait, null overrides? COALESCE($5, country) keeps existing if $5 is null
+                country || null, // Will use current value due to COALESCE if null
                 JSON.stringify(extraData),
                 req.params.id,
                 req.user.id

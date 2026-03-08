@@ -503,7 +503,16 @@ export async function parseUserIntent(userMessage, currentContext = {}) {
     3. "CREATE_EVENT"
        - Use this when the user wants to start a new event, party, or get-together.
        - Extract: "title" (string), "date" (YYYY-MM-DD or string if relative), "location" (string), "description" (string).
-    4. "GENERAL_CHAT"
+    4. "UPDATE_EVENT"
+       - Use this when the user wants to explicitly change or update the date, time, location, title, or description of an existing event.
+       - Extract only the fields they want to change: "eventId" (if inferred), "title" (string), "date" (YYYY-MM-DD), "location" (string), "description" (string).
+    5. "RSVP_GUEST"
+       - Use this when the user mentions a guest is coming or not coming (RSVPing yes or no).
+       - Extract: "eventId", "guestName" (string), "status" (boolean: true for coming, false for not coming).
+    6. "REMOVE_GUEST"
+       - Use this when the user wants to remove or delete someone from the guest list.
+       - Extract: "eventId", "guestName" (string).
+    7. "GENERAL_CHAT"
        - Use this for any other conversational inputs, specifically:
          A. General greetings ("hello", "how are you").
          B. Clarifications: If the user wants to Add Guests or Expenses, but doesn't specify an Event AND there is no "eventId" in the CURRENT CONTEXT, you MUST ask them which event they mean based on the "userEvents" list provided.
@@ -518,12 +527,16 @@ export async function parseUserIntent(userMessage, currentContext = {}) {
     IMPORTANT INSTRUCTIONS:
     - You must read the "history" array provided inside CURRENT CONTEXT. It contains the last few messages of our dialogue. Use this to remember what we are talking about (e.g. if you just asked "Which event?", the user's reply "Birthday" is answering that question!).
     - Respond ONLY with valid JSON. Do not wrap it in markdown codeblocks. Do not include extra conversational text outside the JSON.
-    - The JSON MUST have an "action" key (one of ADD_GUESTS, ADD_EXPENSE, CREATE_EVENT, GENERAL_CHAT).
+    - The JSON MUST have an "action" key (one of ADD_GUESTS, ADD_EXPENSE, CREATE_EVENT, UPDATE_EVENT, RSVP_GUEST, REMOVE_GUEST, GENERAL_CHAT).
     - If action is ADD_GUESTS, include "data": { "eventId" (if inferred from context or message), "guests": [{name, phone, email}] }
        * RULE: Do NOT return ADD_GUESTS if you cannot determine the eventId. Return GENERAL_CHAT asking for clarification instead.
     - If action is ADD_EXPENSE, include "data": { "eventId", "description", "amount", "category" }
        * RULE: Do NOT return ADD_EXPENSE if you cannot determine the eventId. Return GENERAL_CHAT asking for clarification instead.
     - If action is CREATE_EVENT, include "data": { "title", "date", "location", "description" }
+    - If action is UPDATE_EVENT, include "data": { "eventId", "title", "date", "location", "description" }. Only include fields to be updated.
+       * RULE: Do NOT return UPDATE_EVENT if you cannot determine the eventId. Return GENERAL_CHAT asking for clarification instead.
+    - If action is RSVP_GUEST, include "data": { "eventId", "guestName", "status" }
+    - If action is REMOVE_GUEST, include "data": { "eventId", "guestName" }
     - If action is GENERAL_CHAT, include "data": { }
     - Always output a conversational "message" key inside the root JSON to show to the user.
        * If answering a question based on stats, put the answer here.
