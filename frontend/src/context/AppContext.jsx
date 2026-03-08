@@ -754,6 +754,7 @@ export const AppProvider = ({ children }) => {
             markGuestAttended,
             rsvpGuest,
             updateEvent,
+            fetchEvents,
             fetchContacts,
             addContact,
             updateContact,
