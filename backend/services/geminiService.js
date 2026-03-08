@@ -2,13 +2,14 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy_key_for_development');
+const DEFAULT_MODEL = 'gemini-flash-latest';
 
 /**
  * Get AI-powered budget suggestions for an event
  */
 export async function getBudgetSuggestions(eventData) {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+    const model = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
 
     const prompt = `You are an expert event planner with 20 years of experience. Generate a detailed budget recommendation.
 
@@ -80,7 +81,7 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
  */
 export async function getMenuSuggestions(eventData) {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+    const model = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
 
     const countryMap = {
       'US': 'United States',
@@ -165,7 +166,7 @@ IMPORTANT: Respond ONLY with valid JSON in this detailed format:
  */
 export async function getDecorIdeas(eventData) {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+    const model = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
 
     const countryMap = {
       'US': 'United States',
@@ -245,7 +246,7 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
  */
 export async function getCostOptimization(eventData) {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+    const model = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
 
     const prompt = `You are an expert budget analyst for events. Analyze the current spending and provide optimization suggestions.
 
@@ -317,7 +318,7 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
  */
 export async function analyzeReceipt(imagePart, mimeType = 'image/jpeg') {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+    const model = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
 
     const prompt = `You are an expert expense tracker. Analyze this image.
     
@@ -371,7 +372,7 @@ export async function analyzeReceipt(imagePart, mimeType = 'image/jpeg') {
  */
 export async function generateInvitation(eventData, tone = 'Standard', theme = 'None') {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+    const model = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
 
     const prompt = `You are an expert event copywriter. Write an engaging, beautiful invitation message for an upcoming event.
     
