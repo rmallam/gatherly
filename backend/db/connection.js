@@ -37,6 +37,17 @@ export async function initializeDatabase() {
                 console.log('✓ Created otp_codes table');
             }
 
+            // Auto-run Gift Registries migration if needed
+            try {
+                await client.query('SELECT 1 FROM gift_registries LIMIT 1');
+            } catch (err) {
+                console.log('Creating gift_registries table...');
+                const migrationPath = join(__dirname, '../migrations/09_create_gifts_table.sql');
+                const migrationSql = await fs.readFile(migrationPath, 'utf8');
+                await client.query(migrationSql);
+                console.log('✓ Created gift_registries table');
+            }
+
         } catch (err) {
             console.warn('⚠️  Database tables may not exist. Run migrations manually if needed.');
         }
