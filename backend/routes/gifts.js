@@ -1,5 +1,5 @@
 import express from 'express';
-import { authMiddleware } from '../middleware/auth.js';
+import { authMiddleware } from '../server/auth.js';
 import {
     getGifts,
     createGift,
