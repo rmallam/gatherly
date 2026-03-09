@@ -81,7 +81,7 @@ export const autoGenerateGiftRegistry = async (req, res) => {
     try {
         // Only host can generate gifts
         const eventCheck = await query(
-            `SELECT id, title, event_type as "eventType", date FROM events WHERE id = $1 AND user_id = $2`,
+            `SELECT id, title, data, date FROM events WHERE id = $1 AND user_id = $2`,
             [eventId, userId]
         );
 
@@ -89,7 +89,11 @@ export const autoGenerateGiftRegistry = async (req, res) => {
             return res.status(403).json({ error: 'Only the event host can generate a gift registry' });
         }
 
-        const eventData = eventCheck.rows[0];
+        const dbEvent = eventCheck.rows[0];
+        const eventData = {
+            ...dbEvent,
+            eventType: dbEvent.data?.eventType || 'General'
+        };
 
         if (!prompt) {
             return res.status(400).json({ error: 'Prompt is required for gift generation' });
