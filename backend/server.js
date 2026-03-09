@@ -36,6 +36,7 @@ import { getBudgetSuggestions, getMenuSuggestions, getDecorIdeas, getCostOptimiz
 import { requireProTier } from './middleware/proTierCheck.js';
 import expenseRoutes from './routes/expenses.js';
 import scheduleRoutes from './routes/schedule.js';
+import giftsRoutes from './routes/gifts.js';
 import iapRoutes from './routes/iapRoutes.js';
 
 const app = express();
@@ -130,7 +131,7 @@ app.use('/uploads', express.static(path.join(path.resolve(), 'uploads')));
 app.use('/api/upload', uploadRoutes);
 
 // AI Invitation Generation Route
-app.post('/api/events/:id/ai-invite', authMiddleware, async (req, res) => {
+app.post('/api/events/:id/ai-invite', authMiddleware, requireProTier, async (req, res) => {
     try {
         const eventId = req.params.id;
         const { tone = 'Standard', theme = 'None' } = req.body;
@@ -168,8 +169,84 @@ app.post('/api/events/:id/ai-invite', authMiddleware, async (req, res) => {
     }
 });
 
+// AI Task Breakdown Route
+app.post('/api/events/:id/tasks/generate', authMiddleware, requireProTier, async (req, res) => {
+    try {
+        const eventId = req.params.id;
+        const { prompt } = req.body;
+
+        if (!prompt) {
+            return res.status(400).json({ error: 'Prompt is required' });
+        }
+
+        // Verify user owns or is part of the event
+        const eventResult = await query(
+            'SELECT title, description, date, location, data FROM events WHERE id = $1 AND user_id = $2',
+            [eventId, req.user.id]
+        );
+
+        if (eventResult.rows.length === 0) {
+            return res.status(403).json({ error: 'Not authorized or event not found' });
+        }
+
+        const dbEvent = eventResult.rows[0];
+        const eventData = {
+            title: dbEvent.title,
+            description: dbEvent.description,
+            date: dbEvent.date,
+            eventType: dbEvent.data?.eventType || 'General'
+        };
+
+        const { generateTaskBreakdown } = await import('./services/geminiService.js');
+        const tasksResponse = await generateTaskBreakdown(eventData, prompt);
+
+        res.json(tasksResponse);
+    } catch (error) {
+        console.error('[AI-TASKS] Request failed with error:', error);
+        res.status(500).json({ error: 'Failed to generate tasks', details: error.message });
+    }
+});
+
+// AI Vendor Quote Analyzer Route
+app.post('/api/events/:id/vendors/analyze', authMiddleware, requireProTier, async (req, res) => {
+    try {
+        const eventId = req.params.id;
+        const { quoteText } = req.body;
+
+        if (!quoteText) {
+            return res.status(400).json({ error: 'Quote text is required' });
+        }
+
+        // Verify user owns or is part of the event
+        const eventResult = await query(
+            'SELECT title, description, date, location, data FROM events WHERE id = $1 AND user_id = $2',
+            [eventId, req.user.id]
+        );
+
+        if (eventResult.rows.length === 0) {
+            return res.status(403).json({ error: 'Not authorized or event not found' });
+        }
+
+        const dbEvent = eventResult.rows[0];
+        const eventData = {
+            title: dbEvent.title,
+            description: dbEvent.description,
+            date: dbEvent.date,
+            eventType: dbEvent.data?.eventType || 'General'
+        };
+
+        const { analyzeQuote } = await import('./services/geminiService.js');
+        const quoteResponse = await analyzeQuote(quoteText, eventData);
+
+        res.json(quoteResponse);
+    } catch (error) {
+        console.error('[AI-QUOTE] Request failed with error:', error);
+        res.status(500).json({ error: 'Failed to analyze quote', details: error.message });
+    }
+});
+
 // AI Image Invitation Generation Route
-app.post('/api/events/:id/ai-invite-image', authMiddleware, async (req, res) => {
+app.post('/api/events/:id/ai-invite-image', authMiddleware, requireProTier, async (req, res) => {
     try {
         const eventId = req.params.id;
         const { tone = 'Standard', theme = 'None' } = req.body;
@@ -284,8 +361,37 @@ app.post('/api/events/:id/ai-invite-image', authMiddleware, async (req, res) => 
     }
 });
 
+// AI Proactive Greeting Route
+app.get('/api/ai/proactive-greeting', authMiddleware, requireProTier, async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Fetch all user events with some basic stats for context
+        const eventsResult = await query(
+            `SELECT e.id, e.title, e.date, e.data->>'eventType' as "eventType",
+                   (SELECT COUNT(*) FROM guests WHERE event_id = e.id) as total_guests,
+                   (SELECT COUNT(*) FROM guests WHERE event_id = e.id AND status = 'attending') as attending_guests
+             FROM events e WHERE e.user_id = $1 AND (e.date IS NULL OR e.date >= CURRENT_DATE) 
+             ORDER BY e.date ASC NULLS LAST LIMIT 3`,
+            [userId]
+        );
+
+        if (eventsResult.rows.length === 0) {
+            return res.json({ greeting: null });
+        }
+
+        const { checkProactiveGreeting } = await import('./services/geminiService.js');
+        const greeting = await checkProactiveGreeting(eventsResult.rows);
+
+        res.json({ greeting });
+    } catch (error) {
+        console.error('[AI-PROACTIVE] Error:', error);
+        res.status(500).json({ error: 'Failed to check proactive greeting' });
+    }
+});
+
 // AI Assistant Chatbot Route
-app.post('/api/ai/chat', authMiddleware, async (req, res) => {
+app.post('/api/ai/chat', authMiddleware, requireProTier, async (req, res) => {
     try {
         const { message, context } = req.body;
 
@@ -293,9 +399,9 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
             return res.status(400).json({ error: 'Message is required' });
         }
 
-        console.log(`[AI-CHAT] Parsing intent for user message: "${message}"`);
+        console.log(`[AI - CHAT] Parsing intent for user message: "${message}"`);
         const intent = await parseUserIntent(message, context);
-        console.log(`[AI-CHAT] Parsed Intent:`, intent);
+        console.log(`[AI - CHAT] Parsed Intent: `, intent);
 
         let result = null;
 
@@ -361,16 +467,16 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
                     const values = [];
                     let valIdx = 1;
 
-                    if (intent.data.title) { updates.push(`title = $${valIdx++}`); values.push(intent.data.title); }
-                    if (intent.data.date) { updates.push(`date = $${valIdx++}`); values.push(intent.data.date); }
-                    if (intent.data.location) { updates.push(`location = $${valIdx++}`); values.push(intent.data.location); }
-                    if (intent.data.description) { updates.push(`description = $${valIdx++}`); values.push(intent.data.description); }
+                    if (intent.data.title) { updates.push(`title = $${valIdx++} `); values.push(intent.data.title); }
+                    if (intent.data.date) { updates.push(`date = $${valIdx++} `); values.push(intent.data.date); }
+                    if (intent.data.location) { updates.push(`location = $${valIdx++} `); values.push(intent.data.location); }
+                    if (intent.data.description) { updates.push(`description = $${valIdx++} `); values.push(intent.data.description); }
 
                     if (updates.length > 0) {
                         values.push(updateEventId);
                         values.push(req.user.id);
 
-                        const updateQuery = `UPDATE events SET ${updates.join(', ')} WHERE id = $${valIdx++ - 2} AND user_id = $${valIdx - 2} RETURNING *`;
+                        const updateQuery = `UPDATE events SET ${updates.join(', ')} WHERE id = $${valIdx++ - 2} AND user_id = $${valIdx - 2} RETURNING * `;
                         const updatedEvent = await query(updateQuery, values);
                         if (updatedEvent.rows.length > 0) {
                             result = updatedEvent.rows[0];
@@ -388,7 +494,7 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
                 if (intent.data?.guestName && rsvpEventId) {
                     const guestQuery = await query(
                         'SELECT id FROM guests WHERE event_id = $1 AND name ILIKE $2 LIMIT 1',
-                        [rsvpEventId, `%${intent.data.guestName}%`]
+                        [rsvpEventId, `% ${intent.data.guestName}% `]
                     );
 
                     if (guestQuery.rows.length > 0) {
@@ -3160,6 +3266,9 @@ app.use('/api', expenseRoutes);
 
 // Schedule Routes
 app.use('/api', scheduleRoutes);
+
+// Gifts CRUD
+app.use('/api', giftsRoutes);
 
 // Send announcement to guests
 app.post('/api/events/:eventId/communications/announcement', authMiddleware, sendAnnouncement);

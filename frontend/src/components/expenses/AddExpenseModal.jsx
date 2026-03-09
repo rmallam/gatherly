@@ -13,9 +13,50 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
         splitType: 'equal'
     });
     const [customSplits, setCustomSplits] = useState({});
+    const [lineItems, setLineItems] = useState(initialData?.lineItems || []);
     const [selectedParticipants, setSelectedParticipants] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // Pre-calculate customSplits if lineItems exist
+    useEffect(() => {
+        if (lineItems.length > 0 && formData.splitType === 'custom') {
+            const newSplits = {};
+            lineItems.forEach(item => {
+                if (item.assignedTo) {
+                    newSplits[item.assignedTo] = (newSplits[item.assignedTo] || 0) + parseFloat(item.price || 0);
+                }
+            });
+
+            // Add tax and tip proportionately based on line item share
+            const tax = parseFloat(initialData?.tax || 0);
+            const tip = parseFloat(initialData?.tip || 0);
+            const totalAssigned = Object.values(newSplits).reduce((sum, val) => sum + val, 0);
+
+            if (totalAssigned > 0 && (tax > 0 || tip > 0)) {
+                Object.keys(newSplits).forEach(userId => {
+                    const share = newSplits[userId] / totalAssigned;
+                    newSplits[userId] += (tax * share) + (tip * share);
+                });
+            }
+
+            setCustomSplits(newSplits);
+        }
+    }, [lineItems, formData.splitType, initialData]);
+
+    const handleAssignLineItem = (index, userId) => {
+        setFormData(prev => ({ ...prev, splitType: 'custom' }));
+        setLineItems(prev => {
+            const newItems = [...prev];
+            newItems[index] = { ...newItems[index], assignedTo: userId };
+            return newItems;
+        });
+
+        // Auto-select the participant if they get assigned an item
+        if (userId && !selectedParticipants.includes(userId)) {
+            setSelectedParticipants(prev => [...prev, userId]);
+        }
+    };
 
 
 
@@ -442,6 +483,47 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                             </label>
                         </div>
                     </div>
+
+                    {/* AI Scan-to-Split View */}
+                    {lineItems.length > 0 && (
+                        <div style={{ background: 'var(--bg-secondary)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                <Receipt size={18} color="#6366f1" />
+                                <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>Receipt Line Items</h4>
+                                <span style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--text-tertiary)' }}>Assign to guests</span>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {lineItems.map((item, idx) => (
+                                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-primary)', padding: '8px 12px', borderRadius: '8px' }}>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontSize: '13px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
+                                        </div>
+                                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', width: '60px', textAlign: 'right' }}>
+                                            ${parseFloat(item.price || 0).toFixed(2)}
+                                        </div>
+                                        <select
+                                            className="input"
+                                            style={{ width: '120px', padding: '6px', fontSize: '12px', height: 'auto' }}
+                                            value={item.assignedTo || ''}
+                                            onChange={(e) => handleAssignLineItem(idx, e.target.value)}
+                                        >
+                                            <option value="">Assign to...</option>
+                                            {participants.map(p => (
+                                                <option key={p.id} value={p.id}>{p.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                ))}
+
+                                {(initialData?.tax > 0 || initialData?.tip > 0) && (
+                                    <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--border)', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                        Tax & Tip (${(parseFloat(initialData?.tax || 0) + parseFloat(initialData?.tip || 0)).toFixed(2)}) will be divided automatically based on shares.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Participants */}
                     <div>

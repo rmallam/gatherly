@@ -5,8 +5,10 @@ import {
     getScheduleItems,
     getScheduleItem,
     updateScheduleItem,
-    deleteScheduleItem
+    deleteScheduleItem,
+    autoGenerateSchedule
 } from '../controllers/scheduleController.js';
+import { requireProTier } from '../middleware/proTierCheck.js';
 
 const router = express.Router();
 
@@ -14,6 +16,7 @@ const router = express.Router();
 router.use(authMiddleware);
 
 // Schedule CRUD
+router.post('/events/:eventId/schedule/generate', requireProTier, autoGenerateSchedule);
 router.post('/events/:eventId/schedule', createScheduleItem);
 router.get('/events/:eventId/schedule', getScheduleItems);
 router.get('/events/:eventId/schedule/:itemId', getScheduleItem);

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Briefcase, Plus, X, Check, Trash2, Phone, Mail, Edit2 } from 'lucide-react';
+import AIVendorQuoteAnalyzer from '../ai/AIVendorQuoteAnalyzer';
 import '../../pages/EventTabs.css';
 import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 
@@ -93,6 +94,15 @@ const VendorsTab = ({ event, onUpdateVendors }) => {
 
     return (
         <div className="event-tab-page">
+            {/* AI Vendor Quote Analyzer */}
+            <AIVendorQuoteAnalyzer
+                event={event}
+                onQuoteAnalyzed={(vendorData) => {
+                    setNewVendor({ ...newVendor, ...vendorData });
+                    setShowAddForm(true);
+                }}
+            />
+
             {/* Stats */}
             <div className="tab-stats-grid">
                 <div className="stats-card">

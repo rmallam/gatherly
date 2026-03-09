@@ -308,8 +308,247 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
 
     return JSON.parse(jsonText);
   } catch (error) {
-    console.error('Gemini API error:', error);
-    throw new Error('Failed to generate cost optimization');
+    console.error('Gemini Optimization Error:', error);
+    throw new Error('Failed to generate cost optimization suggestions');
+  }
+}
+
+/**
+ * Generate a predictive Smart Schedule 
+ */
+export async function generateSchedule(eventData, userPrompt) {
+  try {
+    const model = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
+
+    const prompt = `You are an expert event coordinator. The user wants to auto-generate a schedule or itinerary for their event based on this request: "${userPrompt}"
+
+Event Details: 
+- Title: ${eventData.title || 'Event'}
+- Type: ${eventData.eventType || 'General'}
+- Date: ${eventData.date || 'Not set'}
+
+Generate a realistic, logical sequence of schedule items for this event. 
+Include realistic start and end times in 24-hour 'HH:mm' format.
+If the user specifies a start time in their prompt, base the sequence off of that. Otherwise, pick a standard starting time for this type of event.
+
+IMPORTANT: Respond ONLY with valid JSON in this exact format:
+{
+  "scheduleItems": [
+    {
+      "title": "Guest Arrival & Welcome Drinks",
+      "description": "Guests arrive and mingle. Serve signature cocktails.",
+      "start_time": "14:00",
+      "end_time": "14:30",
+      "location": "Main Foyer"
+    },
+    {
+      "title": "Opening Speech",
+      "description": "Host welcomes everyone.",
+      "start_time": "14:30",
+      "end_time": "14:45",
+      "location": "Grand Hall"
+    }
+  ]
+}`;
+
+    const result = await model.generateContent(prompt);
+    let text = result.response.text().trim();
+
+    // Clean up markdown formatting if present
+    if (text.startsWith('```json')) {
+      text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    } else if (text.startsWith('```')) {
+      text = text.replace(/```\n?/g, '');
+    }
+
+    return JSON.parse(text);
+  } catch (error) {
+    console.error('Gemini Schedule Error:', error);
+    throw new Error('Failed to generate schedule');
+  }
+}
+
+/**
+ * Check if the AI should proactively greet the user based on event context
+ */
+export async function checkProactiveGreeting(userEvents) {
+  try {
+    if (!userEvents || userEvents.length === 0) return null;
+
+    const model = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
+    const prompt = `You are a proactive event planning assistant. Review the user's upcoming events. 
+If an event is happening soon (within 7 days) and there is a potential issue (e.g., low RSVP rate, missing venue), generate a short, friendly, and helpful proactive greeting. 
+Example: "Hi! Your birthday party is in 4 days, but 12 guests haven't RSVP'd yet. Would you like me to send them a reminder?"
+If there are no urgent issues or the events are far in the future, return exactly the word "NULL".
+Do not return "NULL" in quotes, just the letters NULL. Keep greetings under 2 sentences.
+
+User's upcoming events data:
+${JSON.stringify(userEvents, null, 2)}`;
+
+    const result = await model.generateContent(prompt);
+    let text = result.response.text().trim();
+
+    if (text === "NULL" || text === '"NULL"' || text === 'null') {
+      return null;
+    }
+
+    return text;
+  } catch (error) {
+    console.error('Gemini Proactive Greeting Error:', error);
+    return null;
+  }
+}
+
+/**
+ * Generate a smart Gift Registry 
+ */
+export async function generateGiftRegistry(eventData, userPrompt) {
+  try {
+    const model = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
+
+    const prompt = `You are an expert gift concierge. The user wants to auto-generate a curated list of gift ideas for their event based on this request: "${userPrompt}"
+
+Event Details: 
+- Title: ${eventData.title || 'Event'}
+- Type: ${eventData.eventType || 'General'}
+- Date: ${eventData.date || 'Not set'}
+
+Generate a realistic, thoughtful, and highly-rated list of gift ideas appropriate for this event type and request.
+
+IMPORTANT: Respond ONLY with valid JSON in this exact format:
+{
+  "gifts": [
+    {
+      "name": "Vitamix Blender",
+      "description": "High-performance blender perfect for smoothies and soups.",
+      "estimated_price": 350.00,
+      "priority": "High",
+      "category": "Kitchen",
+      "url": "https://www.amazon.com/s?k=vitamix+blender"
+    },
+    {
+      "name": "Luxury Bath Towel Set",
+      "description": "Plush, 100% Egyptian cotton bath towels.",
+      "estimated_price": 85.00,
+      "priority": "Medium",
+      "category": "Home Decor",
+      "url": "https://www.amazon.com/s?k=luxury+bath+towel+set"
+    }
+  ]
+}`;
+
+    const result = await model.generateContent(prompt);
+    let text = result.response.text().trim();
+
+    // Clean up markdown formatting if present
+    if (text.startsWith('```json')) {
+      text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    } else if (text.startsWith('```')) {
+      text = text.replace(/```\n?/g, '');
+    }
+
+    return JSON.parse(text);
+  } catch (error) {
+    console.error('Gemini Gift Registry Error:', error);
+    throw new Error('Failed to generate gift registry');
+  }
+}
+
+/**
+ * Generate Intelligent Task Breakdown
+ */
+export async function generateTaskBreakdown(eventData, userPrompt) {
+  try {
+    const model = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
+
+    const prompt = `You are an expert event planner. The user wants to auto-populate a task checklist for their event based on this request: "${userPrompt}"
+
+Event Details: 
+- Title: ${eventData.title || 'Event'}
+- Type: ${eventData.eventType || 'General'}
+- Date: ${eventData.date || 'Not set'}
+
+Generate a logical timeline of tasks. If the event date is provided, try to assign realistic relative deadlines (format YYYY-MM-DD) leading up to the event date. Categories must strictly be one of: 'planning', 'booking', 'day-of', 'post-event'. Priorities must strictly be 'high', 'medium', or 'low'.
+
+IMPORTANT: Respond ONLY with valid JSON in this exact format:
+{
+  "tasks": [
+    {
+      "title": "Finalize Guest List",
+      "category": "planning",
+      "priority": "high",
+      "deadline": "2024-05-01",
+      "status": "not-started"
+    },
+    {
+      "title": "Book Catering",
+      "category": "booking",
+      "priority": "high",
+      "deadline": "2024-05-15",
+      "status": "not-started"
+    }
+  ]
+}`;
+
+    const result = await model.generateContent(prompt);
+    let text = result.response.text().trim();
+
+    // Clean up markdown formatting if present
+    if (text.startsWith('```json')) {
+      text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    } else if (text.startsWith('```')) {
+      text = text.replace(/```\n?/g, '');
+    }
+
+    return JSON.parse(text);
+  } catch (error) {
+    console.error('Gemini Task Breakdown Error:', error);
+    throw new Error('Failed to generate task breakdown');
+  }
+}
+
+/**
+ * Analyze Vendor Quote Text
+ */
+export async function analyzeQuote(quoteText, eventData) {
+  try {
+    const model = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
+
+    const prompt = `You are an expert event planner and negotiator. The user has pasted text from a vendor quote or contract for their event.
+
+Event Details: 
+- Title: ${eventData.title || 'Event'}
+- Type: ${eventData.eventType || 'General'}
+- Date: ${eventData.date || 'Not set'}
+
+Analyze the quote text:
+"${quoteText}"
+
+Extract and deduce the following information. Be highly analytical, looking for standard industry gotchas (e.g., service fees, overtime, travel costs, minimums).
+
+IMPORTANT: Respond ONLY with valid JSON in this exact format:
+{
+  "vendor_name": "Name of Vendor",
+  "category": "other",
+  "total_cost": 1500.00,
+  "included_items": ["Item 1", "Item 2"],
+  "hidden_fees": ["18% gratuity not included", "Travel fee"],
+  "negotiation_tactics": ["Ask for a weekday discount"]
+}`;
+
+    const result = await model.generateContent(prompt);
+    let text = result.response.text().trim();
+
+    if (text.startsWith('\`\`\`json')) {
+      text = text.replace(/\`\`\`json\n?/g, '').replace(/\`\`\`\n?/g, '');
+    } else if (text.startsWith('\`\`\`')) {
+      text = text.replace(/\`\`\`\n?/g, '');
+    }
+
+    return JSON.parse(text);
+  } catch (error) {
+    console.error('Gemini Quote Analysis Error:', error);
+    throw new Error('Failed to analyze quote');
   }
 }
 
@@ -330,7 +569,9 @@ export async function analyzeReceipt(imagePart, mimeType = 'image/jpeg') {
        - Date (YYYY-MM-DD format). If multiple, use the transaction date.
        - Merchant Name (for Description)
        - Category (choose one: 'food', 'transport', 'accommodation', 'activities', 'entertainment', 'other')
-       - Items list (brief summary)
+       - Tax Amount (number)
+       - Tip/Gratuity Amount (number)
+       - Line Items list. Extract every single item purchased and its specific price. Do NOT group them unless they are identical.
     
     IMPORTANT: Respond ONLY with valid JSON in this format:
     {
@@ -340,7 +581,12 @@ export async function analyzeReceipt(imagePart, mimeType = 'image/jpeg') {
       "date": "2024-01-01",
       "merchant": "Store Name",
       "category": "food",
-      "items": ["Item 1", "Item 2"]
+      "tax": 0.00,
+      "tip": 0.00,
+      "lineItems": [
+         { "name": "Burger", "price": 12.50 },
+         { "name": "Fries", "price": 4.00 }
+      ]
     }`;
 
     const image = {

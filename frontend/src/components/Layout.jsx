@@ -29,7 +29,7 @@ const Layout = ({ children }) => {
             {/* Main Content */}
             <main style={{
                 flex: 1,
-                paddingBottom: 'calc(60px + env(safe-area-inset-bottom))',
+                paddingBottom: 'calc(100px + env(safe-area-inset-bottom))', // Increased to clear AIAssistantWidget
                 overflow: 'auto'
             }}>
                 {children}

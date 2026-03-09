@@ -3,6 +3,7 @@ import API_URL from '../../config/api';
 import { Plus, Calendar as CalendarIcon, Clock, MapPin } from 'lucide-react';
 import ScheduleItemCard from './ScheduleItemCard';
 import AddScheduleItemModal from './AddScheduleItemModal';
+import AISmartSchedule from '../ai/AISmartSchedule';
 import '../../pages/EventTabs.css';
 
 const ScheduleTab = ({ event }) => {
@@ -100,6 +101,12 @@ const ScheduleTab = ({ event }) => {
                     );
                 })}
             </div>
+
+            {/* AI Generator */}
+            <AISmartSchedule
+                event={event}
+                onScheduleGenerated={fetchScheduleItems}
+            />
 
             {/* Empty State */}
             {selectedDateItems.length === 0 ? (

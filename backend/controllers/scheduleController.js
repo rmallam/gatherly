@@ -1,4 +1,5 @@
 import { query } from '../db/connection.js';
+import { generateSchedule } from '../services/geminiService.js';
 
 /**
  * Create a new schedule item
@@ -288,5 +289,72 @@ export const deleteScheduleItem = async (req, res) => {
     } catch (error) {
         console.error('Error deleting schedule item:', error);
         res.status(500).json({ error: 'Failed to delete schedule item' });
+    }
+};
+
+/**
+ * Auto-Generate Schedule via AI
+ */
+export const autoGenerateSchedule = async (req, res) => {
+    const { eventId } = req.params;
+    const { prompt } = req.body;
+    const userId = req.user.id;
+
+    try {
+        // Verify access & get event details
+        const eventCheck = await query(
+            `SELECT id, title, event_type as "eventType", date FROM events WHERE id = $1 AND user_id = $2`,
+            [eventId, userId]
+        );
+
+        if (eventCheck.rows.length === 0) {
+            return res.status(403).json({ error: 'Access denied or event not found' });
+        }
+
+        const eventData = eventCheck.rows[0];
+
+        // Ensure we have a prompt
+        if (!prompt) {
+            return res.status(400).json({ error: 'Prompt is required for schedule generation' });
+        }
+
+        // Call Gemini Service
+        const aiResult = await generateSchedule(eventData, prompt);
+
+        if (!aiResult || !aiResult.scheduleItems || !Array.isArray(aiResult.scheduleItems)) {
+            return res.status(500).json({ error: 'Failed to generate valid schedule format' });
+        }
+
+        const generatedItems = [];
+
+        // Insert each AI item into the DB
+        for (const item of aiResult.scheduleItems) {
+            // Default to event Date if the prompt didn't yield a specific one
+            const itemDate = item.date || eventData.date || new Date().toISOString().split('T')[0];
+
+            const result = await query(
+                `INSERT INTO event_schedule_items 
+                 (event_id, date, start_time, end_time, title, description, location, category, created_by)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                 RETURNING *`,
+                [
+                    eventId,
+                    itemDate,
+                    item.start_time || null,
+                    item.end_time || null,
+                    item.title || 'Scheduled Item',
+                    item.description || null,
+                    item.location || null,
+                    item.category || 'activity',
+                    userId
+                ]
+            );
+            generatedItems.push(result.rows[0]);
+        }
+
+        res.status(201).json({ scheduleItems: generatedItems });
+    } catch (error) {
+        console.error('Error auto-generating schedule:', error);
+        res.status(500).json({ error: 'Failed to auto-generate schedule' });
     }
 };

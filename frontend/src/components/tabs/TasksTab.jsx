@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CheckSquare, Plus, X, Check, Trash2, Calendar, AlertCircle } from 'lucide-react';
+import AITasksGenerator from '../ai/AITasksGenerator';
 import '../../pages/EventTabs.css';
 
 const TasksTab = ({ event, onUpdateTasks }) => {
@@ -54,6 +55,12 @@ const TasksTab = ({ event, onUpdateTasks }) => {
         setShowAddForm(false);
     };
 
+    const handleTasksGenerated = (newTasks) => {
+        const updatedTasks = [...tasks, ...newTasks];
+        setTasks(updatedTasks);
+        onUpdateTasks?.(updatedTasks);
+    };
+
     const handleDeleteTask = (id) => {
         const updatedTasks = tasks.filter(task => task.id !== id);
         setTasks(updatedTasks);
@@ -81,6 +88,12 @@ const TasksTab = ({ event, onUpdateTasks }) => {
 
     return (
         <div>
+            {/* AI Generator always at the top like a search bar */}
+            <AITasksGenerator
+                event={event}
+                onTasksGenerated={handleTasksGenerated}
+            />
+
             {/* Add Task Button */}
             <button
                 onClick={() => setShowAddForm(!showAddForm)}
@@ -152,6 +165,9 @@ const TasksTab = ({ event, onUpdateTasks }) => {
                     </div>
                 </div>
             )}
+
+            {/* AI Generator */}
+            <AITasksGenerator event={event} onTasksGenerated={handleTasksGenerated} />
 
             {/* Stats Overview */}
             <div className="tab-stats-grid">

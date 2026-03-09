@@ -3,6 +3,7 @@ import { MessageSquare, X, Send, Wand2, Plus, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import UpgradeModal from './UpgradeModal';
 
 const AIAssistantWidget = () => {
     const { token } = useAuth();
@@ -15,6 +16,8 @@ const AIAssistantWidget = () => {
     ]);
     const [inputText, setInputText] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [upgradeReason, setUpgradeReason] = useState(null);
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => {
@@ -24,6 +27,32 @@ const AIAssistantWidget = () => {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    useEffect(() => {
+        // Only run if we have a token and events, and we haven't already replaced the initial message
+        if (token && events && events.length > 0 && messages.length === 1 && messages[0].text.includes('Hi! I am your HostEze AI Assistant')) {
+            const fetchProactiveGreeting = async () => {
+                try {
+                    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+                    const res = await fetch(`${baseUrl}/ai/proactive-greeting`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.greeting) {
+                            setMessages([{ role: 'ai', text: data.greeting }]);
+                            // Auto-open chatbot to show proactive alert
+                            setIsOpen(true);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch proactive greeting:', error);
+                }
+            };
+            fetchProactiveGreeting();
+        }
+    }, [token, events.length]); // depend on events.length so it triggers after fetchEvents completes
 
     const handleSend = async () => {
         if (!inputText.trim()) return;
@@ -70,6 +99,17 @@ const AIAssistantWidget = () => {
 
             if (!res.ok) {
                 const errorData = await res.json();
+
+                // Catch Pro Tier restriction
+                if (res.status === 403 && errorData.error?.includes('Pro subscription required')) {
+                    setUpgradeReason(errorData.message || 'Upgrade to Pro to use the AI Assistant');
+                    setShowUpgradeModal(true);
+
+                    // Remove the user's message from the array so they can try again later
+                    setMessages(prev => prev.slice(0, -1));
+                    return;
+                }
+
                 throw new Error(errorData.error || 'Failed to connect to AI');
             }
 
@@ -216,6 +256,13 @@ const AIAssistantWidget = () => {
             >
                 {isOpen ? <X size={28} /> : <MessageSquare size={28} />}
             </button>
+
+            {/* Pro Paywall Modal */}
+            <UpgradeModal
+                isOpen={showUpgradeModal}
+                onClose={() => setShowUpgradeModal(false)}
+                triggerReason={upgradeReason}
+            />
 
         </div>
     );
