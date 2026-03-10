@@ -797,7 +797,7 @@ app.post('/api/auth/login', async (req, res) => {
                 `SELECT * FROM users WHERE 
                  phone IS NOT NULL AND
         RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $1`,
-                        [normalized ? normalized.replace(/\D/g, '').slice(-8) : null]
+                [normalized ? normalized.replace(/\D/g, '').slice(-8) : null]
             );
             console.log('Login attempt - Users found:', result.rows.length);
             if (result.rows.length > 0) {
@@ -1176,7 +1176,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
                 `SELECT * FROM users WHERE 
                  phone IS NOT NULL AND
         RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $1`,
-                        [normalized ? normalized.replace(/\D/g, '').slice(-8) : null]
+                [normalized ? normalized.replace(/\D/g, '').slice(-8) : null]
             );
         }
 
@@ -2082,9 +2082,10 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
             if (normalized) {
                 const userByPhone = await query(
                     `SELECT id FROM users WHERE 
-                     phone IS NOT NULL AND
-RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $1`,
-                        [normalized ? normalized.replace(/\D/g, '').slice(-8) : null]
+                     phone IS NOT NULL AND id != $2 AND
+                     RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $1
+                     ORDER BY created_at DESC LIMIT 1`,
+                    [normalized ? normalized.replace(/\D/g, '').slice(-8) : null, req.user.id]
                 );
                 if (userByPhone.rows.length > 0) {
                     linkedUserId = userByPhone.rows[0].id;
@@ -2093,8 +2094,8 @@ RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $1`,
         }
         if (!linkedUserId && email) {
             const userByEmail = await query(
-                'SELECT id FROM users WHERE email = $1',
-                [email]
+                'SELECT id FROM users WHERE email = $1 AND id != $2 ORDER BY created_at DESC LIMIT 1',
+                [email, req.user.id]
             );
             if (userByEmail.rows.length > 0) {
                 linkedUserId = userByEmail.rows[0].id;
@@ -2282,9 +2283,10 @@ app.post('/api/events/:eventId/guests/bulk', authMiddleware, async (req, res) =>
                 if (normalized) {
                     const userByPhone = await query(
                         `SELECT id FROM users WHERE 
-                         phone IS NOT NULL AND 
-                         RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $1`,
-                        [normalized ? normalized.replace(/\D/g, '').slice(-8) : null]
+                         phone IS NOT NULL AND id != $2 AND
+                         RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $1
+                         ORDER BY created_at DESC LIMIT 1`,
+                        [normalized ? normalized.replace(/\D/g, '').slice(-8) : null, req.user.id]
                     );
                     if (userByPhone.rows.length > 0) {
                         linkedUserId = userByPhone.rows[0].id;
@@ -2293,8 +2295,8 @@ app.post('/api/events/:eventId/guests/bulk', authMiddleware, async (req, res) =>
             }
             if (!linkedUserId && guest.email) {
                 const userByEmail = await query(
-                    'SELECT id FROM users WHERE email = $1',
-                    [guest.email]
+                    'SELECT id FROM users WHERE email = $1 AND id != $2 ORDER BY created_at DESC LIMIT 1',
+                    [guest.email, req.user.id]
                 );
                 if (userByEmail.rows.length > 0) {
                     linkedUserId = userByEmail.rows[0].id;
