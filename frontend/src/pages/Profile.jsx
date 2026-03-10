@@ -521,15 +521,7 @@ const Profile = () => {
                         </div>
                     </div>
 
-                    {isEditing && (
-                        <button
-                            onClick={handleSaveProfile}
-                            disabled={saving}
-                            className="save-info-btn"
-                        >
-                            {saving ? 'Saving...' : 'Save Info'}
-                        </button>
-                    )}
+                    {/* Save Info button moved to FAB */}
                 </div>
 
                 {/* Security Section (Collapsible) */}
@@ -598,7 +590,7 @@ const Profile = () => {
                 <button
                     className="logout-btn"
                     onClick={() => {
-                        if (confirm('Are you sure you want to logout?')) {
+                        if (window.confirm('Are you sure you want to logout?')) {
                             logout();
                             navigate('/login');
                         }
@@ -608,6 +600,22 @@ const Profile = () => {
                     Sign Out
                 </button>
             </div>
+
+            {/* Sticky Save FAB when editing */}
+            {isEditing && (
+                <button
+                    onClick={handleSaveProfile}
+                    disabled={saving}
+                    className="save-fab"
+                >
+                    {saving ? 'Saving...' : (
+                        <>
+                            <Check size={20} />
+                            Save Changes
+                        </>
+                    )}
+                </button>
+            )}
 
             {/* Crop Modal */}
             {
