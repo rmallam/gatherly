@@ -110,16 +110,17 @@ const ScheduleTab = ({ event }) => {
 
             {/* Empty State */}
             {selectedDateItems.length === 0 ? (
-                <div className="tab-empty-state">
-                    <div style={{
-                        width: 64, height: 64, borderRadius: '50%', background: 'var(--bg-secondary)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px',
-                        color: 'var(--text-tertiary)'
-                    }}>
-                        <CalendarIcon size={32} />
+                <div style={{
+                    textAlign: 'center', padding: '3rem 1.5rem', background: 'var(--bg-secondary)',
+                    borderRadius: '16px', margin: '2rem 0', border: '1px dashed var(--border)'
+                }}>
+                    <div style={{ width: '64px', height: '64px', background: 'var(--bg-primary)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                        <CalendarIcon size={32} color="var(--primary)" />
                     </div>
-                    <h3 className="section-title" style={{ textAlign: 'center', marginBottom: 8 }}>Nothing planned yet</h3>
-                    <p style={{ color: 'var(--text-secondary)' }}>Add activities for this day.</p>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Nothing planned yet</h3>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: '1.5', maxWidth: '300px', margin: '0 auto 1.5rem' }}>
+                        Use the <b>AI Smart Schedule</b> above to auto-draft a chronological itinerary for this day.
+                    </p>
                 </div>
             ) : (
                 <div className="tab-list">

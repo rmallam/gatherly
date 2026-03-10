@@ -134,128 +134,211 @@ const AIAssistantWidget = () => {
             setIsLoading(false);
         }
     };
-
     return (
-        <div style={{ position: 'fixed', bottom: '170px', right: '24px', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+        <>
+            {/* The Magic FAB */}
+            <div style={{ position: 'fixed', bottom: '170px', right: '24px', zIndex: 9000 }}>
+                {!isOpen && (
+                    <button
+                        onClick={() => setIsOpen(true)}
+                        className="ai-fab-btn"
+                        style={{
+                            width: '60px',
+                            height: '60px',
+                            borderRadius: '30px',
+                            background: 'linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%)',
+                            color: 'white',
+                            border: 'none',
+                            boxShadow: '0 8px 24px rgba(99, 102, 241, 0.4), 0 0 0 4px rgba(99, 102, 241, 0.1)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            position: 'relative',
+                            transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                            animation: 'aiPulse 3s infinite'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                    >
+                        <Sparkles size={28} />
+                    </button>
+                )}
+            </div>
 
-            {/* Chat Window */}
+            {/* Bottom Sheet Modal overlay */}
             {isOpen && (
                 <div style={{
-                    width: '350px',
-                    height: '500px',
-                    maxHeight: '80vh',
-                    marginBottom: '16px',
-                    background: '#1f2937',
-                    borderRadius: '16px',
-                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    backdropFilter: 'blur(4px)',
+                    zIndex: 9999,
                     display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden',
-                    animation: 'slideUp 0.3s ease-out'
-                }}>
-                    {/* Header */}
-                    <div style={{ padding: '16px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white' }}>
-                            <Wand2 size={20} />
-                            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>AI Assistant</h3>
+                    alignItems: 'flex-end',
+                    animation: 'fadeIn 0.2s ease-out'
+                }} onClick={() => setIsOpen(false)}>
+
+                    {/* The actual sliding sheet */}
+                    <div
+                        style={{
+                            width: '100%',
+                            height: '85vh',
+                            maxHeight: '85vh',
+                            background: '#1f2937', // Dark theme matching current app
+                            borderTopLeftRadius: '24px',
+                            borderTopRightRadius: '24px',
+                            boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.5)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            overflow: 'hidden',
+                            animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                        }}
+                        onClick={(e) => e.stopPropagation()} // Prevent closing when tapping inside the sheet
+                    >
+                        {/* Header */}
+                        <div style={{
+                            padding: '20px',
+                            borderBottom: '1px solid rgba(255,255,255,0.05)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            flexShrink: 0
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'white' }}>
+                                <div style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '12px',
+                                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2))',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}>
+                                    <Wand2 size={20} color="#a855f7" />
+                                </div>
+                                <div>
+                                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>HostEze AI</h3>
+                                    <p style={{ margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Your smart event concierge</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsOpen(false)}
+                                style={{
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: 'none',
+                                    color: 'rgba(255,255,255,0.6)',
+                                    width: '36px',
+                                    height: '36px',
+                                    borderRadius: '18px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                            >
+                                <X size={20} />
+                            </button>
                         </div>
-                        <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.8)', cursor: 'pointer', display: 'flex' }}>
-                            <X size={20} />
-                        </button>
-                    </div>
 
-                    {/* Messages Area */}
-                    <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', background: '#111827' }}>
-                        {messages.map((msg, idx) => (
-                            <div key={idx} style={{
-                                alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                                maxWidth: '85%',
-                                padding: '12px 16px',
-                                borderRadius: msg.role === 'user' ? '16px 16px 0 16px' : '16px 16px 16px 0',
-                                background: msg.role === 'user' ? '#6366f1' : msg.error ? '#ef4444' : '#374151',
-                                color: 'white',
-                                fontSize: '14px',
-                                lineHeight: '1.5',
-                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                            }}>
-                                {msg.role === 'ai' && !msg.error && (
-                                    <Sparkles size={14} style={{ color: '#a855f7', float: 'left', marginTop: '3px', marginRight: '6px' }} />
-                                )}
-                                {msg.text}
-                            </div>
-                        ))}
-                        {isLoading && (
-                            <div style={{ alignSelf: 'flex-start', padding: '12px 16px', borderRadius: '16px 16px 16px 0', background: '#374151', color: '#9ca3af', fontSize: '14px' }}>
-                                Thinking...
-                            </div>
-                        )}
-                        <div ref={messagesEndRef} />
-                    </div>
+                        {/* Messages Area - Fill remaining space */}
+                        <div style={{
+                            flex: 1,
+                            overflowY: 'auto',
+                            padding: '20px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '16px',
+                            background: '#111827'
+                        }}>
+                            {messages.map((msg, idx) => (
+                                <div key={idx} style={{
+                                    alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                                    maxWidth: '85%',
+                                    padding: '14px 18px',
+                                    borderRadius: msg.role === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
+                                    background: msg.role === 'user' ? 'var(--primary)' : msg.error ? '#ef4444' : '#374151',
+                                    color: 'white',
+                                    fontSize: '15px',
+                                    lineHeight: '1.5',
+                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                                }}>
+                                    {msg.role === 'ai' && !msg.error && (
+                                        <Sparkles size={16} style={{ color: '#a855f7', float: 'left', marginTop: '3px', marginRight: '8px' }} />
+                                    )}
+                                    {msg.text}
+                                </div>
+                            ))}
+                            {isLoading && (
+                                <div style={{
+                                    alignSelf: 'flex-start',
+                                    padding: '14px 18px',
+                                    borderRadius: '20px 20px 20px 4px',
+                                    background: '#374151',
+                                    color: '#9ca3af',
+                                    fontSize: '15px'
+                                }}>
+                                    Thinking<span style={{ animation: 'aiPulse 1.5s infinite' }}>...</span>
+                                </div>
+                            )}
+                            <div ref={messagesEndRef} style={{ height: '8px' }} />
+                        </div>
 
-                    {/* Input Area */}
-                    <div style={{ padding: '16px', background: '#1f2937', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: '8px' }}>
-                        <input
-                            type="text"
-                            value={inputText}
-                            onChange={e => setInputText(e.target.value)}
-                            onKeyPress={e => e.key === 'Enter' && handleSend()}
-                            placeholder="Type a command..."
-                            style={{
-                                flex: 1,
-                                padding: '10px 16px',
-                                borderRadius: '24px',
-                                border: '1px solid rgba(255,255,255,0.2)',
-                                background: '#374151',
-                                color: 'white',
-                                outline: 'none',
-                                fontSize: '14px'
-                            }}
-                        />
-                        <button
-                            onClick={handleSend}
-                            disabled={isLoading || !inputText.trim()}
-                            style={{
-                                background: inputText.trim() && !isLoading ? '#6366f1' : '#4b5563',
-                                border: 'none',
-                                borderRadius: '50%',
-                                width: '40px',
-                                height: '40px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: 'white',
-                                cursor: inputText.trim() && !isLoading ? 'pointer' : 'default',
-                                transition: 'background 0.2s'
-                            }}
-                        >
-                            <Send size={18} />
-                        </button>
+                        {/* Input Area - Sticks to the bottom of the sheet */}
+                        <div style={{
+                            padding: 'padding: 16px 20px max(16px, env(safe-area-inset-bottom)) 20px', // Handles iOS home indicator
+                            background: '#1f2937',
+                            borderTop: '1px solid rgba(255,255,255,0.05)',
+                            display: 'flex',
+                            gap: '12px',
+                            alignItems: 'center',
+                            flexShrink: 0
+                        }}>
+                            <input
+                                type="text"
+                                value={inputText}
+                                onChange={e => setInputText(e.target.value)}
+                                onKeyPress={e => e.key === 'Enter' && handleSend()}
+                                placeholder="Ask me to add an expense, draft a schedule..."
+                                style={{
+                                    flex: 1,
+                                    padding: '14px 20px',
+                                    borderRadius: '24px',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    background: '#374151',
+                                    color: 'white',
+                                    outline: 'none',
+                                    fontSize: '15px',
+                                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)'
+                                }}
+                            />
+                            <button
+                                onClick={handleSend}
+                                disabled={isLoading || !inputText.trim()}
+                                style={{
+                                    background: inputText.trim() && !isLoading ? 'linear-gradient(135deg, var(--primary), #8b5cf6)' : '#4b5563',
+                                    border: 'none',
+                                    borderRadius: '50%',
+                                    width: '48px',
+                                    height: '48px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white',
+                                    cursor: inputText.trim() && !isLoading ? 'pointer' : 'default',
+                                    transition: 'all 0.2s',
+                                    boxShadow: inputText.trim() && !isLoading ? '0 4px 12px rgba(99, 102, 241, 0.4)' : 'none'
+                                }}
+                            >
+                                <Send size={20} style={{ marginLeft: '2px' }} /> {/* Shifted slightly right for optical balance */}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
-
-            {/* Floating Action Button */}
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                style={{
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #6366f1, #a855f7)',
-                    border: 'none',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2)',
-                    transition: 'transform 0.2s, background 0.2s',
-                    transform: isOpen ? 'scale(0.9)' : 'scale(1)'
-                }}
-            >
-                {isOpen ? <X size={28} /> : <MessageSquare size={28} />}
-            </button>
 
             {/* Pro Paywall Modal */}
             <UpgradeModal
@@ -263,8 +346,7 @@ const AIAssistantWidget = () => {
                 onClose={() => setShowUpgradeModal(false)}
                 triggerReason={upgradeReason}
             />
-
-        </div>
+        </>
     );
 };
 

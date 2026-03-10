@@ -1593,6 +1593,25 @@ app.patch('/api/users/profile', authMiddleware, async (req, res) => {
         );
 
         const user = result.rows[0];
+
+        // RETROACTIVE SYNC: Link previous guest records that have matching new phone/email
+        if (phone) {
+            const normalizedUserPhone = normalizePhone(phone);
+            await query(
+                `UPDATE guests SET user_id = $1 
+                 WHERE user_id IS NULL 
+                 AND phone IS NOT NULL 
+                 AND RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $2`,
+                [req.user.id, normalizedUserPhone]
+            );
+        }
+        if (user.email) {
+            await query(
+                `UPDATE guests SET user_id = $1 WHERE LOWER(email) = LOWER($2) AND user_id IS NULL`,
+                [req.user.id, user.email]
+            );
+        }
+
         res.json({
             id: user.id,
             name: user.name,

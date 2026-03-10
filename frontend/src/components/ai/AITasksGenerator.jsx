@@ -211,7 +211,7 @@ const AITasksGenerator = ({ event, onTasksGenerated }) => {
                                 onMouseLeave={e => !loading && (e.currentTarget.style.transform = 'translateY(0)')}
                             >
                                 {loading ? (
-                                    <><Loader size={18} className="animate-spin" /> Generating Timeline...</>
+                                    <><Loader size={18} className="animate-spin" /> Analyzing request & building timeline...</>
                                 ) : (
                                     <><Target size={18} /> Auto-Generate Checklist</>
                                 )}

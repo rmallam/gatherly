@@ -119,7 +119,7 @@ const AISmartSchedule = ({ event, onScheduleGenerated }) => {
                     onMouseLeave={e => !loading && (e.currentTarget.style.transform = 'translateY(0)')}
                 >
                     {loading ? (
-                        <><Loader size={18} className="animate-spin" /> Generating Itinerary...</>
+                        <><Loader size={18} className="animate-spin" /> Building chronological itinerary...</>
                     ) : (
                         <><Sparkles size={18} /> Auto-Draft Schedule</>
                     )}

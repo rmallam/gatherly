@@ -140,6 +140,22 @@ const GiftsTab = ({ event }) => {
                 </div>
             </div>
 
+            {/* Empty State */}
+            {gifts.length === 0 && !showAddForm && (
+                <div style={{
+                    textAlign: 'center', padding: '3rem 1.5rem', background: 'var(--bg-secondary)',
+                    borderRadius: '16px', margin: '2rem 0', border: '1px dashed var(--border)'
+                }}>
+                    <div style={{ width: '64px', height: '64px', background: 'var(--bg-primary)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                        <Gift size={32} color="var(--primary)" />
+                    </div>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>No gifts added yet</h3>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: '1.5', maxWidth: '300px', margin: '0 auto 1.5rem' }}>
+                        Use the <b>AI Gift Generator</b> above to instantly curate targeted gift ideas based on your event.
+                    </p>
+                </div>
+            )}
+
             {/* Gift List */}
             {gifts.length > 0 ? (
                 <div className="tab-list">

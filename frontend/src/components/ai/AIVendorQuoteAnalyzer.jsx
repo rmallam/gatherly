@@ -216,7 +216,7 @@ const AIVendorQuoteAnalyzer = ({ event, onQuoteAnalyzed }) => {
                                     onMouseLeave={e => !loading && (e.currentTarget.style.transform = 'translateY(0)')}
                                 >
                                     {loading ? (
-                                        <><Loader size={18} className="animate-spin" /> Analyzing Quote...</>
+                                        <><Loader size={18} className="animate-spin" /> Scanning PDF & analyzing hidden fees...</>
                                     ) : (
                                         <><Search size={18} /> Analyze Quote</>
                                     )}

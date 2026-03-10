@@ -198,7 +198,7 @@ const AIGiftsGenerator = ({ event, onGiftsGenerated }) => {
                                 onMouseLeave={e => !loading && (e.currentTarget.style.transform = 'translateY(0)')}
                             >
                                 {loading ? (
-                                    <><Loader size={18} className="animate-spin" /> Curating Gifts...</>
+                                    <><Loader size={18} className="animate-spin" /> Analyzing demographics & curating gifts...</>
                                 ) : (
                                     <><Sparkles size={18} /> Auto-Generate Registry</>
                                 )}
