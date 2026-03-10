@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import API_URL from '../../config/api';
-import { X, DollarSign, Receipt, Calendar } from 'lucide-react';
+import { X, DollarSign, Receipt, Calendar, ScanLine, Upload, Loader, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData }) => {
     const [formData, setFormData] = useState({
@@ -17,6 +19,12 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
     const [selectedParticipants, setSelectedParticipants] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    const [isScanning, setIsScanning] = useState(false);
+    const cameraInputRef = useRef(null);
+    const galleryInputRef = useRef(null);
+    const navigate = useNavigate();
+    const { user } = useAuth();
 
     // Pre-calculate customSplits if lineItems exist
     useEffect(() => {
@@ -58,9 +66,85 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
         }
     };
 
+    const handleScanClick = (inputType) => {
+        const isPro = user?.subscription_tier === 'pro' || user?.subscription_tier === 'business';
+        if (!isPro) {
+            if (confirm('Receipt Scanning is a Pro feature. Upgrade to unlock?')) {
+                navigate('/pro');
+            }
+            return;
+        }
 
+        if (inputType === 'camera') {
+            cameraInputRef.current?.click();
+        } else {
+            galleryInputRef.current?.click();
+        }
+    };
 
-    // Get all participants based on event type
+    const handleFileSelect = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsScanning(true);
+        try {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                try {
+                    const base64Image = reader.result.split(',')[1];
+                    const mimeType = file.type;
+
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`${API_URL}/gemini/analyze-receipt`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ image: base64Image, mimeType })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to analyze receipt');
+                    }
+
+                    const data = await response.json();
+
+                    if (data.isReceipt) {
+                        setFormData(prev => ({
+                            ...prev,
+                            amount: data.amount ? data.amount.toString() : prev.amount,
+                            currency: data.currency || prev.currency,
+                            description: data.merchant || data.description || prev.description,
+                            category: data.category || prev.category,
+                            expenseDate: data.date || prev.expenseDate
+                        }));
+                        if (data.lineItems && data.lineItems.length > 0) {
+                            setLineItems(data.lineItems);
+                        }
+                    } else {
+                        alert('Could not detect a valid receipt in this image.');
+                    }
+                } catch (error) {
+                    console.error('Scan error:', error);
+                    alert('Failed to analyze receipt. Please try again.');
+                } finally {
+                    setIsScanning(false);
+                    if (cameraInputRef.current) cameraInputRef.current.value = '';
+                    if (galleryInputRef.current) galleryInputRef.current.value = '';
+                }
+            };
+            reader.onerror = () => {
+                console.error('File reading error');
+                alert('Failed to read file.');
+                setIsScanning(false);
+            };
+        } catch (error) {
+            console.error('File selection error:', error);
+            setIsScanning(false);
+        }
+    };    // Get all participants based on event type
     const participants = React.useMemo(() => {
         console.log('=== EXPENSE MODAL PARTICIPANTS DEBUG ===');
         console.log('Event object:', event);
@@ -348,6 +432,54 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                 )}
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+
+                    {/* Auto-fill buttons (Scan & Upload) */}
+                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        <input
+                            type="file"
+                            ref={cameraInputRef}
+                            style={{ display: 'none' }}
+                            accept="image/*"
+                            capture="environment"
+                            onChange={handleFileSelect}
+                        />
+                        <input
+                            type="file"
+                            ref={galleryInputRef}
+                            style={{ display: 'none' }}
+                            accept="image/*"
+                            onChange={handleFileSelect}
+                        />
+
+                        <button
+                            type="button"
+                            onClick={() => handleScanClick('camera')}
+                            disabled={isScanning}
+                            className="btn btn-secondary"
+                            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.875rem', position: 'relative' }}
+                        >
+                            {isScanning ? <Loader size={16} className="spin" /> : <ScanLine size={16} />}
+                            Scan Receipt
+                            {!(user?.subscription_tier === 'pro' || user?.subscription_tier === 'business') && (
+                                <Lock size={12} style={{ position: 'absolute', top: -4, right: -4, color: '#d97706' }} />
+                            )}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleScanClick('gallery')}
+                            disabled={isScanning}
+                            className="btn btn-secondary"
+                            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.875rem', position: 'relative' }}
+                        >
+                            {isScanning ? <Loader size={16} className="spin" /> : <Upload size={16} />}
+                            Upload Receipt
+                            {!(user?.subscription_tier === 'pro' || user?.subscription_tier === 'business') && (
+                                <Lock size={12} style={{ position: 'absolute', top: -4, right: -4, color: '#d97706' }} />
+                            )}
+                        </button>
+                    </div>
+
                     {/* Amount and Currency */}
                     <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
                         <div>
@@ -607,6 +739,44 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                     </div>
                 </form>
             </div>
+            {/* AI Analysis Overlay */}
+            {isScanning && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    zIndex: 9999,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    padding: '2rem',
+                    textAlign: 'center'
+                }}>
+                    <div style={{
+                        width: '80px',
+                        height: '80px',
+                        border: '4px solid rgba(255,255,255,0.1)',
+                        borderTop: '4px solid var(--primary)',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite',
+                        marginBottom: '1.5rem'
+                    }} />
+                    <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+                        AI is Analyzing Receipt
+                    </h3>
+                    <p style={{ color: 'rgba(255,255,255,0.7)', maxWidth: '300px' }}>
+                        Extracting merchant, date, and total amount...
+                    </p>
+                    <style>{`
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    `}</style>
+                </div>
+            )}
         </div>
     );
 };

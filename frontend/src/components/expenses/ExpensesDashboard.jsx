@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import API_URL from '../../config/api';
-import { Plus, ScanLine, Loader, Lock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext'; // Correct Context
+import { Plus } from 'lucide-react';
 import ExpenseList from './ExpenseList';
 import AddExpenseModal from './AddExpenseModal';
 import BalanceSummary from './BalanceSummary';
@@ -15,75 +13,6 @@ const ExpensesDashboard = ({ eventId, event }) => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [selectedExpense, setSelectedExpense] = useState(null);
     const [activeTab, setActiveTab] = useState('expenses');
-
-    // Receipt Scanning State
-    const [isScanning, setIsScanning] = useState(false);
-    const [scannedData, setScannedData] = useState(null);
-    const fileInputRef = React.useRef(null);
-    const navigate = useNavigate();
-    const { user } = useAuth(); // Get user from AuthContext (correct source of truth)
-
-    const handleScanClick = () => {
-        // Check for Pro/Business tier
-        const isPro = user?.subscription_tier === 'pro' || user?.subscription_tier === 'business';
-
-        if (!isPro) {
-            // Redirect to pro page or show upgrade alert
-            if (confirm('Receipt Scanning is a Pro feature. Upgrade to unlock?')) {
-                navigate('/pro');
-            }
-            return;
-        }
-
-        // Trigger file input
-        fileInputRef.current?.click();
-    };
-
-    const handleFileSelect = async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        setIsScanning(true);
-        try {
-            // Convert to base64
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = async () => {
-                const base64Image = reader.result.split(',')[1]; // Remove data:image/...;base64, prefix
-                const mimeType = file.type;
-
-                const token = localStorage.getItem('token');
-                const response = await fetch(`${API_URL}/gemini/analyze-receipt`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ image: base64Image, mimeType })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to analyze receipt');
-                }
-
-                const data = await response.json();
-
-                if (data.isReceipt) {
-                    setScannedData(data); // Store AI results
-                    setShowAddModal(true); // Open modal
-                } else {
-                    alert('Could not detect a valid receipt in this image.');
-                }
-            };
-        } catch (error) {
-            console.error('Scan error:', error);
-            alert('Failed to analyze receipt. Please try again.');
-        } finally {
-            setIsScanning(false);
-            // Reset input
-            if (fileInputRef.current) fileInputRef.current.value = '';
-        }
-    };
 
     const fetchExpenses = async () => {
         try {
@@ -170,39 +99,8 @@ const ExpensesDashboard = ({ eventId, event }) => {
                 </h2>
 
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        style={{ display: 'none' }}
-                        accept="image/*"
-                        capture="environment" // Prefer camera on mobile
-                        onChange={handleFileSelect}
-                    />
-
-                    <button
-                        onClick={handleScanClick}
-                        disabled={isScanning}
-                        className="btn btn-secondary"
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.75rem 1rem',
-                            fontSize: '0.9375rem',
-                            position: 'relative'
-                        }}
-                    >
-                        {isScanning ? <Loader size={18} className="spin" /> : <ScanLine size={18} />}
-                        {isScanning ? 'Analyzing...' : 'Scan Receipt'}
-                        {/* Lock icon if not pro (optional visual cue) */}
-                        {!(user?.subscription_tier === 'pro' || user?.subscription_tier === 'business') && (
-                            <Lock size={12} style={{ position: 'absolute', top: -4, right: -4, color: '#d97706' }} />
-                        )}
-                    </button>
-
                     <button
                         onClick={() => {
-                            setScannedData(null); // Clear previous scan data
                             setShowAddModal(true);
                         }}
                         className="btn btn-primary"
@@ -291,16 +189,11 @@ const ExpensesDashboard = ({ eventId, event }) => {
                 <AddExpenseModal
                     eventId={eventId}
                     event={event}
-                    initialData={scannedData} // Pass scanned data
-                    onClose={() => {
-                        setShowAddModal(false);
-                        setScannedData(null);
-                    }}
+                    onClose={() => setShowAddModal(false)}
                     onExpenseAdded={() => {
                         fetchExpenses();
                         fetchBalances();
                         setShowAddModal(false);
-                        setScannedData(null);
                     }}
                 />
             )}
@@ -336,44 +229,6 @@ const ExpensesDashboard = ({ eventId, event }) => {
                         setSelectedExpense(null);
                     }}
                 />
-            )}
-            {/* AI Analysis Overlay */}
-            {isScanning && (
-                <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    zIndex: 9999,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    padding: '2rem',
-                    textAlign: 'center'
-                }}>
-                    <div style={{
-                        width: '80px',
-                        height: '80px',
-                        border: '4px solid rgba(255,255,255,0.1)',
-                        borderTop: '4px solid var(--primary)',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite',
-                        marginBottom: '1.5rem'
-                    }} />
-                    <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem' }}>
-                        AI is Analyzing Receipt
-                    </h3>
-                    <p style={{ color: 'rgba(255,255,255,0.7)', maxWidth: '300px' }}>
-                        Extracting merchant, date, and total amount...
-                    </p>
-                    <style>{`
-                        @keyframes spin {
-                            0% { transform: rotate(0deg); }
-                            100% { transform: rotate(360deg); }
-                        }
-                    `}</style>
-                </div>
             )}
         </div>
     );

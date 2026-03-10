@@ -32,7 +32,7 @@ import eventWallRoutes from './routes/eventWall.js';
 import uploadRoutes from './routes/upload.js';
 import contactsRoutes from './routes/contacts.js';
 import contactGroupsRoutes from './routes/contact-groups.js';
-import { getBudgetSuggestions, getMenuSuggestions, getDecorIdeas, getCostOptimization, analyzeReceipt, generateInvitation, generateImageInvitationData, parseUserIntent } from './services/geminiService.js';
+import { getBudgetSuggestions, getMenuSuggestions, getDecorIdeas, getCostOptimization, analyzeReceipt, generateInvitation, generateImageInvitationData, parseUserIntent, generateTaskBreakdown, generateGiftRegistry } from './services/geminiService.js';
 import { requireProTier } from './middleware/proTierCheck.js';
 import expenseRoutes from './routes/expenses.js';
 import scheduleRoutes from './routes/schedule.js';
@@ -40,6 +40,50 @@ import giftsRoutes from './routes/gifts.js';
 import iapRoutes from './routes/iapRoutes.js';
 
 const app = express();
+
+// Background helper to populate AI tasks and gifts for a newly created event
+async function autoPopulateEvent(eventId, userId, eventTitle, eventType) {
+    try {
+        console.log(`[AI-CHAT] Starting auto-population for Event ${eventId} (${eventType})`);
+        const eventData = { title: eventTitle, eventType: eventType, date: null };
+
+        // 1. Generate Tasks
+        try {
+            const taskData = await generateTaskBreakdown(eventData, `Create a standard checklist for a ${eventType}`);
+            if (taskData && taskData.tasks && taskData.tasks.length > 0) {
+                for (const task of taskData.tasks) {
+                    await query(
+                        'INSERT INTO tasks (id, event_id, title, category, priority, status) VALUES ($1, $2, $3, $4, $5, $6)',
+                        [uuidv4(), eventId, task.title, task.category || 'planning', task.priority || 'medium', 'not-started']
+                    );
+                }
+                console.log(`[AI-CHAT] Auto-populated ${taskData.tasks.length} tasks for Event ${eventId}`);
+            }
+        } catch (taskErr) {
+            console.error(`[AI-CHAT] Failed to auto-populate tasks for Event ${eventId}:`, taskErr);
+        }
+
+        // 2. Generate Gifts
+        try {
+            const giftData = await generateGiftRegistry(eventData, `Suggest some standard gifts for a ${eventType}`);
+            if (giftData && giftData.gifts && giftData.gifts.length > 0) {
+                for (const gift of giftData.gifts) {
+                    await query(
+                        'INSERT INTO gifts (id, event_id, name, description, estimated_price, priority, url, category, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+                        [uuidv4(), eventId, gift.name, gift.description, gift.estimated_price || 0, gift.priority || 'Medium', gift.url, gift.category || 'Other', 'Available']
+                    );
+                }
+                console.log(`[AI-CHAT] Auto-populated ${giftData.gifts.length} gifts for Event ${eventId}`);
+            }
+        } catch (giftErr) {
+            console.error(`[AI-CHAT] Failed to auto-populate gifts for Event ${eventId}:`, giftErr);
+        }
+
+        console.log(`[AI-CHAT] Auto-population completed for Event ${eventId}`);
+    } catch (err) {
+        console.error(`[AI-CHAT] Global error during auto-population for Event ${eventId}:`, err);
+    }
+}
 
 // Trust proxy - Required for Render.com and rate limiting
 app.set('trust proxy', 1);
@@ -452,11 +496,16 @@ app.post('/api/ai/chat', authMiddleware, requireProTier, async (req, res) => {
             case 'CREATE_EVENT':
                 if (intent.data) {
                     const eventId = uuidv4();
+                    const eventType = intent.data.eventType || 'General';
                     const newEvent = await query(
                         'INSERT INTO events (id, user_id, title, date, location, description, event_type, country, data) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-                        [eventId, req.user.id, intent.data.title, intent.data.date || new Date().toISOString().split('T')[0], intent.data.location || null, intent.data.description || null, 'General', 'US', JSON.stringify({ eventType: 'General' })]
+                        [eventId, req.user.id, intent.data.title, intent.data.date || new Date().toISOString().split('T')[0], intent.data.location || null, intent.data.description || null, eventType, 'US', JSON.stringify({ eventType: eventType })]
                     );
                     result = newEvent.rows[0];
+
+                    // Kick off background auto-population
+                    autoPopulateEvent(eventId, req.user.id, intent.data.title, eventType);
+                    intent.message = `Event created! 🎉 I have started setting up your customized event Tasks and Gift Registry in the background. They will be ready in a moment.`;
                 }
                 break;
 

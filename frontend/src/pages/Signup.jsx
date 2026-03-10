@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import PasswordStrength from '../components/PasswordStrength';
-import { UserPlus, Mail, Lock, User, AlertCircle, Scan, CheckCircle, Phone } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, AlertCircle, Scan, CheckCircle, Phone, Eye, EyeOff } from 'lucide-react';
 
 const Signup = () => {
     const { signup } = useAuth();
@@ -16,6 +16,8 @@ const Signup = () => {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [signupEmail, setSignupEmail] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const validateEmail = (email) => {
         if (!email) return true; // Optional now
@@ -232,14 +234,34 @@ const Signup = () => {
                             <div style={{ position: 'relative' }}>
                                 <Lock size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
                                 <input
-                                    type="password"
+                                    type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="form-input"
-                                    style={{ paddingLeft: '2.75rem' }}
+                                    style={{ paddingLeft: '2.75rem', paddingRight: '2.75rem' }}
                                     placeholder="Strong password"
                                     required
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '0.5rem',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        background: 'none',
+                                        border: 'none',
+                                        padding: '0.5rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: 'var(--text-secondary)'
+                                    }}
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
                             </div>
                             <PasswordStrength password={password} />
                         </div>
@@ -251,14 +273,34 @@ const Signup = () => {
                             <div style={{ position: 'relative' }}>
                                 <Lock size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
                                 <input
-                                    type="password"
+                                    type={showConfirmPassword ? 'text' : 'password'}
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     className="form-input"
-                                    style={{ paddingLeft: '2.75rem' }}
+                                    style={{ paddingLeft: '2.75rem', paddingRight: '2.75rem' }}
                                     placeholder="Confirm your password"
                                     required
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '0.5rem',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        background: 'none',
+                                        border: 'none',
+                                        padding: '0.5rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: 'var(--text-secondary)'
+                                    }}
+                                >
+                                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
                             </div>
                         </div>
 

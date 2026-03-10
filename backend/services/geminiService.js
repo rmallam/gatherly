@@ -748,7 +748,8 @@ export async function parseUserIntent(userMessage, currentContext = {}) {
        - Extract: "description" (string), "amount" (number), "category" (string: Venue, Catering, Decor, Entertainment, Other).
     3. "CREATE_EVENT"
        - Use this when the user wants to start a new event, party, or get-together.
-       - Extract: "title" (string), "date" (YYYY-MM-DD or string if relative), "location" (string), "description" (string).
+       - Extract: "title" (string), "eventType" (string), "date" (YYYY-MM-DD or string if relative), "location" (string), "description" (string).
+       - * RULE: Do NOT return CREATE_EVENT if you cannot determine the "title" or "eventType" from the message or context. Return GENERAL_CHAT asking for clarification instead (e.g. "What kind of event is this and what should we call it?").
     4. "UPDATE_EVENT"
        - Use this when the user wants to explicitly change or update the date, time, location, title, or description of an existing event.
        - Extract only the fields they want to change: "eventId" (if inferred), "title" (string), "date" (YYYY-MM-DD), "location" (string), "description" (string).
@@ -778,7 +779,7 @@ export async function parseUserIntent(userMessage, currentContext = {}) {
        * RULE: Do NOT return ADD_GUESTS if you cannot determine the eventId. Return GENERAL_CHAT asking for clarification instead.
     - If action is ADD_EXPENSE, include "data": { "eventId", "description", "amount", "category" }
        * RULE: Do NOT return ADD_EXPENSE if you cannot determine the eventId. Return GENERAL_CHAT asking for clarification instead.
-    - If action is CREATE_EVENT, include "data": { "title", "date", "location", "description" }
+    - If action is CREATE_EVENT, include "data": { "title", "eventType", "date", "location", "description" }
     - If action is UPDATE_EVENT, include "data": { "eventId", "title", "date", "location", "description" }. Only include fields to be updated.
        * RULE: Do NOT return UPDATE_EVENT if you cannot determine the eventId. Return GENERAL_CHAT asking for clarification instead.
     - If action is RSVP_GUEST, include "data": { "eventId", "guestName", "status" }

@@ -163,7 +163,7 @@ const RemindersSettings = ({ event }) => {
                     </div>
                     <button
                         onClick={handleAutoSchedule}
-                        className="btn-primary"
+                        className="btn btn-primary"
                         style={{ background: 'white', color: '#764ba2', border: 'none' }}
                     >
                         <Calendar size={18} /> Auto-Schedule
@@ -182,7 +182,7 @@ const RemindersSettings = ({ event }) => {
                     <Bell size={48} style={{ opacity: 0.3, marginBottom: 16 }} />
                     <h4>No Reminders Scheduled</h4>
                     <p>Set up smart reminders to notify guests about your event</p>
-                    <button onClick={() => setShowForm(true)} className="btn-primary" style={{ marginTop: 16 }}>
+                    <button onClick={() => setShowForm(true)} className="btn btn-primary" style={{ marginTop: 16 }}>
                         <Plus size={18} /> Add Reminder
                     </button>
                 </div>
@@ -288,7 +288,7 @@ const RemindersSettings = ({ event }) => {
                                 />
                             </div>
 
-                            <button type="submit" className="btn-primary" style={{ marginTop: 8, justifyContent: 'center' }}>
+                            <button type="submit" className="btn btn-primary" style={{ marginTop: 8, justifyContent: 'center' }}>
                                 <Check size={18} /> Create Reminder
                             </button>
                         </form>

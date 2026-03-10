@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogIn, Mail, Lock, AlertCircle, Scan, Fingerprint, Phone } from 'lucide-react';
+import { LogIn, Mail, Lock, AlertCircle, Scan, Fingerprint, Phone, Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -18,6 +18,7 @@ const Login = () => {
     const [biometricLoading, setBiometricLoading] = useState(false);
     const [showBiometricPrompt, setShowBiometricPrompt] = useState(false);
     const [savedCredentials, setSavedCredentials] = useState(null);
+    const [showPassword, setShowPassword] = useState(false);
 
     // Auto-trigger biometric authentication on mount if available
     useEffect(() => {
@@ -331,14 +332,34 @@ const Login = () => {
                                     <div style={{ position: 'relative' }}>
                                         <Lock size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
                                         <input
-                                            type="password"
+                                            type={showPassword ? 'text' : 'password'}
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             className="form-input"
-                                            style={{ paddingLeft: '2.75rem' }}
+                                            style={{ paddingLeft: '2.75rem', paddingRight: '2.75rem' }}
                                             placeholder="Enter your password"
                                             required
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            style={{
+                                                position: 'absolute',
+                                                right: '0.5rem',
+                                                top: '50%',
+                                                transform: 'translateY(-50%)',
+                                                background: 'none',
+                                                border: 'none',
+                                                padding: '0.5rem',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                color: 'var(--text-secondary)'
+                                            }}
+                                        >
+                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
                                     </div>
                                     <div style={{ marginTop: '0.5rem', textAlign: 'right' }}>
                                         <Link
