@@ -1,3 +1,4 @@
+import { parsePhoneNumberWithError } from 'libphonenumber-js';
 import 'dotenv/config'; // Load env vars immediately
 import express from 'express';
 import cors from 'cors';
@@ -624,12 +625,16 @@ app.get('/.well-known/assetlinks.json', (req, res) => {
 // Handles: +919876543210, 919876543210, 9876543210
 function normalizePhone(phone) {
     if (!phone) return null;
-    // Remove all non-digits
-    const digitsOnly = phone.replace(/\D/g, '');
-
-    // Return last 10 digits (standard Indian mobile number)
-    // This handles +91XXXXXXXXXX, 91XXXXXXXXXX, or XXXXXXXXXX
-    return digitsOnly.slice(-10);
+    const trimmed = phone.trim();
+    if (trimmed.startsWith('+')) {
+        try {
+            return parsePhoneNumberWithError(trimmed).format('E.164');
+        } catch (error) {
+            console.error('Phone parse error:', error.message);
+        }
+    }
+    // Fallback: strip non-digits, keep last 10
+    return trimmed.replace(/\D/g, '').slice(-10);
 }
 
 // === HEALTH CHECK ===
@@ -733,8 +738,8 @@ app.post('/api/auth/signup', async (req, res) => {
                 `UPDATE guests SET user_id = $1 
                  WHERE user_id IS NULL 
                  AND phone IS NOT NULL 
-                 AND RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $2`,
-                [userId, normalizedUserPhone]
+                 AND RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $2`,
+                (() => { const l8 = normalizedUserPhone ? normalizedUserPhone.replace(/\D/g, '').slice(-8) : null; return [userId, l8]; })()
             );
         }
 
@@ -791,8 +796,8 @@ app.post('/api/auth/login', async (req, res) => {
             result = await query(
                 `SELECT * FROM users WHERE 
                  phone IS NOT NULL AND
-        RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
-                [normalized]
+        RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $1`,
+                        [normalized ? normalized.replace(/\D/g, '').slice(-8) : null]
             );
             console.log('Login attempt - Users found:', result.rows.length);
             if (result.rows.length > 0) {
@@ -1070,12 +1075,12 @@ app.post('/api/auth/verify-otp', authLimiter, async (req, res) => {
         // OTP is valid. Now find or create user.
         // Similar loose matching logic as Login
         const digitsOnly = phone.replace(/\D/g, '');
-        const last10 = digitsOnly.slice(-10);
+        const last10 = normalizePhone(phone)?.replace(/\D/g, '').slice(-8);
 
         let result = await query(
             `SELECT * FROM users WHERE 
              phone IS NOT NULL AND
-        RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
+        RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $1`,
             [last10]
         );
 
@@ -1113,7 +1118,7 @@ app.post('/api/auth/verify-otp', authLimiter, async (req, res) => {
                 `UPDATE guests SET user_id = $1 
                   WHERE user_id IS NULL 
                   AND phone IS NOT NULL 
-                  AND RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $2`,
+                  AND RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $2`,
                 [userId, last10]
             );
 
@@ -1170,8 +1175,8 @@ app.post('/api/auth/forgot-password', async (req, res) => {
             result = await query(
                 `SELECT * FROM users WHERE 
                  phone IS NOT NULL AND
-        RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
-                [normalized]
+        RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $1`,
+                        [normalized ? normalized.replace(/\D/g, '').slice(-8) : null]
             );
         }
 
@@ -1601,8 +1606,8 @@ app.patch('/api/users/profile', authMiddleware, async (req, res) => {
                 `UPDATE guests SET user_id = $1 
                  WHERE user_id IS NULL 
                  AND phone IS NOT NULL 
-                 AND RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $2`,
-                [req.user.id, normalizedUserPhone]
+                 AND RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $2`,
+                (() => { const l8 = normalizedUserPhone ? normalizedUserPhone.replace(/\D/g, '').slice(-8) : null; return [req.user.id, l8]; })()
             );
         }
         if (user.email) {
@@ -2078,8 +2083,8 @@ app.post('/api/events/:eventId/guests', authMiddleware, async (req, res) => {
                 const userByPhone = await query(
                     `SELECT id FROM users WHERE 
                      phone IS NOT NULL AND
-RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
-                    [normalized]
+RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $1`,
+                        [normalized ? normalized.replace(/\D/g, '').slice(-8) : null]
                 );
                 if (userByPhone.rows.length > 0) {
                     linkedUserId = userByPhone.rows[0].id;
@@ -2278,8 +2283,8 @@ app.post('/api/events/:eventId/guests/bulk', authMiddleware, async (req, res) =>
                     const userByPhone = await query(
                         `SELECT id FROM users WHERE 
                          phone IS NOT NULL AND 
-                         RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 10) = $1`,
-                        [normalized]
+                         RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $1`,
+                        [normalized ? normalized.replace(/\D/g, '').slice(-8) : null]
                     );
                     if (userByPhone.rows.length > 0) {
                         linkedUserId = userByPhone.rows[0].id;
