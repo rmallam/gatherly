@@ -134,13 +134,69 @@ const AIAssistantWidget = () => {
             setIsLoading(false);
         }
     };
+    // --- Draggable FAB State ---
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const isDragging = useRef(false);
+    const dragStart = useRef({ x: 0, y: 0 });
+    const hasMoved = useRef(false);
+
+    const handlePointerDown = (e) => {
+        isDragging.current = true;
+        hasMoved.current = false;
+        dragStart.current = {
+            x: e.clientX - position.x,
+            y: e.clientY - position.y
+        };
+        e.target.setPointerCapture(e.pointerId);
+    };
+
+    const handlePointerMove = (e) => {
+        if (!isDragging.current) return;
+        // Require a tiny pixel threshold to register as a move instead of a tap jitter
+        if (Math.abs(e.clientX - dragStart.current.x - position.x) > 5 ||
+            Math.abs(e.clientY - dragStart.current.y - position.y) > 5) {
+            hasMoved.current = true;
+        }
+
+        setPosition({
+            x: e.clientX - dragStart.current.x,
+            y: e.clientY - dragStart.current.y
+        });
+    };
+
+    const handlePointerUp = (e) => {
+        isDragging.current = false;
+        e.target.releasePointerCapture(e.pointerId);
+    };
+
+    const handleClick = (e) => {
+        // If the user actually dragged the button, don't open the chat.
+        if (hasMoved.current) {
+            e.preventDefault();
+            e.stopPropagation();
+            hasMoved.current = false; // reset for next tap
+            return;
+        }
+        setIsOpen(true);
+    };
+
     return (
         <>
             {/* The Magic FAB */}
-            <div style={{ position: 'fixed', bottom: '170px', right: '24px', zIndex: 9000 }}>
+            <div style={{
+                position: 'fixed',
+                bottom: '170px',
+                right: '24px',
+                zIndex: 9000,
+                transform: `translate(${position.x}px, ${position.y}px)`,
+                touchAction: 'none' // Crucial for mobile dragging
+            }}>
                 {!isOpen && (
                     <button
-                        onClick={() => setIsOpen(true)}
+                        onPointerDown={handlePointerDown}
+                        onPointerMove={handlePointerMove}
+                        onPointerUp={handlePointerUp}
+                        onClick={handleClick}
                         className="ai-fab-btn"
                         style={{
                             width: '60px',
