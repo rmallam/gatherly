@@ -149,6 +149,21 @@ app.use('/api/auth/signup', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
 app.use('/api/auth/reset-password', authLimiter);
 
+// Protect expensive AI routes
+const aiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 15, // limit each IP to 15 requests per window for AI usage
+    message: 'Too many requests to AI integrations from this IP, please try again after 15 minutes.',
+});
+app.use('/api/ai', aiLimiter);
+
+// Protect SMS and Email integrations to prevent toll fraud
+const smsLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 10, // strict 10 messages per hour per IP to prevent spam
+    message: 'Too many messages sent from this IP, please try again after an hour.',
+});
+
 // Body parser
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
@@ -1006,7 +1021,7 @@ app.post('/api/auth/resend-verification', async (req, res) => {
 import { sendOTP, verifyOTP } from './services/otpService.js';
 
 // Send OTP
-app.post('/api/auth/send-otp', authLimiter, async (req, res) => {
+app.post('/api/auth/send-otp', smsLimiter, async (req, res) => {
     try {
         const { phone } = req.body;
 
@@ -1687,18 +1702,19 @@ app.get('/api/events', authMiddleware, async (req, res) => {
         // Get events created by the user
         const createdEvents = await query(
             `SELECT e.*,
-            (SELECT json_agg(g.*) FROM guests g WHERE g.event_id = e.id) as guests,
+            (SELECT json_agg(g.*) FROM (SELECT * FROM guests WHERE event_id = e.id ORDER BY created_at DESC LIMIT 500) g) as guests,
     'organizer' as role
              FROM events e 
              WHERE e.user_id = $1 
-             ORDER BY e.created_at DESC`,
+             ORDER BY e.created_at DESC
+             LIMIT 100`,
             [req.user.id]
         );
 
         // Get events where user is invited as a guest (but NOT the organizer)
         const invitedEvents = await query(
             `SELECT e.*,
-    (SELECT json_agg(g.*) FROM guests g WHERE g.event_id = e.id) as guests,
+    (SELECT json_agg(g.*) FROM (SELECT * FROM guests WHERE event_id = e.id ORDER BY created_at DESC LIMIT 500) g) as guests,
         'guest' as role,
         g.id as guest_id,
         g.rsvp,
@@ -1706,7 +1722,8 @@ app.get('/api/events', authMiddleware, async (req, res) => {
              FROM events e
              JOIN guests g ON g.event_id = e.id
              WHERE g.user_id = $1 AND e.user_id != $1
-             ORDER BY e.date DESC`,
+             ORDER BY e.date DESC
+             LIMIT 100`,
             [req.user.id]
         );
 

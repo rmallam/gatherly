@@ -1,8 +1,14 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
-// JWT secret - in production, use environment variable
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+// JWT secret - must be provided by environment in production
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+    console.error('CRITICAL FATAL ERROR: JWT_SECRET environment variable is not set.');
+    console.error('The server cannot start securely without a cryptographic signing key.');
+    process.exit(1);
+}
 
 // Generate JWT token
 export function generateToken(user) {
