@@ -95,6 +95,17 @@ The application supports two email providers. You can configure either one.
 
 ---
 
+## 8. Domain & DNS Management
+
+### **Hostinger**
+- **Purpose**: Domain registrar and DNS provider for `hosteze.app`.
+- **Console URL**: [https://hpanel.hostinger.com/](https://hpanel.hostinger.com/)
+- **Account Used**: `reach.hosteze@gmail.com`
+- **Configuration**:
+  - Pointing to Render via A/CNAME records.
+
+---
+
 ## Summary of Environment Variables
 
 ### **Frontend (`frontend/.env`)**
