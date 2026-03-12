@@ -9,6 +9,9 @@ const AITasksGenerator = ({ event, onTasksGenerated }) => {
     const [error, setError] = useState('');
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [upgradeReason, setUpgradeReason] = useState(null);
+    const [generatedTasks, setGeneratedTasks] = useState(null);
+    const [selectedTasks, setSelectedTasks] = useState(new Set());
+    const [isOpen, setIsOpen] = useState(false);
 
     const handleGenerate = async () => {
         if (!prompt.trim()) {
@@ -56,8 +59,8 @@ const AITasksGenerator = ({ event, onTasksGenerated }) => {
                     createdAt: new Date().toISOString()
                 }));
 
-                onTasksGenerated(newTasks);
-                setPrompt('');
+                setGeneratedTasks(newTasks);
+                setSelectedTasks(new Set(newTasks.map((_, i) => i))); // select all by default
             } else {
                 throw new Error('Received malformed data from AI');
             }
@@ -69,8 +72,6 @@ const AITasksGenerator = ({ event, onTasksGenerated }) => {
             setLoading(false);
         }
     };
-
-    const [isOpen, setIsOpen] = useState(false);
 
     return (
         <>
@@ -141,7 +142,11 @@ const AITasksGenerator = ({ event, onTasksGenerated }) => {
                         animation: 'modalSlideUp 0.3s ease-out'
                     }}>
                         <button
-                            onClick={() => setIsOpen(false)}
+                            onClick={() => {
+                                setIsOpen(false);
+                                setGeneratedTasks(null);
+                                setPrompt('');
+                            }}
                             style={{
                                 position: 'absolute',
                                 top: '16px',
@@ -167,56 +172,107 @@ const AITasksGenerator = ({ event, onTasksGenerated }) => {
                         </div>
 
                         <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: '1.5' }}>
-                            Describe your plan and let the AI generate a logical timeline of tasks and relative deadlines.
+                            {generatedTasks
+                                ? "Here's what the AI suggested. Select the tasks you want to add to your checklist."
+                                : "Describe your plan and let the AI generate a logical timeline of tasks and relative deadlines."}
                         </p>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            <textarea
-                                value={prompt}
-                                onChange={(e) => setPrompt(e.target.value)}
-                                placeholder="e.g. 'Draft a timeline for a 50-person corporate offsite in exactly 3 weeks'"
-                                className="modern-input"
-                                style={{
-                                    minHeight: '100px',
-                                    resize: 'vertical',
-                                }}
-                                disabled={loading}
-                            />
+                        {!generatedTasks ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <textarea
+                                    value={prompt}
+                                    onChange={(e) => setPrompt(e.target.value)}
+                                    placeholder="e.g. 'Draft a timeline for a 50-person corporate offsite in exactly 3 weeks'"
+                                    className="modern-input"
+                                    style={{
+                                        minHeight: '100px',
+                                        resize: 'vertical',
+                                    }}
+                                    disabled={loading}
+                                />
 
-                            {error && (
-                                <div style={{ color: '#ef4444', fontSize: '12px' }}>{error}</div>
-                            )}
-
-                            <button
-                                onClick={handleGenerate}
-                                disabled={loading}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '8px',
-                                    background: 'var(--primary)',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '14px',
-                                    borderRadius: '12px',
-                                    fontWeight: 600,
-                                    fontSize: '15px',
-                                    cursor: loading ? 'not-allowed' : 'pointer',
-                                    opacity: loading ? 0.7 : 1,
-                                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.25)'
-                                }}
-                                onMouseEnter={e => !loading && (e.currentTarget.style.transform = 'translateY(-1px)')}
-                                onMouseLeave={e => !loading && (e.currentTarget.style.transform = 'translateY(0)')}
-                            >
-                                {loading ? (
-                                    <><Loader size={18} className="animate-spin" /> Analyzing request & building timeline...</>
-                                ) : (
-                                    <><Target size={18} /> Auto-Generate Checklist</>
+                                {error && (
+                                    <div style={{ color: '#ef4444', fontSize: '12px' }}>{error}</div>
                                 )}
-                            </button>
-                        </div>
+
+                                <button
+                                    onClick={handleGenerate}
+                                    disabled={loading}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        background: 'var(--primary)',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '14px',
+                                        borderRadius: '12px',
+                                        fontWeight: 600,
+                                        fontSize: '15px',
+                                        cursor: loading ? 'not-allowed' : 'pointer',
+                                        opacity: loading ? 0.7 : 1,
+                                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        boxShadow: '0 4px 12px rgba(99, 102, 241, 0.25)'
+                                    }}
+                                    onMouseEnter={e => !loading && (e.currentTarget.style.transform = 'translateY(-1px)')}
+                                    onMouseLeave={e => !loading && (e.currentTarget.style.transform = 'translateY(0)')}
+                                >
+                                    {loading ? (
+                                        <><Loader size={18} className="animate-spin" /> Analyzing request & building timeline...</>
+                                    ) : (
+                                        <><Target size={18} /> Auto-Generate Checklist</>
+                                    )}
+                                </button>
+                            </div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <div style={{ maxHeight: '300px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {generatedTasks.map((t, idx) => (
+                                        <label key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px', cursor: 'pointer', border: selectedTasks.has(idx) ? '1px solid var(--primary)' : '1px solid transparent', userSelect: 'none' }}>
+                                            <input type="checkbox" checked={selectedTasks.has(idx)} onChange={() => {
+                                                const newSet = new Set(selectedTasks);
+                                                if (newSet.has(idx)) newSet.delete(idx);
+                                                else newSet.add(idx);
+                                                setSelectedTasks(newSet);
+                                            }} style={{ marginTop: '4px', cursor: 'pointer' }} />
+                                            <div>
+                                                <div style={{ fontWeight: 500, color: 'var(--text-primary)', fontSize: '15px' }}>{t.title}</div>
+                                                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                                                    <span style={{ textTransform: 'capitalize' }}>{t.category}</span> • <span style={{ textTransform: 'capitalize' }}>{t.priority} priority</span>
+                                                    {t.deadline && ` • Due: ${t.deadline}`}
+                                                </div>
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                                    <button onClick={() => {
+                                        if (selectedTasks.size === generatedTasks.length) {
+                                            setSelectedTasks(new Set());
+                                        } else {
+                                            setSelectedTasks(new Set(generatedTasks.map((_, i) => i)));
+                                        }
+                                    }} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '14px', fontWeight: 500 }}>
+                                        {selectedTasks.size === generatedTasks.length ? 'Deselect All' : 'Select All'}
+                                    </button>
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={() => {
+                                            const finalTasks = generatedTasks.filter((_, i) => selectedTasks.has(i));
+                                            onTasksGenerated(finalTasks);
+                                            setGeneratedTasks(null);
+                                            setPrompt('');
+                                            setIsOpen(false);
+                                        }}
+                                        disabled={selectedTasks.size === 0}
+                                        style={{ padding: '10px 20px', fontSize: '14px' }}
+                                    >
+                                        Add {selectedTasks.size} Tasks
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

@@ -99,11 +99,14 @@ export async function getMenuSuggestions(eventData) {
     const prompt = `You are an expert caterer and menu planner specializing in authentic ${countryName} cuisine and others.
     
 Event Details:
+- Title: ${eventData.title || 'Event'}
+- Theme/Description: ${eventData.description || 'Not specified'}
 - Type: ${eventData.eventType || 'General Event'}
 - Guests: ${eventData.guestCount || 100}
 - Cuisine Preference: ${eventData.cuisine || 'Authentic Local'}
+- Dietary Restrictions: ${eventData.dietary || 'None specified'}
 - Catering Budget: ${eventData.cateringBudget}
-- Location: ${countryName} (${countryCode})
+- Location: ${eventData.location || countryName} (${countryCode})
 
 CRITICAL INSTRUCTIONS:
 1. The menu MUST be authentic to ${countryName} if no specific cuisine is requested.
@@ -465,7 +468,9 @@ export async function generateTaskBreakdown(eventData, userPrompt) {
 
 Event Details: 
 - Title: ${eventData.title || 'Event'}
+- Theme/Description: ${eventData.description || 'Not specified'}
 - Type: ${eventData.eventType || 'General'}
+- Location: ${eventData.location || 'Not specified'}
 - Date: ${eventData.date || 'Not set'}
 
 Generate a logical timeline of tasks. If the event date is provided, try to assign realistic relative deadlines (format YYYY-MM-DD) leading up to the event date. Categories must strictly be one of: 'planning', 'booking', 'day-of', 'post-event'. Priorities must strictly be 'high', 'medium', or 'low'.

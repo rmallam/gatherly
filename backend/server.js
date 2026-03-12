@@ -253,6 +253,7 @@ app.post('/api/events/:id/tasks/generate', authMiddleware, requireProTier, async
         const eventData = {
             title: dbEvent.title,
             description: dbEvent.description,
+            location: dbEvent.location,
             date: dbEvent.date,
             eventType: dbEvent.data?.eventType || 'General'
         };
@@ -3580,7 +3581,10 @@ app.post('/api/events/:eventId/ai/menu-suggestions', authMiddleware, requireProT
         console.log('[API] Menu Suggestions Request Body:', JSON.stringify(req.body, null, 2));
 
         const eventData = {
-            eventType: event.event_type || 'General Event',
+            title: event.title,
+            description: event.description || '',
+            location: event.location || '',
+            eventType: event.event_type || event.data?.eventType || 'General Event',
             guestCount: req.body.guestCount || 100,
             cuisine: req.body.cuisine || 'Mixed',
             cateringBudget: req.body.cateringBudget || 2500,

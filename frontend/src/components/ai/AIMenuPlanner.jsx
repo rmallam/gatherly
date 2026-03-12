@@ -9,6 +9,8 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [suggestions, setSuggestions] = useState(null);
+    const [cuisinePreference, setCuisinePreference] = useState('');
+    const [dietaryRestrictions, setDietaryRestrictions] = useState('');
     // Use event country or default to 'US'
     const eventCountry = event.country || 'US';
 
@@ -24,7 +26,9 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    country: eventCountry
+                    country: eventCountry,
+                    cuisine: cuisinePreference,
+                    dietary: dietaryRestrictions
                 })
             });
 
@@ -79,23 +83,49 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
 
 
             {!suggestions && !loading && (
-                <div style={{ textAlign: 'center', padding: '2rem' }}>
-                    <button
-                        onClick={fetchSuggestions}
-                        className="btn btn-primary"
-                        style={{
-                            background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                            border: 'none',
-                            padding: '0.75rem 2rem',
-                            fontSize: '1rem'
-                        }}
-                    >
-                        <Sparkles size={18} style={{ marginRight: '8px' }} />
-                        Generate Menu Ideas
-                    </button>
-                    <p style={{ marginTop: '1rem', color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>
-                        Uses Gemini AI to plan a complete menu
-                    </p>
+                <div style={{ padding: '0 1rem 2rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Cuisine Preferences</label>
+                            <input
+                                type="text"
+                                className="modern-input"
+                                placeholder="e.g., Italian, Mexican, Fusion..."
+                                value={cuisinePreference}
+                                onChange={(e) => setCuisinePreference(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Dietary Restrictions</label>
+                            <input
+                                type="text"
+                                className="modern-input"
+                                placeholder="e.g., Vegan, Gluten-Free, Nut Allergy..."
+                                value={dietaryRestrictions}
+                                onChange={(e) => setDietaryRestrictions(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                        <button
+                            onClick={fetchSuggestions}
+                            className="btn btn-primary"
+                            style={{
+                                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                                border: 'none',
+                                padding: '0.75rem 2rem',
+                                fontSize: '1rem',
+                                width: '100%',
+                                justifyContent: 'center'
+                            }}
+                        >
+                            <Sparkles size={18} style={{ marginRight: '8px' }} />
+                            Generate Menu Ideas
+                        </button>
+                        <p style={{ marginTop: '1rem', color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>
+                            Uses Gemini AI to plan a complete menu
+                        </p>
+                    </div>
                 </div>
             )}
 
