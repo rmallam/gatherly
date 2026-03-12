@@ -38,8 +38,9 @@ const ManagerDashboard = () => {
     }, []);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [newEvent, setNewEvent] = useState({ title: '', date: '', location: '', country: 'US' });
+    const [newEvent, setNewEvent] = useState({ title: '', description: '', date: '', location: '', country: 'US' });
     const [filter, setFilter] = useState('upcoming'); // 'upcoming', 'past'
+    const [error, setError] = useState('');
     // Safety cleanup for confetti
     React.useEffect(() => {
         return () => confetti.reset();
@@ -47,7 +48,19 @@ const ManagerDashboard = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!newEvent.title || isSubmitting) return;
+        setError('');
+
+        if (!newEvent.title.trim()) {
+            setError('Please enter an event title');
+            return;
+        }
+
+        if (!newEvent.description?.trim()) {
+            setError('Please enter an event theme or vibe for the AI Assistant');
+            return;
+        }
+
+        if (isSubmitting) return;
 
         setIsSubmitting(true);
         try {
@@ -62,7 +75,7 @@ const ManagerDashboard = () => {
                 zIndex: 2000 // Ensure it's on top
             });
 
-            setNewEvent({ title: '', date: '', location: '', country: 'US' });
+            setNewEvent({ title: '', description: '', date: '', location: '', country: 'US' });
             setIsCreating(false);
 
             // Navigate to the newly created event

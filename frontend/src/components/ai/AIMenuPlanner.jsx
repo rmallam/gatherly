@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChefHat, Loader, AlertCircle, Plus, Sparkles } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { CountrySelector, AIHeader } from './AICommon';
+import AIContextModal from './AIContextModal';
 import { formatCurrency } from '../../utils/currencyUtils';
 
 const AIMenuPlanner = ({ event, onAddItems, styles }) => {
@@ -11,10 +12,12 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
     const [suggestions, setSuggestions] = useState(null);
     const [cuisinePreference, setCuisinePreference] = useState('');
     const [dietaryRestrictions, setDietaryRestrictions] = useState('');
+    const [showContextModal, setShowContextModal] = useState(false);
+
     // Use event country or default to 'US'
     const eventCountry = event.country || 'US';
 
-    const fetchSuggestions = async () => {
+    const fetchSuggestions = async (extraInstructions = '') => {
         setLoading(true);
         setError(null);
         try {
@@ -28,7 +31,8 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
                 body: JSON.stringify({
                     country: eventCountry,
                     cuisine: cuisinePreference,
-                    dietary: dietaryRestrictions
+                    dietary: dietaryRestrictions,
+                    extraInstructions: extraInstructions.trim()
                 })
             });
 
@@ -108,7 +112,7 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
                     </div>
                     <div style={{ textAlign: 'center' }}>
                         <button
-                            onClick={fetchSuggestions}
+                            onClick={() => setShowContextModal(true)}
                             className="btn btn-primary"
                             style={{
                                 background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
@@ -118,6 +122,7 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
                                 width: '100%',
                                 justifyContent: 'center'
                             }}
+                            disabled={loading}
                         >
                             <Sparkles size={18} style={{ marginRight: '8px' }} />
                             Generate Menu Ideas
@@ -232,13 +237,25 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
                         )}
 
                         <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                            <button onClick={fetchSuggestions} className="btn btn-text" style={{ fontSize: '0.9rem' }}>
+                            <button onClick={() => setShowContextModal(true)} className="btn btn-text" style={{ fontSize: '0.9rem' }}>
                                 Regenerate Ideas
                             </button>
                         </div>
                     </div>
                 </div>
             )}
+
+            <AIContextModal
+                event={event}
+                actionType="Menu"
+                isOpen={showContextModal}
+                onClose={() => setShowContextModal(false)}
+                generating={loading}
+                onConfirm={(customContextString) => {
+                    fetchSuggestions(customContextString);
+                    setShowContextModal(false);
+                }}
+            />
         </div>
     );
 };

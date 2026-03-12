@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Target, Loader, X } from 'lucide-react';
 import API_URL from '../../config/api';
 import UpgradeModal from '../UpgradeModal';
+import AIContextModal from './AIContextModal';
 
 const AITasksGenerator = ({ event, onTasksGenerated }) => {
     const [prompt, setPrompt] = useState('');
@@ -12,9 +13,11 @@ const AITasksGenerator = ({ event, onTasksGenerated }) => {
     const [generatedTasks, setGeneratedTasks] = useState(null);
     const [selectedTasks, setSelectedTasks] = useState(new Set());
     const [isOpen, setIsOpen] = useState(false);
+    const [showContextModal, setShowContextModal] = useState(false);
 
-    const handleGenerate = async () => {
-        if (!prompt.trim()) {
+    const handleGenerate = async (extraInstructions = '') => {
+        const finalInstructions = extraInstructions.trim() || prompt.trim();
+        if (!finalInstructions) {
             setError('Please describe what you want the AI to plan for your event tasks.');
             return;
         }
@@ -30,7 +33,7 @@ const AITasksGenerator = ({ event, onTasksGenerated }) => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ prompt })
+                body: JSON.stringify({ prompt: finalInstructions })
             });
 
             if (!res.ok) {
@@ -196,7 +199,7 @@ const AITasksGenerator = ({ event, onTasksGenerated }) => {
                                 )}
 
                                 <button
-                                    onClick={handleGenerate}
+                                    onClick={() => setShowContextModal(true)}
                                     disabled={loading}
                                     style={{
                                         display: 'flex',
@@ -281,6 +284,17 @@ const AITasksGenerator = ({ event, onTasksGenerated }) => {
                 isOpen={showUpgradeModal}
                 onClose={() => setShowUpgradeModal(false)}
                 triggerReason={upgradeReason}
+            />
+
+            <AIContextModal
+                event={event}
+                actionType="Tasks"
+                isOpen={showContextModal}
+                onClose={() => setShowContextModal(false)}
+                generating={loading}
+                onConfirm={(customContextString) => {
+                    handleGenerate(customContextString);
+                }}
             />
         </>
     );

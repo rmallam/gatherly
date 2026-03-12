@@ -79,7 +79,7 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
 /**
  * Get AI-powered menu suggestions
  */
-export async function getMenuSuggestions(eventData) {
+export async function getMenuSuggestions(eventData, extraInstructions = '') {
   try {
     const model = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
 
@@ -114,7 +114,7 @@ CRITICAL INSTRUCTIONS:
 3. If the country is US, use US Dollar ($).
 4. SUGGESTIONS MUST BE LOCALLY SOURCED AND CULTURALLY APPROPRIATE for ${countryName}.
 5. Do NOT suggest generic western food for an Indian wedding unless explicitly asked.
-
+${extraInstructions ? `\nSPECIAL USER INSTRUCTIONS (PRIORITIZE THESE):\n${extraInstructions}\n` : ''}
 Create a complete menu with:
 1. Appetizers (3-4 items, costs in local currency)
 2. Main courses (3-4 items, costs in local currency)
@@ -472,6 +472,7 @@ Event Details:
 - Type: ${eventData.eventType || 'General'}
 - Location: ${eventData.location || 'Not specified'}
 - Date: ${eventData.date || 'Not set'}
+${userPrompt ? `\nSPECIAL USER INSTRUCTIONS:\n${userPrompt}\n` : ''}
 
 Generate a logical timeline of tasks. If the event date is provided, try to assign realistic relative deadlines (format YYYY-MM-DD) leading up to the event date. Categories must strictly be one of: 'planning', 'booking', 'day-of', 'post-event'. Priorities must strictly be 'high', 'medium', or 'low'.
 

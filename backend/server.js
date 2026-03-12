@@ -3593,7 +3593,8 @@ app.post('/api/events/:eventId/ai/menu-suggestions', authMiddleware, requireProT
             country: (req.body.country && req.body.country !== 'US') ? req.body.country : (event.country || 'US')
         };
 
-        const menuSuggestions = await getMenuSuggestions(eventData);
+        const extraInstructions = req.body.extraInstructions || '';
+        const menuSuggestions = await getMenuSuggestions(eventData, extraInstructions);
 
         res.json({
             success: true,
