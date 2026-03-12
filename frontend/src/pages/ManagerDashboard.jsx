@@ -237,6 +237,18 @@ const ManagerDashboard = () => {
                                         autoFocus
                                     />
                                 </div>
+
+                                <div>
+                                    <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Event Theme / Vibe *</label>
+                                    <textarea
+                                        value={newEvent.description || ''}
+                                        onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                                        className="form-input"
+                                        placeholder="e.g. 80s Retro Arcade Party, Rustic Outdoor Wedding..."
+                                        style={{ minHeight: '80px', resize: 'vertical' }}
+                                    />
+                                </div>
+
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                     <div>
                                         <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Date</label>
