@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Loader2, Upload, ImageIcon, X } from 'lucide-react';
 import { compressImage } from '../../utils/imageUtils';
+import CategoryTourWrapper from '../tours/CategoryTourWrapper';
 
 const GalleryTab = ({ event }) => {
     const { user } = useAuth();
@@ -225,6 +226,17 @@ const GalleryTab = ({ event }) => {
 
     return (
         <div style={{ padding: '0 0 2rem 0' }}>
+            <CategoryTourWrapper
+                tabId="gallery"
+                steps={[
+                    {
+                        target: '.tour-upload-photo-btn',
+                        content: 'Upload and share your favorite moments from the event here! Both hosts and guests can add photos.',
+                        placement: 'bottom',
+                        disableBeacon: true,
+                    }
+                ]}
+            />
             <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -255,7 +267,7 @@ const GalleryTab = ({ event }) => {
                     <button
                         onClick={() => fileInputRef.current?.click()}
                         disabled={uploading}
-                        className="btn btn-primary"
+                        className="btn btn-primary tour-upload-photo-btn"
                         style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                     >
                         {uploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}

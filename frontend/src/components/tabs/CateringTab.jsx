@@ -6,6 +6,7 @@ import '../../pages/EventTabs.css';
 import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 
 import AIMenuPlanner from '../ai/AIMenuPlanner';
+import CategoryTourWrapper from '../tours/CategoryTourWrapper';
 
 const CateringTab = ({ event, onUpdateCatering }) => {
     const { user } = useAuth(); // Get user from context
@@ -120,11 +121,27 @@ const CateringTab = ({ event, onUpdateCatering }) => {
 
     return (
         <div>
+            <CategoryTourWrapper
+                tabId="catering"
+                steps={[
+                    {
+                        target: '.tour-add-catering-btn',
+                        content: 'You can manually log food plates and vendor costs here.',
+                        placement: 'bottom',
+                        disableBeacon: true,
+                    },
+                    {
+                        target: '.tour-ai-chef-btn',
+                        content: '✨ The AI Chef can automatically invent a themed food menu with prices and servings!',
+                        placement: 'bottom',
+                    }
+                ]}
+            />
             {/* Action Buttons Row */}
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
                 <button
                     onClick={() => setShowAddForm(!showAddForm)}
-                    className="btn btn-primary"
+                    className="btn btn-primary tour-add-catering-btn"
                     style={{ flex: 1 }}
                 >
                     <Plus size={16} /> Add Custom Item
@@ -132,7 +149,7 @@ const CateringTab = ({ event, onUpdateCatering }) => {
                 {user?.subscription_tier === 'pro' && (
                     <button
                         onClick={() => setShowAIPlanner(!showAIPlanner)}
-                        className="btn btn-secondary"
+                        className="btn btn-secondary tour-ai-chef-btn"
                         style={{
                             flex: 1,
                             background: showAIPlanner ? 'var(--bg-secondary)' : 'transparent',

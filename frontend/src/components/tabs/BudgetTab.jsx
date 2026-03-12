@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { DollarSign, Plus, Trash2, Edit2, Check, X, AlertCircle, TrendingUp, Lock } from 'lucide-react';
 import CategoryChart from '../budget/CategoryChart';
 import AIBudgetOptimizer from '../ai/AIBudgetOptimizer';
+import CategoryTourWrapper from '../tours/CategoryTourWrapper';
 import '../../pages/EventTabs.css';
 import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils'; // Import shared styles
 
@@ -241,7 +242,17 @@ const BudgetTab = ({ event }) => {
 
     return (
         <div className="event-tab-page">
-
+            <CategoryTourWrapper
+                tabId="budget"
+                steps={[
+                    {
+                        target: '.tour-set-budget-btn',
+                        content: 'Set and update your total budget here. We will track your remaining balance as you add expenses.',
+                        placement: 'bottom',
+                        disableBeacon: true,
+                    }
+                ]}
+            />
             {/* Header / Empty State */}
             {!budget ? (
                 <div className="tab-empty-state">
@@ -252,7 +263,7 @@ const BudgetTab = ({ event }) => {
                     <p style={{ marginBottom: 24 }}>Track event expenses and stay on target.</p>
                     <button
                         onClick={() => setShowBudgetForm(true)}
-                        className="btn btn-primary"
+                        className="btn btn-primary tour-set-budget-btn"
                         style={{ margin: '0 auto' }}
                     >
                         Set Total Budget
@@ -266,6 +277,7 @@ const BudgetTab = ({ event }) => {
                             <span style={{ fontSize: 13, fontWeight: 600, opacity: 0.9 }}>BUDGET HEALTH</span>
                             <button
                                 onClick={() => { setTotalBudget(budget.total_budget); setShowBudgetForm(true); }}
+                                className="tour-set-budget-btn"
                                 style={{ background: 'rgba(255,255,255,0.2)', border: 'none', padding: 6, borderRadius: 8, color: 'white', cursor: 'pointer' }}
                             >
                                 <Edit2 size={16} />

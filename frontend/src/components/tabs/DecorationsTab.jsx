@@ -5,6 +5,7 @@ import '../../pages/EventTabs.css';
 import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 
 import AIDecorPlanner from '../ai/AIDecorPlanner';
+import CategoryTourWrapper from '../tours/CategoryTourWrapper';
 
 const DecorationsTab = ({ event, onUpdateDecorations }) => {
     const { user } = useAuth(); // Get user from context
@@ -139,6 +140,22 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
 
     return (
         <div className="event-tab-page">
+            <CategoryTourWrapper
+                tabId="decorations"
+                steps={[
+                    {
+                        target: '.tour-add-decor-btn',
+                        content: 'Manually add decoration items, categorizing them by area (Entrance, Stage, Tables).',
+                        placement: 'bottom',
+                        disableBeacon: true,
+                    },
+                    {
+                        target: '.tour-ai-stylist-btn',
+                        content: '✨ No idea what looks good? Let the AI Stylist generate a cohesive theme, colors, and item list!',
+                        placement: 'bottom',
+                    }
+                ]}
+            />
             {/* Stats */}
             <div className="tab-stats-grid">
                 <div className="stats-card">
@@ -169,7 +186,7 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
                 <button
                     onClick={() => setShowAddForm(!showAddForm)}
-                    className="btn btn-primary"
+                    className="btn btn-primary tour-add-decor-btn"
                     style={{ flex: 1 }}
                 >
                     <Plus size={16} /> Add Custom Item
@@ -177,7 +194,7 @@ const DecorationsTab = ({ event, onUpdateDecorations }) => {
                 {user?.subscription_tier === 'pro' && (
                     <button
                         onClick={() => setShowAIPlanner(!showAIPlanner)}
-                        className="btn btn-secondary"
+                        className="btn btn-secondary tour-ai-stylist-btn"
                         style={{
                             flex: 1,
                             background: showAIPlanner ? 'var(--bg-secondary)' : 'transparent',

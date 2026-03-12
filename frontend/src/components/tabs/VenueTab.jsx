@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MapPin, Save, X, Check, Building2 } from 'lucide-react';
 import LocationAutocomplete from '../common/LocationAutocomplete';
 import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
+import CategoryTourWrapper from '../tours/CategoryTourWrapper';
 
 const VenueTab = ({ event, onUpdateVenue }) => {
     const [venue, setVenue] = useState(event.venue || {
@@ -75,6 +76,17 @@ const VenueTab = ({ event, onUpdateVenue }) => {
 
     return (
         <div>
+            <CategoryTourWrapper
+                tabId="venue"
+                steps={[
+                    {
+                        target: '.tour-venue-form',
+                        content: 'Search for any global location to automatically parse address details, or enter it manually!',
+                        placement: 'bottom',
+                        disableBeacon: true,
+                    }
+                ]}
+            />
             {hasVenue && !isEditing ? (
                 <div>
                     {/* Header */}
@@ -200,7 +212,7 @@ const VenueTab = ({ event, onUpdateVenue }) => {
                 </div>
             ) : (
                 /* Edit Mode */
-                <div style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '16px' }}>
+                <div className="tour-venue-form" style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '16px' }}>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1.5rem' }}>
                         {hasVenue ? 'Edit Venue Details' : 'Add Venue Information'}
                     </h3>

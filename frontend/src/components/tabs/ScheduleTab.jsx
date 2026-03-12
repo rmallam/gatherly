@@ -4,6 +4,7 @@ import { Plus, Calendar as CalendarIcon, Clock, MapPin } from 'lucide-react';
 import ScheduleItemCard from './ScheduleItemCard';
 import AddScheduleItemModal from './AddScheduleItemModal';
 import AISmartSchedule from '../ai/AISmartSchedule';
+import CategoryTourWrapper from '../tours/CategoryTourWrapper';
 import '../../pages/EventTabs.css';
 
 const ScheduleTab = ({ event }) => {
@@ -85,6 +86,17 @@ const ScheduleTab = ({ event }) => {
 
     return (
         <div className="event-tab-page">
+            <CategoryTourWrapper
+                tabId="schedule"
+                steps={[
+                    {
+                        target: '.tour-add-schedule-btn',
+                        content: 'Manually add items to your itinerary, or use the AI Smart Schedule above to generate a full day plan!',
+                        placement: 'top',
+                        disableBeacon: true,
+                    }
+                ]}
+            />
             {/* Date Selector (Pill Scroll) */}
             <div className="date-picker-scroll">
                 {dates.map((date, index) => {
@@ -141,7 +153,7 @@ const ScheduleTab = ({ event }) => {
 
             {/* FAB */}
             <button
-                className="btn-floating-action"
+                className="btn-floating-action tour-add-schedule-btn"
                 onClick={() => setShowAddModal(true)}
             >
                 <Plus size={24} />

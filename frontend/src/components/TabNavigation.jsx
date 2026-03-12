@@ -35,7 +35,7 @@ const TabNavigation = ({ tabs, activeTab, onTabChange }) => {
                             key={tab.id}
                             ref={isActive ? activeTabRef : null}
                             onClick={() => onTabChange(tab.id)}
-                            className={`tab-nav-item ${isActive ? 'active' : ''}`}
+                            className={`tab-nav-item tour-${tab.id}-tab ${isActive ? 'active' : ''}`}
                             title={tab.label}
                             role="tab"
                             aria-selected={isActive}

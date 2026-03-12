@@ -28,6 +28,7 @@ const Header = ({ showAuth = true }) => {
             {/* Left - User Profile */}
             <Link
                 to="/profile"
+                className="tour-profile-nav"
                 style={{
                     textDecoration: 'none',
                     display: 'flex',

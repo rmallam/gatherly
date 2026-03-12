@@ -533,16 +533,19 @@ app.post('/api/ai/chat', authMiddleware, requireProTier, async (req, res) => {
                     const values = [];
                     let valIdx = 1;
 
-                    if (intent.data.title) { updates.push(`title = $${valIdx++} `); values.push(intent.data.title); }
-                    if (intent.data.date) { updates.push(`date = $${valIdx++} `); values.push(intent.data.date); }
-                    if (intent.data.location) { updates.push(`location = $${valIdx++} `); values.push(intent.data.location); }
-                    if (intent.data.description) { updates.push(`description = $${valIdx++} `); values.push(intent.data.description); }
+                    if (intent.data.title) { updates.push(`title = $${valIdx++}`); values.push(intent.data.title); }
+                    if (intent.data.date) { updates.push(`date = $${valIdx++}`); values.push(intent.data.date); }
+                    if (intent.data.location) { updates.push(`location = $${valIdx++}`); values.push(intent.data.location); }
+                    if (intent.data.description) { updates.push(`description = $${valIdx++}`); values.push(intent.data.description); }
 
                     if (updates.length > 0) {
                         values.push(updateEventId);
-                        values.push(req.user.id);
+                        const idParamIdx = valIdx++;
 
-                        const updateQuery = `UPDATE events SET ${updates.join(', ')} WHERE id = $${valIdx++ - 2} AND user_id = $${valIdx - 2} RETURNING * `;
+                        values.push(req.user.id);
+                        const userIdParamIdx = valIdx++;
+
+                        const updateQuery = `UPDATE events SET ${updates.join(', ')} WHERE id = $${idParamIdx} AND user_id = $${userIdParamIdx} RETURNING *`;
                         const updatedEvent = await query(updateQuery, values);
                         if (updatedEvent.rows.length > 0) {
                             result = updatedEvent.rows[0];

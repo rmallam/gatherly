@@ -4,6 +4,7 @@ import { Calendar, MapPin, Users, CheckCircle, X, DollarSign, Clock, Sparkles } 
 import { useApp } from '../../context/AppContext';
 import AttendanceStatsWidget from '../AttendanceStatsWidget';
 import AIBudgetOptimizer from '../ai/AIBudgetOptimizer';
+import CategoryTourWrapper from '../tours/CategoryTourWrapper';
 import { formatCurrency } from '../../utils/currencyUtils';
 import '../../pages/EventTabs.css';
 
@@ -98,6 +99,17 @@ const OverviewTab = ({ event, onTabChange }) => {
 
         return (
             <div className="event-tab-page">
+                <CategoryTourWrapper
+                    tabId="overview"
+                    steps={[
+                        {
+                            target: '.tour-quick-actions',
+                            content: 'Use these quick actions to navigate to key areas of your event.',
+                            placement: 'bottom',
+                            disableBeacon: true,
+                        }
+                    ]}
+                />
                 {/* Minimal Hero Section (Shared/Trip View) */}
                 <div style={{ marginBottom: 28, padding: '0 4px' }}>
                     <div style={{
@@ -141,7 +153,7 @@ const OverviewTab = ({ event, onTabChange }) => {
                 </div>
 
                 {/* Quick Actions Row */}
-                <div className="tab-stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 24 }}>
+                <div className="tab-stats-grid tour-quick-actions" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 24 }}>
                     {sharedQuickActions.map((action, index) => (
                         <div key={index} className="stats-card" onClick={action.onClick} style={{ cursor: 'pointer', padding: 12 }}>
                             <div style={{ width: 40, height: 40, borderRadius: 12, background: `${action.color}20`, color: action.color, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
@@ -241,6 +253,17 @@ const OverviewTab = ({ event, onTabChange }) => {
 
     return (
         <div className="event-tab-page">
+            <CategoryTourWrapper
+                tabId="overview"
+                steps={[
+                    {
+                        target: '.tour-quick-actions',
+                        content: 'Use these quick actions to navigate key areas like scanning guests, viewing attendance, or managing your budget.',
+                        placement: 'bottom',
+                        disableBeacon: true,
+                    }
+                ]}
+            />
             {/* Minimal Hero Section (Host View) */}
             <div style={{ marginBottom: 28, padding: '0 4px' }}>
                 <div style={{
@@ -304,7 +327,7 @@ const OverviewTab = ({ event, onTabChange }) => {
             </div>
 
             {/* Quick Actions Row */}
-            <div className="tab-stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 24 }}>
+            <div className="tab-stats-grid tour-quick-actions" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 24 }}>
                 <div className="stats-card" onClick={() => navigate('/scanner')} style={{ cursor: 'pointer', padding: 12 }}>
                     <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
                         <Users size={20} />

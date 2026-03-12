@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, User, Mail, Phone, Lock, Check, LogOut, Shield, Star, ChevronRight, X } from 'lucide-react';
+import { ArrowLeft, Camera, User, Mail, Phone, Lock, Check, LogOut, Shield, Star, ChevronRight, X, PlayCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Camera as CapCamera } from '@capacitor/camera';
 import { useTheme } from '../context/ThemeContext';
@@ -15,7 +15,7 @@ import './Profile.css';
 const Profile = () => {
     const navigate = useNavigate();
     const { theme } = useTheme();
-    const { refreshUser, logout, user } = useAuth();
+    const { refreshUser, logout, user, resetTours } = useAuth();
     const { events } = useApp();
 
     // UI State
@@ -585,6 +585,20 @@ const Profile = () => {
                         </div>
                     )}
                 </div>
+
+                {/* Reset Tour Button */}
+                <button
+                    className="logout-btn"
+                    style={{ color: '#6366f1', background: 'rgba(99, 102, 241, 0.1)', marginBottom: '12px' }}
+                    onClick={() => {
+                        resetTours();
+                        alert('Product Tour has been reset! Let\'s go to the Dashboard.');
+                        navigate('/manager');
+                    }}
+                >
+                    <PlayCircle size={18} />
+                    Restart App Tour
+                </button>
 
                 {/* Logout Button */}
                 <button

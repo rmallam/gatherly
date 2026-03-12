@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Music, Plus, X, Check, Trash2, Clock, Edit2 } from 'lucide-react';
+import CategoryTourWrapper from '../tours/CategoryTourWrapper';
 
 const EntertainmentTab = ({ event, onUpdateEntertainment }) => {
     const [entertainment, setEntertainment] = useState(event.entertainment || {
@@ -74,8 +75,19 @@ const EntertainmentTab = ({ event, onUpdateEntertainment }) => {
 
     return (
         <div>
+            <CategoryTourWrapper
+                tabId="entertainment"
+                steps={[
+                    {
+                        target: '.tour-add-activity-btn',
+                        content: 'Build your event timeline by adding activities here.',
+                        placement: 'bottom',
+                        disableBeacon: true,
+                    }
+                ]}
+            />
             {/* Add Button */}
-            <button onClick={() => setShowAddActivity(!showAddActivity)} className="btn btn-primary" style={{ marginBottom: '1.5rem' }}>
+            <button onClick={() => setShowAddActivity(!showAddActivity)} className="btn btn-primary tour-add-activity-btn" style={{ marginBottom: '1.5rem' }}>
                 <Plus size={16} /> Add Activity
             </button>
 

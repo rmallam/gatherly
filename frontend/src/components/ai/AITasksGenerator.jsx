@@ -80,6 +80,7 @@ const AITasksGenerator = ({ event, onTasksGenerated }) => {
         <>
             {/* Clickable Widget Card */}
             <div
+                className="tour-ai-generator"
                 onClick={() => setIsOpen(true)}
                 style={{
                     background: 'var(--bg-primary)',

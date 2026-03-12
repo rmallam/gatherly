@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Gift, Plus, X, Check, Trash2, Edit2, ExternalLink } from 'lucide-react';
 import API_URL from '../../config/api';
 import AIGiftsGenerator from '../ai/AIGiftsGenerator';
+import CategoryTourWrapper from '../tours/CategoryTourWrapper';
 import '../../pages/EventTabs.css';
 import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 
@@ -113,6 +114,17 @@ const GiftsTab = ({ event }) => {
 
     return (
         <div className="event-tab-page">
+            <CategoryTourWrapper
+                tabId="gifts"
+                steps={[
+                    {
+                        target: '.tour-add-gift-btn',
+                        content: 'Manually add gift links to your registry, or use the AI Generator above to instantly curate a list!',
+                        placement: 'bottom',
+                        disableBeacon: true,
+                    }
+                ]}
+            />
             {/* AI Generator UI placed at top like a search bar */}
             <AIGiftsGenerator event={event} onGiftsGenerated={fetchGifts} />
 
@@ -235,7 +247,7 @@ const GiftsTab = ({ event }) => {
             )}
 
             {/* FAB */}
-            <button className="btn-floating-action" onClick={() => setShowAddForm(true)}>
+            <button className="btn-floating-action tour-add-gift-btn" onClick={() => setShowAddForm(true)}>
                 <Plus size={24} />
             </button>
 

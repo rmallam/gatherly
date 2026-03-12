@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Briefcase, Plus, X, Check, Trash2, Phone, Mail, Edit2 } from 'lucide-react';
 import AIVendorQuoteAnalyzer from '../ai/AIVendorQuoteAnalyzer';
+import CategoryTourWrapper from '../tours/CategoryTourWrapper';
 import '../../pages/EventTabs.css';
 import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 
@@ -94,6 +95,17 @@ const VendorsTab = ({ event, onUpdateVendors }) => {
 
     return (
         <div className="event-tab-page">
+            <CategoryTourWrapper
+                tabId="vendors"
+                steps={[
+                    {
+                        target: '.tour-add-vendor-btn',
+                        content: 'Manually add vendor contacts and quotes, or paste an email into the AI Analyzer above to instantly extract the details!',
+                        placement: 'bottom',
+                        disableBeacon: true,
+                    }
+                ]}
+            />
             {/* AI Vendor Quote Analyzer */}
             <AIVendorQuoteAnalyzer
                 event={event}
@@ -252,7 +264,7 @@ const VendorsTab = ({ event, onUpdateVendors }) => {
             <div style={{ height: 80 }} />
 
             {/* FAB */}
-            <button className="btn-floating-action" onClick={() => setShowAddForm(true)}>
+            <button className="btn-floating-action tour-add-vendor-btn" onClick={() => setShowAddForm(true)}>
                 <Plus size={24} />
             </button>
 

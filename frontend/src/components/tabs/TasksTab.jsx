@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CheckSquare, Plus, X, Check, Trash2, Calendar, AlertCircle } from 'lucide-react';
 import AITasksGenerator from '../ai/AITasksGenerator';
+import CategoryTourWrapper from '../tours/CategoryTourWrapper';
 import '../../pages/EventTabs.css';
 
 const TasksTab = ({ event, onUpdateTasks }) => {
@@ -88,6 +89,22 @@ const TasksTab = ({ event, onUpdateTasks }) => {
 
     return (
         <div>
+            <CategoryTourWrapper
+                tabId="tasks"
+                steps={[
+                    {
+                        target: '.tour-add-task-btn',
+                        content: 'Start planning by adding a custom task to your checklist.',
+                        placement: 'bottom',
+                        disableBeacon: true,
+                    },
+                    {
+                        target: '.tour-ai-generator',
+                        content: '✨ Pro users: Skip the typing and let AI generate a full itinerary instantly!',
+                        placement: 'bottom',
+                    }
+                ]}
+            />
             {/* AI Generator always at the top like a search bar */}
             <AITasksGenerator
                 event={event}
@@ -97,7 +114,7 @@ const TasksTab = ({ event, onUpdateTasks }) => {
             {/* Add Task Button */}
             <button
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="btn btn-primary"
+                className="btn btn-primary tour-add-task-btn"
                 style={{ marginBottom: '1.5rem' }}
             >
                 <Plus size={16} /> Add Task

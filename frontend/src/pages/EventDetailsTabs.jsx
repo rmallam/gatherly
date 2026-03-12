@@ -21,6 +21,7 @@ import { LayoutDashboard, Users, UtensilsCrossed, CheckSquare, MapPin, Sparkles,
 // Import the old EventDetails as a component for the Guests tab temporarily
 import EventDetails from './EventDetails';
 import ExpensesDashboard from '../components/expenses/ExpensesDashboard';
+import EventDetailsTour from '../components/tours/EventDetailsTour';
 
 const EventDetailsTabs = () => {
     const { id } = useParams();
@@ -125,6 +126,7 @@ const EventDetailsTabs = () => {
 
     return (
         <div style={{ maxWidth: '75rem', margin: '0 auto' }}>
+            <EventDetailsTour />
             {/* Sticky Event Title Header */}
             <div style={{
                 position: 'sticky',

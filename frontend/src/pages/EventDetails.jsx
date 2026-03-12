@@ -9,6 +9,7 @@ import UpgradeModal from '../components/UpgradeModal';
 import { exportAllGuests, exportCheckedInGuests } from '../utils/csvExport';
 import { UserPlus, QrCode, Search, CheckCircle2, ArrowLeft, Users, Upload, Smartphone, Download, Share2, Plus, X, MessageCircle, Trash2, Wand2 } from 'lucide-react';
 import GenerateInviteModal from '../components/GenerateInviteModal';
+import CategoryTourWrapper from '../components/tours/CategoryTourWrapper';
 
 const EventDetails = () => {
     const { id } = useParams();
@@ -435,6 +436,22 @@ const EventDetails = () => {
 
     return (
         <div style={{ maxWidth: '75rem', margin: '0 auto' }}>
+            <CategoryTourWrapper
+                tabId="guests"
+                steps={[
+                    {
+                        target: '.tour-add-guest-actions',
+                        content: 'Welcome to the Guest list! You can manually add guests, export lists, or use AI to draft beautiful invitations for WhatsApp!',
+                        placement: 'bottom',
+                        disableBeacon: true,
+                    },
+                    {
+                        target: '.tour-bulk-actions-bar',
+                        content: 'Once guests are added, you can select them to send bulk WhatsApp invitations or track RSVPs!',
+                        placement: 'bottom',
+                    }
+                ]}
+            />
             {/* Simple Header */}
             <div style={{ marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
@@ -447,7 +464,7 @@ const EventDetails = () => {
                         </p>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <div className="tour-add-guest-actions" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
                         <button
                             onClick={() => setShowAiInviteModal(true)}
                             className="btn btn-secondary"
@@ -489,7 +506,7 @@ const EventDetails = () => {
 
             {/* Bulk Actions Bar */}
             {filteredGuests.length > 0 && (
-                <div style={{
+                <div className="tour-bulk-actions-bar" style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -665,7 +682,7 @@ const EventDetails = () => {
                                     {/* Generic Share Button */}
                                     <button
                                         onClick={() => handleInviteGuest(guest)}
-                                        className="btn btn-secondary"
+                                        className="btn btn-secondary tour-invite-btn"
                                         style={{ fontSize: '0.875rem', padding: '0.5rem 0.875rem' }}
                                         title="Share invitation"
                                     >

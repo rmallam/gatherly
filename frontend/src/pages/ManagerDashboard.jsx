@@ -9,6 +9,7 @@ import RateAppService from '../services/RateAppService';
 import UpgradeModal from '../components/UpgradeModal';
 import { countries } from '../utils/currencyUtils';
 import LocationAutocomplete from '../components/common/LocationAutocomplete';
+import DashboardTour from '../components/tours/DashboardTour';
 import './ManagerDashboard.css';
 
 const ManagerDashboard = () => {
@@ -109,6 +110,7 @@ const ManagerDashboard = () => {
 
     return (
         <>
+            <DashboardTour />
             <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '16px', paddingBottom: '100px' }}>
                 {/* Unified Header: Title/Summary + Toggle */}
                 <div style={{
@@ -150,6 +152,7 @@ const ManagerDashboard = () => {
                 {events.length > 0 && (
                     <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', background: 'var(--bg-secondary)', padding: '4px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                         <button
+                            className="tour-upcoming-tab"
                             onClick={() => setFilter('upcoming')}
                             style={{
                                 flex: 1,
@@ -508,6 +511,7 @@ const ManagerDashboard = () => {
 
             {/* Floating Action Button - Splitwise style */}
             < button
+                className="tour-create-btn"
                 onClick={checkLimitAndOpen}
                 style={{
                     position: 'fixed',

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Share2, MessageSquare, Send, Clock, CheckCircle, XCircle, Heart, History, Loader, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import API_URL from '../../config/api';
+import CategoryTourWrapper from '../tours/CategoryTourWrapper';
 import '../../pages/EventTabs.css';
 
 const MessagesTab = ({ event }) => {
@@ -141,11 +142,27 @@ const MessagesTab = ({ event }) => {
 
     return (
         <div className="event-tab-page">
+            <CategoryTourWrapper
+                tabId="messages"
+                steps={[
+                    {
+                        target: '.tour-announcement-tab',
+                        content: 'Blast announcements via SMS to selected guests (e.g., all confirmed guests).',
+                        placement: 'bottom',
+                        disableBeacon: true,
+                    },
+                    {
+                        target: '.tour-thankyou-tab',
+                        content: 'Send automated "Thank You" messages to guests who attended after the event is over.',
+                        placement: 'bottom'
+                    }
+                ]}
+            />
             {/* Tab Selector */}
             <div style={{ display: 'flex', gap: 8, marginBottom: 24, overflowX: 'auto', paddingBottom: 4 }}>
                 <button
                     onClick={() => setActiveTab('announcement')}
-                    className={`btn-secondary ${activeTab === 'announcement' ? 'active-tab-btn' : ''}`}
+                    className={`btn-secondary ${activeTab === 'announcement' ? 'active-tab-btn' : ''} tour-announcement-tab`}
                     style={{
                         background: activeTab === 'announcement' ? 'var(--primary)' : 'transparent',
                         color: activeTab === 'announcement' ? 'white' : 'var(--text-secondary)',
@@ -158,7 +175,7 @@ const MessagesTab = ({ event }) => {
                 </button>
                 <button
                     onClick={() => setActiveTab('thankyou')}
-                    className={`btn-secondary ${activeTab === 'thankyou' ? 'active-tab-btn' : ''}`}
+                    className={`btn-secondary ${activeTab === 'thankyou' ? 'active-tab-btn' : ''} tour-thankyou-tab`}
                     style={{
                         background: activeTab === 'thankyou' ? 'var(--primary)' : 'transparent',
                         color: activeTab === 'thankyou' ? 'white' : 'var(--text-secondary)',

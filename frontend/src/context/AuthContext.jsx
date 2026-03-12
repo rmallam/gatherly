@@ -13,6 +13,18 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [biometricAvailable, setBiometricAvailable] = useState(false);
 
+    // Tour States
+    const [hasSeenDashboardTour, setHasSeenDashboardTour] = useState(
+        localStorage.getItem('hasSeenDashboardTour') === 'true'
+    );
+    const [hasSeenEventTour, setHasSeenEventTour] = useState(
+        localStorage.getItem('hasSeenEventTour') === 'true'
+    );
+    const [seenTabTours, setSeenTabTours] = useState(() => {
+        const stored = localStorage.getItem('seenTabTours');
+        return stored ? JSON.parse(stored) : {};
+    });
+
     const SERVER_NAME = 'hosteze-app';
 
     // Check if user is logged in on mount
@@ -282,6 +294,33 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const completeDashboardTour = () => {
+        localStorage.setItem('hasSeenDashboardTour', 'true');
+        setHasSeenDashboardTour(true);
+    };
+
+    const completeEventTour = () => {
+        localStorage.setItem('hasSeenEventTour', 'true');
+        setHasSeenEventTour(true);
+    };
+
+    const completeTabTour = (tabId) => {
+        setSeenTabTours(prev => {
+            const nextState = { ...prev, [tabId]: true };
+            localStorage.setItem('seenTabTours', JSON.stringify(nextState));
+            return nextState;
+        });
+    };
+
+    const resetTours = () => {
+        localStorage.removeItem('hasSeenDashboardTour');
+        localStorage.removeItem('hasSeenEventTour');
+        localStorage.removeItem('seenTabTours');
+        setHasSeenDashboardTour(false);
+        setHasSeenEventTour(false);
+        setSeenTabTours({});
+    };
+
     return (
         <AuthContext.Provider value={{
             user,
@@ -297,7 +336,15 @@ export const AuthProvider = ({ children }) => {
             disableBiometric,
             logout,
             refreshUser,
-            isAuthenticated: !!user
+            isAuthenticated: !!user,
+            // Tour context expose
+            hasSeenDashboardTour,
+            hasSeenEventTour,
+            seenTabTours,
+            completeDashboardTour,
+            completeEventTour,
+            completeTabTour,
+            resetTours
         }}>
             {children}
         </AuthContext.Provider>
