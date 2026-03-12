@@ -263,12 +263,12 @@ const ManagerDashboard = () => {
                                         <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Location</label>
                                         <LocationAutocomplete
                                             value={newEvent.location}
-                                            onChange={(val) => setNewEvent({ ...newEvent, location: val })}
+                                            onChange={(val) => setNewEvent(prev => ({ ...prev, location: val }))}
                                             onSelect={(place) => {
-                                                setNewEvent({
-                                                    ...newEvent,
+                                                setNewEvent(prev => ({
+                                                    ...prev,
                                                     location: place.formatted_address || place.name
-                                                });
+                                                }));
                                             }}
                                             placeholder="Grand Hall"
                                         />
