@@ -12,6 +12,14 @@ appId: com.guestscanner.app
     text: "Enter your password"
 - inputText: "Rakeshkumar@123"
 - tapOn: "Sign In"
+# Handle new Welcome Tour overlay
+- runFlow:
+    when:
+      visible: "Skip"
+    commands:
+      - tapOn: "Skip"
+      - waitForAnimationToEnd
+
 - waitForAnimationToEnd
 
 # Should see Admin button in header (shield icon)

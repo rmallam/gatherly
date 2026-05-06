@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, User, Mail, Phone, Lock, Check, LogOut, Shield, Star, ChevronRight, X, PlayCircle } from 'lucide-react';
+import { ArrowLeft, Camera, User, Mail, Phone, Lock, Check, LogOut, Shield, Star, ChevronRight, X, PlayCircle, Ticket, CheckCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Camera as CapCamera } from '@capacitor/camera';
 import { useTheme } from '../context/ThemeContext';
@@ -377,10 +377,16 @@ const Profile = () => {
                 {/* Stats */}
                 <div className="stats-grid">
                     <div className="stat-card">
+                        <div className="stat-icon" style={{ background: 'rgba(99, 102, 241, 0.1)' }}>
+                            <Ticket size={20} style={{ color: '#6366f1' }} />
+                        </div>
                         <div className="stat-value" style={{ color: '#6366f1' }}>{hostedCount}</div>
                         <div className="stat-label">Events Hosted</div>
                     </div>
                     <div className="stat-card">
+                        <div className="stat-icon" style={{ background: 'rgba(16, 185, 129, 0.1)' }}>
+                            <CheckCircle size={20} style={{ color: '#10b981' }} />
+                        </div>
                         <div className="stat-value" style={{ color: '#10b981' }}>{attendedCount}</div>
                         <div className="stat-label">Attended</div>
                     </div>
@@ -451,39 +457,37 @@ const Profile = () => {
                 />
 
                 {/* Info Card */}
-                <div className="info-card">
-                    <div className="card-title">
-                        <User size={20} style={{ color: '#6366f1' }} />
-                        Personal Information
+                <div className="settings-section">
+                    <div className="settings-header">
+                        <User size={16} /> Personal Information
                     </div>
 
-                    <div className="fields-grid">
-                        <div className="field-group">
-                            <label className="field-label">Full Name</label>
+                    <div className="settings-list">
+                        <div className={`settings-row ${isEditing ? 'is-editing' : ''}`}>
+                            <span className="settings-label">Full Name</span>
                             {isEditing ? (
                                 <input
-                                    className="modern-input"
+                                    className="settings-input"
                                     value={profile.name}
                                     onChange={(e) => setProfile({ ...profile, name: e.target.value })}
                                     placeholder="Your Name"
                                 />
                             ) : (
-                                <div className="field-value">{profile.name}</div>
+                                <span className="settings-value">{profile.name}</span>
                             )}
                         </div>
 
-                        <div className="field-group">
-                            <label className="field-label">Email Address</label>
-                            <div className="field-value" style={{ opacity: 0.7 }}>{profile.email}</div>
+                        <div className="settings-row">
+                            <span className="settings-label">Email Address</span>
+                            <span className="settings-value" style={{ opacity: 0.7 }}>{profile.email}</span>
                         </div>
 
-                        <div className="field-group">
-                            <label className="field-label">Phone Number</label>
+                        <div className={`settings-row ${isEditing ? 'is-editing' : ''}`}>
+                            <span className="settings-label">Phone Number</span>
                             {isEditing ? (
-                                <div style={{ display: 'flex', gap: '8px' }}>
+                                <div className="phone-input-group">
                                     <select
-                                        className="modern-input"
-                                        style={{ width: '60px' }}
+                                        className="settings-input phone-select"
                                         value={countryCode}
                                         onChange={(e) => setCountryCode(e.target.value)}
                                     >
@@ -492,7 +496,7 @@ const Profile = () => {
                                         <option value="+44">+44</option>
                                     </select>
                                     <input
-                                        className="modern-input"
+                                        className="settings-input"
                                         type="tel"
                                         value={phoneDigits}
                                         onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, ''))}
@@ -500,119 +504,121 @@ const Profile = () => {
                                     />
                                 </div>
                             ) : (
-                                <div className="field-value">{profile.phone || 'Not set'}</div>
+                                <span className="settings-value">{profile.phone || 'Not set'}</span>
                             )}
                         </div>
 
-                        <div className="field-group">
-                            <label className="field-label">Bio</label>
+                        <div className={`settings-row ${isEditing ? 'is-editing' : ''}`}>
+                            <span className="settings-label">Bio</span>
                             {isEditing ? (
                                 <textarea
-                                    className="modern-input"
-                                    rows={2}
+                                    className="settings-input"
                                     value={profile.bio}
                                     onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
                                     placeholder="Tell us about yourself..."
-                                    style={{ resize: 'none', lineHeight: '1.4' }}
                                 />
                             ) : (
-                                <div className="field-value" style={{ lineHeight: '1.5', fontSize: '15px' }}>{profile.bio || 'No bio'}</div>
+                                <span className="settings-value" style={{ maxWidth: '70%', whiteSpace: 'normal', textAlign: 'right' }}>{profile.bio || 'No bio'}</span>
                             )}
                         </div>
                     </div>
-
-                    {/* Save Info button moved to FAB */}
                 </div>
 
                 {/* Security Section (Collapsible) */}
-                {/* Security Section (Collapsible) */}
-                <div className="expandable-card">
+                <div className="settings-section">
                     <button
-                        className="card-header-btn"
+                        className="accordion-header"
                         onClick={() => setActiveTab(activeTab === 'security' ? 'details' : 'security')}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <Lock size={20} style={{ color: '#6366f1' }} />
+                            <Lock size={18} style={{ color: '#818cf8' }} />
                             Security & Password
                         </div>
-                        <ChevronRight size={20} style={{ transform: activeTab === 'security' ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
+                        <ChevronRight size={20} style={{ transform: activeTab === 'security' ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.2s', color: '#94a3b8' }} />
                     </button>
 
                     {activeTab === 'security' && (
-                        <div className="card-content">
+                        <div className="accordion-content">
                             <form onSubmit={handleChangePassword}>
-                                <div className="fields-grid">
-                                    <div className="field-group">
-                                        <label className="field-label">CURRENT PASSWORD</label>
+                                <div className="settings-list" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <div className="settings-row is-editing">
+                                        <span className="settings-label">Current Password</span>
                                         <input
                                             type="password"
                                             value={passwords.currentPassword}
                                             onChange={e => setPasswords({ ...passwords, currentPassword: e.target.value })}
-                                            className="modern-input"
+                                            className="settings-input"
                                             placeholder="••••••••"
                                         />
                                     </div>
-                                    <div className="field-group">
-                                        <label className="field-label">NEW PASSWORD</label>
+                                    <div className="settings-row is-editing">
+                                        <span className="settings-label">New Password</span>
                                         <input
                                             type="password"
                                             value={passwords.newPassword}
                                             onChange={e => setPasswords({ ...passwords, newPassword: e.target.value })}
-                                            className="modern-input"
+                                            className="settings-input"
                                             placeholder="Enter new password"
                                         />
                                     </div>
-                                    <div className="field-group">
-                                        <label className="field-label">CONFIRM PASSWORD</label>
+                                    <div className="settings-row is-editing">
+                                        <span className="settings-label">Confirm Password</span>
                                         <input
                                             type="password"
                                             value={passwords.confirmPassword}
                                             onChange={e => setPasswords({ ...passwords, confirmPassword: e.target.value })}
-                                            className="modern-input"
+                                            className="settings-input"
                                             placeholder="Confirm new password"
                                         />
                                     </div>
+                                    <div className="settings-row" style={{ borderBottom: 'none' }}>
+                                        <button
+                                            type="submit"
+                                            disabled={saving}
+                                            className="action-btn"
+                                            style={{ background: 'rgba(255,255,255,0.1)', color: '#fff' }}
+                                        >
+                                            Update Password
+                                        </button>
+                                    </div>
                                 </div>
-                                <button
-                                    type="submit"
-                                    disabled={saving}
-                                    className="save-info-btn"
-                                    style={{ background: '#374151', marginTop: '20px' }}
-                                >
-                                    Update Password
-                                </button>
                             </form>
                         </div>
                     )}
                 </div>
 
-                {/* Reset Tour Button */}
-                <button
-                    className="logout-btn"
-                    style={{ color: '#6366f1', background: 'rgba(99, 102, 241, 0.1)', marginBottom: '12px' }}
-                    onClick={() => {
-                        resetTours();
-                        alert('Product Tour has been reset! Let\'s go to the Dashboard.');
-                        navigate('/manager');
-                    }}
-                >
-                    <PlayCircle size={18} />
-                    Restart App Tour
-                </button>
+                {/* Action Buttons */}
+                <div className="action-buttons-grid">
+                    <button
+                        className="action-card-btn info"
+                        onClick={() => {
+                            resetTours();
+                            alert('Product Tour has been reset! Let\'s go to the Dashboard.');
+                            navigate('/manager');
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <PlayCircle size={20} />
+                            Restart App Tour
+                        </div>
+                        <ChevronRight size={20} opacity={0.5} />
+                    </button>
 
-                {/* Logout Button */}
-                <button
-                    className="logout-btn"
-                    onClick={() => {
-                        if (window.confirm('Are you sure you want to logout?')) {
-                            logout();
-                            navigate('/login');
-                        }
-                    }}
-                >
-                    <LogOut size={18} />
-                    Sign Out
-                </button>
+                    <button
+                        className="action-card-btn warning"
+                        onClick={() => {
+                            if (window.confirm('Are you sure you want to logout?')) {
+                                logout();
+                                navigate('/login');
+                            }
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <LogOut size={20} />
+                            Sign Out
+                        </div>
+                    </button>
+                </div>
             </div>
 
             {/* Sticky Save FAB when editing */}

@@ -14,6 +14,14 @@ appId: com.guestscanner.app
 - inputText: "Test@1234"
 - waitForAnimationToEnd
 - tapOn: "Sign In"
+# Handle new Welcome Tour overlay
+- runFlow:
+    when:
+      visible: "Skip"
+    commands:
+      - tapOn: "Skip"
+      - waitForAnimationToEnd
+
 - waitForAnimationToEnd
 
 # Create event

@@ -47,6 +47,14 @@ appId: com.guestscanner.app
 
 # Submit login
 - tapOn: "Sign In"
+# Handle new Welcome Tour overlay
+- runFlow:
+    when:
+      visible: "Skip"
+    commands:
+      - tapOn: "Skip"
+      - waitForAnimationToEnd
+
 
 # Wait for response
 - waitForAnimationToEnd
