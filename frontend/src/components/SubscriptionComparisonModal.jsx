@@ -9,7 +9,6 @@ const SubscriptionComparisonModal = ({ isOpen, onClose }) => {
         { name: 'Created Events', free: '3 Max', pro: 'Unlimited' },
         { name: 'Guests per Event', free: '50 Max', pro: 'Unlimited' },
         { name: 'Bulk Guest Import', free: 'Limited (50)', pro: 'Unlimited' },
-        { name: 'SMS Announcements', free: 'Pay-per-use', pro: 'Pay-per-use' },
         { name: 'Ad-Free Experience', free: false, pro: true },
         { name: 'Budget Tracker', free: false, pro: true },
         { name: 'Priority Support', free: false, pro: true },

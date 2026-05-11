@@ -10,7 +10,6 @@ const UpgradeModal = ({ isOpen, onClose, triggerReason }) => {
         "Unlimited Events (Free limit: 3)",
         "Unlimited Guests (Free limit: 50)",
         "Advanced Budget Tracking",
-        "SMS Integration (Coming Soon)",
         "Ad-free Experience"
     ];
 

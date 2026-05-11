@@ -13,7 +13,7 @@ const PaywallPage = () => {
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [processing, setProcessing] = useState(false);
     const [showComparisonModal, setShowComparisonModal] = useState(false);
-    const [smsProducts, setSmsProducts] = useState([]);
+
 
     useEffect(() => {
         const loadOfferings = async () => {
@@ -22,9 +22,6 @@ const PaywallPage = () => {
             const current = await PurchaseService.getOfferings();
             setOfferings(current);
 
-            // Allow time for RC to init if needed, or just fetch concurrently
-            const extras = await PurchaseService.getProducts(['sms_100', 'sms_300', 'sms_500']);
-            setSmsProducts(extras);
 
             setLoading(false);
         };
@@ -216,92 +213,7 @@ const PaywallPage = () => {
                 )}
             </button>
 
-            {/* Extra Credits Section */}
-            {/* Extra Credits Section */}
-            <div style={{ marginTop: '2rem', width: '100%' }}>
-                <h3 style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '1rem', textAlign: 'center' }}>
-                    Need more SMS Credits?
-                </h3>
-                {loading ? (
-                    <div className="loading-spinner">Loading add-ons...</div>
-                ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                        {(() => {
-                            // Combine explicit fetches and offering-found SMS packs
-                            const fetchFound = smsProducts || [];
-                            const offeringFound = rawPackages.filter(p => p.identifier.toLowerCase().includes('sms'));
 
-                            // Merge unique by identifier
-                            const uniqueSms = [...new Map([...fetchFound, ...offeringFound].map(item => [item.identifier, item])).values()];
-                            const showReal = uniqueSms.length > 0;
-
-                            const list = showReal ? uniqueSms : [
-                                { identifier: 'sms_100', title: '100 Credits', priceString: '$4.99 (Dev)', description: 'Mock' },
-                                { identifier: 'sms_300', title: '300 Credits', priceString: '$12.99 (Dev)', description: 'Mock' }
-                            ];
-
-                            return list.map(product => {
-                                // Extract price/title safely whether it's a Package or StoreProduct
-                                const title = product.product?.title || product.title || product.identifier;
-                                const price = product.product?.priceString || product.priceString || 'N/A';
-
-                                return (
-                                    <button
-                                        key={product.identifier}
-                                        onClick={async () => {
-                                            if (product.description === 'Mock') {
-                                                alert('This is a mock product. Deploy to real device to see real RevenueCat products.');
-                                                return;
-                                            }
-
-                                            try {
-                                                setProcessing(true);
-                                                // Determine if it is a Package (from offering) or StoreProduct (from getProducts)
-                                                if (product.product) {
-                                                    // It's a Package
-                                                    await PurchaseService.purchasePackage(product);
-                                                } else {
-                                                    // It's a StoreProduct
-                                                    await PurchaseService.purchaseStoreProduct(product);
-                                                }
-
-                                                await new Promise(r => setTimeout(r, 2000)); // Wait for webhook
-                                                await refreshUser(); // Refresh credits
-                                                alert('Credits added successfully!');
-                                            } catch (err) {
-                                                if (err.message !== 'User cancelled') alert('Purchase failed: ' + err.message);
-                                            } finally {
-                                                setProcessing(false);
-                                            }
-                                        }}
-                                        disabled={processing}
-                                        style={{
-                                            background: 'rgba(255,255,255,0.1)',
-                                            border: '1px solid rgba(255,255,255,0.2)',
-                                            borderRadius: '12px',
-                                            padding: '16px',
-                                            color: 'white',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'center',
-                                            gap: '4px',
-                                            opacity: processing ? 0.5 : 1
-                                        }}
-                                    >
-                                        <span style={{ fontWeight: 700 }}>
-                                            {title}
-                                        </span>
-                                        <span style={{ fontSize: '0.9rem', color: '#a78bfa' }}>
-                                            {price}
-                                        </span>
-                                    </button>
-                                );
-                            });
-                        })()}
-                    </div>
-                )}
-            </div>
 
             {/* Explicit Cancel Option for Pro Users */}
             {
