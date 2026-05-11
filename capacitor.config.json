@@ -1,6 +1,6 @@
 {
-    "appId": "com.guestscanner.app",
-    "appName": "Guest Scanner",
+    "appId": "com.hosteze.app",
+    "appName": "HostEze",
     "webDir": "frontend/dist",
     "version": "5.1.0",
     "buildNumber": "51",

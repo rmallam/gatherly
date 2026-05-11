@@ -1,4 +1,4 @@
-package com.guestscanner.app;
+package com.hosteze.app;
 
 import com.getcapacitor.BridgeActivity;
 import android.app.NotificationChannel;

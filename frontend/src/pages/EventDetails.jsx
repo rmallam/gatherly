@@ -246,7 +246,7 @@ const EventDetails = () => {
             }
 
             const baseText = customInviteText ? customInviteText : `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}`;
-            const inviteText = `${baseText}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/hosteze`;
+            const inviteText = `${baseText}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.hosteze.app\nApp Store: https://apps.apple.com/app/hosteze`;
 
             const cleanPhone = guest.phone.replace(/\D/g, '');
             const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(inviteText)}`;
@@ -287,7 +287,7 @@ const EventDetails = () => {
 
                 const guestQRUrl = `${baseUrl}/invite/${id}?guest=${guest.id}`;
                 const baseText = customInviteText ? customInviteText : `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}`;
-                const inviteText = `${baseText}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/hosteze`;
+                const inviteText = `${baseText}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.hosteze.app\nApp Store: https://apps.apple.com/app/hosteze`;
 
                 const cleanPhone = guest.phone.replace(/\D/g, '');
                 const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(inviteText)}`;
@@ -348,7 +348,7 @@ const EventDetails = () => {
             }
 
             const baseText = customInviteText ? customInviteText : `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}`;
-            const inviteText = `${baseText}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.guestscanner.app\nApp Store: https://apps.apple.com/app/hosteze`;
+            const inviteText = `${baseText}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.hosteze.app\nApp Store: https://apps.apple.com/app/hosteze`;
 
             const { Share } = await import('@capacitor/share');
 
