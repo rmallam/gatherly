@@ -1706,7 +1706,7 @@ app.get('/api/events', authMiddleware, async (req, res) => {
         // Get events created by the user
         const createdEvents = await query(
             `SELECT e.*, u.name as user_name,
-            (SELECT json_agg(g.*) FROM (SELECT * FROM guests WHERE event_id = e.id ORDER BY created_at DESC LIMIT 500) g) as guests,
+            (SELECT json_agg(g.*) FROM (SELECT * FROM guests WHERE event_id = e.id ORDER BY added_at DESC LIMIT 500) g) as guests,
     'organizer' as role
              FROM events e 
              LEFT JOIN users u ON e.user_id = u.id
@@ -1719,7 +1719,7 @@ app.get('/api/events', authMiddleware, async (req, res) => {
         // Get events where user is invited as a guest (but NOT the organizer)
         const invitedEvents = await query(
             `SELECT e.*, u.name as user_name,
-    (SELECT json_agg(g.*) FROM (SELECT * FROM guests WHERE event_id = e.id ORDER BY created_at DESC LIMIT 500) g) as guests,
+    (SELECT json_agg(g.*) FROM (SELECT * FROM guests WHERE event_id = e.id ORDER BY added_at DESC LIMIT 500) g) as guests,
         'guest' as role,
         g.id as guest_id,
         g.rsvp,
