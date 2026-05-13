@@ -3,6 +3,7 @@ import { Palette, Loader, AlertCircle, Plus, Sparkles } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { CountrySelector, AIHeader } from './AICommon';
 import { formatCurrency } from '../../utils/currencyUtils';
+import FeatureLock from '../FeatureLock';
 
 const AIDecorPlanner = ({ event, onAddItems }) => {
     const { API_URL } = useApp();
@@ -57,6 +58,7 @@ const AIDecorPlanner = ({ event, onAddItems }) => {
     };
 
     return (
+        <FeatureLock featureName="AI Decor Stylist" description="Upgrade to Pro to generate stunning decor themes tailored to your venue.">
         <div style={{ background: 'var(--card-bg-primary)', borderRadius: '16px', padding: '1.5rem', border: '1px solid var(--border-color)', marginBottom: '2rem' }}>
             <AIHeader
                 title="AI Decor Stylist"
@@ -199,6 +201,7 @@ const AIDecorPlanner = ({ event, onAddItems }) => {
                 </div>
             )}
         </div>
+        </FeatureLock>
     );
 };
 

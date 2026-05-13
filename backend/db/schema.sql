@@ -1,4 +1,4 @@
--- Database Schema for Gatherly Event Management
+-- Database Schema for HostEze Event Management
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { CheckCircle, Calendar, MapPin } from 'lucide-react';
+import { Haptics, NotificationType } from '@capacitor/haptics';
 
 const RSVP = () => {
     const { eventId, guestId } = useParams();
@@ -62,6 +63,12 @@ const RSVP = () => {
             setStatus('success');
             // Update local state to reflect change
             setGuest(prev => ({ ...prev, rsvp: response }));
+            
+            try {
+                await Haptics.notification({ type: NotificationType.Success });
+            } catch (e) {
+                // Ignore on web
+            }
         } catch (err) {
             console.error('RSVP error:', err);
             alert('Failed to submit RSVP. Please try again.');

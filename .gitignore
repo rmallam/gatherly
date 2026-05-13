@@ -50,3 +50,4 @@ temp/
 keystore.properties
 gradle.properties
 revenuecat-creds.json
+test-play-api/service-account.json

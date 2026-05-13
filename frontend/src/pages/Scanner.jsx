@@ -19,17 +19,17 @@ const Scanner = () => {
     // Show unauthorized message if not an organizer
     if (!isOrganizer) {
         return (
-            <div className="unauthorized-page">
-                <div className="unauthorized-card">
-                    <div className="lock-icon-circle">
+            <div className="dashboard-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+                <div className="onboarding-empty-state">
+                    <div className="onboarding-icon-circle" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
                         <Lock size={40} />
                     </div>
-                    <h1>Organizer Access Only</h1>
-                    <p>
+                    <h1 className="onboarding-title">Organizer Access Only</h1>
+                    <p className="onboarding-description">
                         This feature is reserved for event organizers to check in guests.
                         Please create an event to access the scanner.
                     </p>
-                    <button onClick={() => navigate('/')} className="btn-home">
+                    <button onClick={() => navigate('/')} className="onboarding-btn-large">
                         Go to Events
                     </button>
                 </div>

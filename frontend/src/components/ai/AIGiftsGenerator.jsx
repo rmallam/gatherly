@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, Loader, X } from 'lucide-react';
 import API_URL from '../../config/api';
 import UpgradeModal from '../UpgradeModal';
+import FeatureLock from '../FeatureLock';
 
 const AIGiftsGenerator = ({ event, onGiftsGenerated }) => {
     const [prompt, setPrompt] = useState('');
@@ -60,7 +61,7 @@ const AIGiftsGenerator = ({ event, onGiftsGenerated }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <>
+        <FeatureLock featureName="AI Gift Registry" description="Upgrade to Pro to auto-generate curated gift registries tailored to your guests.">
             {/* Clickable Widget Card */}
             <div
                 onClick={() => setIsOpen(true)}
@@ -214,7 +215,7 @@ const AIGiftsGenerator = ({ event, onGiftsGenerated }) => {
                 onClose={() => setShowUpgradeModal(false)}
                 triggerReason={upgradeReason}
             />
-        </>
+        </FeatureLock>
     );
 };
 

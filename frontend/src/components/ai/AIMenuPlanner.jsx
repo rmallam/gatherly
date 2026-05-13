@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { CountrySelector, AIHeader } from './AICommon';
 import AIContextModal from './AIContextModal';
 import { formatCurrency } from '../../utils/currencyUtils';
+import FeatureLock from '../FeatureLock';
 
 const AIMenuPlanner = ({ event, onAddItems, styles }) => {
     const { API_URL } = useApp();
@@ -77,6 +78,7 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
     };
 
     return (
+        <FeatureLock featureName="AI Menu Planner" description="Upgrade to Pro to unlock AI-powered menu suggestions tailored to your cuisine and dietary needs.">
         <div style={{ background: 'var(--card-bg-primary)', borderRadius: '16px', padding: '1.5rem', border: '1px solid var(--border-color)', marginBottom: '2rem' }}>
             <AIHeader
                 title="AI Menu Planner"
@@ -247,16 +249,16 @@ const AIMenuPlanner = ({ event, onAddItems, styles }) => {
 
             <AIContextModal
                 event={event}
-                actionType="Menu"
+                actionType="Menu Items"
                 isOpen={showContextModal}
                 onClose={() => setShowContextModal(false)}
                 generating={loading}
                 onConfirm={(customContextString) => {
                     fetchSuggestions(customContextString);
-                    setShowContextModal(false);
                 }}
             />
         </div>
+        </FeatureLock>
     );
 };
 

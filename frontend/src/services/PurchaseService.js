@@ -75,12 +75,31 @@ class PurchaseService {
             const offerings = await Purchases.getOfferings();
             console.log('💰 Offerings fetched:', offerings);
 
+            let allPackages = [];
+            if (offerings.all) {
+                Object.values(offerings.all).forEach(offering => {
+                    if (offering.availablePackages) {
+                        offering.availablePackages.forEach(pkg => {
+                            // Avoid duplicates by identifier
+                            if (!allPackages.find(p => p.identifier === pkg.identifier)) {
+                                allPackages.push(pkg);
+                            }
+                        });
+                    }
+                });
+            }
+
             if (offerings.current !== null) {
                 this.currentOffering = offerings.current;
             } else {
                 console.warn('💰 Offerings.current is null! Check RC Dashboard "Current" offering.');
             }
-            return this.currentOffering;
+
+            // Return a merged object so PaywallPage can display packages from all offerings (fixes yearly tier visibility)
+            return {
+                ...this.currentOffering,
+                availablePackages: allPackages.length > 0 ? allPackages : (this.currentOffering?.availablePackages || [])
+            };
         } catch (error) {
             console.error('Error fetching offerings:', error);
             return null;

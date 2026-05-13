@@ -1,6 +1,6 @@
-# Gatherly Backend API
+# HostEze Backend API
 
-Node.js + Express REST API for Gatherly event management platform.
+Node.js + Express REST API for HostEze event management platform.
 
 ## Setup
 

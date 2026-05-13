@@ -29,6 +29,12 @@ const AIAssistantWidget = () => {
     }, [messages]);
 
     useEffect(() => {
+        const handleOpenChat = () => setIsOpen(true);
+        window.addEventListener('open-ai-chat', handleOpenChat);
+        return () => window.removeEventListener('open-ai-chat', handleOpenChat);
+    }, []);
+
+    useEffect(() => {
         // Only run if we have a token and events, and we haven't already replaced the initial message
         if (token && events && events.length > 0 && messages.length === 1 && messages[0].text.includes('Hi! I am your HostEze AI Assistant')) {
             const fetchProactiveGreeting = async () => {
@@ -182,46 +188,6 @@ const AIAssistantWidget = () => {
 
     return (
         <>
-            {/* The Magic FAB */}
-            <div style={{
-                position: 'fixed',
-                bottom: '170px',
-                right: '24px',
-                zIndex: 9000,
-                transform: `translate(${position.x}px, ${position.y}px)`,
-                touchAction: 'none' // Crucial for mobile dragging
-            }}>
-                {!isOpen && (
-                    <button
-                        onPointerDown={handlePointerDown}
-                        onPointerMove={handlePointerMove}
-                        onPointerUp={handlePointerUp}
-                        onClick={handleClick}
-                        className="ai-fab-btn"
-                        style={{
-                            width: '60px',
-                            height: '60px',
-                            borderRadius: '30px',
-                            background: 'linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%)',
-                            color: 'white',
-                            border: 'none',
-                            boxShadow: '0 8px 24px rgba(99, 102, 241, 0.4), 0 0 0 4px rgba(99, 102, 241, 0.1)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            position: 'relative',
-                            transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                            animation: 'aiPulse 3s infinite'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                    >
-                        <Sparkles size={28} />
-                    </button>
-                )}
-            </div>
-
             {/* Bottom Sheet Modal overlay */}
             {isOpen && (
                 <div style={{

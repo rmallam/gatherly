@@ -377,27 +377,40 @@ const ContactSelector = ({ isOpen, onClose, onSelectContacts, event }) => {
                 </div>
 
                 {/* Footer */}
-                <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                        {getSelectedCount()} contacts selected
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <button onClick={onClose} className="btn btn-secondary">
+                <div style={{ 
+                    padding: '1rem 1.5rem', 
+                    borderTop: '1px solid var(--border)', 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '1rem',
+                    background: 'var(--bg-secondary)',
+                    borderBottomLeftRadius: 'var(--radius-lg)',
+                    borderBottomRightRadius: 'var(--radius-lg)'
+                }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                            {getSelectedCount()} contact{getSelectedCount() !== 1 ? 's' : ''} selected
+                        </span>
+                        <button onClick={onClose} className="btn btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
                             Cancel
                         </button>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                         <button
                             onClick={() => handleAdd(false)}
                             className="btn btn-secondary"
                             disabled={getSelectedCount() === 0}
+                            style={{ justifyContent: 'center', opacity: getSelectedCount() === 0 ? 0.5 : 1 }}
                         >
-                            <Check size={16} /> Add to List
+                            <Users size={16} /> Add Only
                         </button>
                         <button
                             onClick={() => handleAdd(true)}
                             className="btn btn-primary"
                             disabled={getSelectedCount() === 0}
+                            style={{ justifyContent: 'center', opacity: getSelectedCount() === 0 ? 0.5 : 1 }}
                         >
-                            <Check size={16} /> Add & Invite All
+                            <Check size={16} /> Add & Invite
                         </button>
                     </div>
                 </div>

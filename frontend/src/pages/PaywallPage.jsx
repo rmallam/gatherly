@@ -130,15 +130,20 @@ const PaywallPage = () => {
 
     return (
         <div className="paywall-container">
-            <button className="paywall-close" onClick={() => navigate(-1)}>
-                <X size={24} />
-            </button>
+            {/* Background Orbs */}
+            <div className="paywall-orb orb-1"></div>
+            <div className="paywall-orb orb-2"></div>
 
-            <div className="paywall-header">
-                <div className="pro-badge">PRO</div>
-                <h1>Upgrade to HostEze Pro</h1>
-                <p>Remove limits and unleash the full power of your events.</p>
-            </div>
+            <div className="paywall-content fade-in-up">
+                <button className="paywall-close" onClick={() => navigate(-1)}>
+                    <X size={24} />
+                </button>
+
+                <div className="paywall-header">
+                    <div className="pro-badge">PRO</div>
+                    <h1>Upgrade to HostEze Pro</h1>
+                    <p>Remove limits and unleash the full power of your events.</p>
+                </div>
 
             <div className="paywall-benefits">
                 <div className="benefit-row">
@@ -257,11 +262,12 @@ const PaywallPage = () => {
                 <button>Privacy Policy</button>
             </div>
 
-            <SubscriptionComparisonModal
-                isOpen={showComparisonModal}
-                onClose={() => setShowComparisonModal(false)}
-            />
-        </div >
+                <SubscriptionComparisonModal
+                    isOpen={showComparisonModal}
+                    onClose={() => setShowComparisonModal(false)}
+                />
+            </div>
+        </div>
     );
 };
 

@@ -116,25 +116,24 @@ const Header = ({ showAuth = true }) => {
                 <span>Host<i>Eze</i></span>
             </Link>
 
-            {/* Right - Admin Link (if admin) */}
-            {user?.is_admin && (
-                <Link
-                    to="/admin"
-                    title="Admin Dashboard"
-                    data-testid="admin-dashboard-button"
-                    aria-label="Admin Dashboard"
-                    accessibilityLabel="Admin Dashboard"
+            {/* Right Side Actions */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {/* AI Assistant Button */}
+                <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('open-ai-chat'))}
+                    title="HostEze AI Assistant"
+                    aria-label="HostEze AI Assistant"
                     style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         width: '36px',
                         height: '36px',
-                        background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
                         border: 'none',
                         borderRadius: '50%',
                         color: 'white',
-                        textDecoration: 'none',
+                        cursor: 'pointer',
                         transition: 'all 0.2s',
                         boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
                     }}
@@ -147,11 +146,48 @@ const Header = ({ showAuth = true }) => {
                         e.currentTarget.style.boxShadow = '0 2px 8px rgba(99, 102, 241, 0.3)';
                     }}
                 >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
                     </svg>
-                </Link>
-            )}
+                </button>
+
+                {/* Admin Link (if admin) */}
+                {user?.is_admin && (
+                    <Link
+                        to="/admin"
+                        title="Admin Dashboard"
+                        data-testid="admin-dashboard-button"
+                        aria-label="Admin Dashboard"
+                        accessibilityLabel="Admin Dashboard"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '36px',
+                            height: '36px',
+                            background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                            border: 'none',
+                            borderRadius: '50%',
+                            color: 'white',
+                            textDecoration: 'none',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.5)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(99, 102, 241, 0.3)';
+                        }}
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
+                    </Link>
+                )}
+            </div>
         </div>
     );
 };

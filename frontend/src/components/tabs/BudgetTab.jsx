@@ -401,7 +401,50 @@ const BudgetTab = ({ event }) => {
 
                     <div className="tab-list">
                         {expenses.length === 0 ? (
-                            <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: 20 }}>No expenses recorded yet.</p>
+                            <div style={{
+                                textAlign: 'center', 
+                                padding: '3rem 1.5rem', 
+                                background: 'var(--glass-bg)',
+                                backdropFilter: 'blur(12px)',
+                                WebkitBackdropFilter: 'blur(12px)',
+                                borderRadius: '24px', 
+                                margin: '1rem 0', 
+                                border: '1px solid var(--glass-border)',
+                                boxShadow: 'var(--glass-shadow)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center'
+                            }}>
+                                <div style={{ 
+                                    width: '72px', height: '72px', 
+                                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.2))', 
+                                    borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                                    margin: '0 auto 1.5rem auto', 
+                                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                                    boxShadow: '0 8px 20px rgba(16, 185, 129, 0.15)' 
+                                }}>
+                                    <DollarSign size={36} color="#10b981" />
+                                </div>
+                                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>No Expenses Yet</h3>
+                                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', lineHeight: '1.5', maxWidth: '300px', fontSize: '0.95rem' }}>
+                                    Start tracking your event costs by adding your first expense.
+                                </p>
+                                <button 
+                                    onClick={() => {
+                                        resetExpenseForm();
+                                        setEditingExpense(null);
+                                        setShowExpenseForm(true);
+                                    }} 
+                                    className="btn btn-primary"
+                                    style={{
+                                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                        border: 'none',
+                                        boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)'
+                                    }}
+                                >
+                                    <Plus size={18} /> Add Your First Expense
+                                </button>
+                            </div>
                         ) : (
                             expenses.map(expense => (
                                 <div key={expense.id} className="tab-list-item">

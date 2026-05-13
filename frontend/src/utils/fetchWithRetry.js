@@ -1,5 +1,5 @@
 // Fetch with retry and timeout for handling backend cold starts
-export const fetchWithRetry = async (url, options = {}, retries = 3, timeout = 30000) => {
+export const fetchWithRetry = async (url, options = {}, retries = 3, timeout = 90000) => {
     for (let i = 0; i < retries; i++) {
         try {
             const controller = new AbortController();

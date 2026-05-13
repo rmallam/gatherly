@@ -7,6 +7,9 @@ import AIAssistantWidget from './AIAssistantWidget';
 const Layout = ({ children }) => {
     const { user } = useAuth();
 
+    // Feature toggle for AI Helper Tool
+    const ENABLE_AI_HELPER = true;
+
     return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
             <Header showAuth={true} />
@@ -29,14 +32,14 @@ const Layout = ({ children }) => {
             {/* Main Content */}
             <main style={{
                 flex: 1,
-                paddingBottom: 'calc(100px + env(safe-area-inset-bottom))', // Increased to clear AIAssistantWidget
+                paddingBottom: ENABLE_AI_HELPER ? 'calc(100px + env(safe-area-inset-bottom))' : 'calc(80px + env(safe-area-inset-bottom))', 
                 overflow: 'auto'
             }}>
                 {children}
             </main>
 
             {/* AI Assistant Chatbot overlay */}
-            {!user?.isGuest && <AIAssistantWidget />}
+            {ENABLE_AI_HELPER && !user?.isGuest && <AIAssistantWidget />}
 
             {/* Bottom Navigation */}
             <BottomNavigation />

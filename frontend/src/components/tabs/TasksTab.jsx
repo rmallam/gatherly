@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { CheckSquare, Plus, X, Check, Trash2, Calendar, AlertCircle } from 'lucide-react';
+import { CheckSquare, Plus, X, Check, Trash2, Calendar, AlertCircle, Sparkles } from 'lucide-react';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import AITasksGenerator from '../ai/AITasksGenerator';
 import CategoryTourWrapper from '../tours/CategoryTourWrapper';
 import '../../pages/EventTabs.css';
@@ -68,12 +69,19 @@ const TasksTab = ({ event, onUpdateTasks }) => {
         onUpdateTasks?.(updatedTasks);
     };
 
-    const handleUpdateStatus = (id, newStatus) => {
+    const handleUpdateStatus = async (id, newStatus) => {
         const updatedTasks = tasks.map(task =>
             task.id === id ? { ...task, status: newStatus } : task
         );
         setTasks(updatedTasks);
         onUpdateTasks?.(updatedTasks);
+        
+        // Add haptic feedback when changing status (checking off task)
+        try {
+            await Haptics.impact({ style: ImpactStyle.Light });
+        } catch (e) {
+            // Ignore on web
+        }
     };
 
     const totalTasks = tasks.length;
@@ -226,16 +234,44 @@ const TasksTab = ({ event, onUpdateTasks }) => {
             {/* Empty State */}
             {tasks.length === 0 && !showAddForm && (
                 <div style={{
-                    textAlign: 'center', padding: '3rem 1.5rem', background: 'var(--bg-secondary)',
-                    borderRadius: '16px', margin: '2rem 0', border: '1px dashed var(--border)'
+                    textAlign: 'center', 
+                    padding: '3rem 1.5rem', 
+                    background: 'var(--glass-bg)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    borderRadius: '24px', 
+                    margin: '2rem 0', 
+                    border: '1px solid var(--glass-border)',
+                    boxShadow: 'var(--glass-shadow)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center'
                 }}>
-                    <div style={{ width: '64px', height: '64px', background: 'var(--bg-primary)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                        <CheckSquare size={32} color="var(--primary)" />
+                    <div style={{ 
+                        width: '72px', height: '72px', 
+                        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2))', 
+                        borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                        margin: '0 auto 1.5rem auto', 
+                        border: '1px solid rgba(168, 85, 247, 0.3)',
+                        boxShadow: '0 8px 20px rgba(99, 102, 241, 0.15)' 
+                    }}>
+                        <Sparkles size={36} color="#a855f7" />
                     </div>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>No tasks planned yet</h3>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: '1.5', maxWidth: '300px', margin: '0 auto 1.5rem' }}>
-                        Use the <b>AI Task Generator</b> above to instantly break down your event into a detailed checklist.
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>Your Checklist is Empty</h3>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', lineHeight: '1.5', maxWidth: '300px', fontSize: '0.95rem' }}>
+                        Use the <b>AI Task Generator</b> above to instantly break down your event into a detailed itinerary, or start adding custom tasks manually.
                     </p>
+                    <button 
+                        onClick={() => setShowAddForm(true)} 
+                        className="btn btn-primary"
+                        style={{
+                            background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                            border: 'none',
+                            boxShadow: '0 4px 15px rgba(168, 85, 247, 0.3)'
+                        }}
+                    >
+                        <Plus size={18} /> Add Your First Task
+                    </button>
                 </div>
             )}
 
@@ -354,27 +390,7 @@ const TasksTab = ({ event, onUpdateTasks }) => {
                 );
             })}
 
-            {/* Empty State */}
-            {tasks.length === 0 && !showAddForm && (
-                <div style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-                    <div style={{
-                        width: '64px', height: '64px', borderRadius: '50%', background: 'var(--bg-secondary)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem',
-                        color: 'var(--text-tertiary)'
-                    }}>
-                        <CheckSquare size={32} />
-                    </div>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-                        No Tasks Yet
-                    </h3>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                        Start organizing your event with a task checklist
-                    </p>
-                    <button onClick={() => setShowAddForm(true)} className="btn btn-primary">
-                        <Plus size={16} /> Add First Task
-                    </button>
-                </div>
-            )}
+
         </div>
     );
 };

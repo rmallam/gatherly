@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LogIn, Mail, Lock, AlertCircle, Scan, Fingerprint, Phone, Eye, EyeOff } from 'lucide-react';
+import './Login.css';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -124,15 +125,17 @@ const Login = () => {
     // Biometric enrollment prompt
     if (showBiometricPrompt) {
         return (
-            <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
-                    <div className="card" style={{ maxWidth: '440px', width: '100%' }}>
+            <div className="auth-container">
+                <div className="auth-orb auth-orb-1"></div>
+                <div className="auth-orb auth-orb-2"></div>
+                <div className="auth-main">
+                    <div className="auth-card">
                         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                             <Fingerprint size={64} style={{ color: 'var(--primary)', margin: '0 auto 1rem' }} />
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+                            <h2 className="auth-title">
                                 Enable Biometric Login?
                             </h2>
-                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>
+                            <p className="auth-subtitle">
                                 Use your fingerprint or face to login faster next time
                             </p>
                         </div>
@@ -140,8 +143,8 @@ const Login = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             <button
                                 onClick={handleEnableBiometric}
-                                className="btn btn-primary"
-                                style={{ width: '100%', padding: '0.875rem' }}
+                                className="btn btn-primary auth-submit-btn"
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                             >
                                 <Fingerprint size={18} />
                                 Enable Biometric
@@ -151,10 +154,12 @@ const Login = () => {
                                 className="btn"
                                 style={{
                                     width: '100%',
-                                    padding: '0.875rem',
+                                    padding: '1rem',
                                     background: 'var(--bg-secondary)',
                                     border: '1px solid var(--border)',
-                                    color: 'var(--text-primary)'
+                                    color: 'var(--text-primary)',
+                                    borderRadius: '12px',
+                                    fontWeight: '600'
                                 }}
                             >
                                 Skip for Now
@@ -167,47 +172,21 @@ const Login = () => {
     }
 
     return (
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
+        <div className="auth-container">
+            <div className="auth-orb auth-orb-1"></div>
+            <div className="auth-orb auth-orb-2"></div>
+
             {/* Biometric Loading Overlay */}
             {biometricLoading && (
-                <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    zIndex: 9999,
-                    background: 'rgba(0, 0, 0, 0.85)',
-                    backdropFilter: 'blur(8px)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '1.5rem'
-                }}>
-                    <div style={{
-                        width: '80px',
-                        height: '80px',
-                        borderRadius: '50%',
-                        background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        animation: 'pulse 2s ease-in-out infinite',
-                        boxShadow: '0 0 40px rgba(139, 92, 246, 0.5)'
-                    }}>
-                        <Fingerprint size={40} style={{ color: 'white' }} />
+                <div className="biometric-overlay">
+                    <div className="biometric-pulse">
+                        <Fingerprint size={40} />
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                        <div style={{
-                            fontSize: '1.25rem',
-                            fontWeight: 600,
-                            color: 'white',
-                            marginBottom: '0.5rem'
-                        }}>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'white', marginBottom: '0.5rem' }}>
                             Authenticating...
                         </div>
-                        <div style={{
-                            fontSize: '0.875rem',
-                            color: 'rgba(255, 255, 255, 0.7)'
-                        }}>
+                        <div style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.7)' }}>
                             Please verify your identity
                         </div>
                     </div>
@@ -215,200 +194,115 @@ const Login = () => {
             )}
 
             {/* Header */}
-            <div style={{ padding: '3rem 0 2rem', borderBottom: '1px solid var(--border)' }}>
-                <div className="container" style={{ textAlign: 'center' }}>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                        🎉 Host<i>Eze</i>
-                    </h1>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                        Event Management Made Easy
-                    </p>
+            <div className="auth-header">
+                <div className="container">
+                    <h1>🎉 Host<i>Eze</i></h1>
+                    <p>Event Management Made Easy</p>
                 </div>
             </div>
 
             {/* Main Content */}
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
-                <div className="card" style={{ maxWidth: '440px', width: '100%' }}>
+            <div className="auth-main">
+                <div className="auth-card">
                     <div style={{ marginBottom: '2rem' }}>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-                            Welcome Back
-                        </h2>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>
+                        <h2 className="auth-title">Welcome Back</h2>
+                        <p className="auth-subtitle">
                             {loginMethod === 'email' ? 'Sign in to manage your events' : 'Sign in with one-time password'}
                         </p>
                     </div>
 
                     {error && (
-                        <div style={{
-                            padding: '0.875rem',
-                            background: '#fef2f2',
-                            border: '1px solid #fecaca',
-                            borderRadius: 'var(--radius-md)',
-                            marginBottom: '1.5rem',
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            gap: '0.75rem'
-                        }}>
-                            <AlertCircle size={18} style={{ color: '#dc2626', flexShrink: 0, marginTop: '0.125rem' }} />
-                            <span style={{ color: '#991b1b', fontSize: '0.875rem', lineHeight: '1.5' }}>{error}</span>
+                        <div className="auth-error">
+                            <AlertCircle size={18} style={{ color: '#ef4444', flexShrink: 0, marginTop: '2px' }} />
+                            <span className="auth-error-text">{error}</span>
                         </div>
                     )}
 
                     {/* Email/Phone Toggle */}
-                    <div style={{
-                        display: 'flex',
-                        gap: '0.5rem',
-                        marginBottom: '1.5rem',
-                        background: 'var(--bg-secondary)',
-                        padding: '4px',
-                        borderRadius: '10px'
-                    }}>
+                    <div className="auth-toggle-group">
                         <button
                             type="button"
                             onClick={() => handleMethodSwitch('email')}
-                            style={{
-                                flex: 1,
-                                padding: '0.5rem',
-                                borderRadius: '8px',
-                                border: 'none',
-                                background: loginMethod === 'email' ? 'white' : 'transparent',
-                                color: loginMethod === 'email' ? 'var(--primary)' : 'var(--text-secondary)',
-                                fontWeight: 600,
-                                fontSize: '0.875rem',
-                                cursor: 'pointer',
-                                boxShadow: loginMethod === 'email' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
-                                transition: 'all 0.2s'
-                            }}
+                            className={`auth-toggle-btn ${loginMethod === 'email' ? 'active' : ''}`}
                         >
-                            <Mail size={16} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-                            Email
+                            <Mail size={16} /> Email
                         </button>
                         <button
                             type="button"
                             onClick={() => handleMethodSwitch('phone')}
-                            style={{
-                                flex: 1,
-                                padding: '0.5rem',
-                                borderRadius: '8px',
-                                border: 'none',
-                                background: loginMethod === 'phone' ? 'white' : 'transparent',
-                                color: loginMethod === 'phone' ? 'var(--primary)' : 'var(--text-secondary)',
-                                fontWeight: 600,
-                                fontSize: '0.875rem',
-                                cursor: 'pointer',
-                                boxShadow: loginMethod === 'phone' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
-                                transition: 'all 0.2s'
-                            }}
+                            className={`auth-toggle-btn ${loginMethod === 'phone' ? 'active' : ''}`}
                         >
-                            <Phone size={16} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-                            Phone + OTP
+                            <Phone size={16} /> Phone + OTP
                         </button>
                     </div>
 
-                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginBottom: '1.5rem' }}>
+                    <form onSubmit={handleSubmit}>
                         {loginMethod === 'email' ? (
                             <>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                                        Email Address
-                                    </label>
-                                    <div style={{ position: 'relative' }}>
-                                        <Mail size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                                <div className="auth-form-group">
+                                    <label className="auth-label">Email Address</label>
+                                    <div className="auth-input-wrapper">
+                                        <Mail size={18} className="auth-input-icon" />
                                         <input
                                             type="email"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            className="form-input"
-                                            style={{ paddingLeft: '2.75rem' }}
+                                            className="auth-input"
                                             placeholder="your@email.com"
                                             required
                                         />
                                     </div>
                                 </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                                        Password
-                                    </label>
-                                    <div style={{ position: 'relative' }}>
-                                        <Lock size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                                <div className="auth-form-group">
+                                    <label className="auth-label">Password</label>
+                                    <div className="auth-input-wrapper">
+                                        <Lock size={18} className="auth-input-icon" />
                                         <input
                                             type={showPassword ? 'text' : 'password'}
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="form-input"
-                                            style={{ paddingLeft: '2.75rem', paddingRight: '2.75rem' }}
+                                            className="auth-input"
+                                            style={{ paddingRight: '2.75rem' }}
                                             placeholder="Enter your password"
                                             required
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            style={{
-                                                position: 'absolute',
-                                                right: '0.5rem',
-                                                top: '50%',
-                                                transform: 'translateY(-50%)',
-                                                background: 'none',
-                                                border: 'none',
-                                                padding: '0.5rem',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                color: 'var(--text-secondary)'
-                                            }}
+                                            className="auth-input-action"
                                         >
                                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                         </button>
                                     </div>
-                                    <div style={{ marginTop: '0.5rem', textAlign: 'right' }}>
-                                        <Link
-                                            to="/forgot-password"
-                                            style={{
-                                                color: 'var(--primary)',
-                                                fontSize: '0.875rem',
-                                                fontWeight: 600,
-                                                textDecoration: 'none',
-                                                transition: 'opacity 0.2s'
-                                            }}
-                                            onMouseEnter={(e) => e.target.style.opacity = '0.8'}
-                                            onMouseLeave={(e) => e.target.style.opacity = '1'}
-                                        >
-                                            Forgot Password?
-                                        </Link>
-                                    </div>
+                                    <Link to="/forgot-password" className="auth-forgot-link">
+                                        Forgot Password?
+                                    </Link>
                                 </div>
                             </>
                         ) : (
                             <>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                                        Phone Number
-                                    </label>
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        <div style={{ position: 'relative', width: '120px' }}>
-                                            <select
-                                                value={countryCode}
-                                                onChange={(e) => setCountryCode(e.target.value)}
-                                                className="form-input"
-                                                style={{ paddingLeft: '1rem', paddingRight: '0.5rem' }}
-                                                disabled={showOtpInput}
-                                            >
-                                                <option value="+91">🇮🇳 +91</option>
-                                                <option value="+1">🇺🇸 +1</option>
-                                                <option value="+44">🇬🇧 +44</option>
-                                                <option value="+61">🇦🇺 +61</option>
-                                                <option value="+971">🇦🇪 +971</option>
-                                            </select>
-                                        </div>
-                                        <div style={{ position: 'relative', flex: 1 }}>
-                                            <Phone size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                                <div className="auth-form-group">
+                                    <label className="auth-label">Phone Number</label>
+                                    <div style={{ display: 'flex' }}>
+                                        <select
+                                            value={countryCode}
+                                            onChange={(e) => setCountryCode(e.target.value)}
+                                            className="auth-input country-select"
+                                            disabled={showOtpInput}
+                                        >
+                                            <option value="+91">🇮🇳 +91</option>
+                                            <option value="+1">🇺🇸 +1</option>
+                                            <option value="+44">🇬🇧 +44</option>
+                                            <option value="+61">🇦🇺 +61</option>
+                                            <option value="+971">🇦🇪 +971</option>
+                                        </select>
+                                        <div className="auth-input-wrapper phone-input">
+                                            <Phone size={18} className="auth-input-icon" />
                                             <input
                                                 type="tel"
                                                 value={phone}
                                                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                                                className="form-input"
-                                                style={{ paddingLeft: '2.75rem' }}
+                                                className="auth-input phone-input"
                                                 placeholder="9876543210"
                                                 maxLength={10}
                                                 required
@@ -419,18 +313,16 @@ const Login = () => {
                                 </div>
 
                                 {showOtpInput && (
-                                    <div className="fade-in">
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                                            Enter Verification Code
-                                        </label>
-                                        <div style={{ position: 'relative' }}>
-                                            <Lock size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                                    <div className="auth-form-group" style={{ animation: 'fadeScaleUp 0.3s ease-out' }}>
+                                        <label className="auth-label">Enter Verification Code</label>
+                                        <div className="auth-input-wrapper">
+                                            <Lock size={18} className="auth-input-icon" />
                                             <input
                                                 type="text"
                                                 value={otp}
                                                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                                className="form-input"
-                                                style={{ paddingLeft: '2.75rem', letterSpacing: '2px', fontSize: '1.1rem' }}
+                                                className="auth-input"
+                                                style={{ letterSpacing: '4px', fontSize: '1.25rem', fontWeight: 600 }}
                                                 placeholder="123456"
                                                 required
                                                 autoFocus
@@ -440,14 +332,8 @@ const Login = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => { setShowOtpInput(false); setOtp(''); }}
-                                                style={{
-                                                    background: 'none',
-                                                    border: 'none',
-                                                    color: 'var(--primary)',
-                                                    fontSize: '0.875rem',
-                                                    cursor: 'pointer',
-                                                    padding: 0
-                                                }}
+                                                className="auth-forgot-link"
+                                                style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'inline-block' }}
                                             >
                                                 Change Phone Number
                                             </button>
@@ -459,9 +345,8 @@ const Login = () => {
 
                         <button
                             type="submit"
-                            className="btn btn-primary"
+                            className="btn btn-primary auth-submit-btn"
                             disabled={loading}
-                            style={{ width: '100%', padding: '0.875rem', fontSize: '1rem', fontWeight: 600 }}
                         >
                             {loading ? (
                                 'Processing...'
@@ -471,11 +356,8 @@ const Login = () => {
                         </button>
                     </form>
 
-                    <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.9375rem', color: 'var(--text-secondary)' }}>
-                        Don't have an account?{' '}
-                        <Link to="/signup" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>
-                            Create Account
-                        </Link>
+                    <div className="auth-footer">
+                        Don't have an account? <Link to="/signup">Create Account</Link>
                     </div>
                 </div>
             </div>

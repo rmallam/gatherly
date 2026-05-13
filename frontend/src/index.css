@@ -1,71 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Clean Color Palette */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-tertiary: #e9ecef;
-
-  /* Dark theme for scanner and special pages */
-  --bg-deep: #0a0b1e;
-  --bg-card: #1f2142;
-
-  /* Accent Colors */
-  --primary: #6366f1;
-  --primary-dark: #4f46e5;
-  --success: #10b981;
-  --error: #ef4444;
-  --warning: #f59e0b;
-
-  /* Text */
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --text-tertiary: #9ca3af;
-
-  /* Borders & Shadows */
-  --border: #e5e7eb;
-  --border-light: #f3f4f6;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-
-  /* Spacing */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-}
-
-/* Light Theme (Default) */
-.theme-light {
-  /* Backgrounds */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-tertiary: #e9ecef;
-
-  /* Text */
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --text-tertiary: #9ca3af;
-
-  /* Borders & Shadows */
-  --border: #e5e7eb;
-  --border-light: #f3f4f6;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-
-  /* Accent Colors */
-  --primary: #6366f1;
-  --primary-dark: #4f46e5;
-  --success: #10b981;
-  --error: #ef4444;
-  --warning: #f59e0b;
-}
-
-/* Dark Glassmorphism Theme */
-.theme-dark {
-  /* Backgrounds - Dark with glassmorphism */
+  /* Dark Glassmorphism Theme (Universal) */
   --bg-primary: linear-gradient(135deg, rgba(10, 10, 15, 0.98), rgba(20, 20, 30, 0.95));
   --bg-secondary: rgba(255, 255, 255, 0.08);
   --bg-tertiary: rgba(255, 255, 255, 0.12);
@@ -84,12 +20,13 @@
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.5);
 
-  /* Accent colors - Vibrant for dark mode */
+  /* Accent colors - Vibrant */
   --primary: #7aa2f7;
   --primary-dark: #6a92e7;
   --success: #9ece6a;
   --error: #f7768e;
   --warning: #e0af68;
+
   /* Spacing */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
@@ -101,7 +38,7 @@
   --glass-border: rgba(255, 255, 255, 0.15);
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
-  /* Adaptive Card Variables (Enforcing Dark Mode Values) */
+  /* Adaptive Card Variables */
   --card-border: rgba(255, 255, 255, 0.15);
   --card-bg-primary: rgba(255, 255, 255, 0.08);
 
@@ -111,48 +48,15 @@
   --scanner-subtext: #a1a1aa;
 }
 
-/* Light Theme (Default) */
-/* This block is now effectively removed as all values are set in :root for dark mode */
-/* .theme-light {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-tertiary: #e9ecef;
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --text-tertiary: #9ca3af;
-  --border: #e5e7eb;
-  --border-light: #f3f4f6;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  --primary: #6366f1;
-  --primary-dark: #4f46e5;
-  --success: #10b981;
-  --error: #ef4444;
-  --warning: #f59e0b;
-} */
-
-
-
-/* Enforce Dark Mode on Body */
 body {
+  background: linear-gradient(135deg, rgba(10, 10, 15, 0.98), rgba(20, 20, 30, 0.95)) !important;
   background-color: var(--bg-deep) !important;
   color: var(--text-primary) !important;
-}
-
-/* Light Theme Overrides Removed - Only Dark Mode Exists */
-/* .theme-light {
-  --card-border: #9ca3af;
-  --card-bg-primary: #ffffff;
-} */
-
-/* Apply dark background to body in dark mode */
-.theme-dark body {
-  background: linear-gradient(135deg, rgba(10, 10, 15, 0.98), rgba(20, 20, 30, 0.95));
+  background-attachment: fixed;
 }
 
 /* Glassmorphism card effect in dark mode */
-.theme-dark .card {
+.card {
   background: var(--glass-bg);
   backdrop-filter: blur(30px) saturate(180%);
   -webkit-backdrop-filter: blur(30px) saturate(180%);
@@ -530,53 +434,16 @@ h4 {
   }
 }
 
-/* Theme Toggle Switch */
-.theme-toggle {
-  position: relative;
-  display: inline-block;
-  width: 52px;
-  height: 28px;
-}
-
-.theme-toggle input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.theme-toggle .slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--border);
-  border-radius: 34px;
-  transition: 0.3s;
-}
-
-.theme-toggle .slider:before {
-  position: absolute;
-  content: "";
-  height: 20px;
-  width: 20px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  border-radius: 50%;
-  transition: 0.3s;
-}
-
-.theme-toggle input:checked+.slider {
-  background-color: var(--primary);
-}
-
-.theme-toggle input:checked+.slider:before {
-  transform: translateX(24px);
-}
-
 /* Fix for Google Places Autocomplete dropdown z-index in modals */
 .pac-container {
   z-index: 2000 !important;
+  background-color: #1f2142 !important;
+  border: 1px solid var(--border) !important;
+}
+.pac-item {
+  color: var(--text-primary) !important;
+  border-top: 1px solid var(--border-light) !important;
+}
+.pac-item-query {
+  color: var(--primary) !important;
 }

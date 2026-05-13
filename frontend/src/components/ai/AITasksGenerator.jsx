@@ -3,6 +3,7 @@ import { Target, Loader, X } from 'lucide-react';
 import API_URL from '../../config/api';
 import UpgradeModal from '../UpgradeModal';
 import AIContextModal from './AIContextModal';
+import FeatureLock from '../FeatureLock';
 
 const AITasksGenerator = ({ event, onTasksGenerated }) => {
     const [prompt, setPrompt] = useState('');
@@ -77,7 +78,7 @@ const AITasksGenerator = ({ event, onTasksGenerated }) => {
     };
 
     return (
-        <>
+        <FeatureLock featureName="AI Task Generator" description="Auto-populate your event checklist with AI-generated intelligent task timelines.">
             {/* Clickable Widget Card */}
             <div
                 className="tour-ai-generator"
@@ -297,7 +298,7 @@ const AITasksGenerator = ({ event, onTasksGenerated }) => {
                     handleGenerate(customContextString);
                 }}
             />
-        </>
+        </FeatureLock>
     );
 };
 

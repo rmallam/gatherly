@@ -95,39 +95,33 @@ const MyContacts = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)', paddingBottom: 'calc(60px + env(safe-area-inset-bottom))' }}>
-
-            <div className="container" style={{ padding: '2rem 1rem 1rem' }}>
-                {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-                    <div>
-                        <h1 style={{ fontSize: '1.875rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-                            My Contacts
-                        </h1>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>
-                            {contacts.length} saved contact{contacts.length !== 1 ? 's' : ''}
-                        </p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                        <button
-                            onClick={() => setShowContactPicker(true)}
-                            className="btn btn-secondary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                        >
-                            <Upload size={18} /> Import
-                        </button>
-                        <button
-                            onClick={() => setShowAddModal(true)}
-                            className="btn btn-primary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                        >
-                            <Plus size={18} /> Add Contact
-                        </button>
-                    </div>
+        <div className="dashboard-container">
+            {/* Header Section */}
+            <div className="dashboard-header">
+                <div className="dashboard-title-group">
+                    <h1>My Contacts</h1>
+                    <p>{contacts.length} saved contact{contacts.length !== 1 ? 's' : ''}</p>
                 </div>
+                <div className="dashboard-header-actions">
+                    <button
+                        onClick={() => setShowContactPicker(true)}
+                        className="btn btn-secondary"
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                        <Upload size={18} /> Import
+                    </button>
+                    <button
+                        onClick={() => setShowAddModal(true)}
+                        className="btn btn-primary"
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                        <Plus size={18} /> Add Contact
+                    </button>
+                </div>
+            </div>
 
-                {/* Tabs */}
-                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '2px solid var(--border-color)' }}>
+            {/* Tabs */}
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '2px solid var(--border-light)' }}>
                     <button
                         onClick={() => setActiveTab('contacts')}
                         style={{
@@ -290,7 +284,6 @@ const MyContacts = () => {
                     /* Groups Tab */
                     <GroupManager />
                 )}
-            </div>
 
             {/* Add/Edit Modal */}
             {showAddModal && (

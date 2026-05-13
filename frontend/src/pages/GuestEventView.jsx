@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import GalleryTab from '../components/tabs/GalleryTab';
 import { Calendar, MapPin, ArrowLeft, MessageCircle, CheckCircle, XCircle, QrCode, AlignLeft, Image as ImageIcon, X } from 'lucide-react';
+import { Haptics, NotificationType } from '@capacitor/haptics';
 import QRGenerator from '../components/QRGenerator';
 import './GuestEventView.css';
 
@@ -221,7 +222,10 @@ const GuestEventView = () => {
                             <button
                                 onClick={async () => {
                                     setIsRSVPing(true);
-                                    try { await rsvpGuest(event.id, currentGuest.id, false); }
+                                    try { 
+                                        await rsvpGuest(event.id, currentGuest.id, false); 
+                                        try { await Haptics.notification({ type: NotificationType.Success }); } catch (e) {}
+                                    }
                                     catch (err) { alert('Failed to update RSVP'); }
                                     finally { setIsRSVPing(false); }
                                 }}
@@ -233,7 +237,10 @@ const GuestEventView = () => {
                             <button
                                 onClick={async () => {
                                     setIsRSVPing(true);
-                                    try { await rsvpGuest(event.id, currentGuest.id, true); }
+                                    try { 
+                                        await rsvpGuest(event.id, currentGuest.id, true); 
+                                        try { await Haptics.notification({ type: NotificationType.Success }); } catch (e) {}
+                                    }
                                     catch (err) { alert('Failed to update RSVP'); }
                                     finally { setIsRSVPing(false); }
                                 }}

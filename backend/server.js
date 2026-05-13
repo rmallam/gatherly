@@ -1705,10 +1705,11 @@ app.get('/api/events', authMiddleware, async (req, res) => {
     try {
         // Get events created by the user
         const createdEvents = await query(
-            `SELECT e.*,
+            `SELECT e.*, u.name as user_name,
             (SELECT json_agg(g.*) FROM (SELECT * FROM guests WHERE event_id = e.id ORDER BY created_at DESC LIMIT 500) g) as guests,
     'organizer' as role
              FROM events e 
+             LEFT JOIN users u ON e.user_id = u.id
              WHERE e.user_id = $1 
              ORDER BY e.created_at DESC
              LIMIT 100`,
@@ -1717,13 +1718,14 @@ app.get('/api/events', authMiddleware, async (req, res) => {
 
         // Get events where user is invited as a guest (but NOT the organizer)
         const invitedEvents = await query(
-            `SELECT e.*,
+            `SELECT e.*, u.name as user_name,
     (SELECT json_agg(g.*) FROM (SELECT * FROM guests WHERE event_id = e.id ORDER BY created_at DESC LIMIT 500) g) as guests,
         'guest' as role,
         g.id as guest_id,
         g.rsvp,
         g.attended
              FROM events e
+             LEFT JOIN users u ON e.user_id = u.id
              JOIN guests g ON g.event_id = e.id
              WHERE g.user_id = $1 AND e.user_id != $1
              ORDER BY e.date DESC
@@ -1769,8 +1771,9 @@ app.post('/api/events', authMiddleware, async (req, res) => {
         const eventCountry = country || 'US';
 
         // Check event limits for Free tier
-        const userResult = await query('SELECT subscription_tier FROM users WHERE id = $1', [req.user.id]);
+        const userResult = await query('SELECT subscription_tier, name FROM users WHERE id = $1', [req.user.id]);
         const userTier = userResult.rows[0]?.subscription_tier || 'free';
+        const userName = userResult.rows[0]?.name;
 
         if (userTier === 'free' && eventTypeValue === 'host') {
             // Count only 'host' events for the limit
@@ -1800,6 +1803,7 @@ app.post('/api/events', authMiddleware, async (req, res) => {
         const event = {
             id: eventId,
             user_id: req.user.id,
+            user_name: userName,
             title,
             date: eventDate,
             location: eventLocation,
@@ -2605,7 +2609,10 @@ app.post('/api/events/:eventId/guests/:guestId/checkin', authMiddleware, async (
 app.get('/api/public/events/:id', async (req, res) => {
     try {
         // console.log(`Fetch public event: ${req.params.id}, Guest query: ${req.query.guest}`);
-        const eventsResult = await query('SELECT * FROM events WHERE id = $1', [req.params.id]);
+        const eventsResult = await query(
+            'SELECT e.*, u.name as user_name FROM events e LEFT JOIN users u ON e.user_id = u.id WHERE e.id = $1', 
+            [req.params.id]
+        );
 
         if (eventsResult.rows.length === 0) {
             return res.status(404).json({ error: 'Event not found' });

@@ -103,8 +103,8 @@ function App() {
     }, []);
 
     return (
-        <ThemeProvider>
-            <AuthProvider>
+        <AuthProvider>
+            <ThemeProvider>
                 <AppProvider>
                     <BrowserRouter>
                         <BackButtonHandler />
@@ -194,8 +194,8 @@ function App() {
                         </Routes>
                     </BrowserRouter>
                 </AppProvider>
-            </AuthProvider>
-        </ThemeProvider>
+            </ThemeProvider>
+        </AuthProvider>
     );
 }
 

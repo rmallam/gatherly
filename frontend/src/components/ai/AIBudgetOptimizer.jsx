@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { Sparkles, Loader, TrendingDown, AlertCircle } from 'lucide-react';
 import { CountrySelector, AIHeader } from './AICommon';
 import { formatCurrency } from '../../utils/currencyUtils';
+import FeatureLock from '../FeatureLock';
 
 const AIBudgetOptimizer = ({ event, budget, expenses }) => {
     const { API_URL } = useApp();
@@ -45,6 +46,7 @@ const AIBudgetOptimizer = ({ event, budget, expenses }) => {
     };
 
     return (
+        <FeatureLock featureName="Smart Budget Optimizer" description="Upgrade to Pro to unlock AI-powered budget analysis and cost saving strategies.">
         <div style={{ background: 'var(--card-bg-primary)', borderRadius: '16px', padding: '1.5rem', border: '1px solid var(--border-color)', marginBottom: '2rem' }}>
             <AIHeader
                 title="Smart Budget Optimizer"
@@ -168,6 +170,7 @@ const AIBudgetOptimizer = ({ event, budget, expenses }) => {
                 </div>
             )}
         </div>
+        </FeatureLock>
     );
 };
 

@@ -3,6 +3,7 @@ import { Search, Loader, AlertTriangle, CheckCircle2, X } from 'lucide-react';
 import API_URL from '../../config/api';
 import { formatCurrency } from '../../utils/currencyUtils';
 import UpgradeModal from '../UpgradeModal';
+import FeatureLock from '../FeatureLock';
 
 const AIVendorQuoteAnalyzer = ({ event, onQuoteAnalyzed }) => {
     const [quoteText, setQuoteText] = useState('');
@@ -75,7 +76,7 @@ const AIVendorQuoteAnalyzer = ({ event, onQuoteAnalyzed }) => {
     };
 
     return (
-        <>
+        <FeatureLock featureName="AI Quote Analyzer" description="Upgrade to Pro to spot hidden fees and get negotiation tactics for any vendor quote.">
             {/* Clickable Widget Card */}
             <div
                 onClick={() => setIsOpen(true)}
@@ -327,7 +328,7 @@ const AIVendorQuoteAnalyzer = ({ event, onQuoteAnalyzed }) => {
                 onClose={() => setShowUpgradeModal(false)}
                 triggerReason={upgradeReason}
             />
-        </>
+        </FeatureLock>
     );
 };
 

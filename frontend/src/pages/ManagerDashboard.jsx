@@ -4,7 +4,6 @@ import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Trash2, Calendar, ChevronRight, MapPin, Users, Sparkles, CheckCircle, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import ThemeToggle from '../components/ThemeToggle';
 import RateAppService from '../services/RateAppService';
 import UpgradeModal from '../components/UpgradeModal';
 import { countries } from '../utils/currencyUtils';
@@ -111,78 +110,30 @@ const ManagerDashboard = () => {
     return (
         <>
             <DashboardTour />
-            <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '16px', paddingBottom: '100px' }}>
-                {/* Unified Header: Title/Summary + Toggle */}
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '24px',
-                    paddingTop: '8px'
-                }}>
-                    <div>
-                        {events.length > 0 ? (
-                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
-                                {events.filter(e => {
-                                    const today = new Date();
-                                    today.setHours(0, 0, 0, 0);
-                                    if (!e.date) return filter === 'upcoming';
-                                    const eventDate = new Date(e.date);
-                                    eventDate.setHours(0, 0, 0, 0);
-                                    return filter === 'upcoming' ? eventDate >= today : eventDate < today;
-                                }).length} {filter === 'upcoming' ? 'Upcoming' : 'Past'} {events.filter(e => {
-                                    const today = new Date();
-                                    today.setHours(0, 0, 0, 0);
-                                    if (!e.date) return filter === 'upcoming';
-                                    const eventDate = new Date(e.date);
-                                    eventDate.setHours(0, 0, 0, 0);
-                                    return filter === 'upcoming' ? eventDate >= today : eventDate < today;
-                                }).length === 1 ? 'Event' : 'Events'}
-                            </div>
-                        ) : (
-                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
-                                My Events
-                            </div>
-                        )}
+
+            <div className="dashboard-container">
+                {/* Header Section */}
+                <div className="dashboard-header">
+                    <div className="dashboard-title-group">
+                        <h1>Manager Dashboard</h1>
+                        <p>Manage all your events in one place</p>
                     </div>
-                    <ThemeToggle />
+                    <div className="dashboard-header-actions">
+                    </div>
                 </div>
 
                 {/* Filter Tabs - Upcoming/Past */}
                 {events.length > 0 && (
-                    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', background: 'var(--bg-secondary)', padding: '4px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                    <div className="dashboard-tabs">
                         <button
-                            className="tour-upcoming-tab"
+                            className={`dashboard-tab-btn tour-upcoming-tab ${filter === 'upcoming' ? 'active' : ''}`}
                             onClick={() => setFilter('upcoming')}
-                            style={{
-                                flex: 1,
-                                padding: '10px 16px',
-                                borderRadius: '8px',
-                                border: 'none',
-                                background: filter === 'upcoming' ? 'var(--primary)' : 'transparent',
-                                color: filter === 'upcoming' ? 'white' : 'var(--text-secondary)',
-                                fontSize: '14px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
                         >
                             Upcoming
                         </button>
                         <button
+                            className={`dashboard-tab-btn ${filter === 'past' ? 'active' : ''}`}
                             onClick={() => setFilter('past')}
-                            style={{
-                                flex: 1,
-                                padding: '10px 16px',
-                                borderRadius: '8px',
-                                border: 'none',
-                                background: filter === 'past' ? 'var(--primary)' : 'transparent',
-                                color: filter === 'past' ? 'white' : 'var(--text-secondary)',
-                                fontSize: '14px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
                         >
                             Past
                         </button>
@@ -198,17 +149,17 @@ const ManagerDashboard = () => {
                             <h2 className="dashboard-modal-title">Create New Event</h2>
                             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                                 {/* Event Type Selector */}
-                                <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600 }}>What kind of event is this?</label>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <label className="dashboard-form-label">What kind of event is this?</label>
+                                <div className="event-type-grid">
                                     {/* Host Event Option */}
                                     <div
                                         onClick={() => setNewEvent({ ...newEvent, eventType: 'host' })}
                                         className={`event-type-card ${newEvent.eventType !== 'shared' ? 'selected' : ''}`}
                                     >
-                                        <div style={{ fontSize: '1.5rem' }}>🎉</div>
+                                        <div className="event-type-icon">🎉</div>
                                         <div>
-                                            <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Host an Event</div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                                            <div className="event-type-title">Host an Event</div>
+                                            <div className="event-type-desc">
                                                 Parties, Weddings.<br />You control the details.
                                             </div>
                                         </div>
@@ -219,10 +170,10 @@ const ManagerDashboard = () => {
                                         onClick={() => setNewEvent({ ...newEvent, eventType: 'shared' })}
                                         className={`event-type-card ${newEvent.eventType === 'shared' ? 'selected-shared' : ''}`}
                                     >
-                                        <div style={{ fontSize: '1.5rem' }}>💶</div>
+                                        <div className="event-type-icon">💶</div>
                                         <div>
-                                            <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Split Expense</div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                                            <div className="event-type-title">Split Expense</div>
+                                            <div className="event-type-desc">
                                                 Trips, Outings.<br />Shared budget & costs.
                                             </div>
                                         </div>
@@ -230,7 +181,7 @@ const ManagerDashboard = () => {
                                 </div>
 
                                 <div>
-                                    <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Event Title</label>
+                                    <label className="dashboard-form-label">Event Title</label>
                                     <input
                                         type="text"
                                         value={newEvent.title}
@@ -242,7 +193,7 @@ const ManagerDashboard = () => {
                                 </div>
 
                                 <div>
-                                    <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Event Theme / Vibe *</label>
+                                    <label className="dashboard-form-label">Event Theme / Vibe *</label>
                                     <textarea
                                         value={newEvent.description || ''}
                                         onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
@@ -252,9 +203,9 @@ const ManagerDashboard = () => {
                                     />
                                 </div>
 
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div className="dashboard-form-row">
                                     <div>
-                                        <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Date</label>
+                                        <label className="dashboard-form-label">Date</label>
                                         <input
                                             type="date"
                                             value={newEvent.date}
@@ -263,7 +214,7 @@ const ManagerDashboard = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Location</label>
+                                        <label className="dashboard-form-label">Location</label>
                                         <LocationAutocomplete
                                             value={newEvent.location}
                                             onChange={(val) => setNewEvent(prev => ({ ...prev, location: val }))}
@@ -279,7 +230,7 @@ const ManagerDashboard = () => {
                                 </div>
 
                                 <div>
-                                    <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Event Region (for local pricing)</label>
+                                    <label className="dashboard-form-label">Event Region (for local pricing)</label>
                                     <select
                                         value={newEvent.country || 'US'}
                                         onChange={(e) => setNewEvent({ ...newEvent, country: e.target.value })}
@@ -293,7 +244,7 @@ const ManagerDashboard = () => {
                                         ))}
                                     </select>
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+                                <div className="dashboard-form-actions">
                                     <button
                                         type="button"
                                         onClick={() => setIsCreating(false)}
@@ -306,7 +257,6 @@ const ManagerDashboard = () => {
                                         type="submit"
                                         className="btn btn-primary"
                                         disabled={isSubmitting}
-                                        style={{ minWidth: '140px' }}
                                     >
                                         {isSubmitting ? 'Creating...' : 'Create Event'}
                                     </button>
@@ -343,7 +293,7 @@ const ManagerDashboard = () => {
                             </button>
                         </div>
                     ) : (
-                        <div style={{ display: 'grid', gap: '12px' }}>
+                        <div className="event-list">
                             {events
                                 .filter(event => {
                                     const today = new Date();
@@ -376,130 +326,63 @@ const ManagerDashboard = () => {
                                     const isSharedEvent = event.event_type === 'shared';
                                     // Shared event participants get full access, only host event guests get limited view
                                     const linkPath = (isGuest && !isSharedEvent) ? `/guest/event/${event.id}` : `/event/${event.id}`;
+                                    
+                                    const iconClass = isGuest ? 'guest' : (isSharedEvent ? 'shared' : 'host');
 
                                     return (
-                                        <Link to={linkPath} key={event.id} style={{ textDecoration: 'none' }}>
-                                            <div style={{
-                                                padding: '20px 0',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '16px',
-                                                transition: 'all 0.2s',
-                                                cursor: 'pointer'
-                                            }}
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.background = 'transparent';
-                                                }}>
-                                                {/* Icon Badge - Splitwise style */}
-                                                <div style={{
-                                                    width: '64px',
-                                                    height: '64px',
-                                                    background: isGuest
-                                                        ? 'linear-gradient(135deg, #60a5fa, #3b82f6)'
-                                                        : isSharedEvent
-                                                            ? 'linear-gradient(135deg, #f59e0b, #d97706)'
-                                                            : 'linear-gradient(135deg, #ec4899, #db2777)',
-                                                    borderRadius: '14px',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    flexShrink: 0,
-                                                    color: 'white'
-                                                }}>
-                                                    <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', opacity: 0.9 }}>
-                                                        {event.date ? new Date(event.date).toLocaleString('default', { month: 'short' }) : 'TBD'}
-                                                    </span>
-                                                    <span style={{ fontSize: '22px', fontWeight: 700, lineHeight: 1 }}>
-                                                        {event.date ? new Date(event.date).getDate() : '?'}
-                                                    </span>
-                                                </div>
+                                        <Link to={linkPath} key={event.id} className="event-list-item">
+                                            {/* Icon Badge */}
+                                            <div className={`event-list-icon ${iconClass}`}>
+                                                <span className="month">
+                                                    {event.date ? new Date(event.date).toLocaleString('default', { month: 'short' }) : 'TBD'}
+                                                </span>
+                                                <span className="day">
+                                                    {event.date ? new Date(event.date).getDate() : '?'}
+                                                </span>
+                                            </div>
 
-                                                {/* Event Details */}
-                                                <div style={{ flex: 1, minWidth: 0 }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                                        <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, wordBreak: 'break-word', lineHeight: '1.3' }}>
-                                                            {event.title}
-                                                        </h3>
-                                                        {isSharedEvent && (
-                                                            <span style={{
-                                                                padding: '2px 8px',
-                                                                background: 'rgba(245, 158, 11, 0.15)',
-                                                                color: '#f59e0b',
-                                                                borderRadius: '12px',
-                                                                fontSize: '10px',
-                                                                fontWeight: 700,
-                                                                textTransform: 'uppercase',
-                                                                flexShrink: 0,
-                                                                border: '1px solid #f59e0b'
-                                                            }}>
-                                                                SHARED
-                                                            </span>
-                                                        )}
-                                                        {isGuest && !isSharedEvent && (
-                                                            <span style={{
-                                                                padding: '2px 8px',
-                                                                background: 'rgba(96, 165, 250, 0.15)',
-                                                                color: '#60a5fa',
-                                                                borderRadius: '12px',
-                                                                fontSize: '10px',
-                                                                fontWeight: 700,
-                                                                textTransform: 'uppercase',
-                                                                flexShrink: 0,
-                                                                border: '1px solid #60a5fa'
-                                                            }}>
-                                                                GUEST
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                                                        {event.location && (
-                                                            <div style={{ marginBottom: '2px' }}>
-                                                                {event.location}
-                                                            </div>
-                                                        )}
-                                                        {!isGuest && (
-                                                            <div>
-                                                                {event.guests?.length || 0} {event.guests?.length === 1 ? 'guest' : 'guests'}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                {/* Actions */}
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                                                    {!isGuest && (
-                                                        <button
-                                                            onClick={(e) => handleDelete(e, event.id)}
-                                                            id={`delete-event-from-list-${event.id}`}
-                                                            data-testid={`delete-event-from-list-${event.id}`}
-                                                            style={{
-                                                                padding: '8px',
-                                                                color: '#9ca3af',
-                                                                transition: 'all 0.2s',
-                                                                border: 'none',
-                                                                background: 'none',
-                                                                cursor: 'pointer',
-                                                                borderRadius: '8px'
-                                                            }}
-                                                            onMouseEnter={(e) => {
-                                                                e.currentTarget.style.background = '#fee2e2';
-                                                                e.currentTarget.style.color = '#ef4444';
-                                                            }}
-                                                            onMouseLeave={(e) => {
-                                                                e.currentTarget.style.background = 'none';
-                                                                e.currentTarget.style.color = '#9ca3af';
-                                                            }}
-                                                            title="Delete Event"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
+                                            {/* Event Details */}
+                                            <div className="event-list-details">
+                                                <div className="event-list-title-row">
+                                                    <h3 className="event-list-title">
+                                                        {event.title}
+                                                    </h3>
+                                                    {isSharedEvent && (
+                                                        <span className="event-list-badge shared">SHARED</span>
                                                     )}
-                                                    <ChevronRight size={18} style={{ color: '#9ca3af' }} />
+                                                    {isGuest && !isSharedEvent && (
+                                                        <span className="event-list-badge guest">GUEST</span>
+                                                    )}
                                                 </div>
+                                                <div className="event-list-meta">
+                                                    {event.location && (
+                                                        <div>{event.location}</div>
+                                                    )}
+                                                    {!isGuest && (
+                                                        <div>
+                                                            {event.guests?.length || 0} {event.guests?.length === 1 ? 'guest' : 'guests'}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Actions */}
+                                            <div className="event-list-actions">
+                                                {!isGuest && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.preventDefault(); // Prevent link click
+                                                            e.stopPropagation();
+                                                            handleDelete(e, event.id);
+                                                        }}
+                                                        id={`delete-event-from-list-${event.id}`}
+                                                        className="event-list-delete-btn"
+                                                        title="Delete Event"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                )}
+                                                <ChevronRight size={18} className="event-list-chevron" />
                                             </div>
                                         </Link>
                                     );
@@ -509,36 +392,10 @@ const ManagerDashboard = () => {
                 }
             </div >
 
-            {/* Floating Action Button - Splitwise style */}
-            < button
-                className="tour-create-btn"
+            {/* Floating Action Button */}
+            <button
+                className="fab-create-btn"
                 onClick={checkLimitAndOpen}
-                style={{
-                    position: 'fixed',
-                    bottom: '100px',
-                    right: '24px',
-                    width: '56px',
-                    height: '56px',
-                    borderRadius: '50%',
-                    background: '#1cc29f',
-                    border: 'none',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(28, 194, 159, 0.4)',
-                    zIndex: 1000,
-                    transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'scale(1.1)';
-                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(28, 194, 159, 0.5)';
-                }}
-                onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(28, 194, 159, 0.4)';
-                }}
                 aria-label="Create New Event"
             >
                 <Plus size={24} strokeWidth={2.5} />
