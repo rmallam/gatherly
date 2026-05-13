@@ -99,22 +99,7 @@ const ExpensesDashboard = ({ eventId, event }) => {
                 </h2>
 
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button
-                        onClick={() => {
-                            setShowAddModal(true);
-                        }}
-                        className="btn btn-primary"
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.75rem 1.25rem',
-                            fontSize: '0.9375rem'
-                        }}
-                    >
-                        <Plus size={18} />
-                        Add Expense
-                    </button>
+                    {/* Placeholder if we want to add other actions here later */}
                 </div>
             </div>
 
@@ -184,6 +169,14 @@ const ExpensesDashboard = ({ eventId, event }) => {
                     />
                 )}
             </div>
+
+            {/* Spacer for FAB */}
+            <div style={{ height: 80 }} />
+
+            {/* FAB */}
+            <button className="btn-floating-action" onClick={() => setShowAddModal(true)}>
+                <Plus size={24} />
+            </button>
 
             {showAddModal && (
                 <AddExpenseModal
