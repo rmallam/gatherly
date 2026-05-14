@@ -70,7 +70,7 @@ const ExpenseDetail = ({ expense, eventId, onClose, onDelete, onEdit, currentUse
             bottom: 0,
             background: 'var(--bg-primary)',
             zIndex: 2000,
-            padding: '16px',
+            padding: 'max(16px, env(safe-area-inset-top)) 16px 16px',
             overflowY: 'auto'
         }}>
             {/* Header / Nav */}
