@@ -390,6 +390,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '1rem',
+                paddingBottom: 'calc(1rem + 80px)', // Account for bottom nav
                 backgroundColor: 'rgba(0, 0, 0, 0.75)'
             }}
             onClick={onClose}
@@ -400,7 +401,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                     maxWidth: '600px',
                     width: '100%',
                     padding: '2rem',
-                    maxHeight: '90vh',
+                    maxHeight: 'calc(100vh - 120px)', // Ensure it doesn't go under bottom nav
                     overflowY: 'auto'
                 }}
                 onClick={e => e.stopPropagation()}
