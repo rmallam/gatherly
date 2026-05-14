@@ -25,14 +25,4 @@ jobs:
           cmd_options: '-a'
           allow_issue_writing: false
           fail_action: false
-          artifact_name: '' # Disable built-in artifact upload (using custom upload instead)
-      
-      - name: Upload ZAP scan results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: zap-scan-results
-          path: |
-            report_html.html
-            report_md.md
-            report_json.json
+          artifact_name: 'zap-report'
