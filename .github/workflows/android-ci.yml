@@ -74,7 +74,7 @@ jobs:
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: |
         echo "$KEYSTORE_BASE64" | base64 --decode > app/release.keystore
-        echo "MYAPP_RELEASE_STORE_FILE=release.keystore" > gradle.properties
+        echo "MYAPP_RELEASE_STORE_FILE=release.keystore" >> gradle.properties
         echo "MYAPP_RELEASE_STORE_PASSWORD=$KEYSTORE_PASSWORD" >> gradle.properties
         echo "MYAPP_RELEASE_KEY_ALIAS=$KEY_ALIAS" >> gradle.properties
         echo "MYAPP_RELEASE_KEY_PASSWORD=$KEY_PASSWORD" >> gradle.properties
