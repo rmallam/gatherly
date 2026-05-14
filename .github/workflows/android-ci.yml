@@ -82,6 +82,23 @@ jobs:
         echo "MYAPP_RELEASE_KEY_ALIAS=$KEY_ALIAS" >> gradle.properties
         echo "MYAPP_RELEASE_KEY_PASSWORD=$KEY_PASSWORD" >> gradle.properties
         
+    - name: Update Version Code and Name
+      if: startsWith(github.ref, 'refs/tags/v')
+      working-directory: ./frontend/android
+      run: |
+        # Extract version name from the tag (e.g., refs/tags/v1.0.1 -> 1.0.1)
+        VERSION_NAME=${GITHUB_REF#refs/tags/v}
+        # Calculate a monotonically increasing version code using the github run number.
+        # We offset by 100 to ensure it is higher than your current versionCode (36).
+        VERSION_CODE=$(( 100 + ${{ github.run_number }} ))
+        
+        echo "Setting versionName to $VERSION_NAME"
+        echo "Setting versionCode to $VERSION_CODE"
+        
+        # Replace versions in build.gradle
+        sed -i "s/versionCode .*/versionCode $VERSION_CODE/g" app/build.gradle
+        sed -i "s/versionName .*/versionName \"$VERSION_NAME\"/g" app/build.gradle
+        
     - name: Build Android Signed AAB
       if: startsWith(github.ref, 'refs/tags/v')
       working-directory: ./frontend/android
@@ -104,3 +121,18 @@ jobs:
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # --- GOOGLE PLAY STORE UPLOAD ---
+    # To enable automatic Play Store uploads, uncomment the following block
+    # and add a new GitHub Secret called PLAYSTORE_SERVICE_ACCOUNT_JSON
+    # containing the JSON key of a Google Cloud Service Account with Play Console permissions.
+    # 
+    # - name: Upload to Google Play
+    #   if: startsWith(github.ref, 'refs/tags/v')
+    #   uses: r0adkll/upload-google-play@v1
+    #   with:
+    #     serviceAccountJsonPlainText: ${{ secrets.PLAYSTORE_SERVICE_ACCOUNT_JSON }}
+    #     packageName: com.hosteze.app
+    #     releaseFiles: frontend/android/app/build/outputs/bundle/release/app-release.aab
+    #     track: production # or internal, alpha, beta
+    #     status: completed
