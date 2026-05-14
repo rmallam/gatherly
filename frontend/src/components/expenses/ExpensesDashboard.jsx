@@ -12,6 +12,7 @@ const ExpensesDashboard = ({ eventId, event }) => {
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
     const [selectedExpense, setSelectedExpense] = useState(null);
+    const [editExpenseData, setEditExpenseData] = useState(null);
     const [activeTab, setActiveTab] = useState('expenses');
 
     const fetchExpenses = async () => {
@@ -174,7 +175,10 @@ const ExpensesDashboard = ({ eventId, event }) => {
             <div style={{ height: 80 }} />
 
             {/* FAB */}
-            <button className="btn-floating-action" onClick={() => setShowAddModal(true)}>
+            <button className="btn-floating-action" onClick={() => {
+                setEditExpenseData(null);
+                setShowAddModal(true);
+            }}>
                 <Plus size={24} />
             </button>
 
@@ -182,11 +186,16 @@ const ExpensesDashboard = ({ eventId, event }) => {
                 <AddExpenseModal
                     eventId={eventId}
                     event={event}
-                    onClose={() => setShowAddModal(false)}
+                    initialData={editExpenseData}
+                    onClose={() => {
+                        setShowAddModal(false);
+                        setEditExpenseData(null);
+                    }}
                     onExpenseAdded={() => {
                         fetchExpenses();
                         fetchBalances();
                         setShowAddModal(false);
+                        setEditExpenseData(null);
                     }}
                 />
             )}
@@ -216,6 +225,11 @@ const ExpensesDashboard = ({ eventId, event }) => {
                         return [owner, ...guests];
                     })()}
                     onClose={() => setSelectedExpense(null)}
+                    onEdit={(expense) => {
+                        setSelectedExpense(null);
+                        setEditExpenseData(expense);
+                        setShowAddModal(true);
+                    }}
                     onDelete={() => {
                         fetchExpenses();
                         fetchBalances();

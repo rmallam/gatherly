@@ -6,13 +6,15 @@ import { useAuth } from '../../context/AuthContext';
 
 const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData }) => {
     const [formData, setFormData] = useState({
+        id: initialData?.id || null,
         amount: initialData?.amount || '',
         currency: initialData?.currency || 'USD',
         description: initialData?.merchant || initialData?.description || '', // Use merchant as description
         category: initialData?.category || 'food',
         paidBy: '',
-        expenseDate: initialData?.date || new Date().toISOString().split('T')[0],
-        splitType: 'equal'
+        expenseDate: initialData?.date || initialData?.expense_date || new Date().toISOString().split('T')[0],
+        splitType: initialData?.splitType || 'equal',
+        receiptUrl: initialData?.receipt_url || ''
     });
     const [customSplits, setCustomSplits] = useState({});
     const [lineItems, setLineItems] = useState(initialData?.lineItems || []);
@@ -28,7 +30,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
 
     // Pre-calculate customSplits if lineItems exist
     useEffect(() => {
-        if (lineItems.length > 0 && formData.splitType === 'custom') {
+        if (lineItems.length > 0 && formData.splitType === 'itemized') {
             const newSplits = {};
             lineItems.forEach(item => {
                 if (item.assignedTo) {
@@ -53,7 +55,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
     }, [lineItems, formData.splitType, initialData]);
 
     const handleAssignLineItem = (index, userId) => {
-        setFormData(prev => ({ ...prev, splitType: 'custom' }));
+        setFormData(prev => ({ ...prev, splitType: 'itemized' }));
         setLineItems(prev => {
             const newItems = [...prev];
             newItems[index] = { ...newItems[index], assignedTo: userId };
@@ -96,6 +98,25 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                     const mimeType = file.type;
 
                     const token = localStorage.getItem('token');
+                    
+                    // First upload the image to Cloudinary
+                    try {
+                        const uploadResponse = await fetch(`${API_URL}/upload/image`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ image: `data:${mimeType};base64,${base64Image}` })
+                        });
+                        if (uploadResponse.ok) {
+                            const uploadData = await uploadResponse.json();
+                            setFormData(prev => ({ ...prev, receiptUrl: uploadData.url }));
+                        }
+                    } catch (uploadErr) {
+                        console.error('Failed to upload receipt image:', uploadErr);
+                    }
+
                     const response = await fetch(`${API_URL}/gemini/analyze-receipt`, {
                         method: 'POST',
                         headers: {
@@ -284,7 +305,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                     }
                 }).filter(Boolean);
             } else {
-                // Custom splits
+                // Custom or Itemized splits
                 splits = selectedParticipants.map(participantId => {
                     const participant = participants.find(p => p.id === participantId);
                     if (!participant) return null;
@@ -317,6 +338,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                 }
             }
 
+            const isEditing = !!formData.id;
             const token = localStorage.getItem('token');
             const payload = {
                 ...formData,
@@ -324,11 +346,16 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                 splits
             };
 
-            console.log('Sending expense creation request:', payload);
+            console.log('Sending expense request:', payload);
             console.log('Splits:', splits);
 
-            const response = await fetch(`${API_URL}/events/${eventId}/expenses`, {
-                method: 'POST',
+            const url = isEditing 
+                ? `${API_URL}/events/${eventId}/expenses/${formData.id}`
+                : `${API_URL}/events/${eventId}/expenses`;
+            const method = isEditing ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
@@ -409,7 +436,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                     <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                        Add Expense
+                        {formData.id ? 'Edit Expense' : 'Add Expense'}
                     </h3>
                     <button
                         onClick={onClose}
@@ -593,7 +620,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                         <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
                             Split Type
                         </label>
-                        <div style={{ display: 'flex', gap: '1rem' }}>
+                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                                 <input
                                     type="radio"
@@ -614,11 +641,23 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                                 />
                                 <span style={{ color: 'var(--text-primary)' }}>Custom Split</span>
                             </label>
+                            {lineItems.length > 0 && (
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                                    <input
+                                        type="radio"
+                                        name="splitType"
+                                        value="itemized"
+                                        checked={formData.splitType === 'itemized'}
+                                        onChange={(e) => setFormData({ ...formData, splitType: e.target.value })}
+                                    />
+                                    <span style={{ color: 'var(--text-primary)' }}>Itemized</span>
+                                </label>
+                            )}
                         </div>
                     </div>
 
                     {/* AI Scan-to-Split View */}
-                    {lineItems.length > 0 && (
+                    {lineItems.length > 0 && formData.splitType === 'itemized' && (
                         <div style={{ background: 'var(--bg-secondary)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                                 <Receipt size={18} color="#6366f1" />
@@ -735,7 +774,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                             style={{ flex: 1 }}
                             disabled={loading}
                         >
-                            {loading ? 'Adding...' : 'Add Expense'}
+                            {loading ? 'Saving...' : (formData.id ? 'Save Changes' : 'Add Expense')}
                         </button>
                     </div>
                 </form>

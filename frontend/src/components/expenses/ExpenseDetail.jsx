@@ -1,8 +1,8 @@
 import React from 'react';
-import { X, Trash2, Calendar, User, FileText } from 'lucide-react';
+import { X, Trash2, Calendar, User, FileText, Edit2 } from 'lucide-react';
 import API_URL from '../../config/api';
 
-const ExpenseDetail = ({ expense, eventId, onClose, onDelete, currentUserId, participants = [] }) => {
+const ExpenseDetail = ({ expense, eventId, onClose, onDelete, onEdit, currentUserId, participants = [] }) => {
     if (!expense) return null;
 
     const handleDelete = async () => {
@@ -77,6 +77,12 @@ const ExpenseDetail = ({ expense, eventId, onClose, onDelete, currentUserId, par
                     <X size={24} />
                 </button>
                 <div style={{ display: 'flex', gap: '16px' }}>
+                    <button
+                        onClick={() => onEdit(expense)}
+                        style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', padding: '8px', cursor: 'pointer' }}
+                    >
+                        <Edit2 size={24} />
+                    </button>
                     <button
                         onClick={handleDelete} // Only if creator? Or admin? Allowing for now as per previous logic
                         style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', padding: '8px', cursor: 'pointer' }}
@@ -174,6 +180,22 @@ const ExpenseDetail = ({ expense, eventId, onClose, onDelete, currentUserId, par
                     )}
                 </div>
             </div>
+
+            {/* Receipt Image */}
+            {expense.receipt_url && (
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '24px', marginTop: '24px' }}>
+                    <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '16px', letterSpacing: '0.05em' }}>
+                        Receipt
+                    </h3>
+                    <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                        <img 
+                            src={expense.receipt_url} 
+                            alt="Receipt" 
+                            style={{ width: '100%', display: 'block', maxHeight: '400px', objectFit: 'contain', background: '#f8f9fa' }} 
+                        />
+                    </div>
+                </div>
+            )}
 
         </div>
     );
