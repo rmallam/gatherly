@@ -47,13 +47,27 @@ jobs:
       working-directory: ./frontend/android
       run: chmod +x gradlew
     
-    - name: Build Android Debug APK
+    - name: Setup Keystore and Properties
       working-directory: ./frontend/android
-      run: ./gradlew assembleDebug --stacktrace
+      env:
+        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      run: |
+        echo "$KEYSTORE_BASE64" | base64 --decode > app/release.keystore
+        echo "MYAPP_RELEASE_STORE_FILE=release.keystore" > gradle.properties
+        echo "MYAPP_RELEASE_STORE_PASSWORD=$KEYSTORE_PASSWORD" >> gradle.properties
+        echo "MYAPP_RELEASE_KEY_ALIAS=$KEY_ALIAS" >> gradle.properties
+        echo "MYAPP_RELEASE_KEY_PASSWORD=$KEY_PASSWORD" >> gradle.properties
+        
+    - name: Build Android Signed AAB
+      working-directory: ./frontend/android
+      run: ./gradlew bundleRelease --stacktrace
     
-    - name: Upload APK artifact
+    - name: Upload AAB artifact
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug-${{ github.sha }}
-        path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+        name: app-release-${{ github.sha }}
+        path: frontend/android/app/build/outputs/bundle/release/app-release.aab
         retention-days: 30
