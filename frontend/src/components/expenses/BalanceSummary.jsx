@@ -81,7 +81,8 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
                             <span style={{
                                 fontWeight: 600,
-                                color: 'var(--text-primary)',
+                                color: balance.isSettled ? 'var(--text-tertiary)' : 'var(--text-primary)',
+                                textDecoration: balance.isSettled ? 'line-through' : 'none',
                                 fontSize: '0.9375rem',
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
@@ -92,7 +93,8 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
                             <ArrowRight size={16} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
                             <span style={{
                                 fontWeight: 600,
-                                color: 'var(--text-primary)',
+                                color: balance.isSettled ? 'var(--text-tertiary)' : 'var(--text-primary)',
+                                textDecoration: balance.isSettled ? 'line-through' : 'none',
                                 fontSize: '0.9375rem',
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
@@ -102,46 +104,69 @@ const BalanceSummary = ({ balances, eventId, onSettled }) => {
                             </span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
-                            <span style={{ fontSize: '1rem', fontWeight: 700, color: '#ef4444', whiteSpace: 'nowrap' }}>
+                            <span style={{ 
+                                fontSize: '1rem', 
+                                fontWeight: 700, 
+                                color: balance.isSettled ? 'var(--text-tertiary)' : '#ef4444', 
+                                whiteSpace: 'nowrap',
+                                textDecoration: balance.isSettled ? 'line-through' : 'none'
+                            }}>
                                 {balance.currency} {parseFloat(balance.amount).toFixed(2)}
                             </span>
-                            <button
-                                onClick={() => checkSettle(balance)}
-                                style={{
+                            {balance.isSettled ? (
+                                <div style={{
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    width: '32px',
-                                    height: '32px',
-                                    padding: '0',
-                                    background: balance.isPending ? 'rgba(251, 191, 36, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                                    border: balance.isPending ? '1px solid #fbbf24' : '1px solid #10b981',
-                                    borderRadius: '50%',
-                                    color: balance.isPending ? '#fbbf24' : '#10b981',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s'
-                                }}
-                                disabled={settling === balance}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = balance.isPending ? 'rgba(251, 191, 36, 0.2)' : 'rgba(16, 185, 129, 0.2)';
-                                    e.currentTarget.style.transform = 'scale(1.1)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = balance.isPending ? 'rgba(251, 191, 36, 0.1)' : 'rgba(16, 185, 129, 0.1)';
-                                    e.currentTarget.style.transform = 'scale(1)';
-                                }}
-                                title={balance.isPending ? "User Pending" : "Settle"}
-                            >
-                                {balance.isPending ? (
-                                    <AlertCircle size={16} />
-                                ) : (
-                                    settling === balance ? (
-                                        <Loader size={16} className="animate-spin" />
+                                    padding: '4px 12px',
+                                    background: 'rgba(16, 185, 129, 0.1)',
+                                    border: '1px solid #10b981',
+                                    borderRadius: '16px',
+                                    color: '#10b981',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '600'
+                                }}>
+                                    Paid
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => checkSettle(balance)}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: '32px',
+                                        height: '32px',
+                                        padding: '0',
+                                        background: balance.isPending ? 'rgba(251, 191, 36, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                                        border: balance.isPending ? '1px solid #fbbf24' : '1px solid #10b981',
+                                        borderRadius: '50%',
+                                        color: balance.isPending ? '#fbbf24' : '#10b981',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    disabled={settling === balance}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = balance.isPending ? 'rgba(251, 191, 36, 0.2)' : 'rgba(16, 185, 129, 0.2)';
+                                        e.currentTarget.style.transform = 'scale(1.1)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = balance.isPending ? 'rgba(251, 191, 36, 0.1)' : 'rgba(16, 185, 129, 0.1)';
+                                        e.currentTarget.style.transform = 'scale(1)';
+                                    }}
+                                    title={balance.isPending ? "User Pending" : "Settle"}
+                                >
+                                    {balance.isPending ? (
+                                        <AlertCircle size={16} />
                                     ) : (
-                                        <Check size={18} />
-                                    )
-                                )}
-                            </button>
+                                        settling === balance ? (
+                                            <Loader size={16} className="animate-spin" />
+                                        ) : (
+                                            <Check size={18} />
+                                        )
+                                    )}
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))}

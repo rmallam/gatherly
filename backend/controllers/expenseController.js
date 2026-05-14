@@ -397,7 +397,7 @@ export const getBalances = async (req, res) => {
             return res.status(403).json({ error: 'Access denied to this event' });
         }
 
-        // Get all unsettled splits with user details (including pending participants)
+        // Get all splits with user details (including pending participants)
         const splitsResult = await query(
             `SELECT 
                 es.user_id, 
@@ -406,6 +406,7 @@ export const getBalances = async (req, res) => {
                 es.pending_phone,
                 CASE WHEN es.user_id IS NULL THEN true ELSE false END as is_pending,
                 es.amount, 
+                es.settled,
                 ee.paid_by, 
                 ee.currency,
                 COALESCE(u1.name, es.pending_name) as user_name, 
@@ -414,12 +415,18 @@ export const getBalances = async (req, res) => {
              JOIN event_expenses ee ON es.expense_id = ee.id
              LEFT JOIN users u1 ON es.user_id = u1.id
              JOIN users u2 ON ee.paid_by = u2.id
-             WHERE ee.event_id = $1 AND es.settled = FALSE`,
+             WHERE ee.event_id = $1`,
             [eventId]
         );
 
-        // Calculate net balances
-        const balances = calculateBalances(splitsResult.rows);
+        // Calculate net balances for active and settled separately
+        const activeBalances = calculateBalances(splitsResult.rows.filter(s => !s.settled));
+        const settledBalances = calculateBalances(splitsResult.rows.filter(s => s.settled));
+
+        const balances = [
+            ...activeBalances.map(b => ({ ...b, isSettled: false })),
+            ...settledBalances.map(b => ({ ...b, isSettled: true }))
+        ];
 
         // Get total expenses and user shares
         const summaryResult = await query(
