@@ -22,7 +22,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const [isScanning, setIsScanning] = useState(false);
+    const [scanState, setScanState] = useState('');
     const cameraInputRef = useRef(null);
     const galleryInputRef = useRef(null);
     const navigate = useNavigate();
@@ -88,7 +88,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
         const file = e.target.files?.[0];
         if (!file) return;
 
-        setIsScanning(true);
+        setScanState('uploading');
         try {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -117,6 +117,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                         console.error('Failed to upload receipt image:', uploadErr);
                     }
 
+                    setScanState('analyzing');
                     const response = await fetch(`${API_URL}/gemini/analyze-receipt`, {
                         method: 'POST',
                         headers: {
@@ -151,7 +152,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                     console.error('Scan error:', error);
                     alert('Failed to analyze receipt. Please try again.');
                 } finally {
-                    setIsScanning(false);
+                    setScanState('');
                     if (cameraInputRef.current) cameraInputRef.current.value = '';
                     if (galleryInputRef.current) galleryInputRef.current.value = '';
                 }
@@ -159,11 +160,11 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
             reader.onerror = () => {
                 console.error('File reading error');
                 alert('Failed to read file.');
-                setIsScanning(false);
+                setScanState('');
             };
         } catch (error) {
             console.error('File selection error:', error);
-            setIsScanning(false);
+            setScanState('');
         }
     };    // Get all participants based on event type
     const participants = React.useMemo(() => {
@@ -482,11 +483,11 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                         <button
                             type="button"
                             onClick={() => handleScanClick('camera')}
-                            disabled={isScanning}
+                            disabled={!!scanState}
                             className="btn btn-secondary"
                             style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.875rem', position: 'relative' }}
                         >
-                            {isScanning ? <Loader size={16} className="spin" /> : <ScanLine size={16} />}
+                            {scanState ? <Loader size={16} className="spin" /> : <ScanLine size={16} />}
                             Scan Receipt
                             {!(user?.subscription_tier === 'pro' || user?.subscription_tier === 'business') && (
                                 <Lock size={12} style={{ position: 'absolute', top: -4, right: -4, color: '#d97706' }} />
@@ -496,11 +497,11 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                         <button
                             type="button"
                             onClick={() => handleScanClick('gallery')}
-                            disabled={isScanning}
+                            disabled={!!scanState}
                             className="btn btn-secondary"
                             style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.875rem', position: 'relative' }}
                         >
-                            {isScanning ? <Loader size={16} className="spin" /> : <Upload size={16} />}
+                            {scanState ? <Loader size={16} className="spin" /> : <Upload size={16} />}
                             Upload Receipt
                             {!(user?.subscription_tier === 'pro' || user?.subscription_tier === 'business') && (
                                 <Lock size={12} style={{ position: 'absolute', top: -4, right: -4, color: '#d97706' }} />
@@ -620,39 +621,35 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                         <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
                             Split Type
                         </label>
-                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                                <input
-                                    type="radio"
-                                    name="splitType"
-                                    value="equal"
-                                    checked={formData.splitType === 'equal'}
-                                    onChange={(e) => setFormData({ ...formData, splitType: e.target.value })}
-                                />
-                                <span style={{ color: 'var(--text-primary)' }}>Equal Split</span>
-                            </label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                                <input
-                                    type="radio"
-                                    name="splitType"
-                                    value="custom"
-                                    checked={formData.splitType === 'custom'}
-                                    onChange={(e) => setFormData({ ...formData, splitType: e.target.value })}
-                                />
-                                <span style={{ color: 'var(--text-primary)' }}>Custom Split</span>
-                            </label>
-                            {lineItems.length > 0 && (
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                                    <input
-                                        type="radio"
-                                        name="splitType"
-                                        value="itemized"
-                                        checked={formData.splitType === 'itemized'}
-                                        onChange={(e) => setFormData({ ...formData, splitType: e.target.value })}
-                                    />
-                                    <span style={{ color: 'var(--text-primary)' }}>Itemized</span>
-                                </label>
-                            )}
+                        <div style={{ 
+                            display: 'flex', 
+                            background: 'var(--bg-secondary)', 
+                            borderRadius: '12px', 
+                            padding: '4px',
+                            gap: '4px'
+                        }}>
+                            {['equal', 'custom', ...(lineItems.length > 0 ? ['itemized'] : [])].map(type => (
+                                <button
+                                    key={type}
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, splitType: type })}
+                                    style={{
+                                        flex: 1,
+                                        padding: '8px 16px',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        background: formData.splitType === type ? 'var(--bg-primary)' : 'transparent',
+                                        color: formData.splitType === type ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                        fontWeight: formData.splitType === type ? 600 : 500,
+                                        boxShadow: formData.splitType === type ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                                        transition: 'all 0.2s ease',
+                                        cursor: 'pointer',
+                                        textTransform: 'capitalize'
+                                    }}
+                                >
+                                    {type} {type !== 'itemized' && 'Split'}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
@@ -780,7 +777,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                 </form>
             </div>
             {/* AI Analysis Overlay */}
-            {isScanning && (
+            {scanState && (
                 <div style={{
                     position: 'fixed',
                     inset: 0,
@@ -804,10 +801,12 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                         marginBottom: '1.5rem'
                     }} />
                     <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem' }}>
-                        AI is Analyzing Receipt
+                        {scanState === 'uploading' ? 'Uploading Receipt...' : 'AI is Analyzing Receipt'}
                     </h3>
                     <p style={{ color: 'rgba(255,255,255,0.7)', maxWidth: '300px' }}>
-                        Extracting merchant, date, and total amount...
+                        {scanState === 'uploading' 
+                            ? 'Securely storing image...' 
+                            : 'Extracting merchant, date, and total amount...'}
                     </p>
                     <style>{`
                         @keyframes spin {

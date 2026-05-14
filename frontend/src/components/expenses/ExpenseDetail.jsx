@@ -3,11 +3,16 @@ import { X, Trash2, Calendar, User, FileText, Edit2 } from 'lucide-react';
 import API_URL from '../../config/api';
 
 const ExpenseDetail = ({ expense, eventId, onClose, onDelete, onEdit, currentUserId, participants = [] }) => {
+    const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+    const [isZoomed, setIsZoomed] = React.useState(false);
+
     if (!expense) return null;
 
-    const handleDelete = async () => {
-        if (!confirm('Are you sure you want to delete this expense?')) return;
+    const handleDelete = () => {
+        setShowDeleteConfirm(true);
+    };
 
+    const confirmDelete = async () => {
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(`${API_URL}/events/${eventId}/expenses/${expense.id}`, {
@@ -187,7 +192,7 @@ const ExpenseDetail = ({ expense, eventId, onClose, onDelete, onEdit, currentUse
                     <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '16px', letterSpacing: '0.05em' }}>
                         Receipt
                     </h3>
-                    <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                    <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border)', cursor: 'zoom-in' }} onClick={() => setIsZoomed(true)}>
                         <img 
                             src={expense.receipt_url} 
                             alt="Receipt" 
@@ -197,6 +202,69 @@ const ExpenseDetail = ({ expense, eventId, onClose, onDelete, onEdit, currentUse
                 </div>
             )}
 
+            {/* Lightbox for Receipt */}
+            {isZoomed && (
+                <div 
+                    style={{
+                        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 9999,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px'
+                    }}
+                    onClick={() => setIsZoomed(false)}
+                >
+                    <button 
+                        onClick={() => setIsZoomed(false)}
+                        style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', color: 'white', cursor: 'pointer', zIndex: 10000 }}
+                    >
+                        <X size={32} />
+                    </button>
+                    <img 
+                        src={expense.receipt_url} 
+                        alt="Receipt Fullscreen" 
+                        style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '8px' }}
+                        onClick={e => e.stopPropagation()} // Prevent click from closing immediately if tapping image
+                    />
+                </div>
+            )}
+
+            {/* Native Delete Confirmation Modal */}
+            {showDeleteConfirm && (
+                <div style={{
+                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+                    zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px'
+                }}>
+                    <div style={{
+                        background: 'var(--bg-primary)', borderRadius: '24px', padding: '32px',
+                        maxWidth: '400px', width: '100%', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
+                    }}>
+                        <div style={{
+                            width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#ef4444'
+                        }}>
+                            <Trash2 size={32} />
+                        </div>
+                        <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-primary)' }}>
+                            Delete Expense
+                        </h3>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '32px', lineHeight: 1.5 }}>
+                            Are you sure you want to permanently delete this expense? This action cannot be undone and will update everyone's balances.
+                        </p>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button
+                                onClick={() => setShowDeleteConfirm(false)}
+                                style={{ flex: 1, padding: '12px', border: 'none', borderRadius: '12px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontWeight: 600, cursor: 'pointer' }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                style={{ flex: 1, padding: '12px', border: 'none', borderRadius: '12px', background: '#ef4444', color: 'white', fontWeight: 600, cursor: 'pointer' }}
+                            >
+                                Yes, Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
