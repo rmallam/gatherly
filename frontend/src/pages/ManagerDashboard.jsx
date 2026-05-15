@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Trash2, Calendar, ChevronRight, MapPin, Users, Sparkles, CheckCircle, ArrowRight } from 'lucide-react';
+import { Plus, Trash2, Calendar, ChevronRight, MapPin, Users, Sparkles, CheckCircle, ArrowRight, AlertCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import RateAppService from '../services/RateAppService';
 import UpgradeModal from '../components/UpgradeModal';
@@ -14,6 +14,16 @@ import './ManagerDashboard.css';
 const ManagerDashboard = () => {
     const { events, createEvent, deleteEvent } = useApp();
     const { user } = useAuth();
+    
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return "G'day"; // or 'Good morning'
+        if (hour < 18) return 'Good afternoon';
+        return 'Good evening';
+    };
+    
+    const firstName = user?.name ? user.name.split(' ')[0] : '';
+    
     const navigate = useNavigate();
     const [isCreating, setIsCreating] = useState(false);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -115,7 +125,7 @@ const ManagerDashboard = () => {
                 {/* Header Section */}
                 <div className="dashboard-header">
                     <div className="dashboard-title-group">
-                        <h1>Manager Dashboard</h1>
+                        <h1>{getGreeting()}{firstName ? `, ${firstName}` : ''}! 👋</h1>
                         <p>Manage all your events in one place</p>
                     </div>
                     <div className="dashboard-header-actions">
@@ -244,6 +254,14 @@ const ManagerDashboard = () => {
                                         ))}
                                     </select>
                                 </div>
+                                {error && (
+                                    <div style={{ color: '#ef4444', fontSize: '14px', background: 'rgba(239, 68, 68, 0.1)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <AlertCircle size={16} />
+                                            <span>{error}</span>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="dashboard-form-actions">
                                     <button
                                         type="button"

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Users, Search, Smartphone, AlertCircle } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import { Contacts } from '@capacitor-community/contacts';
 
 const ContactPicker = ({ onImport, onClose }) => {
@@ -30,7 +31,6 @@ const ContactPicker = ({ onImport, onClose }) => {
     const loadContactsPlugin = async () => {
         try {
             // Check if we're running in a native app (not web)
-            const { Capacitor } = await import('@capacitor/core');
             const platform = Capacitor.getPlatform();
 
             console.log('Capacitor platform:', platform);

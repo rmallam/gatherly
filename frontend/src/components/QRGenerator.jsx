@@ -1,8 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { Download, Share2 } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
-const QRGenerator = ({ payload, name, eventTitle, phoneNumber }) => {
+const QRGenerator = ({ payload, name, eventTitle, phoneNumber, minimal = false }) => {
     const qrRef = useRef();
     const [sharing, setSharing] = useState(false);
 
@@ -18,11 +21,7 @@ const QRGenerator = ({ payload, name, eventTitle, phoneNumber }) => {
 
             // Try Capacitor Filesystem for Android/iOS
             try {
-                const { Capacitor } = await import('@capacitor/core');
-
                 if (Capacitor.isNativePlatform()) {
-                    const { Filesystem, Directory } = await import('@capacitor/filesystem');
-
                     // Convert blob to base64
                     const reader = new FileReader();
                     reader.readAsDataURL(blob);
@@ -67,12 +66,7 @@ const QRGenerator = ({ payload, name, eventTitle, phoneNumber }) => {
 
             // Try Capacitor Share API for native platforms
             try {
-                const { Capacitor } = await import('@capacitor/core');
-
                 if (Capacitor.isNativePlatform()) {
-                    const { Share } = await import('@capacitor/share');
-                    const { Filesystem, Directory } = await import('@capacitor/filesystem');
-
                     // Convert blob to base64
                     const reader = new FileReader();
                     reader.readAsDataURL(blob);
@@ -126,8 +120,9 @@ const QRGenerator = ({ payload, name, eventTitle, phoneNumber }) => {
     };
 
     return (
-        <div ref={qrRef} className="card" style={{ width: '100%', overflow: 'hidden' }}>
+        <div ref={qrRef} className={`card ${minimal ? 'minimal-qr' : ''}`} style={{ width: '100%', overflow: 'hidden', background: minimal ? 'transparent' : undefined, boxShadow: minimal ? 'none' : undefined, border: minimal ? 'none' : undefined }}>
             {/* Header */}
+            {!minimal && (
             <div style={{
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 padding: '1.5rem 1.25rem',
@@ -163,11 +158,12 @@ const QRGenerator = ({ payload, name, eventTitle, phoneNumber }) => {
                     </p>
                 )}
             </div>
+            )}
 
             {/* QR Code */}
             <div style={{
-                padding: '2rem 1.5rem',
-                background: 'var(--bg-secondary)',
+                padding: minimal ? '1rem 0' : '2rem 1.5rem',
+                background: minimal ? 'transparent' : 'var(--bg-secondary)',
                 display: 'flex',
                 justifyContent: 'center'
             }}>
@@ -175,19 +171,20 @@ const QRGenerator = ({ payload, name, eventTitle, phoneNumber }) => {
                     padding: '1rem',
                     background: 'white',
                     borderRadius: 'var(--radius-lg)',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-                    border: '1px solid var(--border)'
+                    boxShadow: minimal ? 'none' : '0 2px 8px rgba(0, 0, 0, 0.06)',
+                    border: minimal ? 'none' : '1px solid var(--border)'
                 }}>
                     <QRCodeCanvas
                         value={JSON.stringify(payload)}
-                        size={180}
-                        level="H"
+                        size={minimal ? 220 : 180}
+                        level="M"
                         includeMargin={true}
                     />
                 </div>
             </div>
 
             {/* Actions */}
+            {!minimal && (
             <div style={{ padding: '1.25rem' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                     <button
@@ -230,6 +227,7 @@ const QRGenerator = ({ payload, name, eventTitle, phoneNumber }) => {
                     Scan this code at the event to check in
                 </p>
             </div>
+            )}
         </div>
     );
 };

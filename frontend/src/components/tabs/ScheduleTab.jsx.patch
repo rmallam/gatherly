@@ -1,0 +1,101 @@
+--- /Users/rakeshkumarmallam/Rakesh-work/guest-scanner/frontend/src/components/tabs/ScheduleTab.jsx
++++ /Users/rakeshkumarmallam/Rakesh-work/guest-scanner/frontend/src/components/tabs/ScheduleTab.jsx
+@@ -3,17 +3,19 @@
+ import { Plus, Calendar as CalendarIcon, Clock, MapPin } from 'lucide-react';
+ import ScheduleItemCard from './ScheduleItemCard';
+ import AddScheduleItemModal from './AddScheduleItemModal';
+ import AISmartSchedule from '../ai/AISmartSchedule';
+ import CategoryTourWrapper from '../tours/CategoryTourWrapper';
++import { useAuth } from '../../context/AuthContext';
+ import '../../pages/EventTabs.css';
+ 
+ const ScheduleTab = ({ event }) => {
+     const [scheduleItems, setScheduleItems] = useState([]);
+     const [selectedDate, setSelectedDate] = useState(null);
+     const [showAddModal, setShowAddModal] = useState(false);
++    const [showAISchedule, setShowAISchedule] = useState(false);
+     const [loading, setLoading] = useState(true);
+     const [dates, setDates] = useState([]);
++    const { user } = useAuth();
+ 
+     // Generate date range from event start to end (or +7 days if no end date)
+     useEffect(() => {
+@@ -113,11 +115,70 @@
+                 })}
+             </div>
+ 
+-            {/* AI Generator */}
+-            <AISmartSchedule
+-                event={event}
+-                onScheduleGenerated={fetchScheduleItems}
+-            />
++            {/* Action Buttons Row */}
++            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
++                <button
++                    onClick={() => setShowAddModal(true)}
++                    className="btn btn-primary tour-add-schedule-btn"
++                    style={{ flex: 1 }}
++                >
++                    <Plus size={16} /> Add Custom Item
++                </button>
++                {user?.subscription_tier === 'pro' && (
++                    <button
++                        onClick={() => setShowAISchedule(!showAISchedule)}
++                        className="btn btn-secondary tour-ai-btn"
++                        style={{
++                            flex: 1,
++                            background: showAISchedule ? 'var(--bg-secondary)' : 'transparent',
++                            borderColor: showAISchedule ? 'var(--primary)' : 'var(--border-color)',
++                            color: showAISchedule ? 'var(--primary)' : 'var(--text-primary)'
++                        }}
++                    >
++                        <Sparkles size={16} style={{ color: 'var(--accent)' }} />
++                        {showAISchedule ? 'Hide AI Smart Schedule' : 'AI Smart Schedule'}
++                    </button>
++                )}
++            </div>
++
++            {showAISchedule && user?.subscription_tier === 'pro' && (
++                <AISmartSchedule
++                    event={event}
++                    onScheduleGenerated={fetchScheduleItems}
++                />
++            )}
++
++            {/* Upgrade Card (Free only) */}
++            {(!user?.subscription_tier || user?.subscription_tier === 'free') && (
++                <div style={{
++                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))',
++                    borderRadius: '16px', padding: '32px 24px', marginBottom: '24px', textAlign: 'center',
++                    border: '2px dashed rgba(99, 102, 241, 0.3)'
++                }}>
++                    <div style={{
++                        width: '64px', height: '64px', background: 'rgba(99, 102, 241, 0.2)', borderRadius: '50%',
++                        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px'
++                    }}>
++                        <Sparkles size={32} color="var(--primary)" />
++                    </div>
++                    <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
++                        AI Smart Schedule
++                    </h3>
++                    <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '15px' }}>
++                        Upgrade to Pro to automatically generate complete itineraries for your events.
++                    </p>
++                    <a
++                        href="/pro"
++                        style={{
++                            display: 'inline-flex', alignItems: 'center', gap: '8px',
++                            background: 'linear-gradient(135deg, var(--primary), #8b5cf6)', color: 'white',
++                            padding: '14px 28px', borderRadius: '12px', textDecoration: 'none',
++                            fontWeight: 600, fontSize: '16px', transition: 'transform 0.2s'
++                        }}
++                        onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
++                        onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
++                    >
++                        <Sparkles size={18} /> Upgrade to Pro
++                    </a>
++                </div>
++            )}
+ 
+             {/* Empty State */}
+             {selectedDateItems.length === 0 ? (

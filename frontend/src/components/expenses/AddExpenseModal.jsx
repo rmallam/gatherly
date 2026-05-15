@@ -3,8 +3,10 @@ import API_URL from '../../config/api';
 import { X, DollarSign, Receipt, Calendar, ScanLine, Upload, Loader, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useBackButton } from '../../hooks/useBackButton';
 
 const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData }) => {
+    useBackButton(onClose, true);
     const [formData, setFormData] = useState({
         id: initialData?.id || null,
         amount: initialData?.amount || '',

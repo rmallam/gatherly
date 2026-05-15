@@ -61,7 +61,7 @@ const AIGiftsGenerator = ({ event, onGiftsGenerated }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <FeatureLock featureName="AI Gift Registry" description="Upgrade to Pro to auto-generate curated gift registries tailored to your guests.">
+        <FeatureLock featureName="AI Gift Registry" description="Upgrade to Pro to instantly curate a list of highly-rated gifts tailored to your event.">
             {/* Clickable Widget Card */}
             <div
                 onClick={() => setIsOpen(true)}

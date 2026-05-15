@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { CheckSquare, Plus, X, Check, Trash2, Calendar, AlertCircle, Sparkles } from 'lucide-react';
+import { CheckSquare, Plus, X, Check, Trash2, Calendar, AlertCircle, Sparkles, Edit2 } from 'lucide-react';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import AITasksGenerator from '../ai/AITasksGenerator';
 import CategoryTourWrapper from '../tours/CategoryTourWrapper';
+import { useAuth } from '../../context/AuthContext';
 import '../../pages/EventTabs.css';
 
 const TasksTab = ({ event, onUpdateTasks }) => {
+    const { user } = useAuth();
     const [tasks, setTasks] = useState(event.tasks || []);
     const [showAddForm, setShowAddForm] = useState(false);
+    const [showAIPlanner, setShowAIPlanner] = useState(false);
+    const [editingTask, setEditingTask] = useState(null);
 
     // DEBUG: Verify Build Version
     React.useEffect(() => {
@@ -84,6 +88,24 @@ const TasksTab = ({ event, onUpdateTasks }) => {
         }
     };
 
+    const handleEditTask = (task) => {
+        setEditingTask({ ...task });
+    };
+
+    const handleUpdateTask = () => {
+        if (!editingTask.title) return;
+        const updatedTasks = tasks.map(task =>
+            task.id === editingTask.id ? { ...editingTask } : task
+        );
+        setTasks(updatedTasks);
+        onUpdateTasks?.(updatedTasks);
+        setEditingTask(null);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingTask(null);
+    };
+
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter(t => t.status === 'completed').length;
     const inProgressTasks = tasks.filter(t => t.status === 'in-progress').length;
@@ -113,83 +135,6 @@ const TasksTab = ({ event, onUpdateTasks }) => {
                     }
                 ]}
             />
-            {/* AI Generator always at the top like a search bar */}
-            <AITasksGenerator
-                event={event}
-                onTasksGenerated={handleTasksGenerated}
-            />
-
-            {/* Add Task Button */}
-            <button
-                onClick={() => setShowAddForm(!showAddForm)}
-                className="btn btn-primary tour-add-task-btn"
-                style={{ marginBottom: '1.5rem' }}
-            >
-                <Plus size={16} /> Add Task
-            </button>
-
-            {/* Add Form */}
-            {showAddForm && (
-                <div style={{ marginBottom: '1.5rem', padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '16px' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>New Task</h3>
-                    <div style={{ display: 'grid', gap: '1rem', marginBottom: '1rem' }}>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Task Title*</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={newTask.title}
-                                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                                placeholder="e.g., Book photographer"
-                                autoFocus
-                            />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Category</label>
-                                <select
-                                    className="form-input"
-                                    value={newTask.category}
-                                    onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
-                                >
-                                    {categories.map(cat => (
-                                        <option key={cat.id} value={cat.id}>{cat.emoji} {cat.label}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Priority</label>
-                                <select
-                                    className="form-input"
-                                    value={newTask.priority}
-                                    onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-                                >
-                                    {priorities.map(p => (
-                                        <option key={p.id} value={p.id}>{p.label}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Deadline (Optional)</label>
-                                <input
-                                    type="date"
-                                    className="form-input"
-                                    value={newTask.deadline}
-                                    onChange={(e) => setNewTask({ ...newTask, deadline: e.target.value })}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <button onClick={handleAddTask} className="btn btn-primary">
-                            <Check size={16} /> Add Task
-                        </button>
-                        <button onClick={() => setShowAddForm(false)} className="btn btn-secondary">
-                            <X size={16} /> Cancel
-                        </button>
-                    </div>
-                </div>
-            )}
 
             {/* Stats Overview */}
             <div className="tab-stats-grid">
@@ -210,6 +155,101 @@ const TasksTab = ({ event, onUpdateTasks }) => {
                     <div className="value" style={{ color: 'var(--error)' }}>{overdueTasks.length}</div>
                 </div>
             </div>
+
+            {/* Action Buttons Row */}
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+                <button
+                    onClick={() => setShowAddForm(true)}
+                    className="btn btn-primary tour-add-task-btn"
+                    style={{ flex: 1 }}
+                >
+                    <Plus size={16} /> Add Custom Task
+                </button>
+                {user?.subscription_tier === 'pro' && (
+                    <button
+                        onClick={() => setShowAIPlanner(!showAIPlanner)}
+                        className="btn btn-secondary tour-ai-generator"
+                        style={{
+                            flex: 1,
+                            background: showAIPlanner ? 'var(--bg-secondary)' : 'transparent',
+                            borderColor: showAIPlanner ? 'var(--primary)' : 'var(--border-color)',
+                            color: showAIPlanner ? 'var(--primary)' : 'var(--text-primary)'
+                        }}
+                    >
+                        <Sparkles size={16} style={{ color: 'var(--accent)' }} />
+                        {showAIPlanner ? 'Hide AI Generator' : 'AI Task Generator'}
+                    </button>
+                )}
+            </div>
+
+            {/* AI Planner Section (Pro only) */}
+            {showAIPlanner && user?.subscription_tier === 'pro' && (
+                <AITasksGenerator
+                    event={event}
+                    onTasksGenerated={handleTasksGenerated}
+                />
+            )}
+
+            {/* Upgrade Card (Free only) */}
+            {(!user?.subscription_tier || user?.subscription_tier === 'free') && (
+                <div style={{
+                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))',
+                    borderRadius: '16px',
+                    padding: '32px 24px',
+                    marginBottom: '24px',
+                    textAlign: 'center',
+                    border: '2px dashed rgba(99, 102, 241, 0.3)'
+                }}>
+                    <div style={{
+                        width: '64px',
+                        height: '64px',
+                        background: 'rgba(99, 102, 241, 0.2)',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px'
+                    }}>
+                        <CheckSquare size={32} color="var(--primary)" />
+                    </div>
+                    <h3 style={{
+                        fontSize: '20px',
+                        fontWeight: 700,
+                        color: 'var(--text-primary)',
+                        marginBottom: '8px'
+                    }}>
+                        AI Task Generator
+                    </h3>
+                    <p style={{
+                        color: 'var(--text-secondary)',
+                        marginBottom: '20px',
+                        fontSize: '15px'
+                    }}>
+                        Automatically break down your event into a detailed itinerary and checklist in seconds.
+                    </p>
+                    <a
+                        href="/pro"
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
+                            color: 'white',
+                            padding: '14px 28px',
+                            borderRadius: '12px',
+                            textDecoration: 'none',
+                            fontWeight: 600,
+                            fontSize: '16px',
+                            transition: 'transform 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                        onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                    >
+                        <Sparkles size={18} />
+                        Upgrade to Pro
+                    </a>
+                </div>
+            )}
 
             {/* Progress Bar */}
             <div style={{ padding: '0 1rem', marginBottom: '2rem' }}>
@@ -359,6 +399,9 @@ const TasksTab = ({ event, onUpdateTasks }) => {
                                                 </select>
 
                                                 <div className="flex gap-2 opacity-0 hover:opacity-100 transition-opacity" style={{ opacity: 0.8 }}>
+                                                    <button onClick={() => handleEditTask(task)} className="action-btn">
+                                                        <Edit2 size={16} />
+                                                    </button>
                                                     <button
                                                         onClick={() => handleDeleteTask(task.id)}
                                                         className="action-btn"
@@ -390,6 +433,105 @@ const TasksTab = ({ event, onUpdateTasks }) => {
                 );
             })}
 
+
+            {/* FAB */}
+            <button className="btn-floating-action" onClick={() => setShowAddForm(true)}>
+                <Plus size={24} />
+            </button>
+
+            {/* Add Modal */}
+            {showAddForm && (
+                <div className="modal-overlay" onClick={() => setShowAddForm(false)}>
+                    <div className="modal-card" onClick={e => e.stopPropagation()}>
+                        <div className="section-header">
+                            <h3 className="section-title">New Task</h3>
+                            <button onClick={() => setShowAddForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                            <div>
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Task Title*</label>
+                                <input
+                                    type="text"
+                                    className="modern-input"
+                                    value={newTask.title}
+                                    onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                                    placeholder="e.g., Book photographer"
+                                    autoFocus
+                                />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                <div>
+                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Category</label>
+                                    <select className="modern-input" value={newTask.category} onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}>
+                                        {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.emoji} {cat.label}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Priority</label>
+                                    <select className="modern-input" value={newTask.priority} onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}>
+                                        {priorities.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Deadline (Optional)</label>
+                                <input type="date" className="modern-input" value={newTask.deadline} onChange={(e) => setNewTask({ ...newTask, deadline: e.target.value })} />
+                            </div>
+                            <button onClick={handleAddTask} className="btn-primary" style={{ marginTop: 8, width: '100%', justifyContent: 'center' }}>
+                                Add Task
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Modal */}
+            {editingTask && (
+                <div className="modal-overlay" onClick={handleCancelEdit}>
+                    <div className="modal-card" onClick={e => e.stopPropagation()}>
+                        <div className="section-header">
+                            <h3 className="section-title">Edit Task</h3>
+                            <button onClick={handleCancelEdit} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                            <div>
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Task Title</label>
+                                <input
+                                    type="text"
+                                    className="modern-input"
+                                    value={editingTask.title}
+                                    onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })}
+                                />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                <div>
+                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Category</label>
+                                    <select className="modern-input" value={editingTask.category} onChange={(e) => setEditingTask({ ...editingTask, category: e.target.value })}>
+                                        {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.label}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Priority</label>
+                                    <select className="modern-input" value={editingTask.priority} onChange={(e) => setEditingTask({ ...editingTask, priority: e.target.value })}>
+                                        {priorities.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Deadline</label>
+                                <input type="date" className="modern-input" value={editingTask.deadline || ''} onChange={(e) => setEditingTask({ ...editingTask, deadline: e.target.value })} />
+                            </div>
+                            <button onClick={handleUpdateTask} className="btn-primary" style={{ marginTop: 8, width: '100%', justifyContent: 'center' }}>
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     );

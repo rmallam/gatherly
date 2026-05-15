@@ -27,27 +27,42 @@ import MyContacts from './pages/MyContacts';
 import AdminDashboard from './pages/AdminDashboard';
 import PaywallPage from './pages/PaywallPage';
 
+import { handleAppBackButton } from './hooks/useBackButton';
+
 // Back button handler component
 function BackButtonHandler() {
     const navigate = useNavigate();
     const location = useLocation();
 
     useEffect(() => {
-        const handleBackButton = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
-            // If on home/dashboard, exit app
-            if (location.pathname === '/' || location.pathname === '/manager') {
-                CapacitorApp.exitApp();
-            } else if (canGoBack) {
-                // Navigate back
-                navigate(-1);
-            } else {
-                // Go to home
-                navigate('/');
-            }
-        });
+        let backButtonHandler;
+        
+        const setupListener = async () => {
+            backButtonHandler = await CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+                // Let modals handle the back button first
+                if (handleAppBackButton()) {
+                    return;
+                }
+
+                // If on home/dashboard, exit app
+                if (location.pathname === '/' || location.pathname === '/manager') {
+                    CapacitorApp.exitApp();
+                } else if (canGoBack || (window.history.state && window.history.state.idx > 0)) {
+                    // Navigate back
+                    navigate(-1);
+                } else {
+                    // Go to home
+                    navigate('/');
+                }
+            });
+        };
+        
+        setupListener();
 
         return () => {
-            handleBackButton.remove();
+            if (backButtonHandler) {
+                backButtonHandler.remove();
+            }
         };
     }, [navigate, location]);
 
@@ -59,37 +74,45 @@ function DeepLinkHandler() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        let urlOpenHandler;
+
         // Handle app URL when app is opened from a deep link
-        const handleAppUrlOpen = CapacitorApp.addListener('appUrlOpen', (data) => {
-            console.log('App opened with URL:', data.url);
+        const setupListener = async () => {
+            urlOpenHandler = await CapacitorApp.addListener('appUrlOpen', (data) => {
+                console.log('App opened with URL:', data.url);
 
-            try {
-                // Handle both https:// and hosteze:// schemes
-                let path, search;
+                try {
+                    // Handle both https:// and hosteze:// schemes
+                    let path, search;
 
-                if (data.url.startsWith('hosteze://')) {
-                    // Custom scheme: hosteze://reset-password?token=abc123
-                    const urlWithoutScheme = data.url.replace('hosteze://', '');
-                    const [pathPart, queryPart] = urlWithoutScheme.split('?');
-                    path = '/' + pathPart;
-                    search = queryPart ? '?' + queryPart : '';
-                } else {
-                    // HTTPS scheme: https://events.hosteze.app/reset-password?token=abc123
-                    const url = new URL(data.url);
-                    path = url.pathname;
-                    search = url.search;
+                    if (data.url.startsWith('hosteze://')) {
+                        // Custom scheme: hosteze://reset-password?token=abc123
+                        const urlWithoutScheme = data.url.replace('hosteze://', '');
+                        const [pathPart, queryPart] = urlWithoutScheme.split('?');
+                        path = '/' + pathPart;
+                        search = queryPart ? '?' + queryPart : '';
+                    } else {
+                        // HTTPS scheme: https://events.hosteze.app/reset-password?token=abc123
+                        const url = new URL(data.url);
+                        path = url.pathname;
+                        search = url.search;
+                    }
+
+                    console.log('Navigating to:', path + search);
+                    // Navigate to the path with query parameters
+                    navigate(path + search);
+                } catch (error) {
+                    console.error('Error parsing deep link:', error);
                 }
+            });
+        };
 
-                console.log('Navigating to:', path + search);
-                // Navigate to the path with query parameters
-                navigate(path + search);
-            } catch (error) {
-                console.error('Error parsing deep link:', error);
-            }
-        });
+        setupListener();
 
         return () => {
-            handleAppUrlOpen.remove();
+            if (urlOpenHandler) {
+                urlOpenHandler.remove();
+            }
         };
     }, [navigate]);
 

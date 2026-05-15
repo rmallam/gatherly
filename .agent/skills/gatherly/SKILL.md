@@ -57,3 +57,10 @@ To make refinements or add features, strictly adhere to these rules:
 3. **Backend API Changes:** Add RESTful routes inside `backend/routes/` and corresponding controllers inside `backend/controllers/`. Always bundle API endpoints behind `/api/...` in production.
 4. **AI Module Integrations:** AI features should route through `backend/services/geminiService.js`. Force strict JSON formatting via system prompts and strip markdown codeblocks cleanly before running `JSON.parse`.
 5. **Database Updates:** If creating new data models, write direct SQL scripts in `backend/db/migrations/`. You must explicitly inject an execution query to `backend/db/connection.js` inside `initializeDatabase()` for the table to automatically migrate on the production Render server.
+
+## 6. AI Agent Operational Guidelines (Antigravity Rules)
+When developing new features, AI agents must strictly adhere to these guardrails:
+1. **Never push blindly to Git:** All features must be successfully built locally and fully verified using local Maestro UI tests before any `git push` is executed.
+2. **Security-First Approach:** Always proactively check for security vulnerabilities (e.g., OWASP standards, missing headers, unsafe dependencies) during implementation.
+3. **Secret Scanning:** Strictly ensure no sensitive secrets (API keys, passwords, private configuration) are ever staged or included in a `git commit`. 
+4. **No Hallucinations:** Base all technical decisions, architecture patterns, and syntax on verified project context or official documentation. Never fabricate APIs or assume nonexistent dependencies.

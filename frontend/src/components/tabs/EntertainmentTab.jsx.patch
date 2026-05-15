@@ -1,0 +1,191 @@
+--- /Users/rakeshkumarmallam/Rakesh-work/guest-scanner/frontend/src/components/tabs/EntertainmentTab.jsx
++++ /Users/rakeshkumarmallam/Rakesh-work/guest-scanner/frontend/src/components/tabs/EntertainmentTab.jsx
+@@ -87,46 +87,14 @@
+             />
+-            {/* Add Button */}
+-            <button onClick={() => setShowAddActivity(!showAddActivity)} className="btn btn-primary tour-add-activity-btn" style={{ marginBottom: '1.5rem' }}>
+-                <Plus size={16} /> Add Activity
+-            </button>
+ 
+-            {/* Add Form */}
+-            {showAddActivity && (
+-                <div style={{ marginBottom: '1.5rem', padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '16px' }}>
+-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>New Activity</h3>
+-                    <div style={{ display: 'grid', gap: '1rem', marginBottom: '1rem' }}>
+-                        <div>
+-                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Activity Name*</label>
+-                            <input type="text" className="form-input" value={newActivity.name} onChange={(e) => setNewActivity({ ...newActivity, name: e.target.value })} placeholder="e.g., DJ Performance, Games, Dance" autoFocus />
+-                        </div>
+-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+-                            <div>
+-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Start Time</label>
+-                                <input type="time" className="form-input" value={newActivity.time} onChange={(e) => setNewActivity({ ...newActivity, time: e.target.value })} />
+-                            </div>
+-                            <div>
+-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Duration (minutes)</label>
+-                                <input type="number" className="form-input" value={newActivity.duration} onChange={(e) => setNewActivity({ ...newActivity, duration: e.target.value })} placeholder="30" />
+-                            </div>
+-                            <div>
+-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Performer/Host (Optional)</label>
+-                                <input type="text" className="form-input" value={newActivity.performer} onChange={(e) => setNewActivity({ ...newActivity, performer: e.target.value })} placeholder="Name" />
+-                            </div>
+-                        </div>
+-                        <div>
+-                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Notes (Optional)</label>
+-                            <textarea className="form-input" value={newActivity.notes} onChange={(e) => setNewActivity({ ...newActivity, notes: e.target.value })} placeholder="Equipment needed, special instructions, etc." rows={2} />
+-                        </div>
+-                    </div>
+-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+-                        <button onClick={handleAddActivity} className="btn btn-primary"><Check size={16} /> Add Activity</button>
+-                        <button onClick={() => setShowAddActivity(false)} className="btn btn-secondary"><X size={16} /> Cancel</button>
+-                    </div>
+-                </div>
+-            )}
++            {/* Action Buttons Row */}
++            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
++                <button
++                    onClick={() => setShowAddActivity(true)}
++                    className="btn btn-primary tour-add-activity-btn"
++                    style={{ flex: 1 }}
++                >
++                    <Plus size={16} /> Add Activity
++                </button>
++            </div>
+ 
+             {/* Stats */}
+@@ -174,38 +142,6 @@
+                                 )}
+                                 {/* Content */}
+-                                {editingItem?.id === activity.id ? (
+-                                    // EDIT FORM
+-                                    <div style={{ padding: '1rem', background: 'var(--bg-card)', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+-                                        <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Edit Activity</h4>
+-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
+-                                            <div>
+-                                                <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Activity Name</label>
+-                                                <input type="text" className="form-input" value={editingItem.name} onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })} style={{ padding: '0.5rem' }} />
+-                                            </div>
+-                                            <div>
+-                                                <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Time</label>
+-                                                <input type="time" className="form-input" value={editingItem.time} onChange={(e) => setEditingItem({ ...editingItem, time: e.target.value })} style={{ padding: '0.5rem' }} />
+-                                            </div>
+-                                            <div>
+-                                                <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Duration (mins)</label>
+-                                                <input type="text" className="form-input" value={editingItem.duration} onChange={(e) => setEditingItem({ ...editingItem, duration: e.target.value })} style={{ padding: '0.5rem' }} />
+-                                            </div>
+-                                            <div>
+-                                                <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Performer/Host</label>
+-                                                <input type="text" className="form-input" value={editingItem.performer || ''} onChange={(e) => setEditingItem({ ...editingItem, performer: e.target.value })} style={{ padding: '0.5rem' }} />
+-                                            </div>
+-                                        </div>
+-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+-                                            <button onClick={handleUpdateItem} className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>
+-                                                <Check size={14} /> Save
+-                                            </button>
+-                                            <button onClick={handleCancelEdit} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
+-                                                <X size={14} /> Cancel
+-                                            </button>
+-                                        </div>
+-                                    </div>
+-                                ) : (
+-                                    // DISPLAY
+                                     <div
+                                         style={{
+@@ -250,5 +186,4 @@
+                                         </div>
+                                     </div>
+-                                )}
+                             </div>
+                         ))}
+@@ -279,7 +214,84 @@
+                         <Plus size={16} /> Add First Activity
+                     </button>
+                 </div>
+             )}
++            
++            <div style={{ height: 80 }} />
++
++            {/* FAB */}
++            <button className="btn-floating-action" onClick={() => setShowAddActivity(true)}>
++                <Plus size={24} />
++            </button>
++
++            {/* Add Modal */}
++            {showAddActivity && (
++                <div className="modal-overlay" onClick={() => setShowAddActivity(false)}>
++                    <div className="modal-card" onClick={e => e.stopPropagation()}>
++                        <div className="section-header">
++                            <h3 className="section-title">New Activity</h3>
++                            <button onClick={() => setShowAddActivity(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
++                                <X size={20} />
++                            </button>
++                        </div>
++                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
++                            <div>
++                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Activity Name*</label>
++                                <input type="text" className="modern-input" value={newActivity.name} onChange={(e) => setNewActivity({ ...newActivity, name: e.target.value })} placeholder="e.g., DJ Performance, Games, Dance" autoFocus />
++                            </div>
++                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
++                                <div>
++                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Start Time</label>
++                                    <input type="time" className="modern-input" value={newActivity.time} onChange={(e) => setNewActivity({ ...newActivity, time: e.target.value })} />
++                                </div>
++                                <div>
++                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Duration (mins)</label>
++                                    <input type="number" className="modern-input" value={newActivity.duration} onChange={(e) => setNewActivity({ ...newActivity, duration: e.target.value })} placeholder="30" />
++                                </div>
++                            </div>
++                            <div>
++                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Performer/Host (Optional)</label>
++                                <input type="text" className="modern-input" value={newActivity.performer} onChange={(e) => setNewActivity({ ...newActivity, performer: e.target.value })} placeholder="Name" />
++                            </div>
++                            <div>
++                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Notes (Optional)</label>
++                                <textarea className="modern-input" value={newActivity.notes} onChange={(e) => setNewActivity({ ...newActivity, notes: e.target.value })} placeholder="Equipment needed, special instructions, etc." rows={2} />
++                            </div>
++                            <button onClick={handleAddActivity} className="btn-primary" style={{ marginTop: 8, width: '100%', justifyContent: 'center' }}>
++                                Add Activity
++                            </button>
++                        </div>
++                    </div>
++                </div>
++            )}
++
++            {/* Edit Modal */}
++            {editingItem && (
++                <div className="modal-overlay" onClick={handleCancelEdit}>
++                    <div className="modal-card" onClick={e => e.stopPropagation()}>
++                        <div className="section-header">
++                            <h3 className="section-title">Edit Activity</h3>
++                            <button onClick={handleCancelEdit} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
++                                <X size={20} />
++                            </button>
++                        </div>
++                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
++                            <div>
++                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Activity Name</label>
++                                <input type="text" className="modern-input" value={editingItem.name} onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })} autoFocus />
++                            </div>
++                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
++                                <div>
++                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Time</label>
++                                    <input type="time" className="modern-input" value={editingItem.time} onChange={(e) => setEditingItem({ ...editingItem, time: e.target.value })} />
++                                </div>
++                                <div>
++                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Duration (mins)</label>
++                                    <input type="text" className="modern-input" value={editingItem.duration} onChange={(e) => setEditingItem({ ...editingItem, duration: e.target.value })} />
++                                </div>
++                            </div>
++                            <div>
++                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Performer/Host</label>
++                                <input type="text" className="modern-input" value={editingItem.performer || ''} onChange={(e) => setEditingItem({ ...editingItem, performer: e.target.value })} />
++                            </div>
++                            <button onClick={handleUpdateItem} className="btn-primary" style={{ marginTop: 8, width: '100%', justifyContent: 'center' }}>
++                                Save Changes
++                            </button>
++                        </div>
++                    </div>
++                </div>
++            )}
+         </div>
+     );

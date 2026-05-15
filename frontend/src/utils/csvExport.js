@@ -28,7 +28,7 @@ const convertToCSV = (data) => {
 /**
  * Trigger CSV file download
  */
-const downloadCSV = (csvContent, filename) => {
+export const downloadCSV = (csvContent, filename) => {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);

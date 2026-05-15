@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Bell, Plus, Trash2, Check, X, Calendar, Clock, MessageSquare, User } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Bell, Plus, Trash2, Check, X, Calendar, Clock, MessageSquare, User, Sparkles } from 'lucide-react';
+import { useBackButton } from '../hooks/useBackButton';
 import '../pages/EventTabs.css';
 
 const REMINDER_TYPES = [
@@ -12,15 +14,19 @@ const REMINDER_TYPES = [
 
 const RemindersSettings = ({ event }) => {
     const { API_URL } = useApp();
+    const { user } = useAuth();
     const [reminders, setReminders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
+    const [showAIReminders, setShowAIReminders] = useState(false);
     const [form, setForm] = useState({
         reminder_type: 'custom',
         recipient_type: 'guests',
         send_at: '',
         message: ''
     });
+
+    useBackButton(() => setShowForm(false), showForm);
 
     useEffect(() => {
         if (event?.id) {
@@ -134,42 +140,133 @@ const RemindersSettings = ({ event }) => {
     return (
         <div className="event-tab-page">
             {/* Stats Cards */}
-            <div className="tab-stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+            <div className="tab-stats-grid">
                 <div className="stats-card">
-                    <div className="label">Total</div>
-                    <div className="value">{reminders.length}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <Bell size={14} color="var(--primary)" />
+                        <span style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</span>
+                    </div>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>{reminders.length}</span>
                 </div>
                 <div className="stats-card">
-                    <div className="label">Sent</div>
-                    <div className="value" style={{ color: 'var(--success)' }}>{sentCount}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <Check size={14} color="#10b981" />
+                        <span style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sent</span>
+                    </div>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: '#10b981' }}>{sentCount}</span>
                 </div>
                 <div className="stats-card">
-                    <div className="label">Pending</div>
-                    <div className="value" style={{ color: 'var(--warning)' }}>{pendingCount}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <Clock size={14} color="#f59e0b" />
+                        <span style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pending</span>
+                    </div>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: '#f59e0b' }}>{pendingCount}</span>
                 </div>
             </div>
 
-            {/* Auto-Schedule Section */}
-            <div className="hero-card" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-                <div className="hero-content">
-                    <div className="hero-icon">
-                        <Bell size={24} color="white" />
-                    </div>
-                    <div className="hero-text">
-                        <h3>Smart Reminders</h3>
-                        <p style={{ color: 'rgba(255,255,255,0.9)' }}>
-                            Automatically schedule reminders for your event (RSVP check, Day before, etc.)
-                        </p>
-                    </div>
-                    <button
-                        onClick={handleAutoSchedule}
-                        className="btn btn-primary"
-                        style={{ background: 'white', color: '#764ba2', border: 'none' }}
-                    >
-                        <Calendar size={18} /> Auto-Schedule
+            {/* Action Buttons Row */}
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+                <button
+                    onClick={() => setShowForm(true)}
+                    className="btn btn-primary"
+                    style={{ flex: 1 }}
+                >
+                    <Plus size={16} /> Add Custom Reminder
+                </button>
+                <button
+                    onClick={() => setShowAIReminders(!showAIReminders)}
+                    className="btn btn-secondary"
+                    style={{
+                        flex: 1,
+                        background: showAIReminders ? 'var(--bg-secondary)' : 'transparent',
+                        borderColor: showAIReminders ? 'var(--primary)' : 'var(--border-color)',
+                        color: showAIReminders ? 'var(--primary)' : 'var(--text-primary)'
+                    }}
+                >
+                    <Sparkles size={16} style={{ color: 'var(--accent)' }} />
+                    {showAIReminders ? 'Hide Auto-Schedule' : 'Smart Auto-Schedule'}
+                </button>
+            </div>
+
+            {/* AI Auto-Schedule Card (Pro only) */}
+            {showAIReminders && user?.subscription_tier === 'pro' && (
+                <div style={{
+                    background: 'var(--bg-secondary)',
+                    borderRadius: '16px', padding: '24px', marginBottom: '24px',
+                    border: '1px solid var(--border-color)', textAlign: 'center'
+                }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <Sparkles size={20} color="var(--primary)" /> Smart Auto-Schedule
+                    </h3>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                        Let AI automatically generate and schedule reminders for RSVP checks, day before, and event day based on your event details.
+                    </p>
+                    <button onClick={handleAutoSchedule} className="btn btn-primary" style={{ margin: '0 auto' }}>
+                        <Sparkles size={16} /> Generate & Schedule
                     </button>
                 </div>
-            </div>
+            )}
+
+            {/* Upgrade Card (Free only) */}
+            {showAIReminders && (!user?.subscription_tier || user?.subscription_tier === 'free') && (
+                <div style={{
+                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))',
+                    borderRadius: '16px',
+                    padding: '32px 24px',
+                    marginBottom: '24px',
+                    textAlign: 'center',
+                    border: '2px dashed rgba(99, 102, 241, 0.3)'
+                }}>
+                    <div style={{
+                        width: '64px',
+                        height: '64px',
+                        background: 'rgba(99, 102, 241, 0.2)',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px'
+                    }}>
+                        <Sparkles size={32} color="var(--primary)" />
+                    </div>
+                    <h3 style={{
+                        fontSize: '20px',
+                        fontWeight: 700,
+                        color: 'var(--text-primary)',
+                        marginBottom: '8px'
+                    }}>
+                        Smart Auto-Schedule
+                    </h3>
+                    <p style={{
+                        color: 'var(--text-secondary)',
+                        marginBottom: '20px',
+                        fontSize: '15px'
+                    }}>
+                        Automatically generate and schedule reminders for RSVP checks, day before, and event day.
+                    </p>
+                    <a
+                        href="/pro"
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
+                            color: 'white',
+                            padding: '14px 28px',
+                            borderRadius: '12px',
+                            textDecoration: 'none',
+                            fontWeight: 600,
+                            fontSize: '16px',
+                            transition: 'transform 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                        onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                    >
+                        <Sparkles size={18} />
+                        Upgrade to Pro
+                    </a>
+                </div>
+            )}
 
             {/* Scheduled Reminders */}
             <div className="section-header">
@@ -223,11 +320,6 @@ const RemindersSettings = ({ event }) => {
                     ))}
                 </div>
             )}
-
-            {/* Floating Action Button */}
-            <button className="btn-floating-action" onClick={() => setShowForm(true)}>
-                <Plus size={24} />
-            </button>
 
             {/* Create Modal */}
             {showForm && (

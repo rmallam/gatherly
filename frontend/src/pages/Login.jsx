@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LogIn, Mail, Lock, AlertCircle, Scan, Fingerprint, Phone, Eye, EyeOff } from 'lucide-react';
+import { BiometricService } from '../services/biometric';
 import './Login.css';
 
 const Login = () => {
@@ -26,7 +27,6 @@ const Login = () => {
         const attemptBiometricLogin = async () => {
             if (biometricAvailable) {
                 try {
-                    const { BiometricService } = await import('../services/biometric');
                     const hasSavedCredentials = await BiometricService.hasCredentials('hosteze-app');
 
                     if (hasSavedCredentials) {
@@ -82,7 +82,6 @@ const Login = () => {
 
                 // Check if biometric is already enabled before prompting
                 if (biometricAvailable) {
-                    const { BiometricService } = await import('../services/biometric');
                     const hasSavedCredentials = await BiometricService.hasCredentials('hosteze-app');
 
                     if (!hasSavedCredentials) {
@@ -347,9 +346,13 @@ const Login = () => {
                             type="submit"
                             className="btn btn-primary auth-submit-btn"
                             disabled={loading}
+                            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
                         >
                             {loading ? (
-                                'Processing...'
+                                <>
+                                    <div className="spinner-border spinner-border-sm" role="status" style={{ width: '1rem', height: '1rem', border: '0.2em solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 0.75s linear infinite' }}></div>
+                                    Processing...
+                                </>
                             ) : (
                                 loginMethod === 'email' ? 'Sign In' : (showOtpInput ? 'Verify & Login' : 'Send OTP')
                             )}

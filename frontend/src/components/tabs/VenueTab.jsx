@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { MapPin, Save, X, Check, Building2 } from 'lucide-react';
+import { MapPin, Save, X, Check, Building2, Sparkles, Loader2 } from 'lucide-react';
 import LocationAutocomplete from '../common/LocationAutocomplete';
 import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 import CategoryTourWrapper from '../tours/CategoryTourWrapper';
+import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 
 const VenueTab = ({ event, onUpdateVenue }) => {
-    const [venue, setVenue] = useState(event.venue || {
+    const { API_URL } = useApp();
+    const { user } = useAuth();
+    const initialVenue = event.venue || {};
+    const [venue, setVenue] = useState({
         name: '',
-        address: '',
         contact: '',
         phone: '',
         capacity: '',
@@ -18,10 +22,13 @@ const VenueTab = ({ event, onUpdateVenue }) => {
         deposit: '',
         totalCost: '',
         notes: '',
-        amenities: []
+        amenities: [],
+        ...initialVenue,
+        address: initialVenue.address || event.location || ''
     });
 
     const [isEditing, setIsEditing] = useState(!event.venue?.name);
+    const [isAiLoading, setIsAiLoading] = useState(false);
 
     const bookingStatuses = [
         { id: 'not-booked', label: 'Not Booked', color: 'var(--text-tertiary)' },
@@ -54,6 +61,51 @@ const VenueTab = ({ event, onUpdateVenue }) => {
             setVenue({ ...venue, amenities: amenities.filter(a => a !== amenity) });
         } else {
             setVenue({ ...venue, amenities: [...amenities, amenity] });
+        }
+    };
+
+    const handleAutoFillAI = async () => {
+        const queryStr = venue.address || venue.name || event.location;
+        if (!queryStr) {
+            alert('Please enter a venue name or address first, so AI knows what to search for.');
+            return;
+        }
+
+        try {
+            setIsAiLoading(true);
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/events/${event.id}/ai/venue-details`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ location: queryStr })
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'Failed to fetch AI venue details');
+            }
+
+            const data = await res.json();
+            if (data.venue) {
+                setVenue(prev => ({
+                    ...prev,
+                    capacity: data.venue.capacity || prev.capacity,
+                    phone: data.venue.phone || prev.phone,
+                    contact: data.venue.contact || prev.contact,
+                    notes: data.venue.notes ? (prev.notes ? prev.notes + '\\n\\nAI Notes: ' + data.venue.notes : data.venue.notes) : prev.notes,
+                    amenities: data.venue.amenities && Array.isArray(data.venue.amenities) 
+                        ? [...new Set([...(prev.amenities || []), ...data.venue.amenities])]
+                        : prev.amenities
+                }));
+            }
+        } catch (error) {
+            console.error('AI Auto-fill Error:', error);
+            alert(error.message);
+        } finally {
+            setIsAiLoading(false);
         }
     };
 
@@ -213,9 +265,31 @@ const VenueTab = ({ event, onUpdateVenue }) => {
             ) : (
                 /* Edit Mode */
                 <div className="tour-venue-form" style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '16px' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1.5rem' }}>
-                        {hasVenue ? 'Edit Venue Details' : 'Add Venue Information'}
-                    </h3>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: 600, margin: 0 }}>
+                            {hasVenue ? 'Edit Venue Details' : 'Add Venue Information'}
+                        </h3>
+                        {user?.subscription_tier === 'pro' && (
+                            <button 
+                                onClick={handleAutoFillAI} 
+                                disabled={isAiLoading}
+                                className="btn"
+                                style={{
+                                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))',
+                                    color: 'var(--primary)',
+                                    border: '1px solid rgba(99, 102, 241, 0.2)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '6px 12px',
+                                    fontSize: '0.875rem'
+                                }}
+                            >
+                                {isAiLoading ? <Loader2 size={16} className="spin" /> : <Sparkles size={16} />}
+                                {isAiLoading ? 'Filling Details...' : 'Auto-fill with AI (Pro)'}
+                            </button>
+                        )}
+                    </div>
 
                     <div style={{ display: 'grid', gap: '1.5rem' }}>
                         {/* Basic Info */}

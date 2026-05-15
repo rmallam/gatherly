@@ -74,7 +74,9 @@ const GuestEventView = () => {
                     <ArrowLeft size={20} />
                 </button>
                 <div className="invite-badge-container">
-                    <div className="invite-badge">You're Invited</div>
+                    <div className="invite-badge">
+                        You're Invited {event.user_name ? `by ${event.user_name}` : ''}
+                    </div>
                     <h1 className="event-title-hero">{event.title}</h1>
                 </div>
             </div>
@@ -175,13 +177,17 @@ const GuestEventView = () => {
                     )}
 
                     {event.location && (
-                        <div className="detail-row">
+                        <div 
+                            className="detail-row" 
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`, '_blank')}
+                        >
                             <div className="icon-box location">
                                 <MapPin size={24} color="white" />
                             </div>
                             <div className="detail-content">
                                 <div className="detail-label">LOCATION</div>
-                                <div className="detail-value">{event.location}</div>
+                                <div className="detail-value" style={{ textDecoration: 'underline' }}>{event.location}</div>
                             </div>
                         </div>
                     )}
@@ -269,15 +275,13 @@ const GuestEventView = () => {
                     <div className="qr-container">
                         <QRGenerator
                             payload={{
-                                eventId: event.id,
-                                guestId: currentGuest.id,
-                                name: currentGuest.name,
-                                valid: true,
-                                timestamp: Date.now()
+                                e: event.id,
+                                g: currentGuest.id
                             }}
                             name={currentGuest.name}
                             eventTitle={event.title}
                             phoneNumber={currentGuest.phone}
+                            minimal={true}
                         />
                     </div>
                     <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '13px', marginTop: '16px' }}>

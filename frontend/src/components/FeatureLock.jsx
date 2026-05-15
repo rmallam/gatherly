@@ -1,7 +1,7 @@
 import React from 'react';
 import { Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 
 const FeatureLock = ({
     children,
@@ -9,7 +9,7 @@ const FeatureLock = ({
     description = 'Upgrade to Pro to unlock this feature and take your events to the next level.',
     minTier = 'pro' // 'pro' | 'business'
 }) => {
-    const { user } = useApp();
+    const { user } = useAuth();
     const navigate = useNavigate();
 
     const hasAccess = () => {

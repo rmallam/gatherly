@@ -3793,6 +3793,46 @@ app.get('/api/debug/run-migration', async (req, res) => {
     }
 });
 
+/**
+ * Get AI-powered venue details
+ */
+app.post('/api/events/:eventId/ai/venue-details', authMiddleware, requireProTier, async (req, res) => {
+    try {
+        const eventId = req.params.eventId;
+
+        const eventResult = await query(
+            'SELECT * FROM events WHERE id = $1 AND user_id = $2',
+            [eventId, req.user.id]
+        );
+
+        if (eventResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        const { location } = req.body;
+        if (!location) {
+            return res.status(400).json({ error: 'Location is required' });
+        }
+
+        console.log(`[API] Venue Details Request for location: ${location}`);
+        
+        // Use geminiService
+        const { getVenueDetails } = await import('./services/geminiService.js');
+        const venueData = await getVenueDetails(location);
+
+        res.json({
+            success: true,
+            venue: venueData
+        });
+    } catch (error) {
+        console.error('AI venue details error:', error);
+        res.status(500).json({
+            error: 'Failed to generate venue details',
+            message: error.message
+        });
+    }
+});
+
 // Initialize database and start server
 const PORT = process.env.PORT || 3001;
 

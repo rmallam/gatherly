@@ -6,11 +6,13 @@ import BulkImport from '../components/BulkImport';
 import ContactPicker from '../components/ContactPicker';
 import ContactSelector from '../components/ContactSelector';
 import UpgradeModal from '../components/UpgradeModal';
-import { exportAllGuests, exportCheckedInGuests } from '../utils/csvExport';
+import { exportAllGuests, exportCheckedInGuests, downloadCSV } from '../utils/csvExport';
 import { UserPlus, QrCode, Search, CheckCircle2, ArrowLeft, Users, Upload, Smartphone, Download, Share2, Plus, X, MessageCircle, Trash2, Wand2 } from 'lucide-react';
 import GenerateInviteModal from '../components/GenerateInviteModal';
 import CategoryTourWrapper from '../components/tours/CategoryTourWrapper';
-
+import { useBackButton } from '../hooks/useBackButton';
+import { Share } from '@capacitor/share';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 const EventDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -36,6 +38,16 @@ const EventDetails = () => {
     const [isBulkSending, setIsBulkSending] = useState(false);
     const [showAiInviteModal, setShowAiInviteModal] = useState(false);
     const [customInviteText, setCustomInviteText] = useState('');
+
+    useBackButton(() => setShowQR(null), !!showQR);
+    useBackButton(() => setShowBulkImport(false), showBulkImport);
+    useBackButton(() => setShowContactPicker(false), showContactPicker);
+    useBackButton(() => setShowContactSelector(false), showContactSelector);
+    useBackButton(() => setShowAddGuestModal(false), showAddGuestModal);
+    useBackButton(() => setDeleteConfirmGuest(null), !!deleteConfirmGuest);
+    useBackButton(() => setShowDeleteEventConfirm(false), showDeleteEventConfirm);
+    useBackButton(() => setShowUpgradeModal(false), showUpgradeModal);
+    useBackButton(() => setShowAiInviteModal(false), showAiInviteModal);
 
     if (!event) {
         return (
@@ -152,9 +164,6 @@ const EventDetails = () => {
     // Helper to share image invite using Native Capacitor or Web Share
     const shareImageInvite = async (guest, guestQRUrl) => {
         try {
-            const { Share } = await import('@capacitor/share');
-            const { Filesystem, Directory } = await import('@capacitor/filesystem');
-
             const base64Data = customInviteText.split(',')[1];
             const fileName = `invite-${guest.id}-${Date.now()}.png`;
 
@@ -350,8 +359,6 @@ const EventDetails = () => {
             const baseText = customInviteText ? customInviteText : `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}`;
             const inviteText = `${baseText}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.hosteze.app\nApp Store: https://apps.apple.com/app/hosteze`;
 
-            const { Share } = await import('@capacitor/share');
-
             try {
                 await Share.share({
                     title: `Invitation to ${event.title}`,
@@ -416,7 +423,6 @@ const EventDetails = () => {
         }
 
         try {
-            const { downloadCSV } = await import('../utils/csvExport');
             downloadCSV(event.guests, `${event.title.replace(/\s+/g, '_')}_guests.csv`);
             setShowAddGuestModal(false);
             alert('Guest list exported successfully!');

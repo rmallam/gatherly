@@ -819,3 +819,40 @@ export async function parseUserIntent(userMessage, currentContext = {}) {
     throw new Error('Failed to parse AI intent');
   }
 }
+
+/**
+ * Get AI-powered venue details based on a location name or address
+ */
+export async function getVenueDetails(venueQuery) {
+  try {
+    const model = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
+
+    const prompt = `You are an expert event planner and venue locator. The user has provided a venue name or address: "${venueQuery}".
+
+Please extract or deduce the standard details for this venue based on publicly known information.
+If the venue is highly specific or well-known, provide accurate details. If it's vague, make reasonable assumptions for a standard venue of that type, but leave specific fields blank if entirely unknown.
+
+IMPORTANT: Respond ONLY with valid JSON in this exact format. Do not use markdown blocks.
+{
+  "capacity": 200, // Number or leave null if completely unknown
+  "phone": "+1 555-0123", // String or empty string
+  "contact": "Event Coordinator", // General contact role or name
+  "amenities": ["Parking", "WiFi", "Wheelchair Accessible", "Sound System", "Air Conditioning"], // List matching typical venue amenities
+  "notes": "A beautiful venue located centrally..." // 1-2 sentences of helpful notes about this location
+}`;
+
+    const result = await model.generateContent(prompt);
+    let text = result.response.text().trim();
+
+    if (text.startsWith('\`\`\`json')) {
+      text = text.replace(/\`\`\`json\n?/g, '').replace(/\`\`\`\n?/g, '');
+    } else if (text.startsWith('\`\`\`')) {
+      text = text.replace(/\`\`\`\n?/g, '');
+    }
+
+    return JSON.parse(text);
+  } catch (error) {
+    console.error('Gemini Venue Details Error:', error);
+    throw new Error('Failed to generate venue details');
+  }
+}

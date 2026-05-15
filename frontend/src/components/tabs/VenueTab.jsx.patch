@@ -1,0 +1,144 @@
+--- /Users/rakeshkumarmallam/Rakesh-work/guest-scanner/frontend/src/components/tabs/VenueTab.jsx
++++ /Users/rakeshkumarmallam/Rakesh-work/guest-scanner/frontend/src/components/tabs/VenueTab.jsx
+@@ -61,7 +61,7 @@
+ 
+-    if (!hasVenue && !isEditing) {
++    if (!hasVenue) {
+         return (
+             <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--bg-secondary)', borderRadius: '16px' }}>
+                 <Building2 size={48} style={{ color: 'var(--text-tertiary)', margin: '0 auto 1rem' }} />
+                 <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>No Venue Yet</h3>
+                 <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                     Add your venue details to keep track of location and booking information
+                 </p>
+                 <button onClick={() => setIsEditing(true)} className="btn btn-primary">
+                     Add Venue Information
+                 </button>
++                {isEditing && renderVenueModal()}
+             </div>
+         );
+     }
+@@ -88,7 +88,7 @@
+             />
+-            {hasVenue && !isEditing ? (
++            {hasVenue && (
+                 <div>
+                     {/* Header */}
+                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>{venue.name}</h2>
+                         <button onClick={() => setIsEditing(true)} className="btn btn-secondary">
+                             Edit Venue Details
+                         </button>
+                     </div>
+@@ -211,7 +211,11 @@
+                     </div>
+                 </div>
+-            ) : (
+-                /* Edit Mode */
+-                <div className="tour-venue-form" style={{ padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '16px' }}>
+-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1.5rem' }}>
+-                        {hasVenue ? 'Edit Venue Details' : 'Add Venue Information'}
+-                    </h3>
++            )}
++            
++            {isEditing && renderVenueModal()}
++        </div>
++    );
++
++    function renderVenueModal() {
++        return (
++            <div className="modal-overlay" onClick={handleCancel}>
++                <div className="modal-card tour-venue-form" onClick={e => e.stopPropagation()}>
++                    <div className="section-header">
++                        <h3 className="section-title">
++                            {hasVenue ? 'Edit Venue Details' : 'Add Venue Information'}
++                        </h3>
++                        <button onClick={handleCancel} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
++                            <X size={20} />
++                        </button>
++                    </div>
+@@ -226,3 +230,3 @@
+                                 <input
+                                     type="text"
+-                                    className="form-input"
++                                    className="modern-input"
+                                     value={venue.name}
+@@ -236,3 +240,3 @@
+                                 <input
+                                     type="number"
+-                                    className="form-input"
++                                    className="modern-input"
+                                     value={venue.capacity}
+@@ -266,3 +270,3 @@
+                                 <input
+                                     type="text"
+-                                    className="form-input"
++                                    className="modern-input"
+                                     value={venue.contact}
+@@ -276,3 +280,3 @@
+                                 <input
+                                     type="tel"
+-                                    className="form-input"
++                                    className="modern-input"
+                                     value={venue.phone}
+@@ -290,3 +294,3 @@
+                                 <input
+                                     type="time"
+-                                    className="form-input"
++                                    className="modern-input"
+                                     value={venue.setupTime}
+@@ -299,3 +303,3 @@
+                                 <input
+                                     type="time"
+-                                    className="form-input"
++                                    className="modern-input"
+                                     value={venue.eventTime}
+@@ -308,3 +312,3 @@
+                                 <input
+                                     type="time"
+-                                    className="form-input"
++                                    className="modern-input"
+                                     value={venue.teardownTime}
+@@ -321,3 +325,3 @@
+                                 <select
+-                                    className="form-input"
++                                    className="modern-input"
+                                     value={venue.bookingStatus}
+@@ -335,3 +339,3 @@
+                                     step="0.01"
+-                                    className="form-input"
++                                    className="modern-input"
+                                     value={venue.deposit}
+@@ -346,3 +350,3 @@
+                                     step="0.01"
+-                                    className="form-input"
++                                    className="modern-input"
+                                     value={venue.totalCost}
+@@ -376,3 +380,3 @@
+                             <textarea
+-                                className="form-input"
++                                className="modern-input"
+                                 value={venue.notes}
+@@ -387,14 +391,12 @@
+                             <button onClick={handleSave} className="btn btn-primary" disabled={!venue.name}>
+-                                <Save size={16} /> Save Venue Details
+-                            </button>
+-                            {hasVenue && (
+-                                <button onClick={handleCancel} className="btn btn-secondary">
+-                                    <X size={16} /> Cancel
+-                                </button>
+-                            )}
++                                <Save size={16} /> {hasVenue ? 'Save Venue Details' : 'Add Venue'}
++                            </button>
+                         </div>
+                     </div>
+                 </div>
+-            )}
+-        </div>
+-    );
++            </div>
++        );
++    }
+ };
+ 
+ export default VenueTab;

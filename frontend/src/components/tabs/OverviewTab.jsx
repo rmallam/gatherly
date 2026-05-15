@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useBackButton } from '../../hooks/useBackButton';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, Users, CheckCircle, X, DollarSign, Clock, Sparkles } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
@@ -12,6 +13,7 @@ const OverviewTab = ({ event, onTabChange }) => {
     const { API_URL } = useApp();
     const navigate = useNavigate();
     const [showGuestModal, setShowGuestModal] = useState(false);
+    useBackButton(() => setShowGuestModal(false), showGuestModal);
     const [modalTitle, setModalTitle] = useState('');
     const [modalGuests, setModalGuests] = useState([]);
     const [showAIOptimizer, setShowAIOptimizer] = useState(false);

@@ -1,0 +1,182 @@
+--- /Users/rakeshkumarmallam/Rakesh-work/guest-scanner/frontend/src/components/tabs/GiftsTab.jsx
++++ /Users/rakeshkumarmallam/Rakesh-work/guest-scanner/frontend/src/components/tabs/GiftsTab.jsx
+@@ -3,6 +3,7 @@
+ import API_URL from '../../config/api';
+ import AIGiftsGenerator from '../ai/AIGiftsGenerator';
+ import CategoryTourWrapper from '../tours/CategoryTourWrapper';
++import { useAuth } from '../../context/AuthContext';
+ import '../../pages/EventTabs.css';
+ import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
+ 
+@@ -10,6 +11,8 @@
+     const [gifts, setGifts] = useState([]);
+     const [loading, setLoading] = useState(true);
+     const [showAddForm, setShowAddForm] = useState(false);
++    const [showAIGenerator, setShowAIGenerator] = useState(false);
++    const { user } = useAuth();
+     const [editingItem, setEditingItem] = useState(null);
+     const [newGift, setNewGift] = useState({
+         name: '',
+@@ -70,6 +73,34 @@
+         }
+     };
+ 
++    const handleEditGift = (gift) => {
++        setEditingItem({ ...gift });
++    };
++
++    const handleUpdateGift = async () => {
++        if (!editingItem.name) return;
++        try {
++            const token = localStorage.getItem('token');
++            const res = await fetch(`${API_URL}/events/${event.id}/gifts/${editingItem.id}`, {
++                method: 'PUT',
++                headers: {
++                    'Content-Type': 'application/json',
++                    'Authorization': `Bearer ${token}`
++                },
++                body: JSON.stringify({
++                    name: editingItem.name,
++                    description: editingItem.description,
++                    estimated_price: parseFloat(editingItem.estimated_price) || 0,
++                    url: editingItem.url
++                })
++            });
++            if (res.ok) {
++                fetchGifts();
++                setEditingItem(null);
++            }
++        } catch (error) {}
++    };
++
+     const handleDeleteGift = async (id) => {
+         if (!confirm('Delete this gift?')) return;
+         try {
+@@ -125,8 +156,70 @@
+                     }
+                 ]}
+             />
+-            {/* AI Generator UI placed at top like a search bar */}
+-            <AIGiftsGenerator event={event} onGiftsGenerated={fetchGifts} />
++            
++            {/* Action Buttons Row */}
++            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
++                <button
++                    onClick={() => setShowAddForm(true)}
++                    className="btn btn-primary tour-add-gift-btn"
++                    style={{ flex: 1 }}
++                >
++                    <Plus size={16} /> Add Custom Gift
++                </button>
++                {user?.subscription_tier === 'pro' && (
++                    <button
++                        onClick={() => setShowAIGenerator(!showAIGenerator)}
++                        className="btn btn-secondary tour-ai-btn"
++                        style={{
++                            flex: 1,
++                            background: showAIGenerator ? 'var(--bg-secondary)' : 'transparent',
++                            borderColor: showAIGenerator ? 'var(--primary)' : 'var(--border-color)',
++                            color: showAIGenerator ? 'var(--primary)' : 'var(--text-primary)'
++                        }}
++                    >
++                        <Sparkles size={16} style={{ color: 'var(--accent)' }} />
++                        {showAIGenerator ? 'Hide AI Generator' : 'AI Gift Ideas'}
++                    </button>
++                )}
++            </div>
++
++            {showAIGenerator && user?.subscription_tier === 'pro' && (
++                <AIGiftsGenerator event={event} onGiftsGenerated={fetchGifts} />
++            )}
++
++            {/* Upgrade Card (Free only) */}
++            {(!user?.subscription_tier || user?.subscription_tier === 'free') && (
++                <div style={{
++                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))',
++                    borderRadius: '16px', padding: '32px 24px', marginBottom: '24px', textAlign: 'center',
++                    border: '2px dashed rgba(99, 102, 241, 0.3)'
++                }}>
++                    <div style={{
++                        width: '64px', height: '64px', background: 'rgba(99, 102, 241, 0.2)', borderRadius: '50%',
++                        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px'
++                    }}>
++                        <Sparkles size={32} color="var(--primary)" />
++                    </div>
++                    <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
++                        AI Gift Registry
++                    </h3>
++                    <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '15px' }}>
++                        Unlock AI-powered gift recommendations curated specifically for your guests' demographics.
++                    </p>
++                    <a
++                        href="/pro"
++                        style={{
++                            display: 'inline-flex', alignItems: 'center', gap: '8px',
++                            background: 'linear-gradient(135deg, var(--primary), #8b5cf6)', color: 'white',
++                            padding: '14px 28px', borderRadius: '12px', textDecoration: 'none',
++                            fontWeight: 600, fontSize: '16px', transition: 'transform 0.2s'
++                        }}
++                        onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
++                        onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
++                    >
++                        <Sparkles size={18} /> Upgrade to Pro
++                    </a>
++                </div>
++            )}
+ 
+             {/* Stats */}
+             <div className="tab-stats-grid">
+@@ -221,6 +314,9 @@
+                                 </select>
+ 
+                                 <div className="item-actions">
++                                    <button onClick={() => handleEditGift(gift)} className="action-btn edit-btn" style={{ marginRight: '8px' }}>
++                                        <Edit2 size={16} />
++                                    </button>
+                                     <button onClick={() => handleDeleteGift(gift.id)} className="action-btn delete-btn">
+                                         <Trash2 size={16} />
+                                     </button>
+@@ -293,6 +389,45 @@
+                     </div>
+                 </div>
+             )}
++
++            {/* Edit Modal */}
++            {editingItem && (
++                <div className="modal-overlay" onClick={() => setEditingItem(null)}>
++                    <div className="modal-card" onClick={e => e.stopPropagation()}>
++                        <div className="section-header">
++                            <h3 className="section-title">Edit Gift Item</h3>
++                            <button onClick={() => setEditingItem(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
++                                <X size={20} />
++                            </button>
++                        </div>
++                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
++                            <div>
++                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Gift Name*</label>
++                                <input type="text" className="modern-input" value={editingItem.name} onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })} autoFocus />
++                            </div>
++                            <div>
++                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Description / Brand</label>
++                                <input type="text" className="modern-input" value={editingItem.description} onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })} />
++                            </div>
++                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
++                                <div>
++                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Est. Price ({getCurrencySymbol(event.country)})</label>
++                                    <input type="number" step="0.01" className="modern-input" value={editingItem.estimated_price} onChange={(e) => setEditingItem({ ...editingItem, estimated_price: e.target.value })} />
++                                </div>
++                                <div>
++                                    <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Store Link (URL)</label>
++                                    <input type="url" className="modern-input" value={editingItem.url} onChange={(e) => setEditingItem({ ...editingItem, url: e.target.value })} />
++                                </div>
++                            </div>
++                            <button onClick={handleUpdateGift} className="btn-primary" style={{ marginTop: 8, width: '100%', justifyContent: 'center' }}>
++                                Save Changes
++                            </button>
++                        </div>
++                    </div>
++                </div>
++            )}
+         </div>
+     );
+ };

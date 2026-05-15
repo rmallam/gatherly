@@ -58,7 +58,6 @@ const AISmartSchedule = ({ event, onScheduleGenerated }) => {
     };
 
     return (
-        <FeatureLock featureName="AI Smart Schedule" description="Upgrade to Pro to automatically generate complete itineraries for your events.">
         <div style={{
             background: 'var(--bg-primary)',
             borderRadius: '20px',
@@ -134,7 +133,6 @@ const AISmartSchedule = ({ event, onScheduleGenerated }) => {
                 triggerReason={upgradeReason}
             />
         </div>
-        </FeatureLock>
     );
 };
 

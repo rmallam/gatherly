@@ -13,8 +13,8 @@ const ProtectedRoute = ({ children }) => {
                 justifyContent: 'center',
                 minHeight: '100vh'
             }}>
-                <div style={{ textAlign: 'center' }}>
-                    <div className="spinner"></div>
+                <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div className="spinner" style={{ margin: '0 auto' }}></div>
                     <p style={{ marginTop: '1rem', color: 'var(--text-secondary)' }}>Loading...</p>
                 </div>
             </div>

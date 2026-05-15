@@ -45,12 +45,15 @@ const Scanner = () => {
     const handleScan = (data) => {
         if (scanResult) return;
 
-        if (!data.eventId || !data.guestId) {
+        const scanEventId = data.e || data.eventId;
+        const scanGuestId = data.g || data.guestId;
+
+        if (!scanEventId || !scanGuestId) {
             setScanResult({ status: 'invalid', message: 'Invalid QR Code' });
             return;
         }
 
-        const event = events.find(e => e.id === data.eventId);
+        const event = events.find(e => e.id === scanEventId);
         if (!event) {
             setScanResult({ status: 'invalid', message: 'Event not found' });
             return;
@@ -62,7 +65,7 @@ const Scanner = () => {
             return;
         }
 
-        const guest = event.guests?.find(g => g.id === data.guestId);
+        const guest = event.guests?.find(g => g.id === scanGuestId);
         if (!guest) {
             setScanResult({ status: 'invalid', message: 'Guest not found' });
             return;

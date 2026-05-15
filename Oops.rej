@@ -1,0 +1,9 @@
+@@ -88,7 +88,7 @@
+             />
+-            {hasVenue && !isEditing ? (
++            {hasVenue && (
+                 <div>
+                     {/* Header */}
+                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>{venue.name}</h2>
+                         <button onClick={() => setIsEditing(true)} className="btn btn-secondary">
