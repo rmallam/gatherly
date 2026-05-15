@@ -1,0 +1,91 @@
+name: Maestro E2E Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  maestro-test:
+    name: Run Maestro UI Tests
+    # MacOS runner is strictly required for Android Emulator hardware acceleration (Nested Virtualization)
+    # Ubuntu runners will either crash or take 45+ minutes to boot an emulator.
+    runs-on: macos-latest 
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+    
+    - name: Install frontend dependencies
+      working-directory: ./frontend
+      run: npm ci --legacy-peer-deps
+    
+    - name: Set Production Environment for APK
+      # We force the APK to use production backend endpoints for the E2E tests
+      working-directory: ./frontend
+      run: cp .env.production .env
+      
+    - name: Build frontend
+      working-directory: ./frontend
+      run: npm run build
+    
+    - name: Sync Capacitor
+      working-directory: ./frontend
+      run: npx cap sync android
+    
+    - name: Grant execute permission for gradlew
+      working-directory: ./frontend/android
+      run: chmod +x gradlew
+    
+    - name: Build Android Debug APK
+      working-directory: ./frontend/android
+      run: ./gradlew assembleDebug --stacktrace
+
+    - name: Install Maestro CLI
+      run: curl -Ls "https://get.maestro.mobile.dev" | bash
+      
+    - name: Add Maestro to PATH
+      run: echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
+
+    - name: Run Maestro Tests on Android Emulator
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 33
+        target: google_apis
+        arch: x86_64
+        profile: pixel_6
+        force-avd-creation: false
+        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        disable-animations: true
+        script: |
+          # 1. Install the freshly built APK onto the emulator
+          adb install ./frontend/android/app/build/outputs/apk/debug/app-debug.apk
+          
+          # 2. Run the entire Maestro test suite
+          # We run this from the root directory so it finds the .maestro/ folder
+          maestro test .maestro/
+
+    - name: Upload Test Screenshots (On Failure)
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: maestro-screenshots
+        path: |
+          *.png
+          .maestro/*.png
+        retention-days: 7
