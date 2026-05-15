@@ -38,7 +38,10 @@ jobs:
     - name: Set Production Environment for APK
       # We force the APK to use production backend endpoints for the E2E tests
       working-directory: ./frontend
-      run: cp .env.production .env
+      run: |
+        echo "VITE_API_URL=https://events.hosteze.app/api" >> .env
+        echo "VITE_REVENUECAT_ANDROID_KEY=goog_tvoZlwSDCHlKZICboqfMfvCjmET" >> .env
+        echo "VITE_APP_URL=https://events.hosteze.app" >> .env
       
     - name: Build frontend
       working-directory: ./frontend
