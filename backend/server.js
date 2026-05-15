@@ -98,15 +98,22 @@ app.use(helmet({
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             scriptSrc: ["'self'", "'unsafe-inline'", "https://events.hosteze.app"],
-            imgSrc: ["'self'", "data:", "https:"],
+            imgSrc: ["'self'", "data:", "https://events.hosteze.app", "https://gatherly-backend-3vmv.onrender.com"],
         },
     },
+    crossOriginEmbedderPolicy: false, // Disabled explicitly as it breaks cross-origin images (Cloudinary, Google, etc.)
     hsts: {
         maxAge: 31536000,
         includeSubDomains: true,
         preload: true
     }
 }));
+
+// Set Permissions-Policy header (ZAP Low Vulnerability fix)
+app.use((req, res, next) => {
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    next();
+});
 
 // CORS Configuration - Secure for production
 const allowedOrigins = [
@@ -180,8 +187,18 @@ app.use(compression({
     level: 6 // Compression level (0-9, 6 is default balance)
 }));
 
-// Serve static files (for email verification page)
-app.use(express.static('public'));
+// Serve static files (for email verification page and frontend assets)
+app.use(express.static('public', {
+    setHeaders: (res, filePath) => {
+        // Cache frontend assets forever (they have unique hashes) to fix ZAP cache warnings
+        if (filePath.includes('/assets/')) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else {
+            // No cache for index.html or other roots
+            res.setHeader('Cache-Control', 'public, max-age=0');
+        }
+    }
+}));
 
 // Serve Uploads Directory (Local Storage)
 // This serves files from backend/uploads at https://api/uploads/filename.jpg
