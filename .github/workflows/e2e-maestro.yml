@@ -11,8 +11,8 @@ jobs:
   maestro-test:
     name: Run Maestro UI Tests
     # MacOS runner is strictly required for Android Emulator hardware acceleration (Nested Virtualization)
-    # Ubuntu runners will either crash or take 45+ minutes to boot an emulator.
-    runs-on: macos-latest 
+    # Using macos-13 explicitly because it runs on Intel processors. macos-14 (M1 Apple Silicon) times out when trying to boot x86_64 emulators.
+    runs-on: macos-13
     
     steps:
     - name: Checkout code
