@@ -1777,15 +1777,24 @@ app.get('/api/events', authMiddleware, async (req, res) => {
 
 app.post('/api/events', authMiddleware, async (req, res) => {
     try {
-        const { title, date, location, description, eventType, country } = req.body;
+        const { title, date, location, description, eventType, country, venue, ...extraData } = req.body;
         const eventId = uuidv4();
 
         // Convert empty strings to null for optional fields
         const eventDate = date && date.trim() !== '' ? date : null;
-        const eventLocation = location && location.trim() !== '' ? location : null;
+        let eventLocation = location && location.trim() !== '' ? location : null;
         const eventDescription = description && description.trim() !== '' ? description : null;
         const eventTypeValue = eventType || 'host'; // Default to 'host' if not provided
         const eventCountry = country || 'US';
+
+        if (venue && (venue.address || venue.name)) {
+            if (venue.name && venue.address && venue.name !== venue.address) {
+                eventLocation = `${venue.name}, ${venue.address}`;
+            } else {
+                eventLocation = venue.name || venue.address;
+            }
+        }
+        if (venue) extraData.venue = venue;
 
         // Check event limits for Free tier
         const userResult = await query('SELECT subscription_tier, name FROM users WHERE id = $1', [req.user.id]);
@@ -1808,8 +1817,8 @@ app.post('/api/events', authMiddleware, async (req, res) => {
         }
 
         await query(
-            'INSERT INTO events (id, user_id, title, date, location, description, event_type, country) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-            [eventId, req.user.id, title, eventDate, eventLocation, eventDescription, eventTypeValue, eventCountry]
+            'INSERT INTO events (id, user_id, title, date, location, description, event_type, country, data) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+            [eventId, req.user.id, title, eventDate, eventLocation, eventDescription, eventTypeValue, eventCountry, JSON.stringify(extraData)]
         );
 
         // Update event count cache only for hosted events
@@ -1827,7 +1836,8 @@ app.post('/api/events', authMiddleware, async (req, res) => {
             description: eventDescription,
             event_type: eventTypeValue,
             country: eventCountry,
-            guests: []
+            guests: [],
+            ...extraData
         };
 
         res.json(event);
@@ -1843,10 +1853,14 @@ app.put('/api/events/:id', authMiddleware, async (req, res) => {
 
         // Sync venue info to top-level location so Overview and Headers display correctly
         let finalLocation = location;
-        if (venue && (venue.address || venue.name)) {
-            finalLocation = venue.address || venue.name;
+        if (venue) {
+            if (venue.name && venue.address) {
+                finalLocation = `${venue.name}, ${venue.address}`;
+            } else if (venue.name || venue.address) {
+                finalLocation = venue.name || venue.address;
+            }
+            extraData.venue = venue;
         }
-        if (venue) extraData.venue = venue;
 
         // Store catering, tasks, venue, and other fields in data jsonb column
         // ALSO update country column if provided

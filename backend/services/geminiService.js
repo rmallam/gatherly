@@ -834,6 +834,8 @@ If the venue is highly specific or well-known, provide accurate details. If it's
 
 IMPORTANT: Respond ONLY with valid JSON in this exact format. Do not use markdown blocks.
 {
+  "name": "Exact Name of Venue", // String or extract from query
+  "address": "123 Main St, City, Country", // Full address or extract from query
   "capacity": 200, // Number or leave null if completely unknown
   "phone": "+1 555-0123", // String or empty string
   "contact": "Event Coordinator", // General contact role or name
