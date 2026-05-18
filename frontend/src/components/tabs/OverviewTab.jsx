@@ -144,7 +144,14 @@ const OverviewTab = ({ event, onTabChange }) => {
                     <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 16, fontSize: '15px', color: 'var(--text-secondary)' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                             <MapPin size={16} className="text-tertiary" />
-                            {event.location || 'Location TBD'}
+                            <a 
+                                href={`https://maps.google.com/?q=${encodeURIComponent(event.location || '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ color: 'inherit', textDecoration: 'none', cursor: 'pointer' }}
+                            >
+                                {event.location || 'Location TBD'}
+                            </a>
                         </span>
                         <span style={{ width: 4, height: 4, background: 'var(--text-tertiary)', borderRadius: '50%' }}></span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -304,7 +311,14 @@ const OverviewTab = ({ event, onTabChange }) => {
                             <span style={{ width: 4, height: 4, background: 'var(--text-tertiary)', borderRadius: '50%' }}></span>
                             <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <MapPin size={16} className="text-tertiary" />
-                                {event.location}
+                                <a 
+                                    href={`https://maps.google.com/?q=${encodeURIComponent(event.location)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ color: 'inherit', textDecoration: 'none', cursor: 'pointer' }}
+                                >
+                                    {event.location}
+                                </a>
                             </span>
                         </>
                     )}

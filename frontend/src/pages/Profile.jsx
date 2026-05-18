@@ -1,36 +1,24 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, User, Mail, Phone, Lock, Check, LogOut, Shield, Star, ChevronRight, X, PlayCircle, Ticket, CheckCircle } from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { Camera as CapCamera } from '@capacitor/camera';
-import { useTheme } from '../context/ThemeContext';
+import { Search, Scan, Gem, Mail, Bell, Lock, User, Star, HelpCircle, LogOut, ArrowLeft, Camera, Check, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { Camera as CapCamera } from '@capacitor/camera';
 import API_URL from '../config/api';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/cropImage';
-import SubscriptionComparisonModal from '../components/SubscriptionComparisonModal';
 
 import './Profile.css';
 
 const Profile = () => {
     const navigate = useNavigate();
-    const { theme } = useTheme();
-    const { refreshUser, logout, user, resetTours } = useAuth();
-    const { events } = useApp();
+    const { logout, user, refreshUser } = useAuth();
 
-    // UI State
-    const [isEditing, setIsEditing] = useState(false);
-    const [activeTab, setActiveTab] = useState('details');
-    const [showComparisonModal, setShowComparisonModal] = useState(false);
-
-    // Initialize loading
-    const [loading, setLoading] = useState(!user);
+    // Views: 'menu' | 'edit_profile' | 'security'
+    const [currentView, setCurrentView] = useState('menu');
+    const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
-
-    // Stats
-    const hostedCount = events.filter(e => e.role === 'host' || !e.role).length;
-    const attendedCount = events.filter(e => e.role === 'guest').length;
-
+    
+    // Profile State
     const [profile, setProfile] = useState({
         name: user?.name || '',
         email: user?.email || '',
@@ -39,14 +27,16 @@ const Profile = () => {
         profilePictureUrl: user?.profilePictureUrl || null
     });
 
+    const [countryCode, setCountryCode] = useState('+91');
+    const [phoneDigits, setPhoneDigits] = useState('');
+    
+    // Passwords state
     const [passwords, setPasswords] = useState({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
     });
 
-    const [countryCode, setCountryCode] = useState('+91');
-    const [phoneDigits, setPhoneDigits] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
@@ -56,7 +46,6 @@ const Profile = () => {
     const [zoom, setZoom] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
     const [showCropModal, setShowCropModal] = useState(false);
-    const [showEnlargedImage, setShowEnlargedImage] = useState(false);
 
     useEffect(() => {
         if (user?.phone) {
@@ -81,16 +70,13 @@ const Profile = () => {
     const loadProfile = async () => {
         try {
             if (!user) setLoading(true);
-
             const token = localStorage.getItem('token');
-
             const res = await fetch(`${API_URL}/users/profile`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (res.ok) {
                 const data = await res.json();
-
                 setProfile({
                     name: data.name || '',
                     email: data.email || '',
@@ -98,32 +84,104 @@ const Profile = () => {
                     bio: data.bio || '',
                     profilePictureUrl: data.profilePictureUrl || null
                 });
-
-                // Parse phone number into country code and digits
-                if (data.phone) {
-                    // Check if phone starts with +
-                    if (data.phone.startsWith('+')) {
-                        // Extract country code (e.g., +91, +1, +44)
-                        const match = data.phone.match(/^(\+\d{1,3})(\d+)$/);
-                        if (match) {
-                            setCountryCode(match[1]);
-                            setPhoneDigits(match[2]);
-                        } else {
-                            setPhoneDigits(data.phone.replace(/\D/g, '').slice(-10));
-                        }
-                    } else {
-                        // No country code, just digits
-                        setPhoneDigits(data.phone.replace(/\D/g, '').slice(-10));
-                    }
-                }
-            } else {
-                if (!user) setError('Failed to load profile');
             }
         } catch (error) {
             console.error('Error loading profile:', error);
-            if (!user) setError('Failed to load profile');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSaveProfile = async () => {
+        try {
+            setSaving(true);
+            setError('');
+            setSuccess('');
+            const token = localStorage.getItem('token');
+            let finalProfilePictureUrl = profile.profilePictureUrl;
+
+            if (profile.profilePictureUrl && profile.profilePictureUrl.startsWith('data:image')) {
+                const uploadRes = await fetch(`${API_URL}/upload/image`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: profile.profilePictureUrl })
+                });
+
+                if (!uploadRes.ok) {
+                    throw new Error('Failed to upload image');
+                }
+                const uploadData = await uploadRes.json();
+                finalProfilePictureUrl = uploadData.url;
+            }
+
+            const res = await fetch(`${API_URL}/users/profile`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: profile.name,
+                    phone: phoneDigits ? `${countryCode}${phoneDigits}` : null,
+                    bio: profile.bio,
+                    profilePictureUrl: finalProfilePictureUrl
+                })
+            });
+
+            if (res.ok) {
+                setSuccess('Profile updated!');
+                refreshUser();
+                setCurrentView('menu');
+                setProfile(prev => ({ ...prev, profilePictureUrl: finalProfilePictureUrl }));
+                setTimeout(() => setSuccess(''), 3000);
+            } else {
+                const data = await res.json();
+                setError(data.error || 'Failed to update');
+            }
+        } catch (error) {
+            setError('Failed to save: ' + error.message);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        if (passwords.newPassword !== passwords.confirmPassword) {
+            setError('New passwords do not match');
+            return;
+        }
+
+        try {
+            setSaving(true);
+            setError('');
+            setSuccess('');
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/users/change-password`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    currentPassword: passwords.currentPassword,
+                    newPassword: passwords.newPassword
+                })
+            });
+
+            if (res.ok) {
+                setSuccess('Password changed successfully!');
+                setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                setCurrentView('menu');
+                setTimeout(() => setSuccess(''), 3000);
+            } else {
+                const data = await res.json();
+                setError(data.error || 'Failed to change password');
+            }
+        } catch (error) {
+            setError('Network error: Failed to change password');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -135,7 +193,6 @@ const Profile = () => {
                 source: 'photos',
                 saveToGallery: false
             });
-
             const base64Image = `data:image/${image.format};base64,${image.base64String}`;
             setImageSrc(base64Image);
             setShowCropModal(true);
@@ -159,667 +216,208 @@ const Profile = () => {
         }
     };
 
-    const handleSaveProfile = async () => {
-        try {
-            console.log('Starting save profile process...');
-            setSaving(true);
-            setError('');
-            setSuccess('');
+    const renderCropModal = () => (
+        <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            zIndex: 1000, backgroundColor: 'rgba(0, 0, 0, 0.95)', display: 'flex', flexDirection: 'column'
+        }}>
+            <div style={{ padding: '16px', paddingTop: 'calc(16px + env(safe-area-inset-top))', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#000', zIndex: 10 }}>
+                <button onClick={() => { setShowCropModal(false); setImageSrc(null); }} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '8px' }}>
+                    <X size={28} />
+                </button>
+                <h3 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 600 }}>Crop Photo</h3>
+                <button onClick={handleCropSave} style={{ background: '#10b981', border: 'none', borderRadius: '50%', width: '44px', height: '44px', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Check size={28} strokeWidth={3} />
+                </button>
+            </div>
+            <div style={{ position: 'relative', flex: 1, backgroundColor: '#000' }}>
+                <Cropper
+                    image={imageSrc}
+                    crop={crop}
+                    zoom={zoom}
+                    aspect={1}
+                    cropShape="round"
+                    showGrid={false}
+                    onCropChange={setCrop}
+                    onZoomChange={setZoom}
+                    onCropComplete={onCropComplete}
+                />
+            </div>
+        </div>
+    );
 
-            const token = localStorage.getItem('token');
-            let finalProfilePictureUrl = profile.profilePictureUrl;
+    const renderMessages = () => (
+        (success || error) && (
+            <div className={`message-container ${success ? 'message-success' : 'message-error'}`}>
+                {success || error}
+            </div>
+        )
+    );
 
-            // Check if profile picture is a base64 string (newly cropped image)
-            if (profile.profilePictureUrl && profile.profilePictureUrl.startsWith('data:image')) {
-                console.log('Detected new base64 image, attempting upload...');
-                try {
-                    console.log('Uploading to:', `${API_URL}/upload/image`);
-                    // Upload to Cloudinary via backend
-                    const uploadRes = await fetch(`${API_URL}/upload/image`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            image: profile.profilePictureUrl
-                        })
-                    });
-
-                    console.log('Upload response status:', uploadRes.status);
-
-                    if (!uploadRes.ok) {
-                        const errorText = await uploadRes.text();
-                        console.error('Upload failed response:', errorText);
-                        throw new Error('Failed to upload image: ' + errorText);
-                    }
-
-                    const uploadData = await uploadRes.json();
-                    console.log('Upload success, URL:', uploadData.url);
-                    finalProfilePictureUrl = uploadData.url; // Use the returned Cloudinary URL
-                } catch (uploadError) {
-                    console.error('Image upload failed exception:', uploadError);
-                    setError('Failed to upload profile picture: ' + uploadError.message);
-                    setSaving(false);
-                    return;
-                }
-            } else {
-                console.log('No new image detected or image is already a URL');
-            }
-
-            console.log('Saving profile data with URL:', finalProfilePictureUrl);
-
-            // Save Profile with URL
-            const res = await fetch(`${API_URL}/users/profile`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: profile.name,
-                    phone: phoneDigits ? `${countryCode}${phoneDigits}` : null, // Send null if empty
-                    bio: profile.bio,
-                    profilePictureUrl: finalProfilePictureUrl
-                })
-            });
-
-            console.log('Profile update response status:', res.status);
-            const data = await res.json();
-
-            if (res.ok) {
-                console.log('Profile update success:', data);
-                setSuccess('Profile updated!');
-                refreshUser();
-                setIsEditing(false); // Switch back to view mode
-                // Update local state with the new URL to prevent re-upload
-                setProfile(prev => ({ ...prev, profilePictureUrl: finalProfilePictureUrl }));
-                setTimeout(() => setSuccess(''), 3000);
-
-                // Refresh user data to update header avatar
-                if (refreshUser) {
-                    await refreshUser();
-                }
-            } else {
-                console.warn('Profile update failed:', data);
-                setError(data.error || 'Failed to update');
-            }
-        } catch (error) {
-            console.error('Error saving profile (outer catch):', error);
-            setError('Failed to save: ' + error.message);
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleChangePassword = async (e) => {
-        e.preventDefault();
-
-        if (passwords.newPassword !== passwords.confirmPassword) {
-            setError('New passwords do not match');
-            return;
-        }
-
-        try {
-            setSaving(true);
-            setError('');
-            setSuccess('');
-
-            const token = localStorage.getItem('token');
-
-            const res = await fetch(`${API_URL}/users/change-password`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    currentPassword: passwords.currentPassword,
-                    newPassword: passwords.newPassword
-                })
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                setSuccess('Password changed successfully!');
-                setPasswords({
-                    currentPassword: '',
-                    newPassword: '',
-                    confirmPassword: ''
-                });
-                // Scroll to top to show success message
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                setTimeout(() => setSuccess(''), 5000); // Show for 5 seconds
-            } else {
-                const errorMsg = data.error || 'Failed to change password';
-                setError(errorMsg);
-                // Keep error message visible longer
-                setTimeout(() => setError(''), 5000);
-            }
-        } catch (error) {
-            console.error('Error changing password:', error);
-            setError('Network error: Failed to change password');
-            setTimeout(() => setError(''), 5000);
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    if (loading) {
+    if (currentView === 'edit_profile') {
         return (
-            <div className="profile-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ color: 'var(--accent-color)', fontWeight: 600 }}>Loading profile...</div>
+            <div className="profile-container">
+                <div className="profile-navbar">
+                    <button onClick={() => setCurrentView('menu')} className="nav-btn">
+                        <ArrowLeft size={24} />
+                    </button>
+                    <div style={{ fontWeight: 600, fontSize: '17px' }}>Edit Profile</div>
+                    <div style={{width: 40}}></div>
+                </div>
+                {renderMessages()}
+                <div className="edit-profile-section">
+                    <div style={{display: 'flex', justifyContent: 'center', marginBottom: 32, marginTop: 16}}>
+                        <div className="avatar-simple" onClick={pickImage} style={{width: 80, height: 80, cursor: 'pointer', position: 'relative'}}>
+                            {profile.profilePictureUrl ? (
+                                <img src={profile.profilePictureUrl} alt="Profile" />
+                            ) : (
+                                profile.name?.charAt(0).toUpperCase() || 'U'
+                            )}
+                            <div style={{position: 'absolute', bottom: 0, right: 0, background: '#6366f1', borderRadius: '50%', padding: 4}}>
+                                <Camera size={14} color="white" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="edit-input-group">
+                        <label>Full Name</label>
+                        <input className="edit-input" value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} />
+                    </div>
+                    <div className="edit-input-group">
+                        <label>Phone Number</label>
+                        <div style={{display: 'flex', gap: '8px'}}>
+                            <input className="edit-input" style={{width: '60px'}} value={countryCode} onChange={e => setCountryCode(e.target.value)} />
+                            <input className="edit-input" type="tel" value={phoneDigits} onChange={e => setPhoneDigits(e.target.value.replace(/\D/g, ''))} />
+                        </div>
+                    </div>
+                    <div className="edit-input-group">
+                        <label>Bio</label>
+                        <input className="edit-input" value={profile.bio} onChange={e => setProfile({...profile, bio: e.target.value})} />
+                    </div>
+
+                    <button className="save-btn" onClick={handleSaveProfile} disabled={saving}>
+                        {saving ? 'Saving...' : 'Save Changes'}
+                    </button>
+                </div>
+                {showCropModal && renderCropModal()}
             </div>
         );
     }
 
+    if (currentView === 'security') {
+        return (
+            <div className="profile-container">
+                <div className="profile-navbar">
+                    <button onClick={() => setCurrentView('menu')} className="nav-btn">
+                        <ArrowLeft size={24} />
+                    </button>
+                    <div style={{ fontWeight: 600, fontSize: '17px' }}>Security</div>
+                    <div style={{width: 40}}></div>
+                </div>
+                {renderMessages()}
+                <form onSubmit={handleChangePassword} className="edit-profile-section" style={{marginTop: 16}}>
+                    <div className="edit-input-group">
+                        <label>Current Password</label>
+                        <input className="edit-input" type="password" value={passwords.currentPassword} onChange={e => setPasswords({...passwords, currentPassword: e.target.value})} />
+                    </div>
+                    <div className="edit-input-group">
+                        <label>New Password</label>
+                        <input className="edit-input" type="password" value={passwords.newPassword} onChange={e => setPasswords({...passwords, newPassword: e.target.value})} />
+                    </div>
+                    <div className="edit-input-group">
+                        <label>Confirm New Password</label>
+                        <input className="edit-input" type="password" value={passwords.confirmPassword} onChange={e => setPasswords({...passwords, confirmPassword: e.target.value})} />
+                    </div>
+
+                    <button type="submit" className="save-btn" disabled={saving}>
+                        {saving ? 'Updating...' : 'Update Password'}
+                    </button>
+                </form>
+            </div>
+        );
+    }
+
+    // Default 'menu' view
     return (
         <div className="profile-container">
-            {/* Navbar */}
-            <div className="profile-navbar">
-                <button onClick={() => navigate(-1)} className="nav-btn">
-                    <ArrowLeft size={24} />
-                </button>
-                <div style={{ fontWeight: 600, fontSize: '17px' }}>Profile</div>
-                <button
-                    onClick={() => setIsEditing(!isEditing)}
-                    className="nav-btn"
-                    style={{ color: isEditing ? 'var(--accent-color)' : 'var(--text-primary)', fontSize: '15px', fontWeight: 600, width: 'auto' }}
-                >
-                    {isEditing ? 'Done' : 'Edit'}
+            <div className="profile-navbar" style={{ justifyContent: 'flex-end' }}>
+                <button className="nav-btn">
+                    <Search size={22} />
                 </button>
             </div>
 
-            {/* Success/Error Messages */}
-            {(success || error) && (
-                <div className={`message - container ${success ? 'message-success' : 'message-error'} `}>
-                    {success ? <Check size={18} /> : <Shield size={18} />}
-                    {success || error}
-                </div>
-            )}
+            {renderMessages()}
 
-            {/* Content Wrapper */}
-            <div className="profile-content-wrapper">
-
-                {/* Header Section */}
-                <div className="profile-header">
-                    <div className="avatar-container">
-                        <div
-                            className="avatar"
-                            onClick={() => profile.profilePictureUrl && setShowEnlargedImage(true)}
-                            style={{
-                                background: !profile.profilePictureUrl ? 'linear-gradient(135deg, #6366f1, #a855f7)' : 'transparent',
-                                overflow: 'hidden'
-                            }}
-                        >
-                            {profile.profilePictureUrl ? (
-                                <img
-                                    src={profile.profilePictureUrl}
-                                    alt="Profile"
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                />
-                            ) : (
-                                profile.name?.charAt(0).toUpperCase() || 'U'
-                            )}
-                        </div>
-                        {isEditing && (
-                            <button onClick={pickImage} className="edit-avatar-btn">
-                                <Camera size={16} />
-                            </button>
-                        )}
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                        <h2 className="user-name">{profile.name || 'User'}</h2>
-                        <p className="user-bio">{profile.bio || 'Add a bio to tell people about yourself.'}</p>
-                    </div>
-                </div>
-
-                {/* Stats */}
-                <div className="stats-grid">
-                    <div className="stat-card">
-                        <div className="stat-icon" style={{ background: 'rgba(99, 102, 241, 0.1)' }}>
-                            <Ticket size={20} style={{ color: '#6366f1' }} />
-                        </div>
-                        <div className="stat-value" style={{ color: '#6366f1' }}>{hostedCount}</div>
-                        <div className="stat-label">Events Hosted</div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-icon" style={{ background: 'rgba(16, 185, 129, 0.1)' }}>
-                            <CheckCircle size={20} style={{ color: '#10b981' }} />
-                        </div>
-                        <div className="stat-value" style={{ color: '#10b981' }}>{attendedCount}</div>
-                        <div className="stat-label">Attended</div>
-                    </div>
-                </div>
-
-                {/* Subscription Card - Premium Look */}
-                <div className="sub-card">
-                    <div className="pro-badge-glow" />
-                    <div className="sub-header">
-                        <div>
-                            <div className="current-plan-label">CURRENT MEMBERSHIP</div>
-                            <div className="plan-name">
-                                {user?.subscription_tier === 'pro' ? 'Pro Access' : 'Free Account'}
-                                {user?.subscription_tier === 'pro' && <Star size={20} fill="#f59e0b" stroke="#f59e0b" />}
-                            </div>
-                        </div>
-                    </div>
-
-                    {user?.subscription_tier === 'pro' ? (
-                        <button
-                            className="action-btn btn-glass"
-                            onClick={() => navigate('/pro')}
-                        >
-                            Manage Subscription / Buy Credits
-                        </button>
-                    ) : (
-                        <button
-                            className="action-btn btn-primary-gradient"
-                            onClick={() => navigate('/pro')}
-                        >
-                            Upgrade to Pro
-                        </button>
-                    )}
-
-                    {(!user?.subscription_tier || user?.subscription_tier === 'free') && (
-                        <div style={{ marginTop: '16px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>
-                                <span>Free Events Used</span>
-                                <span>{hostedCount} / 3</span>
-                            </div>
-                            <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
-                                <div style={{
-                                    width: `${Math.min((hostedCount / 3) * 100, 100)}% `,
-                                    height: '100%',
-                                    background: hostedCount >= 3 ? '#ef4444' : '#6366f1'
-                                }} />
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-
-
-                {/* Compare Plans Link */}
-                <div className="compare-plans-link-container">
-                    <button
-                        onClick={() => setShowComparisonModal(true)}
-                        className="compare-plans-link"
-                    >
-                        <Star size={16} /> Compare plan benefits
-                    </button>
-                </div>
-
-                <SubscriptionComparisonModal
-                    isOpen={showComparisonModal}
-                    onClose={() => setShowComparisonModal(false)}
-                />
-
-                {/* Info Card */}
-                <div className="settings-section">
-                    <div className="settings-header">
-                        <User size={16} /> Personal Information
-                    </div>
-
-                    <div className="settings-list">
-                        <div className={`settings-row ${isEditing ? 'is-editing' : ''}`}>
-                            <span className="settings-label">Full Name</span>
-                            {isEditing ? (
-                                <input
-                                    className="settings-input"
-                                    value={profile.name}
-                                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                                    placeholder="Your Name"
-                                />
-                            ) : (
-                                <span className="settings-value">{profile.name}</span>
-                            )}
-                        </div>
-
-                        <div className="settings-row">
-                            <span className="settings-label">Email Address</span>
-                            <span className="settings-value" style={{ opacity: 0.7 }}>{profile.email}</span>
-                        </div>
-
-                        <div className={`settings-row ${isEditing ? 'is-editing' : ''}`}>
-                            <span className="settings-label">Phone Number</span>
-                            {isEditing ? (
-                                <div className="phone-input-group">
-                                    <select
-                                        className="settings-input phone-select"
-                                        value={countryCode}
-                                        onChange={(e) => setCountryCode(e.target.value)}
-                                    >
-                                        <option value="+91">+91</option>
-                                        <option value="+1">+1</option>
-                                        <option value="+44">+44</option>
-                                    </select>
-                                    <input
-                                        className="settings-input"
-                                        type="tel"
-                                        value={phoneDigits}
-                                        onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, ''))}
-                                        placeholder="Mobile Number"
-                                    />
-                                </div>
-                            ) : (
-                                <span className="settings-value">{profile.phone || 'Not set'}</span>
-                            )}
-                        </div>
-
-                        <div className={`settings-row ${isEditing ? 'is-editing' : ''}`}>
-                            <span className="settings-label">Bio</span>
-                            {isEditing ? (
-                                <textarea
-                                    className="settings-input"
-                                    value={profile.bio}
-                                    onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                                    placeholder="Tell us about yourself..."
-                                />
-                            ) : (
-                                <span className="settings-value" style={{ maxWidth: '70%', whiteSpace: 'normal', textAlign: 'right' }}>{profile.bio || 'No bio'}</span>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Security Section (Collapsible) */}
-                <div className="settings-section">
-                    <button
-                        className="accordion-header"
-                        onClick={() => setActiveTab(activeTab === 'security' ? 'details' : 'security')}
-                    >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <Lock size={18} style={{ color: '#818cf8' }} />
-                            Security & Password
-                        </div>
-                        <ChevronRight size={20} style={{ transform: activeTab === 'security' ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.2s', color: '#94a3b8' }} />
-                    </button>
-
-                    {activeTab === 'security' && (
-                        <div className="accordion-content">
-                            <form onSubmit={handleChangePassword}>
-                                <div className="settings-list" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <div className="settings-row is-editing">
-                                        <span className="settings-label">Current Password</span>
-                                        <input
-                                            type="password"
-                                            value={passwords.currentPassword}
-                                            onChange={e => setPasswords({ ...passwords, currentPassword: e.target.value })}
-                                            className="settings-input"
-                                            placeholder="••••••••"
-                                        />
-                                    </div>
-                                    <div className="settings-row is-editing">
-                                        <span className="settings-label">New Password</span>
-                                        <input
-                                            type="password"
-                                            value={passwords.newPassword}
-                                            onChange={e => setPasswords({ ...passwords, newPassword: e.target.value })}
-                                            className="settings-input"
-                                            placeholder="Enter new password"
-                                        />
-                                    </div>
-                                    <div className="settings-row is-editing">
-                                        <span className="settings-label">Confirm Password</span>
-                                        <input
-                                            type="password"
-                                            value={passwords.confirmPassword}
-                                            onChange={e => setPasswords({ ...passwords, confirmPassword: e.target.value })}
-                                            className="settings-input"
-                                            placeholder="Confirm new password"
-                                        />
-                                    </div>
-                                    <div className="settings-row" style={{ borderBottom: 'none' }}>
-                                        <button
-                                            type="submit"
-                                            disabled={saving}
-                                            className="action-btn"
-                                            style={{ background: 'rgba(255,255,255,0.1)', color: '#fff' }}
-                                        >
-                                            Update Password
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    )}
-                </div>
-
-                {/* Action Buttons */}
-                <div className="action-buttons-grid">
-                    <button
-                        className="action-card-btn info"
-                        onClick={() => {
-                            resetTours();
-                            alert('Product Tour has been reset! Let\'s go to the Dashboard.');
-                            navigate('/manager');
-                        }}
-                    >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <PlayCircle size={20} />
-                            Restart App Tour
-                        </div>
-                        <ChevronRight size={20} opacity={0.5} />
-                    </button>
-
-                    <button
-                        className="action-card-btn warning"
-                        onClick={() => {
-                            if (window.confirm('Are you sure you want to logout?')) {
-                                logout();
-                                navigate('/login');
-                            }
-                        }}
-                    >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <LogOut size={20} />
-                            Sign Out
-                        </div>
-                    </button>
-                </div>
+            <div className="settings-group" style={{marginTop: '16px'}}>
+                <button className="settings-list-item" onClick={() => navigate('/scanner')}>
+                    <div className="settings-icon-wrapper"><Scan size={22} /></div>
+                    <span>Scan code</span>
+                </button>
+                <button className="settings-list-item" onClick={() => navigate('/pro')}>
+                    <div className="settings-icon-wrapper pro-icon"><Gem size={22} /></div>
+                    <span>HostEze Pro</span>
+                </button>
             </div>
 
-            {/* Sticky Save FAB when editing */}
-            {isEditing && (
-                <button
-                    onClick={handleSaveProfile}
-                    disabled={saving}
-                    className="save-fab"
-                >
-                    {saving ? 'Saving...' : (
-                        <>
-                            <Check size={20} />
-                            Save Changes
-                        </>
-                    )}
+            <div className="settings-group">
+                <div className="settings-group-title">Preferences</div>
+                <button className="settings-list-item" onClick={() => setCurrentView('edit_profile')}>
+                    <div className="settings-icon-wrapper"><User size={22} /></div>
+                    <span>Edit Profile</span>
                 </button>
-            )}
+                <button className="settings-list-item" onClick={() => alert('Email settings coming soon!')}>
+                    <div className="settings-icon-wrapper"><Mail size={22} /></div>
+                    <span>Email settings</span>
+                </button>
+                <button className="settings-list-item" onClick={() => alert('Device settings coming soon!')}>
+                    <div className="settings-icon-wrapper"><Bell size={22} /></div>
+                    <span>Device and push notification settings</span>
+                </button>
+                <button className="settings-list-item" onClick={() => setCurrentView('security')}>
+                    <div className="settings-icon-wrapper"><Lock size={22} /></div>
+                    <span>Security</span>
+                </button>
+            </div>
 
-            {/* Crop Modal */}
-            {
-                showCropModal && (
-                    <div style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        zIndex: 1000,
-                        backgroundColor: 'rgba(0, 0, 0, 0.95)',
-                        display: 'flex',
-                        flexDirection: 'column'
-                    }}>
-                        {/* Header with X and Checkmark */}
-                        <div style={{
-                            padding: '16px',
-                            paddingTop: 'calc(16px + env(safe-area-inset-top))',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            backgroundColor: '#000',
-                            zIndex: 10
-                        }}>
-                            <button
-                                onClick={() => {
-                                    setShowCropModal(false);
-                                    setImageSrc(null);
-                                }}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: 'white',
-                                    cursor: 'pointer',
-                                    padding: '8px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}
-                            >
-                                <X size={28} />
-                            </button>
+            <div className="settings-group">
+                <div className="settings-group-title">Feedback</div>
+                <button className="settings-list-item" onClick={() => window.open('https://play.google.com/store/apps/details?id=com.vyogo.hosteze', '_blank')}>
+                    <div className="settings-icon-wrapper"><Star size={22} /></div>
+                    <span>Rate HostEze</span>
+                </button>
+                <button className="settings-list-item" onClick={() => window.location.href = 'mailto:support@vyogo.tech'}>
+                    <div className="settings-icon-wrapper"><HelpCircle size={22} /></div>
+                    <span>Contact HostEze support</span>
+                </button>
+            </div>
 
-                            <h3 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 600 }}>Crop Photo</h3>
+            <div className="settings-group" style={{borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 16}}>
+                <button 
+                    className="settings-list-item" 
+                    onClick={() => {
+                        if (window.confirm('Are you sure you want to logout?')) {
+                            logout();
+                            navigate('/login');
+                        }
+                    }}
+                >
+                    <div className="settings-icon-wrapper" style={{color: '#10b981'}}><LogOut size={22} /></div>
+                    <span style={{color: '#10b981'}}>Log out</span>
+                </button>
+            </div>
 
-                            <button
-                                onClick={handleCropSave}
-                                style={{
-                                    background: '#10b981',
-                                    border: 'none',
-                                    borderRadius: '50%',
-                                    width: '44px',
-                                    height: '44px',
-                                    color: 'white',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)'
-                                }}
-                            >
-                                <Check size={28} strokeWidth={3} />
-                            </button>
-                        </div>
-
-                        {/* Cropper Area with Zoom Overlay */}
-                        <div style={{
-                            position: 'relative',
-                            flex: 1,
-                            backgroundColor: '#000'
-                        }}>
-                            <Cropper
-                                image={imageSrc}
-                                crop={crop}
-                                zoom={zoom}
-                                aspect={1}
-                                cropShape="round"
-                                showGrid={false}
-                                onCropChange={setCrop}
-                                onZoomChange={setZoom}
-                                onCropComplete={onCropComplete}
-                            />
-
-                            {/* Zoom Control Overlay */}
-                            <div style={{
-                                position: 'absolute',
-                                bottom: 'calc(80px + env(safe-area-inset-bottom))',
-                                left: '20px',
-                                right: '20px',
-                                padding: '16px',
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                borderRadius: '12px',
-                                backdropFilter: 'blur(10px)'
-                            }}>
-                                <label style={{
-                                    color: 'white',
-                                    fontSize: '14px',
-                                    marginBottom: '8px',
-                                    display: 'block',
-                                    fontWeight: 500
-                                }}>
-                                    Zoom: {zoom.toFixed(1)}x
-                                </label>
-                                <input
-                                    type="range"
-                                    min={1}
-                                    max={3}
-                                    step={0.1}
-                                    value={zoom}
-                                    onChange={(e) => setZoom(Number(e.target.value))}
-                                    style={{
-                                        width: '100%',
-                                        height: '6px',
-                                        accentColor: '#10b981'
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-
-            {/* Enlarged Image Modal */}
-            {
-                showEnlargedImage && profile.profilePictureUrl && (
-                    <div
-                        onClick={() => setShowEnlargedImage(false)}
-                        style={{
-                            position: 'fixed',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            zIndex: 9999,
-                            padding: '20px',
-                            cursor: 'zoom-out'
-                        }}
-                    >
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowEnlargedImage(false);
-                            }}
-                            style={{
-                                position: 'absolute',
-                                top: '20px',
-                                right: '20px',
-                                background: 'rgba(255, 255, 255, 0.2)',
-                                border: 'none',
-                                borderRadius: '50%',
-                                width: '40px',
-                                height: '40px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                backdropFilter: 'blur(10px)',
-                                transition: 'background 0.2s'
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
-                        >
-                            <X size={24} color="white" />
-                        </button>
-                        <img
-                            src={profile.profilePictureUrl}
-                            alt="Profile"
-                            onClick={(e) => e.stopPropagation()}
-                            style={{
-                                maxWidth: '90%',
-                                maxHeight: '90%',
-                                borderRadius: '12px',
-                                boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-                                cursor: 'default'
-                            }}
-                        />
-                    </div>
-                )
-            }
-        </div >
+            <div className="profile-footer">
+                <div className="footer-text">
+                    Crafted with care by the Vyogo Team<br/>
+                    Copyright © 2026 Vyogo Tech<br/>
+                    <br/>
+                    <a href="https://vyogo.tech/privacy" target="_blank" className="footer-links">Privacy Policy</a><br/>
+                    v1.0.0
+                </div>
+            </div>
+            
+            <div className="footer-graphic"></div>
+        </div>
     );
 };
 

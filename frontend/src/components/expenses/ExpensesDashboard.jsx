@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import API_URL from '../../config/api';
-import { Plus } from 'lucide-react';
+import { Plus, Receipt, SlidersHorizontal, Users } from 'lucide-react';
 import ExpenseList from './ExpenseList';
 import AddExpenseModal from './AddExpenseModal';
 import BalanceSummary from './BalanceSummary';
 import ExpenseDetail from './ExpenseDetail';
+import './Expenses.css';
 
 const ExpensesDashboard = ({ eventId, event }) => {
     const [expenses, setExpenses] = useState([]);
@@ -69,47 +70,41 @@ const ExpensesDashboard = ({ eventId, event }) => {
     };
     const userId = getUserIdFromToken();
 
+    // Check if user has outstanding balances
+    const userBalance = balances.find(b => b.userId === userId) || { balance: 0 };
+    const isSettledUp = Math.abs(userBalance.balance) < 0.01;
+
     if (loading) {
         return (
-            <div style={{
-                padding: '2rem',
-                textAlign: 'center',
-                color: 'var(--text-secondary)'
-            }}>
+            <div style={{ padding: '2rem', textAlign: 'center', color: '#8e8e93' }}>
                 Loading...
             </div>
         );
     }
 
     return (
-        <div style={{ padding: '1rem' }}>
-            {/* Header */}
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
+        <div style={{ color: 'white' }}>
+            {/* Settled up summary */}
+            <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
                 justifyContent: 'space-between',
-                marginBottom: '1.25rem'
+                padding: '0 0 16px 0'
             }}>
-                <h2 style={{
-                    fontSize: '1.5rem',
-                    fontWeight: 700,
-                    margin: 0,
-                    color: 'var(--text-primary)'
-                }}>
-                    Expenses
-                </h2>
-
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    {/* Placeholder if we want to add other actions here later */}
-                </div>
+                <span style={{ fontSize: '0.9rem', color: isSettledUp ? '#8e8e93' : (userBalance.balance > 0 ? '#10b981' : '#ff453a') }}>
+                    {isSettledUp ? 'You are all settled up!' : `You ${userBalance.balance > 0 ? 'are owed' : 'owe'} $${Math.abs(userBalance.balance).toFixed(2)}`}
+                </span>
+                <button style={{ background: 'none', border: 'none', color: '#8e8e93', cursor: 'pointer', padding: 0 }}>
+                    <SlidersHorizontal size={20} />
+                </button>
             </div>
 
-            {/* Tabs - Simplified Styling */}
+            {/* Tabs - Minimalist Dark Mode */}
             <div style={{
                 display: 'flex',
-                gap: '16px',
+                gap: '24px',
                 marginBottom: '24px',
-                borderBottom: '1px solid var(--border)',
+                borderBottom: '1px solid rgba(255,255,255,0.05)',
                 paddingBottom: '0'
             }}>
                 <button
@@ -118,11 +113,11 @@ const ExpensesDashboard = ({ eventId, event }) => {
                         padding: '0 0 12px 0',
                         border: 'none',
                         background: 'none',
-                        color: activeTab === 'expenses' ? 'var(--primary)' : 'var(--text-secondary)',
-                        fontWeight: activeTab === 'expenses' ? 700 : 500,
-                        fontSize: '16px',
+                        color: activeTab === 'expenses' ? 'white' : '#8e8e93',
+                        fontWeight: activeTab === 'expenses' ? 600 : 500,
+                        fontSize: '1rem',
                         cursor: 'pointer',
-                        borderBottom: activeTab === 'expenses' ? '2px solid var(--primary)' : '2px solid transparent',
+                        borderBottom: activeTab === 'expenses' ? '2px solid #10b981' : '2px solid transparent',
                         transition: 'all 0.2s'
                     }}
                 >
@@ -134,11 +129,11 @@ const ExpensesDashboard = ({ eventId, event }) => {
                         padding: '0 0 12px 0',
                         border: 'none',
                         background: 'none',
-                        color: activeTab === 'balances' ? 'var(--primary)' : 'var(--text-secondary)',
-                        fontWeight: activeTab === 'balances' ? 700 : 500,
-                        fontSize: '16px',
+                        color: activeTab === 'balances' ? 'white' : '#8e8e93',
+                        fontWeight: activeTab === 'balances' ? 600 : 500,
+                        fontSize: '1rem',
                         cursor: 'pointer',
-                        borderBottom: activeTab === 'balances' ? '2px solid var(--primary)' : '2px solid transparent',
+                        borderBottom: activeTab === 'balances' ? '2px solid #10b981' : '2px solid transparent',
                         transition: 'all 0.2s'
                     }}
                 >
@@ -172,14 +167,15 @@ const ExpensesDashboard = ({ eventId, event }) => {
             </div>
 
             {/* Spacer for FAB */}
-            <div style={{ height: 80 }} />
+            <div style={{ height: 100 }} />
 
-            {/* FAB */}
-            <button className="btn-floating-action" onClick={() => {
+            {/* Flat Teal FAB */}
+            <button className="teal-fab" onClick={() => {
                 setEditExpenseData(null);
                 setShowAddModal(true);
             }}>
-                <Plus size={24} />
+                <Receipt size={20} />
+                Add expense
             </button>
 
             {showAddModal && (
@@ -207,21 +203,17 @@ const ExpensesDashboard = ({ eventId, event }) => {
                     eventId={eventId}
                     currentUserId={userId}
                     participants={(() => {
-                        // Construct participants list (Owner + Guests)
                         const owner = {
                             id: event.user_id,
                             name: event.user_name || 'Event Owner',
                             isOwner: true
                         };
                         const guests = (event.guests || []).map(g => ({
-                            id: g.user_id || g.id, // Handle both linked user_id and guest id
+                            id: g.user_id || g.id,
                             name: g.name,
                             email: g.email,
                             phone: g.phone
                         }));
-                        // Deduplicate in case owner is also in guests list (shouldn't happen but good safety)
-                        // But actually guests usually don't include owner unless explicitly added.
-                        // We'll just combine them.
                         return [owner, ...guests];
                     })()}
                     onClose={() => setSelectedExpense(null)}

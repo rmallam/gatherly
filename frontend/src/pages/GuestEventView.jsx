@@ -92,7 +92,7 @@ const GuestEventView = () => {
                         setShowGallery(true);
                     }}
                     className="event-wall-btn"
-                    style={{ margin: 0, justifyContent: 'center', background: 'linear-gradient(135deg, #10b981, #059669)' }}
+                    style={{ margin: 0, justifyContent: 'center', background: '#10b981' }}
                 >
                     <ImageIcon size={20} />
                     Gallery

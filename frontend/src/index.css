@@ -1,12 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Dark Glassmorphism Theme (Universal) */
-  --bg-primary: linear-gradient(135deg, rgba(10, 10, 15, 0.98), rgba(20, 20, 30, 0.95));
-  --bg-secondary: rgba(255, 255, 255, 0.08);
-  --bg-tertiary: rgba(255, 255, 255, 0.12);
-  --bg-deep: #0a0b1e;
-  --bg-card: rgba(255, 255, 255, 0.08);
+  /* Flat Dark Theme (Universal) */
+  --bg-primary: #1a1a1c;
+  --bg-secondary: #2c2c2e;
+  --bg-tertiary: rgba(255, 255, 255, 0.05);
+  --bg-deep: #1a1a1c;
+  --bg-card: #2c2c2e;
 
   /* Text - White for dark backgrounds */
   --text-primary: rgba(255, 255, 255, 0.95);
@@ -20,9 +20,9 @@
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.5);
 
-  /* Accent colors - Vibrant */
-  --primary: #7aa2f7;
-  --primary-dark: #6a92e7;
+  /* Accent colors - Teal */
+  --primary: #10b981;
+  --primary-dark: #059669;
   --success: #9ece6a;
   --error: #f7768e;
   --warning: #e0af68;
@@ -49,19 +49,14 @@
 }
 
 body {
-  background: linear-gradient(135deg, rgba(10, 10, 15, 0.98), rgba(20, 20, 30, 0.95)) !important;
   background-color: var(--bg-deep) !important;
   color: var(--text-primary) !important;
-  background-attachment: fixed;
 }
 
-/* Glassmorphism card effect in dark mode */
+/* Flat card effect in dark mode */
 .card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
 }
 
 /* Smooth theme transition */
@@ -154,37 +149,18 @@ h4 {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background-color: #10b981;
   color: white;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-primary::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.btn-primary:hover::before {
-  left: 100%;
+  transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+  background-color: #059669;
   transform: translateY(-1px);
 }
 
 .btn-primary:active {
   transform: translateY(1px);
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 }
 
 .btn-secondary {

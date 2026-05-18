@@ -146,42 +146,38 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, onExpenseClick, user
                                         style={{
                                             display: 'flex',
                                             alignItems: 'center',
-                                            padding: '12px 0', // Vertical spacing
+                                            padding: '16px 0', // Vertical spacing
                                             cursor: 'pointer',
                                             transition: 'background 0.2s',
-                                            borderRadius: '8px'
+                                            borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
                                         }}
-                                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)'}
                                         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                                     >
                                         {/* Date Column - Splitwise Style */}
                                         <div style={{
                                             minWidth: '40px',
                                             textAlign: 'center',
-                                            color: 'var(--text-secondary)',
+                                            color: '#8e8e93',
                                             marginRight: '12px',
-                                            paddingLeft: '8px'
+                                            paddingLeft: '4px'
                                         }}>
-                                            <div style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 600, lineHeight: 1, marginBottom: '2px' }}>
+                                            <div style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 500, lineHeight: 1, marginBottom: '2px' }}>
                                                 {date.toLocaleDateString('en-US', { month: 'short' })}
                                             </div>
-                                            <div style={{ fontSize: '18px', fontWeight: 400, color: 'var(--text-secondary)', lineHeight: 1 }}>
+                                            <div style={{ fontSize: '20px', fontWeight: 300, color: '#8e8e93', lineHeight: 1 }}>
                                                 {date.getDate()}
                                             </div>
                                         </div>
 
                                         {/* Icon */}
                                         <div style={{
-                                            width: '48px',
-                                            height: '48px',
-                                            borderRadius: '12px',
-                                            background: 'var(--bg-secondary)', // Fallback
-                                            backgroundImage: 'none', // Removed complex mixed usage
-                                            border: '1px solid var(--border)',
+                                            width: '36px',
+                                            height: '36px',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            fontSize: '24px',
+                                            fontSize: '20px',
                                             flexShrink: 0,
                                             marginRight: '16px'
                                         }}>
@@ -191,9 +187,9 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, onExpenseClick, user
                                         {/* Middle Details */}
                                         <div style={{ flex: 1, minWidth: '0', overflow: 'hidden', marginRight: '8px' }}>
                                             <div style={{
-                                                fontSize: '16px',
-                                                fontWeight: 600,
-                                                color: 'var(--text-primary)',
+                                                fontSize: '15px',
+                                                fontWeight: 500,
+                                                color: '#ffffff',
                                                 marginBottom: '2px',
                                                 overflow: 'hidden',
                                                 textOverflow: 'ellipsis',
@@ -203,14 +199,14 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, onExpenseClick, user
                                             </div>
                                             <div style={{
                                                 fontSize: '12px',
-                                                color: 'var(--text-secondary)',
+                                                color: '#8e8e93',
                                                 whiteSpace: 'nowrap',
                                                 overflow: 'hidden',
                                                 textOverflow: 'ellipsis'
                                             }}>
                                                 {expense.paid_by === userId || expense.paid_by_id === userId
-                                                    ? `You paid ${expense.currency} ${parseFloat(expense.amount).toFixed(2)}`
-                                                    : `${expense.paid_by_name?.split(' ')[0]} paid ${expense.currency} ${parseFloat(expense.amount).toFixed(2)}`
+                                                    ? `you paid ${expense.currency}${parseFloat(expense.amount).toFixed(2)}`
+                                                    : `${expense.paid_by_name?.split(' ')[0]} paid ${expense.currency}${parseFloat(expense.amount).toFixed(2)}`
                                                 }
                                             </div>
                                         </div>
@@ -218,21 +214,22 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, onExpenseClick, user
                                         {/* Right Status */}
                                         <div style={{
                                             textAlign: 'right',
-                                            minWidth: '80px'
+                                            minWidth: '80px',
+                                            paddingRight: '8px'
                                         }}>
                                             {status.type !== 'not_involved' ? (
                                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                                                     <div style={{
-                                                        fontSize: '10px',
+                                                        fontSize: '11px',
                                                         color: status.color,
-                                                        fontWeight: 600,
-                                                        textTransform: 'lowercase'
+                                                        fontWeight: 500,
+                                                        marginBottom: '1px'
                                                     }}>
                                                         {status.text}
                                                     </div>
                                                     <div style={{
                                                         fontSize: '14px',
-                                                        fontWeight: 700,
+                                                        fontWeight: 600,
                                                         color: status.color
                                                     }}>
                                                         {expense.currency}{status.amount.toFixed(2)}
@@ -241,7 +238,7 @@ const ExpenseList = ({ expenses, eventId, onExpenseDeleted, onExpenseClick, user
                                             ) : (
                                                 <div style={{
                                                     fontSize: '12px',
-                                                    color: 'var(--text-tertiary)'
+                                                    color: '#8e8e93'
                                                 }}>
                                                     not involved
                                                 </div>

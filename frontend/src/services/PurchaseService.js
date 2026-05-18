@@ -73,12 +73,12 @@ class PurchaseService {
             if (!this.isInitialized) return null;
 
             const offerings = await Purchases.getOfferings();
-            console.log('💰 Offerings fetched:', offerings);
+            console.log('💰 Offerings fetched:', JSON.stringify(offerings));
 
             let allPackages = [];
-            if (offerings.all) {
+            if (offerings && offerings.all) {
                 Object.values(offerings.all).forEach(offering => {
-                    if (offering.availablePackages) {
+                    if (offering && offering.availablePackages) {
                         offering.availablePackages.forEach(pkg => {
                             // Avoid duplicates by identifier
                             if (!allPackages.find(p => p.identifier === pkg.identifier)) {
@@ -89,16 +89,11 @@ class PurchaseService {
                 });
             }
 
-            if (offerings.current !== null) {
-                this.currentOffering = offerings.current;
-            } else {
-                console.warn('💰 Offerings.current is null! Check RC Dashboard "Current" offering.');
-            }
+            console.log('💰 Extracted packages:', allPackages.length);
 
-            // Return a merged object so PaywallPage can display packages from all offerings (fixes yearly tier visibility)
+            // Return a merged object so PaywallPage can display packages from all offerings
             return {
-                ...this.currentOffering,
-                availablePackages: allPackages.length > 0 ? allPackages : (this.currentOffering?.availablePackages || [])
+                availablePackages: allPackages
             };
         } catch (error) {
             console.error('Error fetching offerings:', error);

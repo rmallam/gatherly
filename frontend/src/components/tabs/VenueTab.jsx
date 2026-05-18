@@ -43,12 +43,14 @@ const VenueTab = ({ event, onUpdateVenue }) => {
         'Outdoor Space', 'Air Conditioning', 'Heating', 'Tables & Chairs'
     ];
 
-    const handleSave = () => {
+    const handleSave = (e) => {
+        if (e) e.preventDefault();
         onUpdateVenue?.(venue);
         setIsEditing(false);
     };
 
-    const handleCancel = () => {
+    const handleCancel = (e) => {
+        if (e) e.preventDefault();
         if (event.venue) {
             setVenue(event.venue);
             setIsEditing(false);
@@ -64,7 +66,8 @@ const VenueTab = ({ event, onUpdateVenue }) => {
         }
     };
 
-    const handleAutoFillAI = async () => {
+    const handleAutoFillAI = async (e) => {
+        if (e) e.preventDefault();
         const queryStr = venue.address || venue.name || event.location;
         if (!queryStr) {
             alert('Please enter a venue name or address first, so AI knows what to search for.');
@@ -92,6 +95,8 @@ const VenueTab = ({ event, onUpdateVenue }) => {
             if (data.venue) {
                 setVenue(prev => ({
                     ...prev,
+                    name: data.venue.name || prev.name,
+                    address: data.venue.address || prev.address,
                     capacity: data.venue.capacity || prev.capacity,
                     phone: data.venue.phone || prev.phone,
                     contact: data.venue.contact || prev.contact,
@@ -119,7 +124,7 @@ const VenueTab = ({ event, onUpdateVenue }) => {
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
                     Add your venue details to keep track of location and booking information
                 </p>
-                <button onClick={() => setIsEditing(true)} className="btn btn-primary">
+                <button type="button" onClick={() => setIsEditing(true)} className="btn btn-primary">
                     Add Venue Information
                 </button>
             </div>
@@ -144,7 +149,7 @@ const VenueTab = ({ event, onUpdateVenue }) => {
                     {/* Header */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>{venue.name}</h2>
-                        <button onClick={() => setIsEditing(true)} className="btn btn-secondary">
+                        <button type="button" onClick={() => setIsEditing(true)} className="btn btn-secondary">
                             Edit Venue Details
                         </button>
                     </div>
@@ -169,7 +174,14 @@ const VenueTab = ({ event, onUpdateVenue }) => {
                                 {venue.address && (
                                     <div>
                                         <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Address</div>
-                                        <div style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>{venue.address}</div>
+                                        <a 
+                                            href={`https://maps.google.com/?q=${encodeURIComponent(venue.address)}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ fontSize: '1rem', color: 'var(--primary)', textDecoration: 'none' }}
+                                        >
+                                            {venue.address}
+                                        </a>
                                     </div>
                                 )}
                                 {venue.contact && (
@@ -271,6 +283,7 @@ const VenueTab = ({ event, onUpdateVenue }) => {
                         </h3>
                         {user?.subscription_tier === 'pro' && (
                             <button 
+                                type="button"
                                 onClick={handleAutoFillAI} 
                                 disabled={isAiLoading}
                                 className="btn"
@@ -458,11 +471,11 @@ const VenueTab = ({ event, onUpdateVenue }) => {
 
                         {/* Actions */}
                         <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
-                            <button onClick={handleSave} className="btn btn-primary" disabled={!venue.name}>
+                            <button type="button" onClick={handleSave} className="btn btn-primary" disabled={!venue.name}>
                                 <Save size={16} /> Save Venue Details
                             </button>
                             {hasVenue && (
-                                <button onClick={handleCancel} className="btn btn-secondary">
+                                <button type="button" onClick={handleCancel} className="btn btn-secondary">
                                     <X size={16} /> Cancel
                                 </button>
                             )}

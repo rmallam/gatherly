@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import API_URL from '../../config/api';
-import { X, DollarSign, Receipt, Calendar, ScanLine, Upload, Loader, Lock } from 'lucide-react';
+import { ArrowLeft, Check, Camera, Image as ImageIcon, Users, FileText, Loader, Lock, Receipt, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useBackButton } from '../../hooks/useBackButton';
+import './Expenses.css';
 
 const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData }) => {
     useBackButton(onClose, true);
@@ -11,7 +12,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
         id: initialData?.id || null,
         amount: initialData?.amount || '',
         currency: initialData?.currency || 'USD',
-        description: initialData?.merchant || initialData?.description || '', // Use merchant as description
+        description: initialData?.merchant || initialData?.description || '',
         category: initialData?.category || 'food',
         paidBy: '',
         expenseDate: initialData?.date || initialData?.expense_date || new Date().toISOString().split('T')[0],
@@ -25,6 +26,8 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
     const [error, setError] = useState('');
 
     const [scanState, setScanState] = useState('');
+    const [showSplitDetails, setShowSplitDetails] = useState(false);
+
     const cameraInputRef = useRef(null);
     const galleryInputRef = useRef(null);
     const navigate = useNavigate();
@@ -40,7 +43,6 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                 }
             });
 
-            // Add tax and tip proportionately based on line item share
             const tax = parseFloat(initialData?.tax || 0);
             const tip = parseFloat(initialData?.tip || 0);
             const totalAssigned = Object.values(newSplits).reduce((sum, val) => sum + val, 0);
@@ -64,7 +66,6 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
             return newItems;
         });
 
-        // Auto-select the participant if they get assigned an item
         if (userId && !selectedParticipants.includes(userId)) {
             setSelectedParticipants(prev => [...prev, userId]);
         }
@@ -98,10 +99,8 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                 try {
                     const base64Image = reader.result.split(',')[1];
                     const mimeType = file.type;
-
                     const token = localStorage.getItem('token');
                     
-                    // First upload the image to Cloudinary
                     try {
                         const uploadResponse = await fetch(`${API_URL}/upload/image`, {
                             method: 'POST',
@@ -129,9 +128,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                         body: JSON.stringify({ image: base64Image, mimeType })
                     });
 
-                    if (!response.ok) {
-                        throw new Error('Failed to analyze receipt');
-                    }
+                    if (!response.ok) throw new Error('Failed to analyze receipt');
 
                     const data = await response.json();
 
@@ -142,10 +139,12 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                             currency: data.currency || prev.currency,
                             description: data.merchant || data.description || prev.description,
                             category: data.category || prev.category,
-                            expenseDate: data.date || prev.expenseDate
+                            expenseDate: data.date || prev.expenseDate,
+                            splitType: (data.lineItems && data.lineItems.length > 0) ? 'itemized' : 'equal'
                         }));
                         if (data.lineItems && data.lineItems.length > 0) {
                             setLineItems(data.lineItems);
+                            setShowSplitDetails(true); // Automatically show split details on successful scan
                         }
                     } else {
                         alert('Could not detect a valid receipt in this image.');
@@ -168,56 +167,10 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
             console.error('File selection error:', error);
             setScanState('');
         }
-    };    // Get all participants based on event type
+    };
+
     const participants = React.useMemo(() => {
-        console.log('=== EXPENSE MODAL PARTICIPANTS DEBUG ===');
-        console.log('Event object:', event);
-        console.log('Event type:', event.event_type);
-        console.log('Event user_id:', event.user_id);
-        console.log('Event user_name:', event.user_name);
-        console.log('Event guests:', event.guests);
-        console.log('Number of guests:', event.guests?.length);
-
         if (event.event_type === 'shared') {
-            // For shared events, include ALL guests (registered and unregistered)
-            const eventOwner = {
-                id: event.user_id,
-                name: event.user_name || 'Event Owner',
-                email: null,
-                phone: null,
-                isRegistered: true,
-                isOwner: true
-            };
-
-            const guestParticipants = (event.guests || []).map((g, index) => {
-                console.log(`Guest ${index}:`, g);
-                return {
-                    id: g.user_id || g.id, // Use user_id if available, otherwise guest id
-                    name: g.name,
-                    email: g.email,
-                    phone: g.phone,
-                    isRegistered: !!g.user_id, // True if they have a user account
-                    isOwner: false
-                };
-            });
-
-            const allParticipants = [eventOwner, ...guestParticipants];
-
-            console.log('All participants before dedup:', allParticipants);
-
-            // Deduplicate by ID to prevent duplicate keys in splits
-            const uniqueParticipants = allParticipants.filter((p, index, self) => {
-                return index === self.findIndex(t => t.id === p.id);
-            });
-
-            console.log('Unique participants after dedup:', uniqueParticipants);
-            console.log('=== END DEBUG ===');
-
-            return uniqueParticipants;
-        } else {
-            // For host events, include ALL guests (registered and unregistered)
-            console.log('Using event owner + all guests');
-
             const eventOwner = {
                 id: event.user_id,
                 name: event.user_name || 'Event Owner',
@@ -238,24 +191,39 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
 
             const allParticipants = [eventOwner, ...guestParticipants];
 
-            // Deduplicate by ID
-            const uniqueParticipants = allParticipants.filter((p, index, self) => {
+            return allParticipants.filter((p, index, self) => {
                 return index === self.findIndex(t => t.id === p.id);
             });
+        } else {
+            const eventOwner = {
+                id: event.user_id,
+                name: event.user_name || 'Event Owner',
+                email: null,
+                phone: null,
+                isRegistered: true,
+                isOwner: true
+            };
 
-            console.log('Host event participants:', uniqueParticipants);
-            console.log('=== END DEBUG ===');
+            const guestParticipants = (event.guests || []).map(g => ({
+                id: g.user_id || g.id,
+                name: g.name,
+                email: g.email,
+                phone: g.phone,
+                isRegistered: !!g.user_id,
+                isOwner: false
+            }));
 
-            return uniqueParticipants;
+            const allParticipants = [eventOwner, ...guestParticipants];
+
+            return allParticipants.filter((p, index, self) => {
+                return index === self.findIndex(t => t.id === p.id);
+            });
         }
     }, [event]);
 
-    // Initialize selected participants and paidBy with current user
     React.useEffect(() => {
         if (selectedParticipants.length === 0 && participants.length > 0) {
             setSelectedParticipants(participants.map(p => p.id));
-
-            // Set paidBy to current user if available, otherwise first participant
             const userId = localStorage.getItem('userId');
             const defaultPayer = participants.find(p => p.id === userId) ? userId : participants[0]?.id;
             if (defaultPayer && !formData.paidBy) {
@@ -265,7 +233,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
     }, [participants.length]);
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         setError('');
         setLoading(true);
 
@@ -283,56 +251,26 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                 return;
             }
 
-            // Calculate splits
             let splits = [];
             if (formData.splitType === 'equal') {
                 const splitAmount = amount / selectedParticipants.length;
                 splits = selectedParticipants.map(participantId => {
                     const participant = participants.find(p => p.id === participantId);
                     if (!participant) return null;
-
-                    if (participant.isRegistered) {
-                        // Registered user - send userId
-                        return {
-                            userId: participant.id,
-                            amount: splitAmount
-                        };
-                    } else {
-                        // Unregistered participant - send name, email, phone
-                        return {
-                            name: participant.name,
-                            email: participant.email,
-                            phone: participant.phone,
-                            amount: splitAmount
-                        };
-                    }
+                    return participant.isRegistered
+                        ? { userId: participant.id, amount: splitAmount }
+                        : { name: participant.name, email: participant.email, phone: participant.phone, amount: splitAmount };
                 }).filter(Boolean);
             } else {
-                // Custom or Itemized splits
                 splits = selectedParticipants.map(participantId => {
                     const participant = participants.find(p => p.id === participantId);
                     if (!participant) return null;
-
                     const splitAmount = parseFloat(customSplits[participantId] || 0);
-
-                    if (participant.isRegistered) {
-                        // Registered user - send userId
-                        return {
-                            userId: participant.id,
-                            amount: splitAmount
-                        };
-                    } else {
-                        // Unregistered participant - send name, email, phone
-                        return {
-                            name: participant.name,
-                            email: participant.email,
-                            phone: participant.phone,
-                            amount: splitAmount
-                        };
-                    }
+                    return participant.isRegistered
+                        ? { userId: participant.id, amount: splitAmount }
+                        : { name: participant.name, email: participant.email, phone: participant.phone, amount: splitAmount };
                 }).filter(Boolean);
 
-                // Validate custom splits sum to total
                 const total = splits.reduce((sum, s) => sum + s.amount, 0);
                 if (Math.abs(total - amount) > 0.01) {
                     setError(`Split amounts ($${total.toFixed(2)}) must equal total amount ($${amount.toFixed(2)})`);
@@ -346,11 +284,9 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
             const payload = {
                 ...formData,
                 amount,
-                splits
+                splits,
+                lineItems: formData.splitType === 'itemized' ? lineItems : null
             };
-
-            console.log('Sending expense request:', payload);
-            console.log('Splits:', splits);
 
             const url = isEditing 
                 ? `${API_URL}/events/${eventId}/expenses/${formData.id}`
@@ -366,20 +302,13 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                 body: JSON.stringify(payload)
             });
 
-            console.log('Expense creation response status:', response.status);
             const responseText = await response.text();
-            console.log('Expense creation response:', responseText);
 
             if (response.ok) {
-                const data = JSON.parse(responseText);
-                console.log('Expense created successfully:', data);
-                // Close modal and refresh data
                 onExpenseAdded();
                 onClose();
             } else {
                 const data = responseText ? JSON.parse(responseText) : {};
-                console.error('Expense creation failed:', JSON.stringify(data));
-                // Show detailed error message
                 const errorMsg = data.error || data.message || 'Failed to create expense';
                 const details = data.missingFields ? ` (Missing: ${data.missingFields.join(', ')})` : '';
                 setError(errorMsg + details);
@@ -407,417 +336,209 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
         }));
     };
 
-    const currencies = ['USD', 'EUR', 'GBP', 'INR', 'AUD', 'CAD', 'SGD', 'AED'];
-    const categories = ['food', 'transport', 'accommodation', 'activities', 'entertainment', 'other'];
+    // Helper formatting
+    const payerName = participants.find(p => p.id === formData.paidBy)?.name || 'you';
 
     return (
-        <div
-            style={{
-                position: 'fixed',
-                inset: 0,
-                zIndex: 100,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '1rem',
-                paddingBottom: 'calc(1rem + 80px)', // Account for bottom nav
-                backgroundColor: 'rgba(0, 0, 0, 0.75)'
-            }}
-            onClick={onClose}
-        >
-            <div
-                className="card"
-                style={{
-                    maxWidth: '600px',
-                    width: '100%',
-                    padding: '2rem',
-                    maxHeight: 'calc(100vh - 120px)', // Ensure it doesn't go under bottom nav
-                    overflowY: 'auto'
-                }}
-                onClick={e => e.stopPropagation()}
-            >
-                {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                        {formData.id ? 'Edit Expense' : 'Add Expense'}
-                    </h3>
-                    <button
-                        onClick={onClose}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
-                    >
-                        <X size={24} />
-                    </button>
-                </div>
+        <div className="expenses-fullscreen-modal">
+            {/* Header */}
+            <div className="expenses-header">
+                <button onClick={onClose}><ArrowLeft size={24} /></button>
+                <h3>{formData.id ? 'Edit expense' : 'Add expense'}</h3>
+                <button onClick={handleSubmit} disabled={loading} style={{ color: '#10b981' }}>
+                    {loading ? <Loader size={20} className="spin" /> : 'Save'}
+                </button>
+            </div>
 
+            <div className="expenses-content" style={{ alignItems: 'center' }}>
                 {error && (
-                    <div style={{
-                        padding: '0.75rem',
-                        marginBottom: '1rem',
-                        borderRadius: '8px',
-                        background: '#fee2e2',
-                        color: '#991b1b',
-                        fontSize: '0.875rem'
-                    }}>
+                    <div style={{ background: '#ef444420', color: '#fca5a5', padding: '12px', borderRadius: '8px', width: '100%', maxWidth: '320px', fontSize: '0.9rem' }}>
                         {error}
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-
-                    {/* Auto-fill buttons (Scan & Upload) */}
-                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        <input
-                            type="file"
-                            ref={cameraInputRef}
-                            style={{ display: 'none' }}
-                            accept="image/*"
-                            capture="environment"
-                            onChange={handleFileSelect}
-                        />
-                        <input
-                            type="file"
-                            ref={galleryInputRef}
-                            style={{ display: 'none' }}
-                            accept="image/*"
-                            onChange={handleFileSelect}
-                        />
-
-                        <button
-                            type="button"
-                            onClick={() => handleScanClick('camera')}
-                            disabled={!!scanState}
-                            className="btn btn-secondary"
-                            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.875rem', position: 'relative' }}
-                        >
-                            {scanState ? <Loader size={16} className="spin" /> : <ScanLine size={16} />}
-                            Scan Receipt
-                            {!(user?.subscription_tier === 'pro' || user?.subscription_tier === 'business') && (
-                                <Lock size={12} style={{ position: 'absolute', top: -4, right: -4, color: '#d97706' }} />
-                            )}
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => handleScanClick('gallery')}
-                            disabled={!!scanState}
-                            className="btn btn-secondary"
-                            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.875rem', position: 'relative' }}
-                        >
-                            {scanState ? <Loader size={16} className="spin" /> : <Upload size={16} />}
-                            Upload Receipt
-                            {!(user?.subscription_tier === 'pro' || user?.subscription_tier === 'business') && (
-                                <Lock size={12} style={{ position: 'absolute', top: -4, right: -4, color: '#d97706' }} />
-                            )}
-                        </button>
+                <div className="with-badge-container">
+                    With you and: 
+                    <div className="with-badge" onClick={() => setShowSplitDetails(!showSplitDetails)}>
+                        <Users size={16} /> All of {event.event_name || 'Event'}
                     </div>
+                </div>
 
-                    {/* Amount and Currency */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
-                        <div>
-                            <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                                Amount *
-                            </label>
-                            <div style={{ position: 'relative' }}>
-                                <DollarSign
-                                    size={18}
-                                    style={{
-                                        position: 'absolute',
-                                        left: '0.75rem',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        color: 'var(--text-tertiary)'
-                                    }}
-                                />
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    className="input"
-                                    style={{ paddingLeft: '2.5rem' }}
-                                    value={formData.amount}
-                                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                                    placeholder="0.00"
-                                    required
-                                />
-                            </div>
+                <div style={{ marginTop: '20px', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    {/* Description Input */}
+                    <div className="minimal-input-row">
+                        <div className="minimal-input-icon">
+                            <FileText size={20} color="#ffffff" />
                         </div>
-                        <div>
-                            <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                                Currency
-                            </label>
-                            <select
-                                className="input"
-                                value={formData.currency}
-                                onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                            >
-                                {currencies.map(curr => (
-                                    <option key={curr} value={curr}>{curr}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Description */}
-                    <div>
-                        <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                            Description *
-                        </label>
                         <input
                             type="text"
-                            className="input"
+                            className="minimal-input"
+                            placeholder="Enter a description"
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            placeholder="e.g., Dinner at restaurant"
-                            required
                         />
                     </div>
 
-                    {/* Category and Date */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        <div>
-                            <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                                Category
-                            </label>
-                            <select
-                                className="input"
-                                value={formData.category}
-                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    {/* Amount Input */}
+                    <div className="minimal-input-row" style={{ borderBottomColor: '#10b981' }}>
+                        <div className="minimal-input-icon" style={{ background: 'transparent', border: 'none' }}>
+                            <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>$</span>
+                        </div>
+                        <input
+                            type="number"
+                            step="0.01"
+                            className="minimal-input amount"
+                            placeholder="0.00"
+                            value={formData.amount}
+                            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                        />
+                    </div>
+                </div>
+
+                <div className="split-controls">
+                    Paid by <button className="split-btn" onClick={() => setShowSplitDetails(!showSplitDetails)}>{payerName}</button> and split <button className="split-btn" onClick={() => setShowSplitDetails(!showSplitDetails)}>{formData.splitType}</button>
+                </div>
+
+                {/* Big Save Button */}
+                <button 
+                    onClick={handleSubmit} 
+                    disabled={loading}
+                    style={{ 
+                        marginTop: '24px', 
+                        width: '100%', 
+                        maxWidth: '320px', 
+                        background: '#10b981', 
+                        color: 'white', 
+                        padding: '16px', 
+                        borderRadius: '12px', 
+                        border: 'none', 
+                        fontSize: '1.1rem', 
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
+                    }}
+                >
+                    {loading ? <Loader size={20} className="spin" /> : 'Save Expense'}
+                </button>
+
+                {/* Sub-panel for advanced splits (shown conditionally to keep UI minimal) */}
+                {showSplitDetails && (
+                    <div style={{ width: '100%', maxWidth: '320px', background: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '12px', marginTop: '20px', fontSize: '0.9rem' }}>
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', color: '#8e8e93', marginBottom: '8px' }}>Who Paid?</label>
+                            <select 
+                                value={formData.paidBy} 
+                                onChange={(e) => setFormData({ ...formData, paidBy: e.target.value })}
+                                style={{ width: '100%', background: '#1c1c1e', color: 'white', padding: '8px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px' }}
                             >
-                                {categories.map(cat => (
-                                    <option key={cat} value={cat}>
-                                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                                    </option>
-                                ))}
+                                {participants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                             </select>
                         </div>
-                        <div>
-                            <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                                Date
-                            </label>
-                            <input
-                                type="date"
-                                className="input"
-                                value={formData.expenseDate}
-                                onChange={(e) => setFormData({ ...formData, expenseDate: e.target.value })}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Paid By */}
-                    <div>
-                        <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                            Paid By
-                        </label>
-                        <select
-                            className="input"
-                            value={formData.paidBy}
-                            onChange={(e) => setFormData({ ...formData, paidBy: e.target.value })}
-                        >
-                            {participants.map(p => (
-                                <option key={p.id} value={p.id}>{p.name}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Split Type */}
-                    <div>
-                        <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                            Split Type
-                        </label>
-                        <div style={{ 
-                            display: 'flex', 
-                            background: 'var(--bg-secondary)', 
-                            borderRadius: '12px', 
-                            padding: '4px',
-                            gap: '4px'
-                        }}>
-                            {['equal', 'custom', ...(lineItems.length > 0 ? ['itemized'] : [])].map(type => (
-                                <button
-                                    key={type}
-                                    type="button"
-                                    onClick={() => setFormData({ ...formData, splitType: type })}
-                                    style={{
-                                        flex: 1,
-                                        padding: '8px 16px',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        background: formData.splitType === type ? 'var(--bg-primary)' : 'transparent',
-                                        color: formData.splitType === type ? 'var(--text-primary)' : 'var(--text-secondary)',
-                                        fontWeight: formData.splitType === type ? 600 : 500,
-                                        boxShadow: formData.splitType === type ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
-                                        transition: 'all 0.2s ease',
-                                        cursor: 'pointer',
-                                        textTransform: 'capitalize'
-                                    }}
-                                >
-                                    {type} {type !== 'itemized' && 'Split'}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* AI Scan-to-Split View */}
-                    {lineItems.length > 0 && formData.splitType === 'itemized' && (
-                        <div style={{ background: 'var(--bg-secondary)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                                <Receipt size={18} color="#6366f1" />
-                                <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>Receipt Line Items</h4>
-                                <span style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--text-tertiary)' }}>Assign to guests</span>
-                            </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                {lineItems.map((item, idx) => (
-                                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-primary)', padding: '8px 12px', borderRadius: '8px' }}>
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ fontSize: '13px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
-                                        </div>
-                                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', width: '60px', textAlign: 'right' }}>
-                                            ${parseFloat(item.price || 0).toFixed(2)}
-                                        </div>
-                                        <select
-                                            className="input"
-                                            style={{ width: '120px', padding: '6px', fontSize: '12px', height: 'auto' }}
-                                            value={item.assignedTo || ''}
-                                            onChange={(e) => handleAssignLineItem(idx, e.target.value)}
-                                        >
-                                            <option value="">Assign to...</option>
-                                            {participants.map(p => (
-                                                <option key={p.id} value={p.id}>{p.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
+                        
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', color: '#8e8e93', marginBottom: '8px' }}>Split Options</label>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                {['equal', 'custom', ...(lineItems.length > 0 ? ['itemized'] : [])].map(type => (
+                                    <button
+                                        key={type}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, splitType: type })}
+                                        style={{
+                                            flex: 1, padding: '8px', border: 'none', borderRadius: '6px',
+                                            background: formData.splitType === type ? '#10b981' : '#1c1c1e',
+                                            color: 'white', textTransform: 'capitalize', cursor: 'pointer'
+                                        }}
+                                    >
+                                        {type}
+                                    </button>
                                 ))}
-
-                                {(initialData?.tax > 0 || initialData?.tip > 0) && (
-                                    <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--border)', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                                        Tax & Tip (${(parseFloat(initialData?.tax || 0) + parseFloat(initialData?.tip || 0)).toFixed(2)}) will be divided automatically based on shares.
-                                    </div>
-                                )}
                             </div>
                         </div>
-                    )}
 
-                    {/* Participants */}
-                    <div>
-                        <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 500 }}>
-                            Split Among ({selectedParticipants.length} selected)
-                        </label>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            {participants.map(p => (
-                                <div
-                                    key={p.id}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.75rem',
-                                        padding: '0.75rem',
-                                        borderRadius: '8px',
-                                        background: selectedParticipants.includes(p.id) ? 'var(--bg-secondary)' : 'transparent',
-                                        border: '1px solid var(--border)'
-                                    }}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedParticipants.includes(p.id)}
-                                        onChange={() => toggleParticipant(p.id)}
-                                        style={{ cursor: 'pointer' }}
-                                    />
-                                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <span style={{ color: 'var(--text-primary)' }}>{p.name}</span>
-                                        {!p.isRegistered && (
-                                            <span style={{
-                                                fontSize: '0.75rem',
-                                                padding: '0.125rem 0.5rem',
-                                                borderRadius: '12px',
-                                                background: '#fbbf24',
-                                                color: '#78350f',
-                                                fontWeight: 600
-                                            }}>
-                                                📧 Pending
-                                            </span>
-                                        )}
-                                    </div>
-                                    {formData.splitType === 'custom' && selectedParticipants.includes(p.id) && (
+                        {/* Custom Splits */}
+                        {formData.splitType !== 'equal' && formData.splitType !== 'itemized' && (
+                            <div style={{ marginTop: '16px' }}>
+                                {participants.map(p => (
+                                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                        <span>{p.name}</span>
                                         <input
                                             type="number"
                                             step="0.01"
-                                            className="input"
-                                            style={{ width: '100px' }}
                                             placeholder="0.00"
                                             value={customSplits[p.id] || ''}
                                             onChange={(e) => handleCustomSplitChange(p.id, e.target.value)}
+                                            style={{ width: '80px', background: '#1c1c1e', color: 'white', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px' }}
                                         />
-                                    )}
-                                    {formData.splitType === 'equal' && selectedParticipants.includes(p.id) && formData.amount && (
-                                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                                            ${(parseFloat(formData.amount) / selectedParticipants.length).toFixed(2)}
-                                        </span>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
 
-                    {/* Submit Buttons */}
-                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="btn btn-secondary"
-                            style={{ flex: 1 }}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className="btn btn-primary"
-                            style={{ flex: 1 }}
-                            disabled={loading}
-                        >
-                            {loading ? 'Saving...' : (formData.id ? 'Save Changes' : 'Add Expense')}
-                        </button>
+                        {/* Itemized AI Splits */}
+                        {formData.splitType === 'itemized' && lineItems.length > 0 && (
+                            <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {lineItems.map((item, idx) => (
+                                    <div key={idx} style={{ background: '#1c1c1e', padding: '8px', borderRadius: '6px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                            <span style={{ fontSize: '0.8rem', flex: 1 }}>{item.name}</span>
+                                            <span style={{ fontWeight: 'bold' }}>${parseFloat(item.price || 0).toFixed(2)}</span>
+                                        </div>
+                                        <select
+                                            value={item.assignedTo || ''}
+                                            onChange={(e) => handleAssignLineItem(idx, e.target.value)}
+                                            style={{ width: '100%', background: 'transparent', color: '#5ac8fa', border: '1px solid rgba(255,255,255,0.1)', padding: '4px', borderRadius: '4px', fontSize: '0.8rem' }}
+                                        >
+                                            <option value="" style={{color: 'black'}}>Assign to...</option>
+                                            {participants.map(p => <option key={p.id} value={p.id} style={{color: 'black'}}>{p.name}</option>)}
+                                        </select>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
-                </form>
+                )}
             </div>
-            {/* AI Analysis Overlay */}
+
+            {/* Hidden file inputs */}
+            <input type="file" ref={cameraInputRef} style={{ display: 'none' }} accept="image/*" capture="environment" onChange={handleFileSelect} />
+            <input type="file" ref={galleryInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleFileSelect} />
+
+            {/* AI Scan Overlay */}
             {scanState && (
                 <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    zIndex: 9999,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    padding: '2rem',
-                    textAlign: 'center'
+                    position: 'fixed', inset: 0, backgroundColor: 'rgba(26,26,28,0.9)', zIndex: 10000,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white'
                 }}>
-                    <div style={{
-                        width: '80px',
-                        height: '80px',
-                        border: '4px solid rgba(255,255,255,0.1)',
-                        borderTop: '4px solid var(--primary)',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite',
-                        marginBottom: '1.5rem'
-                    }} />
-                    <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem' }}>
-                        {scanState === 'uploading' ? 'Uploading Receipt...' : 'AI is Analyzing Receipt'}
-                    </h3>
-                    <p style={{ color: 'rgba(255,255,255,0.7)', maxWidth: '300px' }}>
-                        {scanState === 'uploading' 
-                            ? 'Securely storing image...' 
-                            : 'Extracting merchant, date, and total amount...'}
-                    </p>
-                    <style>{`
-                        @keyframes spin {
-                            0% { transform: rotate(0deg); }
-                            100% { transform: rotate(360deg); }
-                        }
-                    `}</style>
+                    <Loader size={48} className="spin" color="#10b981" />
+                    <h3 style={{ marginTop: '16px' }}>{scanState === 'uploading' ? 'Uploading...' : 'Analyzing Receipt...'}</h3>
+                    <p style={{ color: '#8e8e93' }}>Our AI is doing the math for you.</p>
                 </div>
             )}
+
+            {/* Bottom Toolbar */}
+            <div className="expenses-toolbar">
+                <button type="button" className="toolbar-btn" onClick={() => handleScanClick('camera')} title="Scan Receipt">
+                    <Camera size={24} />
+                </button>
+                <button type="button" className="toolbar-btn" onClick={() => handleScanClick('gallery')} title="Upload Receipt Image">
+                    <ImageIcon size={24} />
+                </button>
+                <div style={{ position: 'relative' }}>
+                    <button type="button" className="toolbar-btn" title="Set Date">
+                        <Calendar size={24} />
+                    </button>
+                    {/* Native date picker hidden but clickable over the icon */}
+                    <input 
+                        type="date" 
+                        value={formData.expenseDate} 
+                        onChange={(e) => setFormData({ ...formData, expenseDate: e.target.value })}
+                        style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+                    />
+                </div>
+            </div>
         </div>
     );
 };

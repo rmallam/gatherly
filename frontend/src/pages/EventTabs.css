@@ -193,9 +193,8 @@
     width: 64px;
     height: 64px;
     border-radius: 32px;
-    background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+    background: #10b981;
     color: white;
-    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -206,8 +205,7 @@
 }
 
 .btn-floating-action:hover {
-    transform: scale(1.1);
-    box-shadow: 0 12px 32px rgba(99, 102, 241, 0.6);
+    transform: scale(1.05);
 }
 
 .btn-floating-action:active {
@@ -222,8 +220,7 @@
     right: 0;
     bottom: 0;
     z-index: 9999;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.8);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -232,12 +229,12 @@
 }
 
 .modal-card {
-    background: var(--bg-primary);
-    border-radius: 24px;
+    background: #1a1a1c;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     width: 100%;
     max-width: 500px;
     padding: 24px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     animation: scaleIn 0.2s ease-out;
     max-height: 85vh;
     overflow-y: auto;
@@ -286,21 +283,20 @@
 
 /* --- Hero Cards (Overview) --- */
 .hero-card {
-    border-radius: 24px;
+    border-radius: 16px;
     padding: 24px;
     color: white;
     position: relative;
     overflow: hidden;
     margin-bottom: 24px;
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
 }
 
 .hero-card-trip {
-    background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+    background: #0ea5e9;
 }
 
 .hero-card-event {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    background: #6366f1;
 }
 
 /* Hero Content overrides */
@@ -441,16 +437,10 @@
 .tab-nav-container {
     position: sticky;
     top: 60px;
-    /* Adjust based on your header height */
     z-index: 40;
-    background: rgba(var(--bg-primary-rgb), 0.95);
-    /* Assuming you have RGB vars, otherwise var(--bg-primary) */
-    background: var(--bg-primary);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border);
+    background: #1a1a1c;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     margin: 0 -16px 24px -16px;
-    /* Negative margin to span full width on Mobile if parent has padding */
     padding: 0 16px;
 }
 

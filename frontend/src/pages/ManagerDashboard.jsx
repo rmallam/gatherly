@@ -123,27 +123,52 @@ const ManagerDashboard = () => {
 
             <div className="dashboard-container">
                 {/* Header Section */}
-                <div className="dashboard-header">
-                    <div className="dashboard-title-group">
-                        <h1>{getGreeting()}{firstName ? `, ${firstName}` : ''}! 👋</h1>
-                        <p>Manage all your events in one place</p>
-                    </div>
-                    <div className="dashboard-header-actions">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0 16px 0' }}>
+                    <div>
+                        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 0.25rem 0', color: '#ffffff' }}>
+                            {getGreeting()}{firstName ? `, ${firstName}` : ''}! 👋
+                        </h1>
+                        <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.9375rem', margin: 0 }}>
+                            Manage all your events in one place
+                        </p>
                     </div>
                 </div>
 
                 {/* Filter Tabs - Upcoming/Past */}
                 {events.length > 0 && (
-                    <div className="dashboard-tabs">
+                    <div style={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', marginBottom: '16px' }}>
                         <button
-                            className={`dashboard-tab-btn tour-upcoming-tab ${filter === 'upcoming' ? 'active' : ''}`}
+                            className="tour-upcoming-tab"
                             onClick={() => setFilter('upcoming')}
+                            style={{
+                                flex: 1,
+                                padding: '12px 0',
+                                background: 'transparent',
+                                border: 'none',
+                                borderBottom: filter === 'upcoming' ? '2px solid #10b981' : '2px solid transparent',
+                                color: filter === 'upcoming' ? '#10b981' : 'rgba(255, 255, 255, 0.5)',
+                                fontWeight: 600,
+                                fontSize: '0.875rem',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
                         >
                             Upcoming
                         </button>
                         <button
-                            className={`dashboard-tab-btn ${filter === 'past' ? 'active' : ''}`}
                             onClick={() => setFilter('past')}
+                            style={{
+                                flex: 1,
+                                padding: '12px 0',
+                                background: 'transparent',
+                                border: 'none',
+                                borderBottom: filter === 'past' ? '2px solid #10b981' : '2px solid transparent',
+                                color: filter === 'past' ? '#10b981' : 'rgba(255, 255, 255, 0.5)',
+                                fontWeight: 600,
+                                fontSize: '0.875rem',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
                         >
                             Past
                         </button>
@@ -152,136 +177,139 @@ const ManagerDashboard = () => {
 
 
 
-                {/* Create Event Modal */}
+                {/* Create Event Fullscreen Overlay */}
                 {isCreating && (
-                    <div className="dashboard-modal-overlay" onClick={() => setIsCreating(false)}>
-                        <div className="dashboard-modal-card" onClick={e => e.stopPropagation()}>
-                            <h2 className="dashboard-modal-title">Create New Event</h2>
-                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                                {/* Event Type Selector */}
-                                <label className="dashboard-form-label">What kind of event is this?</label>
-                                <div className="event-type-grid">
-                                    {/* Host Event Option */}
-                                    <div
-                                        onClick={() => setNewEvent({ ...newEvent, eventType: 'host' })}
-                                        className={`event-type-card ${newEvent.eventType !== 'shared' ? 'selected' : ''}`}
-                                    >
-                                        <div className="event-type-icon">🎉</div>
-                                        <div>
-                                            <div className="event-type-title">Host an Event</div>
-                                            <div className="event-type-desc">
-                                                Parties, Weddings.<br />You control the details.
-                                            </div>
-                                        </div>
+                    <div className="create-event-fullscreen">
+                        <div className="create-event-header">
+                            <button className="create-event-close" onClick={() => setIsCreating(false)} type="button">
+                                <span style={{fontSize: '28px', fontWeight: '300', lineHeight: 1}}>×</span>
+                            </button>
+                            <h2 className="create-event-title">Create an event</h2>
+                            <button 
+                                className="create-event-done" 
+                                onClick={handleSubmit}
+                                disabled={isSubmitting || !newEvent.title.trim()}
+                                type="button"
+                            >
+                                Done
+                            </button>
+                        </div>
+                        
+                        <div className="create-event-body">
+                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
+                                {/* Hero Input */}
+                                <div className="create-event-hero-row">
+                                    <div className="create-event-icon-btn">
+                                        <Sparkles size={20} color="#a1a1aa" />
                                     </div>
-
-                                    {/* Split Expense Option */}
-                                    <div
-                                        onClick={() => setNewEvent({ ...newEvent, eventType: 'shared' })}
-                                        className={`event-type-card ${newEvent.eventType === 'shared' ? 'selected-shared' : ''}`}
-                                    >
-                                        <div className="event-type-icon">💶</div>
-                                        <div>
-                                            <div className="event-type-title">Split Expense</div>
-                                            <div className="event-type-desc">
-                                                Trips, Outings.<br />Shared budget & costs.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="dashboard-form-label">Event Title</label>
-                                    <input
-                                        type="text"
-                                        value={newEvent.title}
-                                        onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                                        className="form-input"
-                                        placeholder="e.g. Annual Conference 2024"
-                                        autoFocus
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="dashboard-form-label">Event Theme / Vibe *</label>
-                                    <textarea
-                                        value={newEvent.description || ''}
-                                        onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                                        className="form-input"
-                                        placeholder="e.g. 80s Retro Arcade Party, Rustic Outdoor Wedding..."
-                                        style={{ minHeight: '80px', resize: 'vertical' }}
-                                    />
-                                </div>
-
-                                <div className="dashboard-form-row">
-                                    <div>
-                                        <label className="dashboard-form-label">Date</label>
+                                    <div className="create-event-title-wrapper">
+                                        <label className="create-event-tiny-label">Event name</label>
                                         <input
-                                            type="date"
-                                            value={newEvent.date}
-                                            onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                                            className="form-input"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="dashboard-form-label">Location</label>
-                                        <LocationAutocomplete
-                                            value={newEvent.location}
-                                            onChange={(val) => setNewEvent(prev => ({ ...prev, location: val }))}
-                                            onSelect={(place) => {
-                                                setNewEvent(prev => ({
-                                                    ...prev,
-                                                    location: place.formatted_address || place.name
-                                                }));
-                                            }}
-                                            placeholder="Grand Hall"
+                                            type="text"
+                                            value={newEvent.title}
+                                            onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                                            className="create-event-title-input"
+                                            autoFocus
                                         />
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="dashboard-form-label">Event Region (for local pricing)</label>
-                                    <select
-                                        value={newEvent.country || 'US'}
-                                        onChange={(e) => setNewEvent({ ...newEvent, country: e.target.value })}
-                                        className="form-input"
-                                        style={{ width: '100%', cursor: 'pointer' }}
-                                    >
-                                        {countries.map(c => (
-                                            <option key={c.code} value={c.code}>
-                                                {c.name} ({c.currency})
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                {error && (
-                                    <div style={{ color: '#ef4444', fontSize: '14px', background: 'rgba(239, 68, 68, 0.1)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <AlertCircle size={16} />
-                                            <span>{error}</span>
+                                <div className="create-event-section">
+                                    <label className="create-event-label">Type</label>
+                                    <div className="create-event-type-scroll">
+                                        <div
+                                            onClick={() => setNewEvent({ ...newEvent, eventType: 'host' })}
+                                            className={`create-event-type-pill ${newEvent.eventType !== 'shared' ? 'active' : ''}`}
+                                        >
+                                            <span className="icon">🎉</span>
+                                            <span>Host Event</span>
                                         </div>
+                                        <div
+                                            onClick={() => setNewEvent({ ...newEvent, eventType: 'shared' })}
+                                            className={`create-event-type-pill ${newEvent.eventType === 'shared' ? 'active' : ''}`}
+                                        >
+                                            <span className="icon">💶</span>
+                                            <span>Split Expense</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="create-event-section">
+                                    <label className="create-event-label">Details</label>
+                                    <div className="create-event-list">
+                                        {/* Theme */}
+                                        <div className="create-event-list-row">
+                                            <Sparkles size={18} color="#a1a1aa" className="row-icon" />
+                                            <input
+                                                type="text"
+                                                value={newEvent.description || ''}
+                                                onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                                                className="create-event-list-input"
+                                                placeholder="Theme or Vibe (e.g. 80s Retro)"
+                                            />
+                                        </div>
+                                        
+                                        {/* Date */}
+                                        <div className="create-event-list-row">
+                                            <Calendar size={18} color="#a1a1aa" className="row-icon" />
+                                            <input
+                                                type="date"
+                                                value={newEvent.date}
+                                                onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                                                className="create-event-list-input"
+                                                placeholder="Select Date"
+                                            />
+                                        </div>
+                                        
+                                        {/* Location */}
+                                        <div className="create-event-list-row">
+                                            <MapPin size={18} color="#a1a1aa" className="row-icon" />
+                                            <div style={{ flex: 1, padding: '12px 0' }}>
+                                                <LocationAutocomplete
+                                                    value={newEvent.location}
+                                                    onChange={(val) => setNewEvent(prev => ({ ...prev, location: val, venue: null }))}
+                                                    onSelect={(place) => {
+                                                        setNewEvent(prev => ({
+                                                            ...prev,
+                                                            location: place.name || place.formatted_address,
+                                                            venue: {
+                                                                name: place.name || place.formatted_address,
+                                                                address: place.formatted_address || ''
+                                                            }
+                                                        }));
+                                                    }}
+                                                    placeholder="Location (e.g. Grand Hall)"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Region */}
+                                        <div className="create-event-list-row">
+                                            <span className="row-icon" style={{ fontSize: '18px' }}>🌍</span>
+                                            <select
+                                                value={newEvent.country || 'US'}
+                                                onChange={(e) => setNewEvent({ ...newEvent, country: e.target.value })}
+                                                className="create-event-list-input select-input"
+                                            >
+                                                {countries.map(c => (
+                                                    <option key={c.code} value={c.code}>
+                                                        {c.name} ({c.currency})
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {error && (
+                                    <div className="create-event-error">
+                                        <AlertCircle size={16} />
+                                        <span>{error}</span>
                                     </div>
                                 )}
-                                <div className="dashboard-form-actions">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsCreating(false)}
-                                        className="btn btn-secondary"
-                                        disabled={isSubmitting}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="btn btn-primary"
-                                        disabled={isSubmitting}
-                                    >
-                                        {isSubmitting ? 'Creating...' : 'Create Event'}
-                                    </button>
-                                </div>
                             </form>
                         </div>
-                    </div >
+                    </div>
                 )}
 
                 {/* Events List */}
@@ -373,9 +401,6 @@ const ManagerDashboard = () => {
                                                     )}
                                                 </div>
                                                 <div className="event-list-meta">
-                                                    {event.location && (
-                                                        <div>{event.location}</div>
-                                                    )}
                                                     {!isGuest && (
                                                         <div>
                                                             {event.guests?.length || 0} {event.guests?.length === 1 ? 'guest' : 'guests'}
@@ -416,7 +441,8 @@ const ManagerDashboard = () => {
                 onClick={checkLimitAndOpen}
                 aria-label="Create New Event"
             >
-                <Plus size={24} strokeWidth={2.5} />
+                <Plus size={20} strokeWidth={2.5} />
+                <span>Add event</span>
             </button>
 
             <UpgradeModal

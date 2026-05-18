@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Check, X, Star, Shield, Zap, Users } from 'lucide-react';
+import { Check, X, Users, Infinity, Ticket, Globe, Scan, List, BarChart, Search, Settings } from 'lucide-react';
 import PurchaseService from '../services/PurchaseService';
 import SubscriptionComparisonModal from '../components/SubscriptionComparisonModal';
 import './PaywallPage.css';
@@ -13,16 +13,12 @@ const PaywallPage = () => {
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [processing, setProcessing] = useState(false);
     const [showComparisonModal, setShowComparisonModal] = useState(false);
-
+    const [showBottomSheet, setShowBottomSheet] = useState(false);
 
     useEffect(() => {
         const loadOfferings = async () => {
-            // In non-native dev, we might not get offerings. 
-            // We can mock data for the UI if null.
             const current = await PurchaseService.getOfferings();
             setOfferings(current);
-
-
             setLoading(false);
         };
         loadOfferings();
@@ -32,26 +28,18 @@ const PaywallPage = () => {
 
     const handlePurchase = async () => {
         if (!selectedPackage) {
-            alert('Please select a plan first.');
+            setShowBottomSheet(true);
             return;
         }
 
         setProcessing(true);
         try {
-            // Check if it's a real RevenueCat package or a mock one
             if (offerings && selectedPackage.product?.identifier) {
-                // Real Purchase
                 await PurchaseService.purchasePackage(selectedPackage);
-
-                // Wait a moment for webhook to process (if fast) or just refresh to be checking
-                // Ideally, we should poll or just update local entitlement check
-                // For now, try to refresh user from backend
-                await new Promise(r => setTimeout(r, 2000)); // Give webhook a slight chance
+                await new Promise(r => setTimeout(r, 2000));
                 await refreshUser();
             } else {
-                // Simulation for dev/mock
                 await new Promise(r => setTimeout(r, 1000));
-                console.log('Simulating purchase for:', selectedPackage.identifier);
                 alert('Simulation: Purchase Successful! (This is a mock implementation)');
             }
             navigate('/', { replace: true });
@@ -77,10 +65,7 @@ const PaywallPage = () => {
         }
     };
 
-    // Helper to normalize subscription period display
-    // Google Play test subscriptions use accelerated periods (5 mins = 1 month)
     const normalizeSubscriptionPeriod = (title, priceString) => {
-        // If it's a test subscription with "5 mins" or similar, map to production period
         const testPeriodMap = {
             '5 mins': 'month',
             '5 minutes': 'month',
@@ -92,7 +77,6 @@ const PaywallPage = () => {
         let normalizedTitle = title;
         let normalizedPrice = priceString;
 
-        // Check if title contains test period
         for (const [testPeriod, prodPeriod] of Object.entries(testPeriodMap)) {
             if (title.toLowerCase().includes(testPeriod)) {
                 normalizedTitle = title.replace(new RegExp(testPeriod, 'gi'), prodPeriod);
@@ -105,12 +89,13 @@ const PaywallPage = () => {
         return { title: normalizedTitle, priceString: normalizedPrice };
     };
 
-    // Fallback/Mock Data if no native offerings found (for web dev)
-    const rawPackages = offerings?.availablePackages || [
+    const rawPackages = (offerings?.availablePackages && offerings.availablePackages.length > 0) 
+        ? offerings.availablePackages 
+        : [
         {
             identifier: 'pro_monthly',
             product: {
-                title: 'Pro Monthly',
+                title: 'Individual',
                 priceString: '$4.99',
                 description: 'Unlock all features'
             }
@@ -118,73 +103,141 @@ const PaywallPage = () => {
         {
             identifier: 'pro_yearly',
             product: {
-                title: 'Pro Yearly',
+                title: 'Individual + Trip Pass',
                 priceString: '$49.99',
-                description: 'Save 20%'
+                description: 'yearly plan only'
             }
         }
     ];
 
-    // Filter out SMS packs from the main subscription list
-    const displayPackages = rawPackages.filter(p => !p.identifier.toLowerCase().includes('sms'));
+    const displayPackages = rawPackages.filter(p => p.identifier && !p.identifier.toLowerCase().includes('sms'));
+
+    // Automatically select the yearly option if available, otherwise first option
+    useEffect(() => {
+        if (!selectedPackage && displayPackages.length > 0) {
+            const yearlyPackage = displayPackages.find(p => p.identifier.includes('yearly'));
+            setSelectedPackage(yearlyPackage || displayPackages[0]);
+        }
+    }, [displayPackages, selectedPackage]);
 
     return (
         <div className="paywall-container">
-            {/* Background Orbs */}
-            <div className="paywall-orb orb-1"></div>
-            <div className="paywall-orb orb-2"></div>
-
-            <div className="paywall-content fade-in-up">
+            <div className="paywall-content">
                 <button className="paywall-close" onClick={() => navigate(-1)}>
                     <X size={24} />
                 </button>
 
                 <div className="paywall-header">
-                    <div className="pro-badge">PRO</div>
-                    <h1>Upgrade to HostEze Pro</h1>
-                    <p>Remove limits and unleash the full power of your events.</p>
+                    <h1>
+                        Upgrade to<br />
+                        <strong>HostEze Pro 💎</strong>
+                    </h1>
                 </div>
 
-            <div className="paywall-benefits">
-                <div className="benefit-row">
-                    <div className="benefit-icon-box"><Star size={20} /></div>
-                    <div className="benefit-text">
-                        <h3>Unlimited Events</h3>
-                        <p>Create as many events as you need.</p>
+                <div className="paywall-benefits">
+                    <div className="benefit-row">
+                        <div className="benefit-icon-box"><Users size={20} /></div>
+                        <div className="benefit-text">
+                            <h3>Unlimited Events</h3>
+                        </div>
+                    </div>
+                    <div className="benefit-row">
+                        <div className="benefit-icon-box"><Infinity size={20} /></div>
+                        <div className="benefit-text">
+                            <h3>Unlimited Guests</h3>
+                        </div>
+                    </div>
+                    <div className="benefit-row">
+                        <div className="benefit-icon-box"><Ticket size={20} /></div>
+                        <div className="benefit-text">
+                            <h3>30-day Event Pass</h3>
+                            <p>yearly plan only ⓘ</p>
+                        </div>
+                    </div>
+                    <div className="benefit-row">
+                        <div className="benefit-icon-box"><Globe size={20} /></div>
+                        <div className="benefit-text">
+                            <h3>Ad-Free Experience</h3>
+                        </div>
+                    </div>
+                    <div className="benefit-row">
+                        <div className="benefit-icon-box"><Scan size={20} /></div>
+                        <div className="benefit-text">
+                            <h3>Receipt scanning</h3>
+                        </div>
+                    </div>
+                    <div className="benefit-row">
+                        <div className="benefit-icon-box"><List size={20} /></div>
+                        <div className="benefit-text">
+                            <h3>Itemization</h3>
+                        </div>
+                    </div>
+                    <div className="benefit-row">
+                        <div className="benefit-icon-box"><BarChart size={20} /></div>
+                        <div className="benefit-text">
+                            <h3>Charts and graphs</h3>
+                        </div>
                     </div>
                 </div>
-                <div className="benefit-row">
-                    <div className="benefit-icon-box"><Users size={20} /></div>
-                    <div className="benefit-text">
-                        <h3>Unlimited Guests</h3>
-                        <p>No more 50-guest limit per event.</p>
-                    </div>
-                </div>
-                <div className="benefit-row">
-                    <div className="benefit-icon-box"><Shield size={20} /></div>
-                    <div className="benefit-text">
-                        <h3>Ad-Free Experience</h3>
-                        <p>Focus on what matters without distractions.</p>
-                    </div>
-                </div>
-                <div className="benefit-row">
-                    <div className="benefit-icon-box"><Zap size={20} /></div>
-                    <div className="benefit-text">
-                        <h3>Priority Support</h3>
-                        <p>Get help when you need it most.</p>
-                    </div>
+
+                <div className="paywall-bottom-area">
+                    {user?.subscription_tier === 'pro' ? (
+                        <>
+                            <button className="paywall-cta" onClick={() => PurchaseService.manageSubscriptions()}>
+                                Manage Subscription
+                            </button>
+                            <button
+                                onClick={() => PurchaseService.manageSubscriptions()}
+                                style={{
+                                    background: 'transparent',
+                                    border: '1px solid #ef4444',
+                                    color: '#ef4444',
+                                    width: '100%',
+                                    padding: '16px',
+                                    borderRadius: '8px',
+                                    fontWeight: 600,
+                                    fontSize: '16px',
+                                    cursor: 'pointer',
+                                    marginBottom: '16px'
+                                }}
+                            >
+                                Cancel Subscription
+                            </button>
+                        </>
+                    ) : (
+                        <button className="paywall-cta" onClick={() => setShowBottomSheet(true)}>
+                            Start your free trial
+                        </button>
+                    )}
                 </div>
             </div>
 
-            <div className="paywall-packages">
+            {/* Bottom Sheet Overlay */}
+            <div 
+                className={`overlay ${showBottomSheet ? 'open' : ''}`} 
+                onClick={() => setShowBottomSheet(false)}
+            />
+
+            {/* Pricing Bottom Sheet */}
+            <div className={`pricing-bottom-sheet ${showBottomSheet ? 'open' : ''}`}>
+                <div className="pricing-sheet-header">
+                    <h2>Choose a plan for after your<br/><strong>7-day free trial</strong></h2>
+                </div>
+
                 {loading ? (
-                    <div className="loading-spinner">Loading packages...</div>
+                    <div style={{ textAlign: 'center', padding: '20px' }}>Loading...</div>
                 ) : (
                     displayPackages.map((pkg, index) => {
                         const normalized = normalizeSubscriptionPeriod(
                             pkg.product.title,
                             pkg.product.priceString
                         );
+                        
+                        // Extract per month logic (simplified for mockup)
+                        const isYearly = pkg.identifier.includes('yearly');
+                        const perMonthMock = isYearly ? 'A$3.33' : normalized.priceString;
+                        const durationMock = isYearly ? '12 mo' : '1 mo';
+
                         return (
                             <div
                                 key={index}
@@ -192,81 +245,50 @@ const PaywallPage = () => {
                                 onClick={() => setSelectedPackage(pkg)}
                             >
                                 <div className="package-info">
-                                    <span className="package-title">{normalized.title}</span>
-                                    {pkg.identifier.includes('yearly') && <span className="save-badge">SAVE 20%</span>}
+                                    <div className="package-radio">
+                                        {selectedPackage?.identifier === pkg.identifier && <Check size={12} color="white" />}
+                                    </div>
+                                    <div className="package-title-group">
+                                        <span className="package-title">{normalized.title}</span>
+                                        <span className="package-subtitle">{durationMock} • {normalized.priceString}</span>
+                                    </div>
                                 </div>
-                                <div className="package-price">{normalized.priceString}</div>
+                                <div className="package-price-group">
+                                    <span className="package-price">{perMonthMock}</span>
+                                    <span className="package-price-period">per month</span>
+                                </div>
                             </div>
                         );
                     })
                 )}
+
+                <button 
+                    className="paywall-cta" 
+                    onClick={handlePurchase}
+                    disabled={processing}
+                    style={{ marginTop: '8px' }}
+                >
+                    {processing ? 'Processing...' : 'Start your free trial'}
+                </button>
+
+                <button className="view-all-options" onClick={() => setShowComparisonModal(true)}>
+                    View all options
+                </button>
+
+                <div className="pricing-sheet-footer">
+                    Free trial only available to eligible first time subscribers.<br/>
+                    Cancel 24 hours before trial ends to avoid being charged.<br/>
+                    Trial ends upon cancelation. Recurring billing after free trial,<br/>
+                    cancel anytime.<br/>
+                    <br/>
+                    <span onClick={handleRestore} style={{cursor: 'pointer', textDecoration: 'underline'}}>Restore Purchases</span> • <a href="#">Terms of Service</a> • <a href="#">Privacy Policy</a>
+                </div>
             </div>
 
-            <button
-                className="paywall-cta"
-                onClick={user?.subscription_tier === 'pro' ? () => PurchaseService.manageSubscriptions() : handlePurchase}
-                disabled={user?.subscription_tier !== 'pro' && (processing || !selectedPackage)}
-                style={{
-                    opacity: (user?.subscription_tier !== 'pro' && !selectedPackage) ? 0.5 : 1,
-                    background: user?.subscription_tier === 'pro' ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                    fontWeight: 700,
-                    marginBottom: user?.subscription_tier === 'pro' ? '12px' : '0'
-                }}
-            >
-                {processing ? 'Processing...' : (
-                    user?.subscription_tier === 'pro' ? 'Manage Subscription' : 'Start Pro Access'
-                )}
-            </button>
-
-
-
-            {/* Explicit Cancel Option for Pro Users */}
-            {
-                user?.subscription_tier === 'pro' && (
-                    <button
-                        onClick={() => PurchaseService.manageSubscriptions()}
-                        style={{
-                            background: 'transparent',
-                            border: '1px solid #ef4444',
-                            color: '#ef4444',
-                            width: '100%',
-                            padding: '14px',
-                            borderRadius: '16px',
-                            fontWeight: 600,
-                            fontSize: '15px',
-                            cursor: 'pointer',
-                            marginTop: '0'
-                        }}
-                    >
-                        Cancel Subscription
-                    </button>
-                )
-            }
-
-            {
-                !user?.subscription_tier === 'pro' && (
-                    <button
-                        className="comparison-link-btn"
-                        onClick={() => setShowComparisonModal(true)}
-                    >
-                        View detailed plan comparison
-                    </button>
-                )
-            }
-
-            <div className="paywall-footer">
-                <button onClick={handleRestore}>Restore Purchases</button>
-                <span>•</span>
-                <button>Terms of Service</button>
-                <span>•</span>
-                <button>Privacy Policy</button>
-            </div>
-
-                <SubscriptionComparisonModal
-                    isOpen={showComparisonModal}
-                    onClose={() => setShowComparisonModal(false)}
-                />
-            </div>
+            <SubscriptionComparisonModal
+                isOpen={showComparisonModal}
+                onClose={() => setShowComparisonModal(false)}
+            />
         </div>
     );
 };

@@ -117,12 +117,16 @@ export const AuthProvider = ({ children }) => {
         if (!response.ok) {
             let errorMessage = 'Login failed';
             try {
-                const error = await response.json();
-                errorMessage = error.error || errorMessage;
-            } catch (e) {
-                // Response is not JSON, try to get text
                 const text = await response.text();
-                console.error('❌ Non-JSON error response:', text.substring(0, 200));
+                try {
+                    const error = JSON.parse(text);
+                    errorMessage = error.error || errorMessage;
+                } catch (e) {
+                    console.error('❌ Non-JSON error response:', text.substring(0, 200));
+                    errorMessage = `Server error (${response.status})`;
+                }
+            } catch (streamErr) {
+                console.error('❌ Error reading response stream:', streamErr);
                 errorMessage = `Server error (${response.status})`;
             }
             throw new Error(errorMessage);
@@ -130,11 +134,16 @@ export const AuthProvider = ({ children }) => {
 
         let data;
         try {
-            data = await response.json();
-            console.log('✅ Login successful');
-        } catch (e) {
             const text = await response.text();
-            console.error('❌ Failed to parse success response:', text.substring(0, 200));
+            try {
+                data = JSON.parse(text);
+                console.log('✅ Login successful');
+            } catch (e) {
+                console.error('❌ Failed to parse success response:', text.substring(0, 200));
+                throw new Error('Invalid server response');
+            }
+        } catch (streamErr) {
+            console.error('❌ Error reading response stream:', streamErr);
             throw new Error('Invalid server response');
         }
 
