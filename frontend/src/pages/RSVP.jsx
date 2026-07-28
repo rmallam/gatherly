@@ -52,12 +52,16 @@ const RSVP = () => {
                     }
                 }
 
-                // Otherwise, fetch from public API
+                // Otherwise, fetch from public API. The public endpoint returns
+                // the event object flat, with the guest under `currentUserGuest`
+                // (older callers used {event, guest}) — support both shapes.
                 const data = await fetchPublicEvent(eventId, guestId);
-                if (data && data.event && data.guest) {
-                    setEvent(data.event);
-                    setGuest(data.guest);
-                    if (data.guest.rsvp !== undefined && data.guest.rsvp !== null) {
+                const publicEvent = data?.event || data;
+                const publicGuest = data?.guest || data?.currentUserGuest;
+                if (publicEvent && publicEvent.id && publicGuest) {
+                    setEvent(publicEvent);
+                    setGuest(publicGuest);
+                    if (publicGuest.rsvp !== undefined && publicGuest.rsvp !== null) {
                         setStatus('already-rsvpd');
                     } else {
                         setStatus('ready');
