@@ -51,5 +51,13 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>HostEze uses the camera to scan guest QR codes for event check-in.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>HostEze accesses your contacts so you can quickly add guests to your events.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>HostEze lets you choose photos from your library to share on the event wall and set your profile picture.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>HostEze saves event QR codes and shared photos to your library.</string>
 </dict>
 </plist>
