@@ -70,6 +70,33 @@ async function sendEmail({ to, subject, html }) {
 }
 
 /**
+ * Send a one-time login code (passwordless auth).
+ */
+export async function sendOtpEmail(email, code) {
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background:#f5f5f7; margin:0; padding:24px;">
+            <div style="max-width:420px; margin:0 auto; background:#ffffff; border-radius:16px; padding:36px 28px; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+                <h1 style="color:#6366f1; font-size:24px; margin:0 0 8px;">HostEze</h1>
+                <p style="color:#374151; font-size:15px; margin:0 0 24px;">Here's your login code. It expires in 5 minutes.</p>
+                <div style="font-size:38px; font-weight:700; letter-spacing:10px; color:#111827; background:#f3f4f6; border-radius:12px; padding:18px 0; margin:0 0 24px;">
+                    ${code}
+                </div>
+                <p style="color:#9ca3af; font-size:13px; margin:0;">If you didn't request this code, you can safely ignore this email.</p>
+            </div>
+        </body>
+        </html>
+    `;
+
+    return await sendEmail({
+        to: email,
+        subject: `${code} is your HostEze login code`,
+        html
+    });
+}
+
+/**
  * Send email verification
  */
 export async function sendVerificationEmail(user, token) {

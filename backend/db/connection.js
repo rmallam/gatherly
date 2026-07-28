@@ -48,6 +48,29 @@ export async function initializeDatabase() {
                 console.log('✓ Created gift_registries table');
             }
 
+            // Auto-run 005_add_expense_line_items migration if needed
+            try {
+                await client.query('SELECT split_type FROM event_expenses LIMIT 1');
+            } catch (err) {
+                console.log('Running 005_add_expense_line_items migration...');
+                const migrationPath = join(__dirname, '../migrations/005_add_expense_line_items.sql');
+                const migrationSql = await fs.readFile(migrationPath, 'utf8');
+                await client.query(migrationSql);
+                console.log('✓ Ran 005_add_expense_line_items migration');
+            }
+
+            // Auto-run passwordless auth OTP table if needed
+            try {
+                await client.query('SELECT 1 FROM auth_otp_codes LIMIT 1');
+            } catch (err) {
+                console.log('Creating auth_otp_codes table...');
+                const migrationPath = join(__dirname, '../migrations/010_auth_otp_codes.sql');
+                const migrationSql = await fs.readFile(migrationPath, 'utf8');
+                await client.query(migrationSql);
+                console.log('✓ Created auth_otp_codes table');
+            }
+
+
         } catch (err) {
             console.warn('⚠️  Database tables may not exist. Run migrations manually if needed.');
         }

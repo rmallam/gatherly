@@ -4,12 +4,18 @@ export const handleRevenueCatWebhook = async (req, res) => {
     try {
         const event = req.body.event;
 
-        // Security Check: Verify Auth Token
+        // Security Check: Verify Auth Token (fail CLOSED).
+        // This webhook is the only path that grants Pro + SMS credits, so a
+        // missing/empty token must reject every request, not wave them through.
         const authHeader = req.headers.authorization;
         const expectedToken = process.env.REVENUECAT_WEBHOOK_AUTH_TOKEN;
 
-        // Only check if env var is set (allows easier testing if needed, though not recommended for prod)
-        if (expectedToken && authHeader !== expectedToken && authHeader !== `Bearer ${expectedToken}`) {
+        if (!expectedToken) {
+            console.error('🚨 REVENUECAT_WEBHOOK_AUTH_TOKEN is not configured — refusing to process webhook.');
+            return res.status(503).json({ error: 'Webhook not configured' });
+        }
+
+        if (authHeader !== expectedToken && authHeader !== `Bearer ${expectedToken}`) {
             console.warn('⚠️ Webhook Unauthorized: Invalid Token');
             return res.status(401).json({ error: 'Unauthorized' });
         }

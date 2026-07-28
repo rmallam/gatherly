@@ -29,13 +29,6 @@ const Profile = () => {
 
     const [countryCode, setCountryCode] = useState('+91');
     const [phoneDigits, setPhoneDigits] = useState('');
-    
-    // Passwords state
-    const [passwords, setPasswords] = useState({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-    });
 
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -145,45 +138,6 @@ const Profile = () => {
         }
     };
 
-    const handleChangePassword = async (e) => {
-        e.preventDefault();
-        if (passwords.newPassword !== passwords.confirmPassword) {
-            setError('New passwords do not match');
-            return;
-        }
-
-        try {
-            setSaving(true);
-            setError('');
-            setSuccess('');
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${API_URL}/users/change-password`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    currentPassword: passwords.currentPassword,
-                    newPassword: passwords.newPassword
-                })
-            });
-
-            if (res.ok) {
-                setSuccess('Password changed successfully!');
-                setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
-                setCurrentView('menu');
-                setTimeout(() => setSuccess(''), 3000);
-            } else {
-                const data = await res.json();
-                setError(data.error || 'Failed to change password');
-            }
-        } catch (error) {
-            setError('Network error: Failed to change password');
-        } finally {
-            setSaving(false);
-        }
-    };
 
     const pickImage = async () => {
         try {
@@ -315,24 +269,16 @@ const Profile = () => {
                     <div style={{width: 40}}></div>
                 </div>
                 {renderMessages()}
-                <form onSubmit={handleChangePassword} className="edit-profile-section" style={{marginTop: 16}}>
-                    <div className="edit-input-group">
-                        <label>Current Password</label>
-                        <input className="edit-input" type="password" value={passwords.currentPassword} onChange={e => setPasswords({...passwords, currentPassword: e.target.value})} />
+                <div className="edit-profile-section" style={{ marginTop: 16 }}>
+                    <div style={{ padding: '20px', background: 'var(--bg-secondary)', borderRadius: '12px', lineHeight: 1.6 }}>
+                        <div style={{ fontWeight: 600, marginBottom: '8px' }}>🔐 Passwordless login</div>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>
+                            Your account has no password to remember or leak. Each time you log in,
+                            we send a one-time code to your email or phone. If you ever lose access,
+                            just request a fresh code — there's nothing to reset.
+                        </p>
                     </div>
-                    <div className="edit-input-group">
-                        <label>New Password</label>
-                        <input className="edit-input" type="password" value={passwords.newPassword} onChange={e => setPasswords({...passwords, newPassword: e.target.value})} />
-                    </div>
-                    <div className="edit-input-group">
-                        <label>Confirm New Password</label>
-                        <input className="edit-input" type="password" value={passwords.confirmPassword} onChange={e => setPasswords({...passwords, confirmPassword: e.target.value})} />
-                    </div>
-
-                    <button type="submit" className="save-btn" disabled={saving}>
-                        {saving ? 'Updating...' : 'Update Password'}
-                    </button>
-                </form>
+                </div>
             </div>
         );
     }

@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { BiometricService } from '../services/biometric';
 import { fetchWithRetry } from '../utils/fetchWithRetry';
 import pushNotificationService from '../services/PushNotificationService';
 import PurchaseService from '../services/PurchaseService';
@@ -11,7 +10,6 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
-    const [biometricAvailable, setBiometricAvailable] = useState(false);
 
     // Tour States
     const [hasSeenDashboardTour, setHasSeenDashboardTour] = useState(
@@ -24,8 +22,6 @@ export const AuthProvider = ({ children }) => {
         const stored = localStorage.getItem('seenTabTours');
         return stored ? JSON.parse(stored) : {};
     });
-
-    const SERVER_NAME = 'hosteze-app';
 
     // Check if user is logged in on mount
     useEffect(() => {
@@ -75,109 +71,18 @@ export const AuthProvider = ({ children }) => {
         };
 
         checkAuth();
-
-        // Check if biometric is available
-        BiometricService.isAvailable().then(setBiometricAvailable);
     }, [token]);
 
-    const signup = async (name, email, password, phone) => {
-        const response = await fetchWithRetry(`${API_URL}/auth/signup`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, phone, password })
-        }, 3, 30000);
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Signup failed');
-        }
-
-        const data = await response.json();
-        // No auto-login with phone-only signup for now
-        return data;
-    };
-
-    const login = async (emailOrPhone, password, isPhone = false) => {
-        const payload = isPhone
-            ? { phone: emailOrPhone, password }
-            : { email: emailOrPhone, password };
-
-        const loginUrl = `${API_URL}/auth/login`;
-        console.log('🔐 Login attempt to URL:', loginUrl);
-        console.log('🔐 API_URL value:', API_URL);
-
-        const response = await fetchWithRetry(loginUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        }, 3, 30000);
-
-        console.log('📡 Login response status:', response.status);
-
-        if (!response.ok) {
-            let errorMessage = 'Login failed';
-            try {
-                const text = await response.text();
-                try {
-                    const error = JSON.parse(text);
-                    errorMessage = error.error || errorMessage;
-                } catch (e) {
-                    console.error('❌ Non-JSON error response:', text.substring(0, 200));
-                    errorMessage = `Server error (${response.status})`;
-                }
-            } catch (streamErr) {
-                console.error('❌ Error reading response stream:', streamErr);
-                errorMessage = `Server error (${response.status})`;
-            }
-            throw new Error(errorMessage);
-        }
-
-        let data;
-        try {
-            const text = await response.text();
-            try {
-                data = JSON.parse(text);
-                console.log('✅ Login successful');
-            } catch (e) {
-                console.error('❌ Failed to parse success response:', text.substring(0, 200));
-                throw new Error('Invalid server response');
-            }
-        } catch (streamErr) {
-            console.error('❌ Error reading response stream:', streamErr);
-            throw new Error('Invalid server response');
-        }
-
-        localStorage.setItem('token', data.token);
-        setToken(data.token);
-        setUser(data.user);
-
-        // Initialize RevenueCat
-        try {
-            PurchaseService.initialize(data.user.id);
-        } catch (e) {
-            console.error('Failed to init purchases:', e);
-        }
-
-        // Register device for push notifications
-        try {
-            await pushNotificationService.registerDevice(data.user.id, data.token);
-        } catch (error) {
-            console.error('Failed to register device for push notifications:', error);
-            // Don't fail login if push notification registration fails
-        }
-
-        return data;
-    };
-
-    const sendOTP = async (phone) => {
+    // identifier can be an email address or a phone number.
+    const sendOTP = async (identifier) => {
         const response = await fetchWithRetry(`${API_URL}/auth/send-otp`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone })
+            body: JSON.stringify({ identifier })
         }, 3, 30000);
 
         if (!response.ok) {
-            let errorMessage = 'Failed to send OTP';
+            let errorMessage = 'Failed to send code';
             try {
                 const error = await response.json();
                 errorMessage = error.error || errorMessage;
@@ -188,11 +93,11 @@ export const AuthProvider = ({ children }) => {
         return await response.json();
     };
 
-    const verifyOTP = async (phone, code) => {
+    const verifyOTP = async (identifier, code, name) => {
         const response = await fetchWithRetry(`${API_URL}/auth/verify-otp`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone, code })
+            body: JSON.stringify({ identifier, code, name })
         }, 3, 30000);
 
         if (!response.ok) {
@@ -227,49 +132,6 @@ export const AuthProvider = ({ children }) => {
 
         return data;
     };
-
-    const loginWithBiometric = async () => {
-        try {
-            // Authenticate with biometric
-            const authenticated = await BiometricService.authenticate();
-
-            if (!authenticated) {
-                throw new Error('Biometric authentication failed');
-            }
-
-            // Retrieve stored credentials
-            const credentials = await BiometricService.getCredentials(SERVER_NAME);
-
-            if (!credentials || !credentials.username || !credentials.password) {
-                throw new Error('No saved credentials found');
-            }
-
-            // Login with retrieved credentials
-            await login(credentials.username, credentials.password);
-        } catch (error) {
-            console.error('Biometric login failed:', error);
-            throw error;
-        }
-    };
-
-    const enableBiometric = async (email, password) => {
-        try {
-            await BiometricService.saveCredentials(SERVER_NAME, email, password);
-        } catch (error) {
-            console.error('Failed to enable biometric:', error);
-            throw error;
-        }
-    };
-
-    const disableBiometric = async () => {
-        try {
-            await BiometricService.deleteCredentials(SERVER_NAME);
-        } catch (error) {
-            console.error('Failed to disable biometric:', error);
-            throw error;
-        }
-    };
-
 
     const logout = () => {
         // Unregister device for push notifications
@@ -335,14 +197,8 @@ export const AuthProvider = ({ children }) => {
             user,
             token,
             loading,
-            biometricAvailable,
-            signup,
-            login,
             sendOTP,
             verifyOTP,
-            loginWithBiometric,
-            enableBiometric,
-            disableBiometric,
             logout,
             refreshUser,
             isAuthenticated: !!user,

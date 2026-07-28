@@ -1,104 +1,116 @@
 import { query } from '../db/connection.js';
 import { sendSMS } from './reminderService.js';
+import { sendOtpEmail } from '../server/email.js';
 import crypto from 'crypto';
 
+const OTP_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const MAX_ATTEMPTS = 5;
+
 /**
- * Generate a 6-digit OTP
+ * Generate a 6-digit numeric OTP.
  */
 function generateNumericOTP(length = 6) {
-    // Generate random buffer
     const buffer = crypto.randomBytes(length);
     let otp = '';
     for (let i = 0; i < length; i++) {
-        // Use modulo 10 to get digits 0-9
         otp += (buffer[i] % 10).toString();
     }
     return otp;
 }
 
+function hashCode(code) {
+    return crypto.createHash('sha256').update(String(code)).digest('hex');
+}
+
 /**
- * Send OTP to a phone number
- * @param {string} phone - Normalized phone number (e.g., +919876543210)
+ * True when the identifier looks like an email address (vs a phone number).
  */
-export async function sendOTP(phone) {
+export function isEmailIdentifier(identifier) {
+    return typeof identifier === 'string' && identifier.includes('@');
+}
+
+/**
+ * Send an OTP to an identifier (email or phone).
+ * Email is preferred (near-zero cost via Resend); SMS is the fallback.
+ * @param {string} identifier - normalized email (lowercased) or phone (E.164-ish)
+ */
+export async function sendOTP(identifier) {
+    if (!identifier) {
+        throw new Error('Identifier is required');
+    }
+
+    const channel = isEmailIdentifier(identifier) ? 'email' : 'sms';
+    const code = generateNumericOTP(6);
+    const expiresAt = new Date(Date.now() + OTP_TTL_MS);
+
+    // Store a HASH of the code (never plaintext), reset attempts on each new send.
+    await query(
+        `INSERT INTO auth_otp_codes (identifier, code_hash, channel, attempts, expires_at, created_at)
+         VALUES ($1, $2, $3, 0, $4, NOW())
+         ON CONFLICT (identifier)
+         DO UPDATE SET code_hash = $2, channel = $3, attempts = 0, expires_at = $4, created_at = NOW()`,
+        [identifier, hashCode(code), channel, expiresAt]
+    );
+
+    // Only surface the code in non-production for local testing.
+    if (process.env.NODE_ENV !== 'production') {
+        console.log(`[dev] OTP for ${identifier} (${channel}): ${code}`);
+    }
+
     try {
-        if (!phone) {
-            throw new Error('Phone number is required');
-        }
-
-        // Generate 6-digit code
-        const code = generateNumericOTP(6);
-        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes expiration
-
-        // Store in DB (upsert)
-        await query(
-            `INSERT INTO otp_codes (phone, code, expires_at, created_at) 
-             VALUES ($1, $2, $3, NOW()) 
-             ON CONFLICT (phone) 
-             DO UPDATE SET code = $2, expires_at = $3, created_at = NOW()`,
-            [phone, code, expiresAt]
-        );
-
-        // Send via Twilio
-        // In development/test if Twilio not set, we might want to log it
-        const message = `Your HostEze verification code is: ${code}. Valid for 5 minutes.`;
-
-        console.log(`Sending OTP to ${phone}: ${code}`); // Security warning: Don't log this in prod
-
-        const smsResult = await sendSMS(phone, message, { messageType: 'otp' });
-
-        if (!smsResult.success) {
-            console.error('Failed to send OTP SMS:', smsResult.error);
-            // In dev mode, maybe allows it to pass if we just want to test logic?
-            // For now, return false if SMS failed
-            if (process.env.NODE_ENV === 'development') {
-                console.log('DEV MODE: Proceeding even though SMS failed (Check console for code)');
-                return { success: true, devMode: true };
+        if (channel === 'email') {
+            await sendOtpEmail(identifier, code);
+        } else {
+            const message = `Your HostEze verification code is: ${code}. Valid for 5 minutes.`;
+            const smsResult = await sendSMS(identifier, message, { messageType: 'otp' });
+            if (!smsResult.success) {
+                if (process.env.NODE_ENV !== 'production') {
+                    console.log('DEV MODE: proceeding despite SMS failure (see code above)');
+                    return { success: true, devMode: true, channel };
+                }
+                return { success: false, error: 'Failed to send SMS' };
             }
-            return { success: false, error: 'Failed to send SMS' };
         }
-
-        return { success: true };
+        return { success: true, channel };
     } catch (error) {
-        console.error('Send OTP error:', error);
-        throw error;
+        console.error(`Failed to send OTP via ${channel}:`, error);
+        if (process.env.NODE_ENV !== 'production') {
+            return { success: true, devMode: true, channel };
+        }
+        return { success: false, error: `Failed to send ${channel === 'email' ? 'email' : 'SMS'}` };
     }
 }
 
 /**
- * Verify OTP
- * @param {string} phone - Normalized phone number
- * @param {string} code - The code to verify
+ * Verify an OTP for an identifier. Enforces expiry and a max-attempt limit.
+ * @param {string} identifier
+ * @param {string} code
  */
-export async function verifyOTP(phone, code) {
-    try {
-        const result = await query(
-            'SELECT * FROM otp_codes WHERE phone = $1',
-            [phone]
-        );
+export async function verifyOTP(identifier, code) {
+    const result = await query('SELECT * FROM auth_otp_codes WHERE identifier = $1', [identifier]);
 
-        if (result.rows.length === 0) {
-            return { valid: false, reason: 'No OTP found' };
-        }
-
-        const record = result.rows[0];
-
-        // Check expiration
-        if (new Date() > new Date(record.expires_at)) {
-            return { valid: false, reason: 'OTP expired' };
-        }
-
-        // Check match
-        if (record.code !== code) {
-            return { valid: false, reason: 'Invalid code' };
-        }
-
-        // OTP is valid - clear it so it can't be reused
-        await query('DELETE FROM otp_codes WHERE phone = $1', [phone]);
-
-        return { valid: true };
-    } catch (error) {
-        console.error('Verify OTP error:', error);
-        throw error;
+    if (result.rows.length === 0) {
+        return { valid: false, reason: 'No code found. Please request a new one.' };
     }
+
+    const record = result.rows[0];
+
+    if (new Date() > new Date(record.expires_at)) {
+        await query('DELETE FROM auth_otp_codes WHERE identifier = $1', [identifier]);
+        return { valid: false, reason: 'Code expired. Please request a new one.' };
+    }
+
+    if (record.attempts >= MAX_ATTEMPTS) {
+        await query('DELETE FROM auth_otp_codes WHERE identifier = $1', [identifier]);
+        return { valid: false, reason: 'Too many attempts. Please request a new code.' };
+    }
+
+    if (record.code_hash !== hashCode(code)) {
+        await query('UPDATE auth_otp_codes SET attempts = attempts + 1 WHERE identifier = $1', [identifier]);
+        return { valid: false, reason: 'Invalid code' };
+    }
+
+    // Success — consume the code so it can't be reused.
+    await query('DELETE FROM auth_otp_codes WHERE identifier = $1', [identifier]);
+    return { valid: true };
 }

@@ -14,10 +14,10 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import * as cheerio from 'cheerio';
 import sharp from 'sharp';
-import { generateToken, hashPassword, comparePassword, authMiddleware } from './server/auth.js';
+import { generateToken, hashPassword, authMiddleware } from './server/auth.js';
 import { initializeDatabase, query } from './db/connection.js';
-import { validateEmail, validatePassword } from './server/validators.js';
-import { sendVerificationEmail, sendPasswordResetEmail } from './server/email.js';
+import { validateEmail } from './server/validators.js';
+import { sendVerificationEmail } from './server/email.js';
 import { initTwilio, sendSMS } from './services/reminderService.js';
 import { checkSMSQuota, getSMSUsageStats, getSMSLogs } from './services/smsTrackingService.js';
 import { startReminderCron } from './jobs/reminderCron.js';
@@ -151,10 +151,7 @@ const authLimiter = rateLimit({
     message: 'Too many login attempts, please try again later.',
     skipSuccessfulRequests: true,
 });
-app.use('/api/auth/login', authLimiter);
-app.use('/api/auth/signup', authLimiter);
-app.use('/api/auth/forgot-password', authLimiter);
-app.use('/api/auth/reset-password', authLimiter);
+// Passwordless auth endpoints (send-otp / verify-otp) carry their own limiters.
 
 // Protect expensive AI routes
 const aiLimiter = rateLimit({
@@ -204,8 +201,8 @@ app.use(express.static('public', {
 // This serves files from backend/uploads at https://api/uploads/filename.jpg
 app.use('/uploads', express.static(path.join(path.resolve(), 'uploads')));
 
-// Upload Routes
-app.use('/api/upload', uploadRoutes);
+// Upload Routes — require auth so this isn't an open pipe into Cloudinary.
+app.use('/api/upload', authMiddleware, uploadRoutes);
 
 // AI Invitation Generation Route
 app.post('/api/events/:id/ai-invite', authMiddleware, requireProTier, async (req, res) => {
@@ -695,192 +692,6 @@ app.get('/api/health', async (req, res) => {
 });
 
 // === AUTH ROUTES ===
-app.post('/api/auth/signup', async (req, res) => {
-    try {
-        const { name, email, phone, password } = req.body;
-
-        // Must provide name, password, and at least email OR phone
-        if (!name || !password) {
-            return res.status(400).json({ error: 'Name and password are required' });
-        }
-
-        if (!email && !phone) {
-            return res.status(400).json({ error: 'Either email or phone number is required' });
-        }
-
-        // Validate email if provided
-        let validatedEmail = null;
-        if (email) {
-            const emailValidation = validateEmail(email);
-            if (!emailValidation.valid) {
-                return res.status(400).json({ error: emailValidation.error });
-            }
-            validatedEmail = emailValidation.email;
-        }
-
-        // Normalize phone if provided
-        let validatedPhone = null;
-        if (phone) {
-            // Accept international format (+919876543210) or 10 digits (9876543210)
-            const phoneDigits = phone.replace(/\D/g, ''); // Remove non-digits for validation
-            if (phoneDigits.length < 10) {
-                return res.status(400).json({ error: 'Phone number must be at least 10 digits' });
-            }
-            // Store the original phone with country code if provided
-            validatedPhone = phone.trim();
-        }
-
-        // Validate password strength
-        const passwordValidation = validatePassword(password);
-        if (!passwordValidation.valid) {
-            return res.status(400).json({ error: passwordValidation.error });
-        }
-
-        // Check if user exists with email
-        if (validatedEmail) {
-            const existingEmailUser = await query('SELECT id FROM users WHERE email = $1', [validatedEmail]);
-            if (existingEmailUser.rows.length > 0) {
-                return res.status(400).json({ error: 'User with this email already exists' });
-            }
-        }
-
-        // Check if user exists with phone
-        if (validatedPhone) {
-            const existingPhoneUser = await query('SELECT id FROM users WHERE phone = $1', [validatedPhone]);
-            if (existingPhoneUser.rows.length > 0) {
-                return res.status(400).json({ error: 'User with this phone number already exists' });
-            }
-        }
-
-        const hashedPassword = hashPassword(password);
-        const userId = uuidv4();
-        const verificationToken = crypto.randomBytes(32).toString('hex');
-        const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-        await query(
-            `INSERT INTO users(id, name, email, phone, password, email_verified, verification_token, verification_token_expires)
-        VALUES($1, $2, $3, $4, $5, $6, $7, $8)`,
-            [userId, name, validatedEmail, validatedPhone, hashedPassword, false, verificationToken, tokenExpires]
-        );
-
-        // Auto-link to any guest records with matching email or phone
-        if (validatedEmail) {
-            await query('UPDATE guests SET user_id = $1 WHERE email = $2 AND user_id IS NULL', [userId, validatedEmail]);
-        }
-        if (validatedPhone) {
-            // Use flexible phone matching - compare last 10 digits
-            const normalizedUserPhone = normalizePhone(validatedPhone);
-            await query(
-                `UPDATE guests SET user_id = $1 
-                 WHERE user_id IS NULL 
-                 AND phone IS NOT NULL 
-                 AND RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $2`,
-                (() => { const l8 = normalizedUserPhone ? normalizedUserPhone.replace(/\D/g, '').slice(-8) : null; return [userId, l8]; })()
-            );
-        }
-
-        // Send verification email (only if email provided)
-        if (validatedEmail) {
-            const user = { id: userId, name, email: validatedEmail };
-            try {
-                await sendVerificationEmail(user, verificationToken);
-            } catch (emailError) {
-                console.error('Failed to send verification email:', emailError);
-                // Don't fail signup if email fails
-            }
-        }
-
-        res.json({
-            message: validatedEmail
-                ? 'Account created! Please check your email to verify your account.'
-                : 'Account created successfully!',
-            email: validatedEmail,
-            phone: validatedPhone
-        });
-    } catch (error) {
-        console.error('Signup error:', error);
-        res.status(500).json({ error: 'Server error: ' + error.message });
-    }
-});
-
-app.post('/api/auth/login', async (req, res) => {
-    try {
-        const { email, phone, password } = req.body;
-
-        // Must provide password and either email OR phone
-        if (!password) {
-            return res.status(400).json({ error: 'Password is required' });
-        }
-
-        if (!email && !phone) {
-            return res.status(400).json({ error: 'Email or phone number is required' });
-        }
-
-        // Try to find user by email or phone
-        let result;
-        if (email) {
-            result = await query('SELECT * FROM users WHERE email = $1', [email.toLowerCase().trim()]);
-        } else if (phone) {
-            // Use flexible phone matching - compare last 10 digits
-            const normalized = normalizePhone(phone);
-            console.log('Login attempt - Phone received:', phone);
-            console.log('Login attempt - Normalized (last 10 digits):', normalized);
-            if (!normalized) {
-                return res.status(400).json({ error: 'Invalid phone number' });
-            }
-            // Use RIGHT() to get last 10 digits - works correctly in PostgreSQL
-            result = await query(
-                `SELECT * FROM users WHERE 
-                 phone IS NOT NULL AND
-        RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $1`,
-                [normalized ? normalized.replace(/\D/g, '').slice(-8) : null]
-            );
-            console.log('Login attempt - Users found:', result.rows.length);
-            if (result.rows.length > 0) {
-                console.log('Login attempt - Stored phone in DB:', result.rows[0].phone);
-            }
-        }
-
-        if (result.rows.length === 0) {
-            return res.status(401).json({ error: 'Invalid credentials' });
-        }
-
-        const user = result.rows[0];
-        const isValid = comparePassword(password, user.password);
-
-        if (!isValid) {
-            return res.status(401).json({ error: 'Invalid credentials' });
-        }
-
-        // Check if email is verified (can be disabled with env var)
-        const skipVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
-        if (!skipVerification && user.email && !user.email_verified) {
-            return res.status(403).json({
-                error: 'Please verify your email before logging in',
-                needsVerification: true,
-                email: user.email
-            });
-        }
-
-        const token = generateToken(user);
-        const userResponse = {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            emailVerified: user.email_verified,
-            is_admin: user.is_admin,
-            subscription_tier: user.subscription_tier || 'free',
-            event_count: user.event_count || 0,
-            sms_credits: user.sms_credits || 0
-        };
-
-        res.json({ token, user: userResponse });
-    } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
 
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
     try {
@@ -1039,131 +850,156 @@ app.post('/api/auth/resend-verification', async (req, res) => {
 });
 
 // === OTP AUTH ROUTES ===
-import { sendOTP, verifyOTP } from './services/otpService.js';
+import { sendOTP, verifyOTP, isEmailIdentifier } from './services/otpService.js';
 
-// Send OTP
+/**
+ * Normalize a login identifier (email or phone) into the canonical form we
+ * store OTPs and users under. Returns { identifier, channel } or { error }.
+ */
+function normalizeAuthIdentifier(raw) {
+    if (!raw || typeof raw !== 'string' || !raw.trim()) {
+        return { error: 'Email or phone number is required' };
+    }
+    const value = raw.trim();
+
+    if (isEmailIdentifier(value)) {
+        const emailValidation = validateEmail(value);
+        if (!emailValidation.valid) {
+            return { error: emailValidation.error || 'Invalid email address' };
+        }
+        return { identifier: emailValidation.email, channel: 'email' };
+    }
+
+    // Phone: default to +91 for bare 10-digit numbers (app's primary region).
+    let normalizedPhone = value.replace(/[^\d+]/g, '');
+    if (!normalizedPhone.startsWith('+')) {
+        const digits = normalizedPhone.replace(/\D/g, '');
+        if (digits.length < 10) {
+            return { error: 'Invalid phone number' };
+        }
+        if (digits.length === 10) {
+            normalizedPhone = '+91' + digits;
+        } else if (digits.startsWith('91')) {
+            normalizedPhone = '+' + digits;
+        } else {
+            normalizedPhone = '+91' + digits;
+        }
+    }
+    return { identifier: normalizedPhone, channel: 'sms' };
+}
+
+// Send OTP (passwordless — email or phone)
 app.post('/api/auth/send-otp', smsLimiter, async (req, res) => {
     try {
-        const { phone } = req.body;
-
-        if (!phone) {
-            return res.status(400).json({ error: 'Phone number is required' });
+        // Accept `identifier`, or legacy `email` / `phone`.
+        const raw = req.body.identifier || req.body.email || req.body.phone;
+        const norm = normalizeAuthIdentifier(raw);
+        if (norm.error) {
+            return res.status(400).json({ error: norm.error });
         }
 
-        // Normalize phone: Remove non-digits
-        // If length is 10, assume India +91
-        // If starts with +, keep as is
-        // We need a consistent format for DB storage key
-        let normalizedPhone = phone.replace(/[^\d+]/g, '');
-
-        if (!normalizedPhone.startsWith('+')) {
-            const digits = normalizedPhone.replace(/\D/g, '');
-            if (digits.length === 10) {
-                normalizedPhone = '+91' + digits;
-            } else if (digits.length > 10 && digits.startsWith('91')) {
-                normalizedPhone = '+' + digits;
-            } else {
-                // Fallback: If we can't guess, just use +91 or require user to send correct format?
-                // For now, let's assume +91 if ambiguous 10 digits, otherwise error?
-                if (digits.length < 10) {
-                    return res.status(400).json({ error: 'Invalid phone number' });
-                }
-                if (!normalizedPhone.startsWith('+')) {
-                    normalizedPhone = '+91' + digits; // Default to India for this app context
-                }
-            }
-        }
-
-        const result = await sendOTP(normalizedPhone);
+        const result = await sendOTP(norm.identifier);
 
         if (!result.success) {
-            return res.status(500).json({ error: result.error || 'Failed to send OTP' });
+            return res.status(500).json({ error: result.error || 'Failed to send code' });
         }
 
         res.json({
             success: true,
-            message: 'OTP sent successfully',
-            phone: normalizedPhone // Return normalized phone so frontend can use it for verification
+            message: `Verification code sent via ${norm.channel === 'email' ? 'email' : 'SMS'}`,
+            identifier: norm.identifier,
+            channel: norm.channel
         });
-
     } catch (error) {
         console.error('Send OTP error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });
 
-// Verify OTP & Login/Signup
+// Verify OTP & Login/Signup (passwordless — email or phone)
 app.post('/api/auth/verify-otp', authLimiter, async (req, res) => {
     try {
-        const { phone, code } = req.body;
+        const raw = req.body.identifier || req.body.email || req.body.phone;
+        const { code, name } = req.body;
 
-        if (!phone || !code) {
-            return res.status(400).json({ error: 'Phone and code are required' });
+        const norm = normalizeAuthIdentifier(raw);
+        if (norm.error) {
+            return res.status(400).json({ error: norm.error });
+        }
+        if (!code) {
+            return res.status(400).json({ error: 'Verification code is required' });
         }
 
-        // Verify OTP
-        const verification = await verifyOTP(phone, code);
-
+        const verification = await verifyOTP(norm.identifier, code);
         if (!verification.valid) {
-            return res.status(400).json({ error: verification.reason || 'Invalid OTP' });
+            return res.status(400).json({ error: verification.reason || 'Invalid code' });
         }
 
-        // OTP is valid. Now find or create user.
-        // Similar loose matching logic as Login
-        const digitsOnly = phone.replace(/\D/g, '');
-        const last10 = normalizePhone(phone)?.replace(/\D/g, '').slice(-8);
-
-        let result = await query(
-            `SELECT * FROM users WHERE 
-             phone IS NOT NULL AND
-        RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $1`,
-            [last10]
-        );
+        // Find the user by whichever channel they authenticated with.
+        let result;
+        let last10 = null;
+        if (norm.channel === 'email') {
+            result = await query('SELECT * FROM users WHERE email = $1', [norm.identifier]);
+        } else {
+            last10 = normalizePhone(norm.identifier)?.replace(/\D/g, '').slice(-8);
+            result = await query(
+                `SELECT * FROM users WHERE
+                 phone IS NOT NULL AND
+                 RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $1`,
+                [last10]
+            );
+        }
 
         let user;
         let isNewUser = false;
 
         if (result.rows.length > 0) {
-            // User exists
             user = result.rows[0];
-
-            // If user has no phone set but matched via some other logic? unlikely.
-            // If found, good.
         } else {
-            // Create new user (Guest)
-            // We only have phone.
+            // Create a new passwordless user. We still store a random password
+            // to satisfy the NOT NULL column, but it is never used to log in.
             isNewUser = true;
             const userId = uuidv4();
-            const tempName = 'Guest'; // User will update this later
+            const displayName = (name && name.trim()) ? name.trim() : 'Guest';
+            const randomPassword = hashPassword(crypto.randomBytes(24).toString('hex'));
 
-            // Generate dummy password (since they use OTP) or empty?
-            // Auth schema requires password usually?
-            // Let's check schema. Usually not null. So we set a random strong password.
-            const randomPassword = crypto.randomBytes(16).toString('hex');
-            const hashedPassword = hashPassword(randomPassword);
+            if (norm.channel === 'email') {
+                await query(
+                    `INSERT INTO users(id, name, email, password, email_verified)
+                     VALUES($1, $2, $3, $4, $5)`,
+                    [userId, displayName, norm.identifier, randomPassword, true]
+                );
+                await query('UPDATE guests SET user_id = $1 WHERE email = $2 AND user_id IS NULL', [userId, norm.identifier]);
+            } else {
+                await query(
+                    `INSERT INTO users(id, name, phone, password, email_verified)
+                     VALUES($1, $2, $3, $4, $5)`,
+                    [userId, displayName, norm.identifier, randomPassword, true]
+                );
+                await query(
+                    `UPDATE guests SET user_id = $1
+                     WHERE user_id IS NULL AND phone IS NOT NULL
+                     AND RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $2`,
+                    [userId, last10]
+                );
+            }
 
-            // Insert
-            await query(
-                `INSERT INTO users(id, name, phone, password, email_verified)
-        VALUES($1, $2, $3, $4, $5) RETURNING * `,
-                [userId, tempName, phone, hashedPassword, true] // Phone verified by definition
-            );
-
-            // Update guests table linkage
-            await query(
-                `UPDATE guests SET user_id = $1 
-                  WHERE user_id IS NULL 
-                  AND phone IS NOT NULL 
-                  AND RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $2`,
-                [userId, last10]
-            );
-
-            // Fetch created user
             const newUserResult = await query('SELECT * FROM users WHERE id = $1', [userId]);
             user = newUserResult.rows[0];
         }
 
-        // Generate Token
+        // If an existing user just verified their email for the first time, mark it.
+        if (!isNewUser && norm.channel === 'email' && !user.email_verified) {
+            await query('UPDATE users SET email_verified = true WHERE id = $1', [user.id]);
+            user.email_verified = true;
+        }
+
+        // Optionally set the name for an existing user who never had one.
+        if (name && name.trim() && (!user.name || user.name === 'Guest')) {
+            await query('UPDATE users SET name = $1 WHERE id = $2', [name.trim(), user.id]);
+            user.name = name.trim();
+        }
+
         const token = generateToken(user);
         const userResponse = {
             id: user.id,
@@ -1174,15 +1010,11 @@ app.post('/api/auth/verify-otp', authLimiter, async (req, res) => {
             is_admin: user.is_admin,
             subscription_tier: user.subscription_tier || 'free',
             event_count: user.event_count || 0,
+            sms_credits: user.sms_credits || 0,
             subscription_status: user.subscription_status || 'inactive'
         };
 
-        res.json({
-            token,
-            user: userResponse,
-            isNewUser
-        });
-
+        res.json({ token, user: userResponse, isNewUser });
     } catch (error) {
         console.error('Verify OTP error:', error);
         res.status(500).json({ error: 'Server error' });
@@ -1190,126 +1022,6 @@ app.post('/api/auth/verify-otp', authLimiter, async (req, res) => {
 });
 
 // Forgot password - Request password reset
-app.post('/api/auth/forgot-password', async (req, res) => {
-    try {
-        const { email, phone } = req.body;
-
-        // Must provide either email or phone
-        if (!email && !phone) {
-            return res.status(400).json({ error: 'Email or phone number is required' });
-        }
-
-        // Try to find user by email or phone
-        let result;
-        if (email) {
-            result = await query('SELECT * FROM users WHERE email = $1', [email.toLowerCase().trim()]);
-        } else if (phone) {
-            const normalized = normalizePhone(phone);
-            if (!normalized) {
-                return res.status(400).json({ error: 'Invalid phone number' });
-            }
-            result = await query(
-                `SELECT * FROM users WHERE 
-                 phone IS NOT NULL AND
-        RIGHT(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), 8) = $1`,
-                [normalized ? normalized.replace(/\D/g, '').slice(-8) : null]
-            );
-        }
-
-        // Don't reveal if user exists or not (security best practice)
-        if (result.rows.length === 0) {
-            return res.json({
-                message: 'If an account exists with this information, a password reset link has been sent'
-            });
-        }
-
-        const user = result.rows[0];
-
-        // Generate reset token
-        const resetToken = crypto.randomBytes(32).toString('hex');
-        const tokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-
-        // Store reset token
-        await query(
-            'UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE id = $3',
-            [resetToken, tokenExpires, user.id]
-        );
-
-        // Track if at least one notification method succeeded
-        let emailSent = false;
-        let smsSent = false;
-
-        // Send reset email if user has email
-        if (user.email) {
-            try {
-                await sendPasswordResetEmail(user, resetToken);
-                emailSent = true;
-                console.log('✓ Password reset email sent to:', user.email);
-            } catch (emailError) {
-                console.error('Failed to send password reset email:', emailError);
-                // Don't fail yet - SMS might still work
-            }
-        }
-
-        // Send SMS if user has phone (either as primary or backup)
-        if (user.phone) {
-            try {
-                const resetUrl = `https://events.hosteze.app/reset-password?token=${resetToken}`;
-                const smsMessage = `Hi ${user.name}, reset your HostEze password: ${resetUrl} (Link expires in 1 hour)`;
-
-                // Format phone number for SMS - handle international numbers
-                let phoneNumber = user.phone;
-
-                // If already has + prefix, use as-is (already has country code)
-                if (phoneNumber.startsWith('+')) {
-                    phoneNumber = phoneNumber.replace(/[^\d+]/g, ''); // Just clean it
-                } else {
-                    // Remove all non-digits
-                    phoneNumber = phoneNumber.replace(/\D/g, '');
-
-                    // If it's a 10-digit number, assume Indian and add +91
-                    if (phoneNumber.length === 10) {
-                        phoneNumber = '+91' + phoneNumber;
-                    }
-                    // If it starts with 91 and has 12 digits total, it's likely +91 without the +
-                    else if (phoneNumber.startsWith('91') && phoneNumber.length === 12) {
-                        phoneNumber = '+' + phoneNumber;
-                    }
-                    // For other cases, extract last 10 digits and add +91 (default to India)
-                    else {
-                        const last10Digits = phoneNumber.slice(-10);
-                        phoneNumber = '+91' + last10Digits;
-                    }
-                }
-
-                console.log(`Sending password reset SMS to: ${phoneNumber}`);
-
-                const smsResult = await sendSMS(phoneNumber, smsMessage);
-                if (smsResult.success) {
-                    smsSent = true;
-                    console.log('✓ Password reset SMS sent to:', phoneNumber);
-                } else {
-                    console.error('Failed to send password reset SMS:', smsResult.error);
-                }
-            } catch (smsError) {
-                console.error('Failed to send password reset SMS:', smsError);
-            }
-        }
-
-        // Always show success message (security best practice - don't reveal delivery status)
-        // Log failures internally but show generic success to user
-        if (!emailSent && !smsSent && (user.email || user.phone)) {
-            console.error('⚠️ Password reset: Both email and SMS failed for user:', user.id);
-        }
-
-        res.json({
-            message: 'Password reset link has been sent to your registered email and/or mobile number'
-        });
-    } catch (error) {
-        console.error('Forgot password error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
 
 // Verify reset token validity
 // Redirect /reset-password to app deep link
@@ -1445,91 +1157,8 @@ app.get('/invite/:id', async (req, res, next) => {
 });
 
 // Verify reset token
-app.get('/api/auth/verify-reset-token', async (req, res) => {
-    try {
-        const { token } = req.query;
-
-        if (!token) {
-            return res.status(400).json({ error: 'Reset token is required' });
-        }
-
-        const result = await query(
-            'SELECT id, name, email FROM users WHERE reset_token = $1',
-            [token]
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(400).json({ error: 'Invalid reset token', valid: false });
-        }
-
-        const user = result.rows[0];
-
-        // Check if token expired
-        const tokenResult = await query(
-            'SELECT reset_token_expires FROM users WHERE id = $1',
-            [user.id]
-        );
-
-        if (new Date() > new Date(tokenResult.rows[0].reset_token_expires)) {
-            return res.status(400).json({ error: 'Reset token has expired', valid: false });
-        }
-
-        res.json({
-            valid: true,
-            email: user.email,
-            name: user.name
-        });
-    } catch (error) {
-        console.error('Verify reset token error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
 
 // Reset password with token
-app.post('/api/auth/reset-password', async (req, res) => {
-    try {
-        const { token, newPassword } = req.body;
-
-        if (!token || !newPassword) {
-            return res.status(400).json({ error: 'Reset token and new password are required' });
-        }
-
-        // Validate new password strength
-        const passwordValidation = validatePassword(newPassword);
-        if (!passwordValidation.valid) {
-            return res.status(400).json({ error: passwordValidation.error });
-        }
-
-        // Find user by reset token
-        const result = await query(
-            'SELECT * FROM users WHERE reset_token = $1',
-            [token]
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(400).json({ error: 'Invalid reset token' });
-        }
-
-        const user = result.rows[0];
-
-        // Check if token expired
-        if (new Date() > new Date(user.reset_token_expires)) {
-            return res.status(400).json({ error: 'Reset token has expired' });
-        }
-
-        // Hash new password and update
-        const hashedPassword = hashPassword(newPassword);
-        await query(
-            'UPDATE users SET password = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2',
-            [hashedPassword, user.id]
-        );
-
-        res.json({ message: 'Password reset successfully' });
-    } catch (error) {
-        console.error('Reset password error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
 
 // === USER PROFILE ROUTES ===
 
@@ -1671,51 +1300,6 @@ app.patch('/api/users/profile', authMiddleware, async (req, res) => {
 });
 
 // Change password
-app.post('/api/users/change-password', authMiddleware, async (req, res) => {
-    try {
-        const { currentPassword, newPassword } = req.body;
-
-        if (!currentPassword || !newPassword) {
-            return res.status(400).json({ error: 'Current password and new password are required' });
-        }
-
-        // Get current user password
-        const result = await query(
-            'SELECT password FROM users WHERE id = $1',
-            [req.user.id]
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        const user = result.rows[0];
-
-        // Verify current password
-        const isValid = comparePassword(currentPassword, user.password);
-        if (!isValid) {
-            return res.status(401).json({ error: 'Current password is incorrect' });
-        }
-
-        // Validate new password
-        const passwordValidation = validatePassword(newPassword);
-        if (!passwordValidation.valid) {
-            return res.status(400).json({ error: passwordValidation.error });
-        }
-
-        // Hash and update new password
-        const hashedPassword = hashPassword(newPassword);
-        await query(
-            'UPDATE users SET password = $1 WHERE id = $2',
-            [hashedPassword, req.user.id]
-        );
-
-        res.json({ message: 'Password changed successfully' });
-    } catch (error) {
-        console.error('Change password error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
 
 // === EVENT ROUTES ===
 app.get('/api/events', authMiddleware, async (req, res) => {
@@ -2571,6 +2155,15 @@ app.put('/api/events/:eventId/guests/:guestId/attend', authMiddleware, async (re
     try {
         const { count } = req.body;
 
+        // Verify the event belongs to the caller before touching its guests.
+        const eventResult = await query('SELECT user_id FROM events WHERE id = $1', [req.params.eventId]);
+        if (eventResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+        if (eventResult.rows[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
         await query(
             'UPDATE guests SET attended = true, attended_count = attended_count + $1 WHERE id = $2 AND event_id = $3',
             [count || 1, req.params.guestId, req.params.eventId]
@@ -2585,6 +2178,15 @@ app.put('/api/events/:eventId/guests/:guestId/attend', authMiddleware, async (re
 
 app.delete('/api/events/:eventId/guests/:guestId', authMiddleware, async (req, res) => {
     try {
+        // Verify the event belongs to the caller before deleting its guests.
+        const eventResult = await query('SELECT user_id FROM events WHERE id = $1', [req.params.eventId]);
+        if (eventResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+        if (eventResult.rows[0].user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
         await query('DELETE FROM guests WHERE id = $1 AND event_id = $2', [req.params.guestId, req.params.eventId]);
         res.json({ success: true });
     } catch (error) {
@@ -3349,7 +2951,7 @@ app.post('/api/events/:eventId/reminders/auto-schedule', authMiddleware, async (
 });
 
 // Test endpoint to manually trigger reminder check
-app.post('/api/admin/process-reminders', authMiddleware, async (req, res) => {
+app.post('/api/admin/process-reminders', authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const { processPendingReminders } = await import('./jobs/reminderCron.js');
         console.log('Manual reminder check triggered by user:', req.user.email);

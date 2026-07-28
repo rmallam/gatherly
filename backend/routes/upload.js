@@ -22,6 +22,18 @@ router.post('/image', async (req, res) => {
             return res.status(400).json({ error: 'Image data is required' });
         }
 
+        // Basic guards: must be a base64 image data URI, and cap the size so a
+        // caller can't dump huge blobs into our Cloudinary account.
+        if (typeof image !== 'string' || !/^data:image\/(png|jpe?g|gif|webp);base64,/.test(image)) {
+            return res.status(400).json({ error: 'Invalid image format' });
+        }
+
+        const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // ~8MB decoded
+        const approxBytes = Math.ceil((image.length * 3) / 4);
+        if (approxBytes > MAX_IMAGE_BYTES) {
+            return res.status(413).json({ error: 'Image too large' });
+        }
+
         // Upload to Cloudinary
         const result = await cloudinary.uploader.upload(image, {
             folder: 'event_wall', // Optional folder support
