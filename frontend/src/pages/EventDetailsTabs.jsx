@@ -1,20 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import TabNavigation from '../components/TabNavigation';
 import OverviewTab from '../components/tabs/OverviewTab';
-import PlanningTab from '../components/tabs/PlanningTab';
-import ScheduleTab from '../components/tabs/ScheduleTab';
-import GalleryTab from '../components/tabs/GalleryTab';
-import MessagesTab from '../components/tabs/MessagesTab';
-import { LayoutDashboard, Users, MessageCircle, ArrowLeft, Trash2, Calendar, Image as ImageIcon, ClipboardList, DollarSign } from 'lucide-react';
+import { LayoutDashboard, Users, MessageCircle, ArrowLeft, Trash2, Calendar, Image as ImageIcon, ClipboardList, DollarSign, ScanLine } from 'lucide-react';
 
 import './EventDetails.css';
 
-// Import the old EventDetails as a component for the Guests tab temporarily
+// Guests is the Lane-1 hero surface, so it stays eagerly loaded.
 import EventDetails from './EventDetails';
-import ExpensesDashboard from '../components/expenses/ExpensesDashboard';
 import EventDetailsTour from '../components/tours/EventDetailsTour';
+
+// Heavier / secondary tabs are code-split so they don't bloat the initial
+// event screen. They only download when the user actually opens that tab.
+const PlanningTab = lazy(() => import('../components/tabs/PlanningTab'));
+const ScheduleTab = lazy(() => import('../components/tabs/ScheduleTab'));
+const GalleryTab = lazy(() => import('../components/tabs/GalleryTab'));
+const MessagesTab = lazy(() => import('../components/tabs/MessagesTab'));
+const ExpensesDashboard = lazy(() => import('../components/expenses/ExpensesDashboard'));
+
+// Lightweight fallback shown while a lazy tab chunk loads.
+const TabLoading = () => (
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '48px', color: 'var(--text-secondary)' }}>
+        Loading…
+    </div>
+);
 
 const EventDetailsTabs = () => {
     const { id } = useParams();
@@ -126,6 +136,28 @@ const EventDetailsTabs = () => {
                     </h1>
                 </div>
                 <div className="event-header-actions">
+                    {!isSharedEvent && (
+                        <button
+                            onClick={() => navigate('/scanner')}
+                            className="btn-checkin"
+                            title="Scan guest QR codes to check them in"
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '8px 14px',
+                                border: 'none',
+                                borderRadius: '10px',
+                                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                color: '#fff',
+                                fontSize: '14px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                            }}
+                        >
+                            <ScanLine size={16} strokeWidth={2.5} /> Check In
+                        </button>
+                    )}
                     <Link
                         to={`/event/${id}/wall`}
                         className="btn-wall"
@@ -161,25 +193,27 @@ const EventDetailsTabs = () => {
                 {/* Tab Content */}
                 <div>
                     {activeTab === 'overview' && <OverviewTab event={event} onTabChange={setActiveTab} />}
-                    {activeTab === 'schedule' && <ScheduleTab event={event} />}
                     {activeTab === 'guests' && <EventDetails />}
-                    {activeTab === 'expenses' && <ExpensesDashboard eventId={id} event={event} />}
-                    
-                    {activeTab === 'planning' && (
-                        <PlanningTab 
-                            event={event} 
-                            handleUpdateCatering={handleUpdateCatering}
-                            handleUpdateTasks={handleUpdateTasks}
-                            handleUpdateVenue={handleUpdateVenue}
-                            handleUpdateDecorations={handleUpdateDecorations}
-                            handleUpdateGifts={handleUpdateGifts}
-                            handleUpdateEntertainment={handleUpdateEntertainment}
-                            handleUpdateVendors={handleUpdateVendors}
-                        />
-                    )}
+                    <Suspense fallback={<TabLoading />}>
+                        {activeTab === 'schedule' && <ScheduleTab event={event} />}
+                        {activeTab === 'expenses' && <ExpensesDashboard eventId={id} event={event} />}
 
-                    {activeTab === 'gallery' && <GalleryTab event={event} />}
-                    {activeTab === 'messages' && <MessagesTab event={event} />}
+                        {activeTab === 'planning' && (
+                            <PlanningTab
+                                event={event}
+                                handleUpdateCatering={handleUpdateCatering}
+                                handleUpdateTasks={handleUpdateTasks}
+                                handleUpdateVenue={handleUpdateVenue}
+                                handleUpdateDecorations={handleUpdateDecorations}
+                                handleUpdateGifts={handleUpdateGifts}
+                                handleUpdateEntertainment={handleUpdateEntertainment}
+                                handleUpdateVendors={handleUpdateVendors}
+                            />
+                        )}
+
+                        {activeTab === 'gallery' && <GalleryTab event={event} />}
+                        {activeTab === 'messages' && <MessagesTab event={event} />}
+                    </Suspense>
                 </div>
 
                 {/* Delete Event Confirmation Modal */}

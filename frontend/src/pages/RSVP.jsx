@@ -3,6 +3,25 @@ import { useParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { CheckCircle, Calendar, MapPin } from 'lucide-react';
 import { Haptics, NotificationType } from '@capacitor/haptics';
+import QRGenerator from '../components/QRGenerator';
+
+// Shown to a guest right after they confirm — no account needed. The payload
+// is exactly what the host's scanner reads: { e: eventId, g: guestId }.
+const CheckInTicket = ({ eventId, guestId, guestName, eventTitle }) => (
+    <div style={{ marginTop: '1.5rem', padding: '1.5rem', backgroundColor: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', textAlign: 'center' }}>
+        <p style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1rem' }}>
+            🎟️ Your check-in ticket
+        </p>
+        <QRGenerator
+            payload={{ e: eventId, g: guestId }}
+            name={guestName}
+            eventTitle={eventTitle}
+        />
+        <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: '1rem' }}>
+            Show this QR code at the door to check in. Screenshot it so you have it offline!
+        </p>
+    </div>
+);
 
 const RSVP = () => {
     const { eventId, guestId } = useParams();
@@ -114,11 +133,15 @@ const RSVP = () => {
                     <p style={{ color: 'var(--text-secondary)' }}>
                         We can't wait to see you at <strong>{event?.title}</strong>
                     </p>
-                    <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)' }}>
-                        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                            You'll receive your QR code ticket soon. Show it at the door to check in!
-                        </p>
-                    </div>
+                    {guest?.rsvp === true ? (
+                        <CheckInTicket eventId={eventId} guestId={guestId} guestName={guest?.name} eventTitle={event?.title} />
+                    ) : (
+                        <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)' }}>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                Changed your mind? You can update your response anytime from this link.
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -141,7 +164,11 @@ const RSVP = () => {
                         You've confirmed you're <strong style={{ color: rsvpColor }}>{rsvpStatus}</strong> for <strong>{event?.title}</strong>
                     </p>
 
-                    <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', padding: '1.5rem', marginBottom: '1.5rem' }}>
+                    {guest.rsvp === true && (
+                        <CheckInTicket eventId={eventId} guestId={guestId} guestName={guest?.name} eventTitle={event?.title} />
+                    )}
+
+                    <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', padding: '1.5rem', marginBottom: '1.5rem', marginTop: '1.5rem' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             {event?.date && (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-secondary)' }}>

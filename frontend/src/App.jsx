@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { App as CapacitorApp } from '@capacitor/app';
 import { AuthProvider } from './context/AuthContext';
@@ -6,26 +6,34 @@ import { AppProvider } from './context/AppContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 import pushNotificationService from './services/PushNotificationService';
 
-// Pages
-import Landing from './pages/Landing';
+// Eagerly loaded: the first screens a user hits on cold start.
 import Login from './pages/Login';
-import Signup from './pages/Signup';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
 import ManagerDashboard from './pages/ManagerDashboard';
-import EventDetailsTabs from './pages/EventDetailsTabs';
-import GuestEventView from './pages/GuestEventView';
-import Scanner from './pages/Scanner';
-import RSVP from './pages/RSVP';
-import PublicInvitation from './pages/PublicInvitation';
-import EventWall from './pages/EventWall';
-import Profile from './pages/Profile';
-import NotificationList from './pages/NotificationList';
-import MyContacts from './pages/MyContacts';
-import AdminDashboard from './pages/AdminDashboard';
-import PaywallPage from './pages/PaywallPage';
+
+// Everything else is code-split so it isn't shipped in the initial bundle.
+const Landing = lazy(() => import('./pages/Landing'));
+const Signup = lazy(() => import('./pages/Signup'));
+const EventDetailsTabs = lazy(() => import('./pages/EventDetailsTabs'));
+const GuestEventView = lazy(() => import('./pages/GuestEventView'));
+const Scanner = lazy(() => import('./pages/Scanner'));
+const RSVP = lazy(() => import('./pages/RSVP'));
+const PublicInvitation = lazy(() => import('./pages/PublicInvitation'));
+const EventWall = lazy(() => import('./pages/EventWall'));
+const Profile = lazy(() => import('./pages/Profile'));
+const NotificationList = lazy(() => import('./pages/NotificationList'));
+const MyContacts = lazy(() => import('./pages/MyContacts'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const PaywallPage = lazy(() => import('./pages/PaywallPage'));
+
+// Full-screen fallback while a route chunk downloads.
+const RouteLoading = () => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', color: '#8b5cf6' }}>
+        Loading…
+    </div>
+);
 
 import { handleAppBackButton } from './hooks/useBackButton';
 
@@ -126,18 +134,18 @@ function App() {
     }, []);
 
     return (
+        <ErrorBoundary>
         <AuthProvider>
             <ThemeProvider>
                 <AppProvider>
                     <BrowserRouter>
                         <BackButtonHandler />
                         <DeepLinkHandler />
+                        <Suspense fallback={<RouteLoading />}>
                         <Routes>
                             {/* Public routes */}
                             <Route path="/login" element={<Login />} />
                             <Route path="/signup" element={<Signup />} />
-                            <Route path="/forgot-password" element={<ForgotPassword />} />
-                            <Route path="/reset-password" element={<ResetPassword />} />
                             <Route path="/rsvp/:eventId/:guestId" element={<RSVP />} />
                             <Route path="/invite/:id" element={<PublicInvitation />} />
 
@@ -215,10 +223,12 @@ function App() {
                                 </ProtectedRoute>
                             } />
                         </Routes>
+                        </Suspense>
                     </BrowserRouter>
                 </AppProvider>
             </ThemeProvider>
         </AuthProvider>
+        </ErrorBoundary>
     );
 }
 
