@@ -3,12 +3,12 @@ import { useAuth } from '../context/AuthContext';
 import Header from './Header';
 import BottomNavigation from './BottomNavigation';
 import AIAssistantWidget from './AIAssistantWidget';
+import { FEATURES } from '../config/features';
 
 const Layout = ({ children }) => {
     const { user } = useAuth();
 
-    // Feature toggle for AI Helper Tool
-    const ENABLE_AI_HELPER = true;
+    const ENABLE_AI_HELPER = FEATURES.AI_ASSISTANT;
 
     return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>

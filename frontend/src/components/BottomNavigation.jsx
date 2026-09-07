@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, ScanLine, Bell, Users } from 'lucide-react';
 import pushNotificationService from '../services/PushNotificationService';
 import './BottomNavigation.css';
+import { FEATURES } from '../config/features';
 
 const BottomNavigation = () => {
     const navigate = useNavigate();
@@ -11,6 +12,7 @@ const BottomNavigation = () => {
 
     // Fetch unread notification count
     React.useEffect(() => {
+        if (!FEATURES.NOTIFICATIONS) return;
         const fetchUnreadCount = async () => {
             const token = localStorage.getItem('token');
             if (token) {
@@ -47,7 +49,7 @@ const BottomNavigation = () => {
             path: '/contacts',
             isActive: location.pathname === '/contacts'
         },
-        {
+        FEATURES.NOTIFICATIONS && {
             id: 'notifications',
             label: 'Notifications',
             icon: Bell,
@@ -55,7 +57,7 @@ const BottomNavigation = () => {
             isActive: location.pathname === '/notifications',
             badge: unreadCount
         }
-    ];
+    ].filter(Boolean);
 
     const handleNavigation = (path) => {
         navigate(path);

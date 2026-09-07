@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import TabNavigation from '../components/TabNavigation';
 import OverviewTab from '../components/tabs/OverviewTab';
 import { LayoutDashboard, Users, MessageCircle, ArrowLeft, Trash2, Calendar, Image as ImageIcon, ClipboardList, DollarSign, ScanLine } from 'lucide-react';
+import { FEATURES } from '../config/features';
 
 import './EventDetails.css';
 
@@ -96,16 +97,18 @@ const EventDetailsTabs = () => {
         }
     };
 
-    const isSharedEvent = event.event_type === 'shared';
+    // Shared/trip events are gated off for the core-loop market test.
+    const isSharedEvent = FEATURES.SHARED_EVENTS && event.event_type === 'shared';
 
-    // Tabs for Host Events (Birthday, Wedding, Party)
+    // Tabs for Host Events (Birthday, Wedding, Party). Overview + Guests are
+    // the core loop; everything else only appears when its flag is on.
     const hostEventTabs = [
         { id: 'overview', label: 'Overview', icon: LayoutDashboard },
         { id: 'guests', label: 'Guests', icon: Users, badge: event.guests?.length || 0 },
-        { id: 'planning', label: 'Planning', icon: ClipboardList, badge: null },
-        { id: 'gallery', label: 'Gallery', icon: ImageIcon, badge: null },
-        { id: 'messages', label: 'Messages', icon: MessageCircle, badge: null }
-    ];
+        FEATURES.PLANNING_TAB && { id: 'planning', label: 'Planning', icon: ClipboardList, badge: null },
+        FEATURES.GALLERY_TAB && { id: 'gallery', label: 'Gallery', icon: ImageIcon, badge: null },
+        FEATURES.MESSAGES_TAB && { id: 'messages', label: 'Messages', icon: MessageCircle, badge: null }
+    ].filter(Boolean);
 
     // Tabs for Shared Events (Trip, Outing, Group Activity)
     const sharedEventTabs = [
@@ -158,12 +161,14 @@ const EventDetailsTabs = () => {
                             <ScanLine size={16} strokeWidth={2.5} /> Check In
                         </button>
                     )}
-                    <Link
-                        to={`/event/${id}/wall`}
-                        className="btn-wall"
-                    >
-                        <MessageCircle size={16} strokeWidth={2.5} /> Wall
-                    </Link>
+                    {FEATURES.EVENT_WALL && (
+                        <Link
+                            to={`/event/${id}/wall`}
+                            className="btn-wall"
+                        >
+                            <MessageCircle size={16} strokeWidth={2.5} /> Wall
+                        </Link>
+                    )}
                     <button
                         onClick={() => setShowDeleteEventConfirm(true)}
                         id="delete-event-button"

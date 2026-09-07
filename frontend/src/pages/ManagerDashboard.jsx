@@ -6,6 +6,7 @@ import { Plus, Trash2, Calendar, ChevronRight, MapPin, Users, Sparkles, CheckCir
 import confetti from 'canvas-confetti';
 import RateAppService from '../services/RateAppService';
 import UpgradeModal from '../components/UpgradeModal';
+import { FEATURES } from '../config/features';
 import { countries } from '../utils/currencyUtils';
 import LocationAutocomplete from '../components/common/LocationAutocomplete';
 import DashboardTour from '../components/tours/DashboardTour';
@@ -34,7 +35,7 @@ const ManagerDashboard = () => {
         // Use backend count if available, otherwise fallback to local length
         const currentCount = user?.event_count !== undefined ? user.event_count : events.length;
 
-        if (isFree && currentCount >= 3) {
+        if (FEATURES.PRO_UPSELL && isFree && currentCount >= 3) {
             setUpgradeTriggerReason('You have reached the limit of 3 events on the Free plan. Please upgrade to Pro to create unlimited events.');
             setShowUpgradeModal(true);
             return;
@@ -214,6 +215,7 @@ const ManagerDashboard = () => {
                                     </div>
                                 </div>
 
+                                {FEATURES.SHARED_EVENTS && (
                                 <div className="create-event-section">
                                     <label className="create-event-label">Type</label>
                                     <div className="create-event-type-scroll">
@@ -233,6 +235,7 @@ const ManagerDashboard = () => {
                                         </div>
                                     </div>
                                 </div>
+                                )}
 
                                 <div className="create-event-section">
                                     <label className="create-event-label">Details</label>

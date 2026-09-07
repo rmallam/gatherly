@@ -1385,17 +1385,21 @@ app.post('/api/events', authMiddleware, async (req, res) => {
         const userTier = userResult.rows[0]?.subscription_tier || 'free';
         const userName = userResult.rows[0]?.name;
 
-        if (userTier === 'free' && eventTypeValue === 'host') {
+        // Free-plan event cap. Configurable via FREE_EVENT_LIMIT; 0 / unset
+        // disables it (the default during the core-loop market test, so repeat
+        // hosts aren't paywalled while we learn whether they come back).
+        const freeEventLimit = parseInt(process.env.FREE_EVENT_LIMIT || '0', 10);
+        if (freeEventLimit > 0 && userTier === 'free' && eventTypeValue === 'host') {
             // Count only 'host' events for the limit
             const countResult = await query("SELECT COUNT(*) FROM events WHERE user_id = $1 AND event_type = 'host'", [req.user.id]);
             const currentCount = parseInt(countResult.rows[0].count);
 
-            if (currentCount >= 3) {
+            if (currentCount >= freeEventLimit) {
                 return res.status(403).json({
                     error: 'Free limit reached',
                     code: 'LIMIT_REACHED',
-                    limit: 3,
-                    message: 'You have reached the limit of 3 hosted events on the Free plan. Delete an old event or upgrade to Pro to create more.'
+                    limit: freeEventLimit,
+                    message: `You have reached the limit of ${freeEventLimit} hosted events on the Free plan. Delete an old event or upgrade to Pro to create more.`
                 });
             }
         }

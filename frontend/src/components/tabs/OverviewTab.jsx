@@ -8,6 +8,7 @@ import AIBudgetOptimizer from '../ai/AIBudgetOptimizer';
 import CategoryTourWrapper from '../tours/CategoryTourWrapper';
 import { formatCurrency } from '../../utils/currencyUtils';
 import '../../pages/EventTabs.css';
+import { FEATURES } from '../../config/features';
 
 const OverviewTab = ({ event, onTabChange }) => {
     const { API_URL } = useApp();
@@ -29,7 +30,7 @@ const OverviewTab = ({ event, onTabChange }) => {
 
     if (!event) return null;
 
-    const isSharedEvent = event.event_type === 'shared';
+    const isSharedEvent = FEATURES.SHARED_EVENTS && event.event_type === 'shared';
 
     // Shared Event Overview (Trip-focused)
     if (isSharedEvent) {
@@ -343,7 +344,7 @@ const OverviewTab = ({ event, onTabChange }) => {
             </div>
 
             {/* Quick Actions Row */}
-            <div className="tab-stats-grid tour-quick-actions" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 24 }}>
+            <div className="tab-stats-grid tour-quick-actions" style={{ gridTemplateColumns: `repeat(${FEATURES.PLANNING_TAB ? 3 : 2}, 1fr)`, marginBottom: 24 }}>
                 <div className="stats-card" onClick={() => navigate('/scanner')} style={{ cursor: 'pointer', padding: 12 }}>
                     <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
                         <Users size={20} />
@@ -356,16 +357,18 @@ const OverviewTab = ({ event, onTabChange }) => {
                     </div>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Guest List</span>
                 </div>
+                {FEATURES.PLANNING_TAB && (
                 <div className="stats-card" onClick={() => onTabChange && onTabChange('budget')} style={{ cursor: 'pointer', padding: 12 }}>
                     <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
                         <DollarSign size={20} />
                     </div>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Budget</span>
                 </div>
+                )}
             </div>
 
             {/* AI Budget Optimizer */}
-            {!isSharedEvent && (
+            {FEATURES.AI_ASSISTANT && !isSharedEvent && (
                 <div style={{ marginBottom: 24 }}>
                     <button
                         onClick={() => setShowAIOptimizer(!showAIOptimizer)}
