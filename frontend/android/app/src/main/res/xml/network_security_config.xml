@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cleartext HTTP is permitted ONLY to the Android emulator's host loopback
+  (10.0.2.2) so debug builds can reach a backend running on the dev machine.
+  base-config keeps the secure default: production traffic stays HTTPS-only.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>
