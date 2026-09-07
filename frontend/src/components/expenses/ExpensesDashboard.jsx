@@ -204,16 +204,18 @@ const ExpensesDashboard = ({ eventId, event }) => {
                     currentUserId={userId}
                     participants={(() => {
                         const owner = {
-                            id: event.user_id,
-                            name: event.user_name || 'Event Owner',
+                            id: event?.user_id,
+                            name: event?.user_name || 'Event Owner',
                             isOwner: true
                         };
-                        const guests = (event.guests || []).map(g => ({
-                            id: g.user_id || g.id,
-                            name: g.name,
-                            email: g.email,
-                            phone: g.phone
-                        }));
+                        const guests = (event?.guests || [])
+                            .filter(Boolean)
+                            .map(g => ({
+                                id: g.user_id || g.id,
+                                name: g.name,
+                                email: g.email,
+                                phone: g.phone
+                            }));
                         return [owner, ...guests];
                     })()}
                     onClose={() => setSelectedExpense(null)}

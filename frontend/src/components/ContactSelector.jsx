@@ -74,21 +74,28 @@ const ContactSelector = ({ isOpen, onClose, onSelectContacts, event }) => {
     const isAlreadyGuest = useMemo(() => {
         const existingGuests = event?.guests || [];
         return (contact) => {
+            if (!contact) return false;
             return existingGuests.some(guest =>
-                (guest.phone && contact.phone && guest.phone === contact.phone) ||
-                (guest.name.toLowerCase() === contact.name.toLowerCase())
+                guest && (
+                    (guest.phone && contact.phone && guest.phone === contact.phone) ||
+                    (guest.name && contact.name && guest.name.toLowerCase() === contact.name.toLowerCase())
+                )
             );
         };
     }, [event]);
 
-    const filteredContacts = contacts.filter(contact =>
-        contact.name.toLowerCase().includes(search.toLowerCase()) ||
-        contact.phone.includes(search)
-    );
+    const filteredContacts = (contacts || [])
+        .filter(Boolean)
+        .filter(contact =>
+            ((contact.name || '').toLowerCase().includes(search.toLowerCase())) ||
+            ((contact.phone || '').includes(search))
+        );
 
-    const filteredGroups = groups.filter(group =>
-        group.name.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredGroups = (groups || [])
+        .filter(Boolean)
+        .filter(group =>
+            (group.name || '').toLowerCase().includes(search.toLowerCase())
+        );
 
     const toggleSelect = (contactId) => {
         const newSelected = new Set(selectedIds);
@@ -118,7 +125,7 @@ const ContactSelector = ({ isOpen, onClose, onSelectContacts, event }) => {
         let selectedContacts = [];
 
         if (activeTab === 'contacts') {
-            selectedContacts = contacts.filter(c => selectedIds.has(c.id));
+            selectedContacts = (contacts || []).filter(c => c && selectedIds.has(c.id));
         } else {
             // Collect all contacts from selected groups
             const allGroupContacts = [];
@@ -130,7 +137,8 @@ const ContactSelector = ({ isOpen, onClose, onSelectContacts, event }) => {
             // Deduplicate by phone/name
             const seen = new Set();
             selectedContacts = allGroupContacts.filter(contact => {
-                const key = contact.phone || contact.name.toLowerCase();
+                if (!contact) return false;
+                const key = contact.phone || (contact.name || '').toLowerCase();
                 if (seen.has(key)) return false;
                 seen.add(key);
                 return true;
@@ -156,7 +164,8 @@ const ContactSelector = ({ isOpen, onClose, onSelectContacts, event }) => {
             }
             const seen = new Set();
             return allContacts.filter(contact => {
-                const key = contact.phone || contact.name.toLowerCase();
+                if (!contact) return false;
+                const key = contact.phone || (contact.name || '').toLowerCase();
                 if (seen.has(key)) return false;
                 seen.add(key);
                 return true;

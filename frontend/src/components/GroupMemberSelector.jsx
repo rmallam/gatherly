@@ -23,9 +23,10 @@ const GroupMemberSelector = ({ group, onClose }) => {
 
             if (response.ok) {
                 const data = await response.json();
-                setMembers(data);
+                const safeData = (data || []).filter(Boolean);
+                setMembers(safeData);
                 // Pre-select current members
-                const memberIds = new Set(data.map(m => m.id));
+                const memberIds = new Set(safeData.map(m => m.id));
                 setSelectedContacts(memberIds);
             }
         } catch (error) {
@@ -50,7 +51,7 @@ const GroupMemberSelector = ({ group, onClose }) => {
             const token = localStorage.getItem('token');
 
             // Get current member IDs
-            const currentMemberIds = new Set(members.map(m => m.id));
+            const currentMemberIds = new Set((members || []).filter(m => m && m.id).map(m => m.id));
 
             // Find contacts to add (selected but not in members)
             const toAdd = Array.from(selectedContacts).filter(id => !currentMemberIds.has(id));
@@ -85,11 +86,13 @@ const GroupMemberSelector = ({ group, onClose }) => {
         }
     };
 
-    const filteredContacts = contacts.filter(contact =>
-        contact.name.toLowerCase().includes(search.toLowerCase()) ||
-        (contact.phone && contact.phone.includes(search)) ||
-        (contact.email && contact.email.toLowerCase().includes(search.toLowerCase()))
-    );
+    const filteredContacts = (contacts || [])
+        .filter(Boolean)
+        .filter(contact =>
+            ((contact.name || '').toLowerCase().includes(search.toLowerCase())) ||
+            (contact.phone && contact.phone.includes(search)) ||
+            (contact.email && contact.email.toLowerCase().includes(search.toLowerCase()))
+        );
 
     return (
         <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.75)' }} onClick={onClose}>

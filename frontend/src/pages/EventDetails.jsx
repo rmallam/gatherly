@@ -71,8 +71,8 @@ const EventDetails = () => {
         }
 
         // Check for duplicates
-        const isDuplicate = event.guests.some(g =>
-            g.name.toLowerCase() === newGuest.name.trim().toLowerCase() &&
+        const isDuplicate = (event.guests || []).filter(Boolean).some(g =>
+            g.name && g.name.toLowerCase() === newGuest.name.trim().toLowerCase() &&
             (!newGuest.phone || g.phone === newGuest.phone)
         );
 
@@ -118,9 +118,9 @@ const EventDetails = () => {
     const handleSelectContacts = async (selectedContacts, shouldInvite = false) => {
         // Filter out duplicates before adding
         const uniqueContacts = selectedContacts.filter(contact => {
-            const isDuplicate = event.guests.some(g =>
-                (g.name.toLowerCase() === contact.name.toLowerCase()) ||
-                (contact.phone && g.phone === contact.phone)
+            const isDuplicate = (event.guests || []).filter(Boolean).some(g =>
+                (g.name && contact.name && g.name.toLowerCase() === contact.name.toLowerCase()) ||
+                (contact.phone && g.phone && g.phone === contact.phone)
             );
             return !isDuplicate;
         });
@@ -211,7 +211,7 @@ const EventDetails = () => {
                 // 1. Force download the image
                 const link = document.createElement('a');
                 link.href = customInviteText;
-                link.download = `invite-${guest.name.replace(/\s+/g, '-')}.png`;
+                link.download = `invite-${(guest.name || 'guest').replace(/\s+/g, '-')}.png`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -257,7 +257,7 @@ const EventDetails = () => {
             const baseText = customInviteText ? customInviteText : `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}`;
             const inviteText = `${baseText}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.hosteze.app\nApp Store: https://apps.apple.com/app/hosteze`;
 
-            const cleanPhone = guest.phone.replace(/\D/g, '');
+            const cleanPhone = (guest.phone || '').replace(/\D/g, '');
             const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(inviteText)}`;
 
             window.open(whatsappUrl, '_blank');
@@ -298,7 +298,7 @@ const EventDetails = () => {
                 const baseText = customInviteText ? customInviteText : `You're invited to ${event.title}!\n\nEvent Details:\n${event.venue?.name ? `Venue: ${event.venue.name}${event.venue.address ? `, ${event.venue.address}` : ''}\n` : event.location ? `Location: ${event.location}\n` : ''}${event.date ? `Date: ${new Date(event.date).toLocaleDateString()}\n` : ''}${event.time ? `Time: ${event.time}\n` : ''}`;
                 const inviteText = `${baseText}\n\n👇 Click for your Entry Ticket & RSVP:\n${guestQRUrl}\n\n📱 Download the HostEze app:\nPlay Store: https://play.google.com/store/apps/details?id=com.hosteze.app\nApp Store: https://apps.apple.com/app/hosteze`;
 
-                const cleanPhone = guest.phone.replace(/\D/g, '');
+                const cleanPhone = (guest.phone || '').replace(/\D/g, '');
                 const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(inviteText)}`;
 
                 window.open(whatsappUrl, '_blank');
@@ -423,7 +423,7 @@ const EventDetails = () => {
         }
 
         try {
-            downloadCSV(event.guests, `${event.title.replace(/\s+/g, '_')}_guests.csv`);
+            downloadCSV(event.guests, `${(event.title || 'event').replace(/\s+/g, '_')}_guests.csv`);
             setShowAddGuestModal(false);
             alert('Guest list exported successfully!');
         } catch (error) {
@@ -432,10 +432,18 @@ const EventDetails = () => {
         }
     };
 
-    const filteredGuests = event.guests?.filter(g =>
-        g.name.toLowerCase().includes(search.toLowerCase()) ||
-        (g.phone && g.phone.includes(search)) // Add check for g.phone existence
-    ).sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt)) || [];
+    const filteredGuests = (event.guests || [])
+        .filter(g => g && typeof g === 'object')
+        .filter(g => {
+            const nameMatch = g.name ? g.name.toLowerCase().includes(search.toLowerCase()) : false;
+            const phoneMatch = g.phone ? g.phone.includes(search) : false;
+            return nameMatch || phoneMatch;
+        })
+        .sort((a, b) => {
+            const dateA = a.addedAt ? new Date(a.addedAt) : new Date(0);
+            const dateB = b.addedAt ? new Date(b.addedAt) : new Date(0);
+            return dateB - dateA;
+        });
 
     const totalGuests = event.guests?.length || 0;
     const checkedInGuests = event.guests?.filter(g => g.attended).length || 0;

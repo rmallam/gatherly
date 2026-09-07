@@ -23,8 +23,10 @@ export const useBackButton = (handler, isActive = true) => {
     useEffect(() => {
         if (!isActive) return;
 
-        // Push a hash to history so iOS swipe back has something to pop
-        window.history.pushState({ modalOpen: true }, '', window.location.pathname + window.location.search + '#modal');
+        // Only push hash if we don't already have a #modal hash
+        if (window.location.hash !== '#modal') {
+            window.history.pushState({ modalOpen: true }, '', window.location.pathname + window.location.search + '#modal');
+        }
 
         const handlePopState = () => {
             // This fires when the user swipes back or presses browser back
@@ -41,10 +43,14 @@ export const useBackButton = (handler, isActive = true) => {
             }
             window.removeEventListener('popstate', handlePopState);
             
-            // If the modal was closed programmatically (not by swipe back),
+            // If this was the last active modal closed programmatically,
             // clean up the history stack.
             if (window.location.hash === '#modal') {
-                window.history.back();
+                setTimeout(() => {
+                    if (handlers.length === 0 && window.location.hash === '#modal') {
+                        window.history.back();
+                    }
+                }, 0);
             }
         };
     }, [isActive]); // Only re-run if isActive changes

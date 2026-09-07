@@ -170,17 +170,19 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
     };
 
     const participants = React.useMemo(() => {
-        if (event.event_type === 'shared') {
-            const eventOwner = {
-                id: event.user_id,
-                name: event.user_name || 'Event Owner',
-                email: null,
-                phone: null,
-                isRegistered: true,
-                isOwner: true
-            };
+        if (!event) return [];
+        const eventOwner = {
+            id: event.user_id,
+            name: event.user_name || 'Event Owner',
+            email: null,
+            phone: null,
+            isRegistered: true,
+            isOwner: true
+        };
 
-            const guestParticipants = (event.guests || []).map(g => ({
+        const guestParticipants = (event.guests || [])
+            .filter(Boolean)
+            .map(g => ({
                 id: g.user_id || g.id,
                 name: g.name,
                 email: g.email,
@@ -189,36 +191,11 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                 isOwner: false
             }));
 
-            const allParticipants = [eventOwner, ...guestParticipants];
+        const allParticipants = [eventOwner, ...guestParticipants];
 
-            return allParticipants.filter((p, index, self) => {
-                return index === self.findIndex(t => t.id === p.id);
-            });
-        } else {
-            const eventOwner = {
-                id: event.user_id,
-                name: event.user_name || 'Event Owner',
-                email: null,
-                phone: null,
-                isRegistered: true,
-                isOwner: true
-            };
-
-            const guestParticipants = (event.guests || []).map(g => ({
-                id: g.user_id || g.id,
-                name: g.name,
-                email: g.email,
-                phone: g.phone,
-                isRegistered: !!g.user_id,
-                isOwner: false
-            }));
-
-            const allParticipants = [eventOwner, ...guestParticipants];
-
-            return allParticipants.filter((p, index, self) => {
-                return index === self.findIndex(t => t.id === p.id);
-            });
-        }
+        return allParticipants.filter((p, index, self) => {
+            return p && index === self.findIndex(t => t && t.id === p.id);
+        });
     }, [event]);
 
     React.useEffect(() => {
@@ -360,7 +337,7 @@ const AddExpenseModal = ({ eventId, event, onClose, onExpenseAdded, initialData 
                 <div className="with-badge-container">
                     With you and: 
                     <div className="with-badge" onClick={() => setShowSplitDetails(!showSplitDetails)}>
-                        <Users size={16} /> All of {event.event_name || 'Event'}
+                        <Users size={16} /> All of {event?.event_name || 'Event'}
                     </div>
                 </div>
 

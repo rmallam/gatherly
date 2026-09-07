@@ -47,3 +47,15 @@
 # Keep source file and line numbers for better crash reports
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
+
+# Keep OneSignal Native Classes
+-keep class com.onesignal.** { *; }
+-dontwarn com.onesignal.**
+
+# Keep RevenueCat Purchases SDK
+-keep class com.revenuecat.purchases.** { *; }
+-dontwarn com.revenuecat.purchases.**
+
+# Keep Biometric Authentication plugin classes
+-keep class com.capgo.cordova.biometric.** { *; }
+-dontwarn com.capgo.cordova.biometric.**

@@ -18,13 +18,15 @@ const ContactPicker = ({ onImport, onClose }) => {
 
     useEffect(() => {
         if (search) {
-            const filtered = contacts.filter(c =>
-                c.name?.toLowerCase().includes(search.toLowerCase()) ||
-                c.phoneNumbers?.some(p => p.number?.includes(search))
-            );
+            const filtered = (contacts || [])
+                .filter(Boolean)
+                .filter(c =>
+                    (c.name || '').toLowerCase().includes(search.toLowerCase()) ||
+                    (c.phoneNumbers || []).some(p => p && p.number && p.number.includes(search))
+                );
             setFilteredContacts(filtered);
         } else {
-            setFilteredContacts(contacts);
+            setFilteredContacts(contacts || []);
         }
     }, [search, contacts]);
 
@@ -86,15 +88,15 @@ const ContactPicker = ({ onImport, onClose }) => {
             console.log('Contacts loaded:', result.contacts?.length || 0);
 
             // Transform contacts to our format
-            const formattedContacts = result.contacts
-                .filter(c => c.name?.display)
+            const formattedContacts = (result.contacts || [])
+                .filter(c => c && c.name?.display)
                 .map(c => ({
                     id: c.contactId,
                     name: c.name.display,
                     phoneNumbers: c.phones || [],
                     primaryPhone: c.phones?.[0]?.number || ''
                 }))
-                .sort((a, b) => a.name.localeCompare(b.name));
+                .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
             setContacts(formattedContacts);
             setFilteredContacts(formattedContacts);
@@ -131,7 +133,7 @@ const ContactPicker = ({ onImport, onClose }) => {
     };
 
     return (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.5)' }} onClick={onClose}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0, 0, 0, 0.5)' }} onClick={onClose}>
             <div className="card" style={{ maxWidth: '40rem', width: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>

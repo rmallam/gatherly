@@ -14,11 +14,13 @@ const MyContacts = () => {
     const [formData, setFormData] = useState({ name: '', phone: '', email: '', notes: '' });
     const [showContactPicker, setShowContactPicker] = useState(false);
 
-    const filteredContacts = contacts.filter(contact =>
-        contact.name.toLowerCase().includes(search.toLowerCase()) ||
-        (contact.phone && contact.phone.includes(search)) ||
-        (contact.email && contact.email.toLowerCase().includes(search.toLowerCase()))
-    );
+    const filteredContacts = (contacts || [])
+        .filter(Boolean)
+        .filter(contact =>
+            ((contact.name || '').toLowerCase().includes(search.toLowerCase())) ||
+            (contact.phone && contact.phone.includes(search)) ||
+            (contact.email && contact.email.toLowerCase().includes(search.toLowerCase()))
+        );
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -100,7 +102,7 @@ const MyContacts = () => {
             <div className="dashboard-header">
                 <div className="dashboard-title-group">
                     <h1>My Contacts</h1>
-                    <p>{contacts.length} saved contact{contacts.length !== 1 ? 's' : ''}</p>
+                    <p>{(contacts || []).length} saved contact{(contacts || []).length !== 1 ? 's' : ''}</p>
                 </div>
                 <div className="dashboard-header-actions">
                     <button

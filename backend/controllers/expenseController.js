@@ -5,7 +5,7 @@ import { query } from '../db/connection.js';
  */
 export const createExpense = async (req, res) => {
     const { eventId } = req.params;
-    const { amount, currency, description, category, paidBy, receiptUrl, expenseDate, splits } = req.body;
+    const { amount, currency, description, category, paidBy, receiptUrl, expenseDate, splits, splitType, lineItems } = req.body;
     const userId = req.user.id;
 
     console.log('Create expense request:', {
@@ -67,8 +67,8 @@ export const createExpense = async (req, res) => {
         try {
             // Create expense
             const expenseResult = await query(
-                `INSERT INTO event_expenses (event_id, amount, currency, description, category, paid_by, receipt_url, expense_date)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                `INSERT INTO event_expenses (event_id, amount, currency, description, category, paid_by, receipt_url, expense_date, split_type, line_items)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                  RETURNING *`,
                 [
                     eventId,
@@ -78,7 +78,9 @@ export const createExpense = async (req, res) => {
                     category || 'other',
                     paidBy,
                     receiptUrl || null,
-                    expenseDate || new Date()
+                    expenseDate || new Date(),
+                    splitType || 'equal',
+                    lineItems ? JSON.stringify(lineItems) : null
                 ]
             );
 
@@ -145,6 +147,8 @@ export const getExpenses = async (req, res) => {
         // Build query with filters
         let queryText = `
             SELECT e.*, 
+                   e.split_type as "splitType",
+                   e.line_items as "lineItems",
                    u.name as paid_by_name,
                    u.email as paid_by_email,
                    json_agg(
@@ -238,7 +242,7 @@ export const getExpense = async (req, res) => {
  */
 export const updateExpense = async (req, res) => {
     const { eventId, expenseId } = req.params;
-    const { amount, currency, description, category, receiptUrl, expenseDate, splits } = req.body;
+    const { amount, currency, description, category, receiptUrl, expenseDate, splits, splitType, lineItems } = req.body;
     const userId = req.user.id;
 
     try {
@@ -300,6 +304,16 @@ export const updateExpense = async (req, res) => {
                 paramCount++;
                 updateFields.push(`expense_date = $${paramCount}`);
                 updateParams.push(expenseDate);
+            }
+            if (splitType !== undefined) {
+                paramCount++;
+                updateFields.push(`split_type = $${paramCount}`);
+                updateParams.push(splitType);
+            }
+            if (lineItems !== undefined) {
+                paramCount++;
+                updateFields.push(`line_items = $${paramCount}`);
+                updateParams.push(lineItems ? JSON.stringify(lineItems) : null);
             }
 
             if (updateFields.length > 0) {
@@ -574,6 +588,8 @@ export const getExpenseSummary = async (req, res) => {
 async function getExpenseWithDetails(expenseId) {
     const result = await query(
         `SELECT e.*, 
+                e.split_type as "splitType",
+                e.line_items as "lineItems",
                 u.name as paid_by_name,
                 u.email as paid_by_email,
                 json_agg(
