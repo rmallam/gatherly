@@ -44,6 +44,13 @@ repositories {
     }
 }
 
+// RevenueCat pulls in its Amazon Appstore billing module transitively. We only
+// ship on Google Play, and that module's consumer ProGuard rules inject
+// -dontoptimize, which disables R8 optimization for the entire app.
+configurations.all {
+    exclude group: 'com.revenuecat.purchases', module: 'purchases-store-amazon'
+}
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"

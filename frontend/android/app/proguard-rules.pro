@@ -59,3 +59,8 @@
 # Keep Biometric Authentication plugin classes
 -keep class com.capgo.cordova.biometric.** { *; }
 -dontwarn com.capgo.cordova.biometric.**
+
+# RevenueCat's Amazon Appstore module is excluded (see app/build.gradle). Silence
+# R8's missing-class warnings for the Amazon-only code paths we never execute.
+-dontwarn com.revenuecat.purchases.amazon.**
+-dontwarn com.amazon.**
