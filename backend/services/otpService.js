@@ -6,6 +6,28 @@ import crypto from 'crypto';
 const OTP_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const MAX_ATTEMPTS = 5;
 
+// App-store review account: a fixed one-time code for exactly ONE whitelisted
+// email, so Google/Apple reviewers can log in without access to an inbox.
+// Configured only via env (never committed); unset either var to disable.
+// No email is ever sent for this account, and it gets no special privileges.
+function reviewAccount() {
+    const email = (process.env.REVIEW_ACCOUNT_EMAIL || '').trim().toLowerCase();
+    const code = (process.env.REVIEW_ACCOUNT_OTP || '').trim();
+    return email && code ? { email, code } : null;
+}
+
+function isReviewAccount(identifier) {
+    const account = reviewAccount();
+    return !!account && String(identifier || '').trim().toLowerCase() === account.email;
+}
+
+// Constant-time comparison so the fixed code can't be probed via timing.
+function safeEqual(a, b) {
+    const ba = Buffer.from(String(a ?? ''));
+    const bb = Buffer.from(String(b ?? ''));
+    return ba.length === bb.length && crypto.timingSafeEqual(ba, bb);
+}
+
 /**
  * Generate a 6-digit numeric OTP.
  */
@@ -37,6 +59,11 @@ export function isEmailIdentifier(identifier) {
 export async function sendOTP(identifier) {
     if (!identifier) {
         throw new Error('Identifier is required');
+    }
+
+    // Review account: nothing is sent or stored — the reviewer uses the fixed code.
+    if (isReviewAccount(identifier)) {
+        return { success: true, channel: 'email', review: true };
     }
 
     const channel = isEmailIdentifier(identifier) ? 'email' : 'sms';
@@ -87,6 +114,14 @@ export async function sendOTP(identifier) {
  * @param {string} code
  */
 export async function verifyOTP(identifier, code) {
+    // Review account: accept only the configured fixed code. Brute force is
+    // still bounded by the per-IP authLimiter on the verify endpoint.
+    if (isReviewAccount(identifier)) {
+        return safeEqual(code, reviewAccount().code)
+            ? { valid: true }
+            : { valid: false, reason: 'Invalid code' };
+    }
+
     const result = await query('SELECT * FROM auth_otp_codes WHERE identifier = $1', [identifier]);
 
     if (result.rows.length === 0) {
