@@ -1,9 +1,13 @@
 import React from 'react';
 import Joyride, { STATUS } from 'react-joyride';
 import { useAuth } from '../../context/AuthContext';
+import { FEATURES } from '../../config/features';
 
 const EventDetailsTour = ({ run, onComplete }) => {
     const { hasSeenEventTour, hasSeenDashboardTour, completeEventTour } = useAuth();
+
+    // Tours are gated off in the core-loop build (after the hook, to keep hook order stable).
+    if (!FEATURES.TOURS) return null;
 
     // Only run if triggered manually OR if they haven't seen it yet
     // CRITICAL: Must wait for DashboardTour to finish first if it hasn't

@@ -22,4 +22,7 @@ export const FEATURES = {
     // Free-plan event limit + upgrade prompts. Off during the market test so
     // repeat hosts aren't paywalled while we learn whether they come back.
     PRO_UPSELL: false,
+    // In-app guided tours (react-joyride). Off: they describe features that
+    // are hidden in the core-loop build, and the shrunk app doesn't need them.
+    TOURS: false,
 };

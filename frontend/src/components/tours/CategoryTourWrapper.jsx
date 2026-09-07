@@ -1,9 +1,13 @@
 import React from 'react';
 import Joyride, { STATUS } from 'react-joyride';
 import { useAuth } from '../../context/AuthContext';
+import { FEATURES } from '../../config/features';
 
 const CategoryTourWrapper = ({ tabId, steps, run = false, onComplete = null }) => {
     const { seenTabTours, completeTabTour } = useAuth();
+
+    // Tours are gated off in the core-loop build (after the hook, to keep hook order stable).
+    if (!FEATURES.TOURS) return null;
 
     // Run this tour if either triggered manually, or if this specific tab hasn't been toured yet.
     // Ensure we actually have steps to show before deciding to run.
