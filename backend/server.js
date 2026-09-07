@@ -164,7 +164,7 @@ app.use('/api/ai', aiLimiter);
 // Protect SMS and Email integrations to prevent toll fraud
 const smsLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 10, // strict 10 messages per hour per IP to prevent spam
+    max: 100, // per hour per IP — raised from 10 so hosts sharing a venue/office Wi-Fi aren't locked out of OTP login
     message: 'Too many messages sent from this IP, please try again after an hour.',
 });
 
