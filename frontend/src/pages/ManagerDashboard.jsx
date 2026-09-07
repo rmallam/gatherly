@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Trash2, Calendar, ChevronRight, MapPin, Users, Sparkles, CheckCircle, ArrowRight, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Calendar, ChevronRight, MapPin, Users, Sparkles, CheckCircle, ArrowRight, AlertCircle, ScanLine } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import RateAppService from '../services/RateAppService';
 import UpgradeModal from '../components/UpgradeModal';
@@ -66,7 +66,9 @@ const ManagerDashboard = () => {
             return;
         }
 
-        if (!newEvent.description?.trim()) {
+        // The theme/vibe only feeds the AI Assistant — don't block event
+        // creation on it when that feature is switched off.
+        if (FEATURES.AI_ASSISTANT && !newEvent.description?.trim()) {
             setError('Please enter an event theme or vibe for the AI Assistant');
             return;
         }
@@ -324,13 +326,13 @@ const ManagerDashboard = () => {
                             </div>
                             <h2 className="onboarding-title">Welcome to HostEze 🎉</h2>
                             <p className="onboarding-description">
-                                Your all-in-one companion for perfect events. <br />
-                                Manage guests, track budgets, and split expenses seamlessly.
+                                Guest check-in made easy. <br />
+                                Invite guests, collect RSVPs, and scan them in at the door.
                             </p>
 
                             <div className="onboarding-features">
                                 <div className="feature-pill"><Users size={16} /> Guest List</div>
-                                <div className="feature-pill"><Calendar size={16} /> Scheduler</div>
+                                <div className="feature-pill"><ScanLine size={16} /> QR Check-in</div>
                                 <div className="feature-pill"><CheckCircle size={16} /> RSVPs</div>
                             </div>
 

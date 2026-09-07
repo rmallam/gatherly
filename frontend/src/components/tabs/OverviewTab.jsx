@@ -434,7 +434,8 @@ const OverviewTab = ({ event, onTabChange }) => {
                     </div>
                 </div>
 
-                {/* Pending Tasks */}
+                {/* Pending Tasks — a Planning feature, hidden when that tab is off */}
+                {FEATURES.PLANNING_TAB && (
                 <div className="stats-card" style={{ alignItems: 'flex-start', textAlign: 'left' }}>
                     <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>Pending Tasks</div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
@@ -445,6 +446,7 @@ const OverviewTab = ({ event, onTabChange }) => {
                         <div style={{ width: `${totalTasks > 0 ? ((totalTasks - pendingTasks.length) / totalTasks) * 100 : 0}%`, height: '100%', background: 'var(--warning)' }} />
                     </div>
                 </div>
+                )}
             </div>
 
             {/* List Preview (Tasks) */}

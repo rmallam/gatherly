@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { FEATURES } from '../config/features';
 import QRGenerator from '../components/QRGenerator';
 import BulkImport from '../components/BulkImport';
 import ContactPicker from '../components/ContactPicker';
@@ -479,6 +480,7 @@ const EventDetails = () => {
                     </div>
 
                     <div className="tour-add-guest-actions" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                        {FEATURES.AI_ASSISTANT && (
                         <button
                             onClick={() => setShowAiInviteModal(true)}
                             className="btn btn-secondary"
@@ -486,6 +488,7 @@ const EventDetails = () => {
                         >
                             <Wand2 size={16} /> AI Draft
                         </button>
+                        )}
                         <button
                             onClick={() => exportAllGuests(event)}
                             className="btn btn-secondary"

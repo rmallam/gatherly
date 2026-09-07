@@ -12,12 +12,33 @@ const QRScanner = ({ onScan, onError, onClose, hideHeader = false }) => {
     const scannerRef = useRef(null);
     const isRunning = useRef(false);
     const onScanRef = useRef(onScan); // Use ref to avoid re-running useEffect
+    const fileInputRef = useRef(null);
     const navigate = useNavigate();
 
     // Update ref when onScan changes
     useEffect(() => {
         onScanRef.current = onScan;
     }, [onScan]);
+
+    // Decode a QR from a chosen image (e.g. a screenshot a guest sent). Uses a
+    // separate Html5Qrcode instance so it never interferes with the live camera,
+    // then hands off to the same onScan path the camera uses.
+    const handleFileScan = async (e) => {
+        const file = e.target.files && e.target.files[0];
+        e.target.value = ''; // allow re-picking the same file
+        if (!file) return;
+        try {
+            const fileScanner = new Html5Qrcode('file-reader');
+            const decodedText = await fileScanner.scanFile(file, false);
+            fileScanner.clear();
+            const data = JSON.parse(decodedText);
+            onScanRef.current(data);
+            RateAppService.checkAndPrompt('scan');
+        } catch (err) {
+            console.warn('Could not read a QR code from that image', err);
+            window.alert('Could not read a QR code from that image. Try a clearer photo.');
+        }
+    };
 
     useEffect(() => {
         const scannerId = "reader";
@@ -227,7 +248,16 @@ const QRScanner = ({ onScan, onError, onClose, hideHeader = false }) => {
                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 40, paddingBottom: 'env(safe-area-inset-bottom)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '32px', paddingBottom: '48px' }}>
                         {/* Upload from Gallery */}
-                        <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.8)', cursor: 'pointer', background: 'none', border: 'none' }}>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileScan}
+                            style={{ display: 'none' }}
+                        />
+                        {/* Off-screen target for the file-decode Html5Qrcode instance */}
+                        <div id="file-reader" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none' }} />
+                        <button onClick={() => fileInputRef.current && fileInputRef.current.click()} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.8)', cursor: 'pointer', background: 'none', border: 'none' }}>
                             <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
                                 <Image size={24} />
                             </div>
