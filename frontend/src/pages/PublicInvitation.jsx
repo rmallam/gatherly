@@ -1,9 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { FEATURES } from '../config/features';
 import GalleryTab from '../components/tabs/GalleryTab';
 import QRGenerator from '../components/QRGenerator';
 import { Calendar, Clock, MapPin, Loader, ArrowLeft, CheckCircle, XCircle, Sparkles, Image as ImageIcon, X } from 'lucide-react';
+
+// The public event payload carries the venue in different shapes depending on
+// how the host entered it: a top-level `venue`, `data.venue` (the Venue tab),
+// or just the flat `location` string. Normalise so the address always shows.
+function getVenue(event) {
+    if (!event) return null;
+    const v = event.venue || event.data?.venue || null;
+    const name = (v?.name || '').trim();
+    const address = (v?.address || event.location || '').trim();
+    if (!name && !address) return null;
+    // If the address already begins with the name, show it once rather than
+    // "8 Halifax Ct" over "8 Halifax Ct, Point Cook…".
+    if (name && address.toLowerCase().startsWith(name.toLowerCase())) return { name: '', address };
+    return { name, address };
+}
 
 const PublicInvitation = () => {
     const { id } = useParams();
@@ -20,6 +36,7 @@ const PublicInvitation = () => {
     const [isRSVPing, setIsRSVPing] = useState(false);
     const [rsvpSuccess, setRsvpSuccess] = useState(false);
     const [showGallery, setShowGallery] = useState(false);
+    const venue = getVenue(event);
 
     useEffect(() => {
         loadEvent();
@@ -107,7 +124,8 @@ const PublicInvitation = () => {
                     )}
                 </div>
 
-                {/* Gallery Button */}
+                {/* Gallery Button — the gallery is a hidden feature in the core-loop build */}
+                {FEATURES.GALLERY_TAB && (
                 <div style={{ marginBottom: '1.5rem' }}>
                     <button
                         onClick={() => setShowGallery(true)}
@@ -131,6 +149,7 @@ const PublicInvitation = () => {
                         View Event Gallery
                     </button>
                 </div>
+                )}
 
                 {/* Gallery Modal */}
                 {showGallery && (
@@ -218,16 +237,26 @@ const PublicInvitation = () => {
                                 </div>
                             )}
 
-                            {event.venue?.name && (
+                            {venue && (
                                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                                     <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                         <MapPin size={20} style={{ color: 'var(--primary)' }} />
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '0.125rem' }}>Venue</div>
-                                        <div style={{ fontSize: '0.9375rem', fontWeight: 500, color: 'var(--text-primary)' }}>{event.venue.name}</div>
-                                        {event.venue.address && (
-                                            <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{event.venue.address}</div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '0.125rem' }}>Where</div>
+                                        {venue.name && (
+                                            <div style={{ fontSize: '0.9375rem', fontWeight: 500, color: 'var(--text-primary)' }}>{venue.name}</div>
+                                        )}
+                                        {venue.address && (
+                                            <a
+                                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.address)}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{ display: 'block', fontSize: venue.name ? '0.8125rem' : '0.9375rem', fontWeight: venue.name ? 400 : 500, color: 'var(--primary)', marginTop: venue.name ? '0.25rem' : 0, textDecoration: 'underline', textUnderlineOffset: '3px' }}
+                                            >
+                                                {venue.address}
+                                                <span style={{ display: 'inline-block', fontSize: '0.75rem', color: 'var(--text-tertiary)', marginLeft: '0.375rem' }}>Open in Maps ↗</span>
+                                            </a>
                                         )}
                                     </div>
                                 </div>
@@ -287,14 +316,10 @@ const PublicInvitation = () => {
                     {guest && (
                         <div style={{ display: 'flex', justifyContent: 'center' }}>
                             <div style={{ maxWidth: '380px', width: '100%' }}>
+                                {/* Minimal payload keeps the QR sparse so it scans reliably at the
+                                    door; the Scanner reads {e, g} (same as the /rsvp ticket). */}
                                 <QRGenerator
-                                    payload={{
-                                        eventId: event.id,
-                                        guestId: guest.id,
-                                        name: guest.name,
-                                        valid: true,
-                                        timestamp: Date.now()
-                                    }}
+                                    payload={{ e: event.id, g: guest.id }}
                                     name={guest.name}
                                     eventTitle={event.title}
                                     phoneNumber={guest.phone}
