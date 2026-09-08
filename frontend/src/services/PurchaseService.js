@@ -1,11 +1,17 @@
 import { Purchases, LOG_LEVEL } from '@revenuecat/purchases-capacitor';
 import { Capacitor } from '@capacitor/core';
+import { FEATURES } from '../config/features';
 
-// RevenueCat Public API Keys
-// In production, these should be set in .env.production
+// RevenueCat PUBLIC SDK keys come from the build environment: the CI secret
+// VITE_REVENUECAT_*_KEY, or a local .env.production (gitignored).
+//
+// The test key is ONLY ever used in dev builds. The RevenueCat SDK force-closes
+// any release build configured with a test key — that is exactly what took
+// 1.8.1 down in production. A production build with no key skips RevenueCat.
+const DEV_TEST_KEY = import.meta.env.DEV ? 'test_hCYotXJVQWhqPsGwddNQDlSiUGm' : null;
 const API_KEYS = {
-    ios: import.meta.env.VITE_REVENUECAT_IOS_KEY || 'test_hCYotXJVQWhqPsGwddNQDlSiUGm',
-    android: import.meta.env.VITE_REVENUECAT_ANDROID_KEY || 'test_hCYotXJVQWhqPsGwddNQDlSiUGm'
+    ios: import.meta.env.VITE_REVENUECAT_IOS_KEY || DEV_TEST_KEY,
+    android: import.meta.env.VITE_REVENUECAT_ANDROID_KEY || DEV_TEST_KEY
 };
 
 class PurchaseService {
@@ -18,6 +24,13 @@ class PurchaseService {
     async initialize(userId) {
         if (this.isInitialized) {
             console.log('💰 RevenueCat already initialized');
+            return;
+        }
+
+        // Purchases are hidden while PRO_UPSELL is off: don't spin up a payments
+        // SDK on the critical login path for a feature nobody can reach.
+        if (!FEATURES.PRO_UPSELL) {
+            console.log('💰 RevenueCat skipped: PRO_UPSELL is off');
             return;
         }
 
@@ -40,7 +53,13 @@ class PurchaseService {
                 if (Capacitor.getPlatform() === 'ios') apiKey = API_KEYS.ios;
                 else if (Capacitor.getPlatform() === 'android') apiKey = API_KEYS.android;
 
-                console.log('💰 Configuring Purchases with API Key:', apiKey);
+                // Never configure a release build with a missing/test key.
+                if (!apiKey) {
+                    console.warn('💰 RevenueCat skipped: no production API key in this build (set VITE_REVENUECAT_ANDROID_KEY).');
+                    return;
+                }
+
+                console.log('💰 Configuring Purchases with API key:', `${apiKey.slice(0, 5)}…`);
                 await Purchases.configure({ apiKey, appUserID: userId });
                 this.isInitialized = true;
                 console.log('💰 RevenueCat Configured Successfully');

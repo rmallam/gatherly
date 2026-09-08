@@ -44,6 +44,10 @@ jobs:
       working-directory: ./frontend
       env:
         VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+        # RevenueCat PUBLIC SDK key for Google Play. .env.production is gitignored,
+        # so without this the build used to fall back to a test key, and the
+        # RevenueCat SDK force-closes release builds that use one.
+        VITE_REVENUECAT_ANDROID_KEY: ${{ secrets.VITE_REVENUECAT_ANDROID_KEY }}
       run: npm run build
     
     - name: Sync Capacitor
