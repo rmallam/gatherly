@@ -329,8 +329,29 @@ const PublicInvitation = () => {
                     )}
                 </div>
 
+                {/* Host CTA — every guest who RSVPs sees this, so each event doubles as
+                    an acquisition channel. The referrer lets Play Console attribute installs
+                    to invite pages (Acquisition → utm_source=invite_page). */}
+                <div style={{ marginTop: '3rem', padding: '1.25rem', borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '1px solid var(--border)', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
+                        Hosting something?
+                    </div>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '0.875rem' }}>
+                        Invite guests, collect RSVPs, and check them in at the door with a QR scan — free.
+                    </div>
+                    <a
+                        href="https://play.google.com/store/apps/details?id=com.hosteze.app&referrer=utm_source%3Dinvite_page%26utm_medium%3Dguest%26utm_campaign%3Dhost_cta"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-primary"
+                        style={{ display: 'inline-flex', justifyContent: 'center', fontWeight: 600, textDecoration: 'none' }}
+                    >
+                        Get HostEze on Google Play
+                    </a>
+                </div>
+
                 {/* Footer */}
-                <div style={{ textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.75rem', marginTop: '3rem' }}>
+                <div style={{ textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.75rem', marginTop: '1.25rem' }}>
                     Powered by Host<i>Eze</i> ✨
                 </div>
             </div>
